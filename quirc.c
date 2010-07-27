@@ -575,9 +575,22 @@ int main(int argc, char *argv[])
 				}
 				else
 				{
-					// if there were any attached channels, we'd send to them
-					printf(LOCATE, height-2, 1);
-					printf(CLA ">> %s\n" CLA "\n", inp);
+					if(serverhandle && chan)
+					{
+						char pmsg[12+strlen(chan)+strlen(inp)];
+						sprintf(pmsg, "PRIVMSG %s %s", chan, inp);
+						printf(LOCATE, height-2, 1);
+						setcol(7, 0, false, true);
+						printf(CLA "<%s> %s\n" CLA "\n", nick, inp);
+						resetcol();
+					}
+					else
+					{
+						printf(LOCATE, height-2, 1);
+						setcol(1, 0, true, false);
+						printf(CLA "Can't talk - not in a channel!\n" CLA "\n");
+						resetcol();
+					}
 					free(inp);inp=NULL;
 					state=0;
 				}
