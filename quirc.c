@@ -364,10 +364,16 @@ int main(int argc, char *argv[])
 									{
 										if(strncmp(inp+sp, curr->data, ino-sp)==0)
 										{
-											if(found)
+											if(tmany)
+											{
+												buf_print(bufs, c_err, curr->data, true);
+											}
+											else if(found)
 											{
 												buf_print(bufs, c_err, "[tab] Multiple nicks match", true);
-												found=curr=NULL;tmany=true;
+												buf_print(bufs, c_err, found->data, true);
+												buf_print(bufs, c_err, curr->data, true);
+												found=NULL;tmany=true;
 											}
 											else
 												found=curr;
@@ -385,11 +391,7 @@ int main(int argc, char *argv[])
 									}
 									else if(!tmany)
 									{
-										printf(CLA "\n");
-										printf(LOCATE, height-2, 1);
-										setcolour(c_err);
-										printf(CLA "[tab] No nicks match" CLR "\n" CLA "\n");
-										resetcol();
+										buf_print(bufs, c_err, "[tab] No nicks match", true);
 									}
 								}
 							}
@@ -612,12 +614,11 @@ int main(int argc, char *argv[])
 									char *bang=strchr(src, '!');
 									if(bang)
 										*bang=0;
-									printf(CLA "\n");
-									printf(LOCATE, height-2, 1);
-									setcolour(c_join[1]);
 									if(strcmp(src, nick)==0)
 									{
-										printf(CLA "You (%s) have joined %s" CLR "\n" CLA "\n", src, dest+1);
+										char dstr[20+strlen(src)+strlen(dest+1)];
+										sprintf(dstr, "You (%s) have joined %s", src, dest+1);
+										buf_print(bufs, c_join[1], dstr, true);
 										chan=strdup(dest+1);
 										join=true;
 										char cstr[16+strlen(chan)+strlen(server)];
@@ -632,7 +633,9 @@ int main(int argc, char *argv[])
 											src[maxnlen-1]=src[strlen(src)-1];
 											src[maxnlen]=0;
 										}
-										printf(CLA "=%s= has joined %s" CLR "\n" CLA "\n", src, dest+1);
+										char dstr[16+strlen(src)+strlen(dest+1)];
+										sprintf(dstr, "=%s= has joined %s", src, dest+1);
+										buf_print(bufs, c_join[1], dstr, true);
 										name *new=(name *)malloc(sizeof(name));
 										new->data=strdup(src);
 										new->prev=NULL;
@@ -650,12 +653,11 @@ int main(int argc, char *argv[])
 									char *bang=strchr(src, '!');
 									if(bang)
 										*bang=0;
-									printf(CLA "\n");
-									printf(LOCATE, height-2, 1);
-									setcolour(c_part[1]);
 									if(strcmp(src, nick)==0)
 									{
-										printf(CLA "You (%s) have left %s" CLR "\n" CLA "\n", src, dest);
+										char dstr[20+strlen(src)+strlen(dest)];
+										sprintf(dstr, "You (%s) have left %s", src, dest);
+										buf_print(bufs, c_part[1], dstr, true);
 										chan=NULL;
 										char cstr[24+strlen(server)];
 										sprintf(cstr, "quIRC - connected to %s", server);
@@ -678,7 +680,9 @@ int main(int argc, char *argv[])
 											src[maxnlen-1]=src[strlen(src)-1];
 											src[maxnlen]=0;
 										}
-										printf(CLA "=%s= has left %s" CLR "\n" CLA "\n", src, dest);
+										char dstr[16+strlen(src)+strlen(dest)];
+										sprintf(dstr, "=%s= has left %s", src, dest);
+										buf_print(bufs, c_part[1], dstr, true);
 										name *curr=nlist;
 										while(curr)
 										{
@@ -710,12 +714,12 @@ int main(int argc, char *argv[])
 									char *bang=strchr(src, '!');
 									if(bang)
 										*bang=0;
-									printf(CLA "\n");
-									printf(LOCATE, height-2, 1);
 									setcolour(c_quit[1]);
-									if(strcmp(src, nick)==0)
+									if(strcmp(src, nick)==0) // this shouldn't happen???
 									{
-										printf(CLA "You (%s) have left %s (%s)" CLR "\n" CLA "\n", src, server, dest+1); // this shouldn't happen???
+										char dstr[24+strlen(src)+strlen(server)+strlen(dest+1)];
+										sprintf(dstr, "You (%s) have left %s (%s)", src, server, dest+1);
+										buf_print(bufs, c_quit[1], dstr, true);
 									}
 									else
 									{
@@ -725,7 +729,9 @@ int main(int argc, char *argv[])
 											src[maxnlen-1]=src[strlen(src)-1];
 											src[maxnlen]=0;
 										}
-										printf(CLA "=%s= has left %s (%s)" CLR "\n" CLA "\n", src, server, dest+1);
+										char dstr[24+strlen(src)+strlen(server)+strlen(dest+1)];
+										sprintf(dstr, "=%s= has left %s (%s)", src, server, dest+1);
+										buf_print(bufs, c_quit[1], dstr, true);
 										name *curr=nlist;
 										while(curr)
 										{
@@ -757,12 +763,12 @@ int main(int argc, char *argv[])
 									char *bang=strchr(src, '!');
 									if(bang)
 										*bang=0;
-									printf(CLA "\n");
-									printf(LOCATE, height-2, 1);
 									setcolour(c_nick[1]);
 									if(strcmp(dest+1, nick)==0)
 									{
-										printf(CLA "You (%s) are now known as %s" CLR "\n" CLA "\n", src, dest+1);
+										char dstr[30+strlen(src)+strlen(dest+1)];
+										sprintf(dstr, "You (%s) are now known as %s", src, dest+1);
+										buf_print(bufs, c_nick[1], dstr, true);
 									}
 									else
 									{
@@ -772,27 +778,27 @@ int main(int argc, char *argv[])
 											src[maxnlen-1]=src[strlen(src)-1];
 											src[maxnlen]=0;
 										}
-										printf(CLA "=%s= is now known as %s" CLR "\n" CLA "\n", src, dest+1);
-										name *curr=nlist;
-										while(curr)
+										char dstr[30+strlen(src)+strlen(dest+1)];
+										sprintf(dstr, "=%s= is now known as %s", src, dest+1);
+										buf_print(bufs, c_nick[1], dstr, true);
+									}
+									name *curr=nlist;
+									while(curr)
+									{
+										if(strcmp(curr->data, src)==0)
 										{
-											if(strcmp(curr->data, src)==0)
-											{
-												free(curr->data);
-												curr->data=strdup(dest+1);
-											}
-											curr=curr->next;
+											free(curr->data);
+											curr->data=strdup(dest+1);
 										}
+										curr=curr->next;
 									}
 									resetcol();
 								}
 								else
 								{
-									printf(CLA "\n");
-									printf(LOCATE, height-2, 1);
-									setcolour(c_unk);
-									printf(CLA "<? %s" CLR "\n" CLA "\n", pdata);
-									resetcol();
+									char dstr[5+strlen(pdata)];
+									sprintf(dstr, "<? %s", pdata);
+									buf_print(bufs, c_unk, dstr, true);
 								}
 							}
 							free(pdata);
@@ -833,10 +839,7 @@ int main(int argc, char *argv[])
 					{
 						if(serverhandle)
 						{
-							printf(LOCATE, height-2, 1);
-							setcolour(c_err);
-							printf(CLA "Already connected to a server!\n" CLA "\n");
-							resetcol();
+							buf_print(bufs, c_err, "Already connected to a server!", false);
 						}
 						else
 						{
@@ -849,16 +852,19 @@ int main(int argc, char *argv[])
 									*newport=0;
 									portno=newport+1;
 								}
-								printf(LOCATE, height-2, 1);
-								printf(CLA "Connecting to %s on port %s...\n" CLA "\n", server, portno);
+								char cstr[24+strlen(server)];
+								sprintf(cstr, "quIRC - connecting to %s", server);
+								settitle(cstr);
+								char dstr[30+strlen(server)+strlen(portno)];
+								sprintf(dstr, "Connecting to %s on port %s...", server, portno);
+								buf_print(bufs, c_status, dstr, false);
 								serverhandle=irc_connect(server, portno, nick, uname, fname, &master, &fdmax);
+								sprintf(cstr, "quIRC - connected to %s", server);
+								settitle(cstr);
 							}
 							else
 							{
-								printf(LOCATE, height-2, 1);
-								setcolour(c_err);
-								printf(CLA "Must specify a server!\n" CLA "\n");
-								resetcol();
+								buf_print(bufs, c_err, "Must specify a server!", false);
 							}
 						}
 						free(inp);inp=NULL;
@@ -868,17 +874,11 @@ int main(int argc, char *argv[])
 					{
 						if(!serverhandle)
 						{
-							printf(LOCATE, height-2, 1);
-							setcolour(c_err);
-							printf(CLA "Not connected to a server!\n" CLA "\n");
-							resetcol();
+							buf_print(bufs, c_err, "Not connected to a server!", false);
 						}
 						else if(chan)
 						{
-							printf(LOCATE, height-2, 1);
-							setcolour(c_err);
-							printf(CLA "Already in a channel (quirc can currently only handle one channel)\n" CLA "\n");
-							resetcol();
+							buf_print(bufs, c_err, "Already in a channel (quirc can currently only handle one channel)", false);
 						}
 						else if(args)
 						{
@@ -888,13 +888,11 @@ int main(int argc, char *argv[])
 							char joinmsg[8+strlen(chan)+strlen(pass)];
 							sprintf(joinmsg, "JOIN %s %s", chan, pass);
 							irc_tx(serverhandle, joinmsg);
+							buf_print(bufs, c_join[0], "Joining", false);
 						}
 						else
 						{
-							printf(LOCATE, height-2, 1);
-							setcolour(c_err);
-							printf(CLA "Must specify a channel!\n" CLA "\n");
-							resetcol();
+							buf_print(bufs, c_err, "Must specify a channel!", false);
 						}
 						free(inp);inp=NULL;
 						state=0;
@@ -903,17 +901,11 @@ int main(int argc, char *argv[])
 					{
 						if(!serverhandle)
 						{
-							printf(LOCATE, height-2, 1);
-							setcolour(c_err);
-							printf(CLA "Not connected to a server!\n" CLA "\n");
-							resetcol();
+							buf_print(bufs, c_err, "Not connected to a server!", false);
 						}
 						else if(!chan)
 						{
-							printf(LOCATE, height-2, 1);
-							setcolour(c_err);
-							printf(CLA "Not in any channels!\n" CLA "\n");
-							resetcol();
+							buf_print(bufs, c_err, "Not in any channels!", false);
 						}
 						else if(args)
 						{
@@ -922,21 +914,16 @@ int main(int argc, char *argv[])
 								char partmsg[8+strlen(chan)];
 								sprintf(partmsg, "PART %s", chan);
 								irc_tx(serverhandle, partmsg);
+								buf_print(bufs, c_part[0], "Leaving", false);
 							}
 							else
 							{
-								printf(LOCATE, height-2, 1);
-								setcolour(c_err);
-								printf(CLA "Not in that channel!\n" CLA "\n");
-								resetcol();
+								buf_print(bufs, c_err, "Not in that channel!", false);
 							}
 						}
 						else
 						{
-							printf(LOCATE, height-2, 1);
-							setcolour(c_err);
-							printf(CLA "Must specify a channel!\n" CLA "\n");
-							resetcol();
+							buf_print(bufs, c_err, "Must specify a channel!", false);
 						}
 						free(inp);inp=NULL;
 						state=0;
@@ -956,10 +943,7 @@ int main(int argc, char *argv[])
 						}
 						else
 						{
-							printf(LOCATE, height-2, 1);
-							setcolour(c_err);
-							printf(CLA "Must specify a nickname!\n" CLA "\n");
-							resetcol();
+							buf_print(bufs, c_err, "Must specify a nickname!", false);
 						}
 						free(inp);inp=NULL;
 						state=0;
@@ -968,10 +952,7 @@ int main(int argc, char *argv[])
 					{
 						if(!serverhandle)
 						{
-							printf(LOCATE, height-2, 1);
-							setcolour(c_err);
-							printf(CLA "Not connected to a server!\n" CLA "\n");
-							resetcol();
+							buf_print(bufs, c_err, "Not connected to a server!", false);
 						}
 						else if(args)
 						{
@@ -994,18 +975,12 @@ int main(int argc, char *argv[])
 							}
 							else
 							{
-								printf(LOCATE, height-2, 1);
-								setcolour(c_err);
-								printf(CLA "Must specify a message!\n" CLA "\n");
-								resetcol();
+								buf_print(bufs, c_err, "Must specify a message!", false);
 							}
 						}
 						else
 						{
-							printf(LOCATE, height-2, 1);
-							setcolour(c_err);
-							printf(CLA "Must specify a recipient!\n" CLA "\n");
-							resetcol();
+								buf_print(bufs, c_err, "Must specify a recipient!", false);
 						}
 						free(inp);inp=NULL;
 						state=0;
@@ -1014,10 +989,7 @@ int main(int argc, char *argv[])
 					{
 						if(!serverhandle)
 						{
-							printf(LOCATE, height-2, 1);
-							setcolour(c_err);
-							printf(CLA "Not connected to a server!\n" CLA "\n");
-							resetcol();
+							buf_print(bufs, c_err, "Not connected to a server!", false);
 						}
 						else if(args)
 						{
@@ -1036,10 +1008,7 @@ int main(int argc, char *argv[])
 						}
 						else
 						{
-							printf(LOCATE, height-2, 1);
-							setcolour(c_err);
-							printf(CLA "Must specify an action!\n" CLA "\n");
-							resetcol();
+							buf_print(bufs, c_err, "Must specify an action!", false);
 						}
 						free(inp);inp=NULL;
 						state=0;
@@ -1048,10 +1017,7 @@ int main(int argc, char *argv[])
 					{
 						if(!serverhandle)
 						{
-							printf(LOCATE, height-2, 1);
-							setcolour(c_err);
-							printf(CLA "Not connected to a server!\n" CLA "\n");
-							resetcol();
+							buf_print(bufs, c_err, "Not connected to a server!", false);
 						}
 						else
 						{
@@ -1062,8 +1028,10 @@ int main(int argc, char *argv[])
 					}
 					else
 					{
-						printf(LOCATE, height-2, 1);
-						printf(CLA "%s: Unrecognised command!\n" CLA "\n", cmd?cmd:"");
+						if(!cmd) cmd="";
+						char dstr[30+strlen(cmd)];
+						sprintf(dstr, "%s: Unrecognised command!", cmd);
+						buf_print(bufs, c_err, dstr, false);
 						free(inp);inp=NULL;
 						state=0;
 					}
@@ -1087,10 +1055,7 @@ int main(int argc, char *argv[])
 					}
 					else
 					{
-						printf(LOCATE, height-2, 1);
-						setcolour(c_err);
-						printf(CLA "Can't talk - not in a channel!\n" CLA "\n");
-						resetcol();
+						buf_print(bufs, c_err, "Can't talk - not in a channel!", false);
 					}
 					free(inp);inp=NULL;
 					state=0;
