@@ -12,6 +12,7 @@ int init_buffer(buffer *buf, btype type, char *bname, int nlines)
 {
 	buf->type=type;
 	buf->bname=bname;
+	buf->nlist=NULL;
 	buf->nlines=nlines;
 	buf->ptr=0;
 	buf->lc=(colour *)malloc(nlines*sizeof(colour));

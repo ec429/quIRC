@@ -14,6 +14,13 @@
 #include "colour.h"
 #include "bits.h"
 
+typedef struct _name
+{
+	char *data;
+	struct _name *next, *prev;
+}
+name;
+
 typedef enum
 {
 	STATUS,
@@ -26,7 +33,8 @@ btype;
 typedef struct
 {
 	btype type;
-	char *bname;
+	char *bname; // "status" or serverloc or #channel or nick (resp. types)
+	name *nlist; // only used for channels and private
 	int nlines;
 	int ptr;
 	colour *lc;

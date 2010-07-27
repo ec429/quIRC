@@ -50,13 +50,6 @@
 
 #define USAGE_MSG "quirc [-h][-v]\n"
 
-typedef struct _name
-{
-	char *data;
-	struct _name *next, *prev;
-}
-name;
-
 int main(int argc, char *argv[])
 {
 	int buflines=100; // will make configable later
@@ -281,7 +274,6 @@ int main(int argc, char *argv[])
 	struct timeval timeout;
 	char *inp=NULL;
 	char *shsrc=NULL;char *shtext=NULL;
-	name *nlist=NULL;
 	int state=0; // odd-numbered states are fatal
 	while(!(state%2))
 	{
@@ -358,7 +350,7 @@ int main(int argc, char *argv[])
 									int sp=ino-1;
 									while(sp>0 && !strchr(" \t", inp[sp-1]))
 										sp--;
-									name *curr=nlist;
+									name *curr=bufs->nlist;
 									name *found=NULL;bool tmany=false;
 									while(curr)
 									{
@@ -480,10 +472,10 @@ int main(int argc, char *argv[])
 													name *new=(name *)malloc(sizeof(name));
 													new->data=strdup(nn);
 													new->prev=NULL;
-													new->next=nlist;
-													if(nlist)
-														nlist->prev=new;
-													nlist=new;
+													new->next=bufs->nlist;
+													if(bufs->nlist)
+														bufs->nlist->prev=new;
+													bufs->nlist=new;
 												}
 											}
 										break;
@@ -639,10 +631,10 @@ int main(int argc, char *argv[])
 										name *new=(name *)malloc(sizeof(name));
 										new->data=strdup(src);
 										new->prev=NULL;
-										new->next=nlist;
-										if(nlist)
-											nlist->prev=new;
-										nlist=new;
+										new->next=bufs->nlist;
+										if(bufs->nlist)
+											bufs->nlist->prev=new;
+										bufs->nlist=new;
 									}
 									resetcol();
 								}
@@ -662,7 +654,7 @@ int main(int argc, char *argv[])
 										char cstr[24+strlen(server)];
 										sprintf(cstr, "quIRC - connected to %s", server);
 										settitle(cstr);
-										name *curr=nlist;
+										name *curr=bufs->nlist;
 										while(curr)
 										{
 											name *next=curr->next;
@@ -670,7 +662,7 @@ int main(int argc, char *argv[])
 											free(curr);
 											curr=next;
 										}
-										nlist=NULL;
+										bufs->nlist=NULL;
 									}
 									else
 									{
@@ -683,7 +675,7 @@ int main(int argc, char *argv[])
 										char dstr[16+strlen(src)+strlen(dest)];
 										sprintf(dstr, "=%s= has left %s", src, dest);
 										buf_print(bufs, c_part[1], dstr, true);
-										name *curr=nlist;
+										name *curr=bufs->nlist;
 										while(curr)
 										{
 											name *next=curr->next;
@@ -695,7 +687,7 @@ int main(int argc, char *argv[])
 												}
 												else
 												{
-													nlist=curr->next;
+													bufs->nlist=curr->next;
 												}
 												if(curr->next)
 													curr->next->prev=curr->prev;
@@ -732,7 +724,7 @@ int main(int argc, char *argv[])
 										char dstr[24+strlen(src)+strlen(server)+strlen(dest+1)];
 										sprintf(dstr, "=%s= has left %s (%s)", src, server, dest+1);
 										buf_print(bufs, c_quit[1], dstr, true);
-										name *curr=nlist;
+										name *curr=bufs->nlist;
 										while(curr)
 										{
 											name *next=curr->next;
@@ -744,7 +736,7 @@ int main(int argc, char *argv[])
 												}
 												else
 												{
-													nlist=curr->next;
+													bufs->nlist=curr->next;
 												}
 												if(curr->next)
 													curr->next->prev=curr->prev;
@@ -782,7 +774,7 @@ int main(int argc, char *argv[])
 										sprintf(dstr, "=%s= is now known as %s", src, dest+1);
 										buf_print(bufs, c_nick[1], dstr, true);
 									}
-									name *curr=nlist;
+									name *curr=bufs->nlist;
 									while(curr)
 									{
 										if(strcmp(curr->data, src)==0)
