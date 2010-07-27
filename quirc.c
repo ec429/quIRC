@@ -358,10 +358,9 @@ int main(int argc, char *argv[])
 									printf(CLA "\n");
 									printf(LOCATE, height-2, 1);
 									setcol(4, 0, true, false);
-									if(strcmp(src, nick)==0)
+									if(strcmp(dest+1, nick)==0)
 									{
 										printf(CLA "You (%s) are now known as %s\n" CLA "\n", src, dest+1);
-										nick=strdup(dest+1);
 									}
 									else
 									{
@@ -485,6 +484,26 @@ int main(int argc, char *argv[])
 							printf(LOCATE, height-2, 1);
 							setcol(1, 0, true, false);
 							printf(CLA "Must specify a channel!\n" CLA "\n");
+							resetcol();
+						}
+						free(inp);inp=NULL;
+						state=0;
+					}
+					else if(strcmp(cmd, "nick")==0)
+					{
+						if(args)
+						{
+							char *nn=strtok(args, " ");
+							nick=strdup(nn);
+							char nmsg[8+strlen(nick)];
+							sprintf(nmsg, "NICK %s", nick);
+							irc_tx(serverhandle, nmsg);
+						}
+						else
+						{
+							printf(LOCATE, height-2, 1);
+							setcol(1, 0, true, false);
+							printf(CLA "Must specify a nickname!\n" CLA "\n");
 							resetcol();
 						}
 						free(inp);inp=NULL;
