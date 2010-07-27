@@ -40,4 +40,4 @@ buffer *bufs;
 
 int init_buffer(buffer *buf, btype type, char *bname, int nlines);
 int add_to_buffer(buffer *buf, colour lc, char *lt);
-int buf_print(buffer *buf, colour lc, char *lt); // don't include trailing \n, because buf_print appends CLR \n
+int buf_print(buffer *buf, colour lc, char *lt, bool nl); // don't include trailing \n, because buf_print appends CLR \n

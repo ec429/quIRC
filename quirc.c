@@ -269,14 +269,14 @@ int main(int argc, char *argv[])
 		sprintf(cstr, "quIRC - connecting to %s", server);
 		settitle(cstr);
 		sprintf(cstr, "Connecting to %s", server);
-		buf_print(bufs, c_status, cstr);
+		buf_print(bufs, c_status, cstr, true);
 		serverhandle=irc_connect(server, portno, nick, uname, fname, &master, &fdmax);
 		sprintf(cstr, "quIRC - connected to %s", server);
 		settitle(cstr);
 	}
 	else
 	{
-		buf_print(bufs, c_status, "Not connected - use /server to connect");
+		buf_print(bufs, c_status, "Not connected - use /server to connect", true);
 	}
 	struct timeval timeout;
 	char *inp=NULL;
@@ -366,7 +366,7 @@ int main(int argc, char *argv[])
 										{
 											if(found)
 											{
-												buf_print(bufs, c_err, "[tab] Multiple nicks match");
+												buf_print(bufs, c_err, "[tab] Multiple nicks match", true);
 												found=curr=NULL;tmany=true;
 											}
 											else
@@ -443,7 +443,7 @@ int main(int argc, char *argv[])
 						{
 							char emsg[64];
 							sprintf(emsg, "error: irc_rx(%d, &%p): %d", serverhandle, packet, e);
-							buf_print(NULL, c_err, emsg);
+							buf_print(NULL, c_err, emsg, true);
 							state=5;
 							qmsg="client crashed";
 						}
@@ -489,7 +489,7 @@ int main(int argc, char *argv[])
 											0;
 											char umsg[6+strlen(cmd+4)];
 											sprintf(umsg, "<<%d? %s", num, cmd+4);
-											buf_print(bufs, c_unn, umsg);
+											buf_print(bufs, c_unn, umsg, true);
 										break;
 									}
 								}
@@ -509,7 +509,7 @@ int main(int argc, char *argv[])
 										irc_tx(serverhandle, joinmsg);
 										char jmsg[16+strlen(chan)];
 										sprintf(jmsg, "auto-Joining %s", chan);
-										buf_print(bufs, c_join[0], jmsg);
+										buf_print(bufs, c_join[0], jmsg, true);
 										join=true;
 									}
 									// apart from using it as a trigger, we don't look at modes just yet
@@ -539,7 +539,7 @@ int main(int argc, char *argv[])
 											strcat(out, src);
 											strcat(out, " ");
 											wordline(msg+8, 3+max(maxnlen, strlen(src)), &out);
-											buf_print(bufs, c_actn[1], out);
+											buf_print(bufs, c_actn[1], out, true);
 											free(out);
 										}
 										else if(strncmp(msg, "\001FINGER", 7)==0)
@@ -562,7 +562,7 @@ int main(int argc, char *argv[])
 										out[max(maxnlen-strlen(src), 0)]=0;
 										sprintf(out+strlen(out), "<%s> ", src);
 										wordline(msg, 3+max(maxnlen, strlen(src)), &out);
-										buf_print(bufs, c_msg[1], out);
+										buf_print(bufs, c_msg[1], out, true);
 										free(out);
 									}
 								}
@@ -602,7 +602,7 @@ int main(int argc, char *argv[])
 									out[max(maxnlen-strlen(src), 0)]=0;
 									sprintf(out+strlen(out), "(from %s) ", src);
 									wordline(msg, 9+max(maxnlen, strlen(src)), &out);
-									buf_print(bufs, c_notice[1], out);
+									buf_print(bufs, c_notice[1], out, true);
 									free(out);
 								}
 								else if(strcmp(cmd, "JOIN")==0)
@@ -982,12 +982,15 @@ int main(int argc, char *argv[])
 								char privmsg[12+strlen(dest)+strlen(text)];
 								sprintf(privmsg, "PRIVMSG %s %s", dest, text);
 								irc_tx(serverhandle, privmsg);
-								printf(LOCATE, height-2, 3+max(maxnlen-strlen(nick), 0));
-								setcolour(c_msg[0]);
-								printf(CLA "<to %s> ", dest);
-								//wordline(text, 9+max(maxnlen, strlen(dest)));
-								printf(CLR "\n" CLA "\n");
-								resetcol();
+								while(text[strlen(text)-1]=='\n')
+									text[strlen(text)-1]=0; // stomp out trailing newlines, they break things
+								char *out=(char *)malloc(16+max(maxnlen, strlen(dest)));
+								memset(out, ' ', 2+max(maxnlen-strlen(dest), 0));
+								out[2+max(maxnlen-strlen(dest), 0)]=0;
+								sprintf(out+strlen(out), "(to %s) ", dest);
+								wordline(text, 9+max(maxnlen, strlen(dest)), &out);
+								buf_print(bufs, c_msg[0], out, false);
+								free(out);
 							}
 							else
 							{
@@ -1021,12 +1024,15 @@ int main(int argc, char *argv[])
 							char privmsg[32+strlen(chan)+strlen(args)];
 							sprintf(privmsg, "PRIVMSG %s :\001ACTION %s\001", chan, args);
 							irc_tx(serverhandle, privmsg);
-							printf(LOCATE, height-2, 3+max(maxnlen-strlen(nick), 0));
-							setcolour(c_actn[0]);
-							printf(CLA "%s ", nick);
-							//wordline(args, 3+max(maxnlen, strlen(nick)));
-							printf(CLR "\n" CLA "\n");
-							resetcol();
+							while(args[strlen(args)-1]=='\n')
+								args[strlen(args)-1]=0; // stomp out trailing newlines, they break things
+							char *out=(char *)malloc(5+max(maxnlen, strlen(nick)));
+							memset(out, ' ', 2+max(maxnlen-strlen(nick), 0));
+							out[2+max(maxnlen-strlen(nick), 0)]=0;
+							sprintf(out+strlen(out), "%s ", nick);
+							wordline(args, 3+max(maxnlen, strlen(nick)), &out);
+							buf_print(bufs, c_actn[0], out, false);
+							free(out);
 						}
 						else
 						{
@@ -1069,12 +1075,15 @@ int main(int argc, char *argv[])
 						char pmsg[12+strlen(chan)+strlen(inp)];
 						sprintf(pmsg, "PRIVMSG %s :%s", chan, inp);
 						irc_tx(serverhandle, pmsg);
-						printf(LOCATE, height-2, 1+max(maxnlen-strlen(nick), 0));
-						setcolour(c_msg[0]);
-						printf(CLA "<%s> ", nick);
-						//wordline(inp, 3+max(maxnlen, strlen(nick)));
-						printf(CLR "\n" CLA "\n");
-						resetcol();
+						while(inp[strlen(inp)-1]=='\n')
+							inp[strlen(inp)-1]=0; // stomp out trailing newlines, they break things
+						char *out=(char *)malloc(3+max(maxnlen, strlen(nick)));
+						memset(out, ' ', max(maxnlen-strlen(nick), 0));
+						out[max(maxnlen-strlen(nick), 0)]=0;
+						sprintf(out+strlen(out), "<%s> ", nick);
+						wordline(inp, 3+max(maxnlen, strlen(nick)), &out);
+						buf_print(bufs, c_msg[0], out, false);
+						free(out);
 					}
 					else
 					{

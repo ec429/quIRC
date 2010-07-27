@@ -32,10 +32,10 @@ int add_to_buffer(buffer *buf, colour lc, char *lt)
 	return(0);
 }
 
-int buf_print(buffer *buf, colour lc, char *lt)
+int buf_print(buffer *buf, colour lc, char *lt, bool nl)
 {
 	setcolour(lc);
-	printf(CLA "\n");
+	if(nl) printf(CLA "\n");
 	printf(LOCATE, height-2, 1);
 	printf("%s" CLR "\n" CLA "\n", lt);
 	resetcol();
