@@ -2,3 +2,4 @@
 quirc
 *.o
 .quirc-shadow
+version.h
