@@ -505,19 +505,7 @@ int main(int argc, char *argv[])
 										printf(LOCATE, height-2, 3+max(maxnlen-strlen(src), 0));
 										setcolour(c_actn[1]);
 										printf(CLA "%s ", src);
-										char *ptr=strtok(msg+8, " ");
-										int x=3+max(maxnlen, strlen(src));
-										while(ptr)
-										{
-											x+=strlen(ptr)+1;
-											if((x>=width) && (strlen(ptr)<width))
-											{
-												printf("\n");
-												x=strlen(ptr)+1;
-											}
-											printf("%s ", ptr);
-											ptr=strtok(NULL, " ");
-										}
+										wordline(msg, 3+max(maxnlen, strlen(src)));
 										printf(CLR "\n" CLA "\n");
 										resetcol();
 									}
@@ -527,19 +515,7 @@ int main(int argc, char *argv[])
 										printf(LOCATE, height-2, 1+max(maxnlen-strlen(src), 0));
 										setcolour(c_msg[1]);
 										printf(CLA "<%s> ", src);
-										char *ptr=strtok(msg, " ");
-										int x=3+max(maxnlen, strlen(src));
-										while(ptr)
-										{
-											x+=strlen(ptr)+1;
-											if((x>=width) && (strlen(ptr)<width))
-											{
-												printf("\n");
-												x=strlen(ptr)+1;
-											}
-											printf("%s ", ptr);
-											ptr=strtok(NULL, " ");
-										}
+										wordline(msg, 3+max(maxnlen, strlen(src)));
 										printf(CLR "\n" CLA "\n");
 										resetcol();
 									}
@@ -579,19 +555,7 @@ int main(int argc, char *argv[])
 									printf(LOCATE, height-2, 1+max(maxnlen-strlen(src), 0));
 									setcolour(c_notice[1]);
 									printf(CLA "<%s> ", src);
-									char *ptr=strtok(msg, " ");
-									int x=3+max(maxnlen, strlen(src));
-									while(ptr)
-									{
-										x+=strlen(ptr)+1;
-										if((x>=width) && (strlen(ptr)<width))
-										{
-											printf("\n");
-											x=strlen(ptr)+1;
-										}
-										printf("%s ", ptr);
-										ptr=strtok(NULL, " ");
-									}
+									wordline(msg, 3+max(maxnlen, strlen(src)));
 									printf(CLR "\n" CLA "\n");
 									resetcol();
 								}
