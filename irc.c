@@ -69,7 +69,7 @@ int irc_connect(char *server, char *portno, char *nick, char *username, char *fu
 
 int irc_tx(int fd, char * packet)
 {
-	printf(">> %s\n\n", packet); // for debugging purposes
+	//printf(">> %s\n\n", packet); // for debugging purposes
 	unsigned long l=strlen(packet)+1;
 	unsigned long p=0;
 	while(p<l)

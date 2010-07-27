@@ -201,10 +201,9 @@ int main(int argc, char *argv[])
 						}
 						else if(packet)
 						{
+							char *pdata=strdup(packet);
 							if(packet[0])
 							{
-								printf(LOCATE, height-1, 1);
-								printf(CLA "<? %s\n" CLA "\n", packet);
 								char *p=packet;
 								if(*p==':')
 								{
@@ -235,7 +234,7 @@ int main(int argc, char *argv[])
 								else if(strcmp(cmd, "PRIVMSG")==0)
 								{
 									char *dest=strtok(NULL, " \t");
-									char *msg=dest+strlen(dest)+1; // prefixed with :
+									char *msg=dest+strlen(dest)+2; // prefixed with :
 									char *src=packet+1;
 									char *bang=strchr(src, '!');
 									if(bang)
@@ -247,7 +246,7 @@ int main(int argc, char *argv[])
 										src[maxnlen]=0;
 									}
 									printf(CLA "\n");
-									printf(LOCATE, height-2, 1);
+									printf(LOCATE, height-2, 1+max(maxnlen-strlen(src), 0));
 									printf(CLA "<%s> %s\n" CLA "\n", src, msg);
 								}
 								else if(strcmp(cmd, "NOTICE")==0)
@@ -264,7 +263,7 @@ int main(int argc, char *argv[])
 										src[maxnlen]=0;
 									}
 									printf(CLA "\n");
-									printf(LOCATE, height-2, 1);
+									printf(LOCATE, height-2, 1+max(maxnlen-strlen(src), 0));
 									setcol(7, 0, true, false);
 									printf(CLA "<%s> %s\n" CLA "\n", src, msg);
 									resetcol();
@@ -379,9 +378,12 @@ int main(int argc, char *argv[])
 								{
 									printf(CLA "\n");
 									printf(LOCATE, height-2, 1);
-									printf(CLA "<? %s %s\n" CLA "\n", packet, packet+strlen(packet)+2);
+									setcol(3, 4, false, false);
+									printf(CLA "<? %s\n" CLA "\n", pdata);
+									resetcol();
 								}
 							}
+							free(pdata);
 							free(packet);
 						}
 						goto update;
@@ -550,6 +552,43 @@ int main(int argc, char *argv[])
 						free(inp);inp=NULL;
 						state=0;
 					}
+					else if(strcmp(cmd, "msg")==0)
+					{
+						if(!serverhandle)
+						{
+							printf(LOCATE, height-2, 1);
+							setcol(1, 0, true, false);
+							printf(CLA "Not connected to a server!\n" CLA "\n");
+							resetcol();
+						}
+						else if(args)
+						{
+							char *dest=strtok(args, " ");
+							char *text=strtok(NULL, "");
+							if(text)
+							{
+								char privmsg[12+strlen(dest)+strlen(text)];
+								sprintf(privmsg, "PRIVMSG %s %s", dest, text);
+								irc_tx(serverhandle, privmsg);
+							}
+							else
+							{
+								printf(LOCATE, height-2, 1);
+								setcol(1, 0, true, false);
+								printf(CLA "Must specify a message!\n" CLA "\n");
+								resetcol();
+							}
+						}
+						else
+						{
+							printf(LOCATE, height-2, 1);
+							setcol(1, 0, true, false);
+							printf(CLA "Must specify a recipient!\n" CLA "\n");
+							resetcol();
+						}
+						free(inp);inp=NULL;
+						state=0;
+					}
 					else if(strcmp(cmd, "cmd")==0)
 					{
 						if(!serverhandle)
@@ -581,7 +620,7 @@ int main(int argc, char *argv[])
 						char pmsg[12+strlen(chan)+strlen(inp)];
 						sprintf(pmsg, "PRIVMSG %s %s", chan, inp);
 						irc_tx(serverhandle, pmsg);
-						printf(LOCATE, height-2, 1);
+						printf(LOCATE, height-2, 1+max(maxnlen-strlen(nick), 0));
 						setcol(7, 0, false, true);
 						printf(CLA "<%s> %s\n" CLA "\n", nick, inp);
 						resetcol();
