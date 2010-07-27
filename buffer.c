@@ -13,6 +13,9 @@ int init_buffer(buffer *buf, btype type, char *bname, int nlines)
 	buf->type=type;
 	buf->bname=bname;
 	buf->nlist=NULL;
+	buf->handle=0;
+	buf->server=NULL;
+	buf->nick=NULL;
 	buf->nlines=nlines;
 	buf->ptr=0;
 	buf->lc=(colour *)malloc(nlines*sizeof(colour));
@@ -25,6 +28,7 @@ int init_buffer(buffer *buf, btype type, char *bname, int nlines)
 int add_to_buffer(buffer *buf, colour lc, char *lt)
 {
 	buf->lc[buf->ptr]=lc;
+	if(buf->filled) free(buf->lt[buf->ptr]);
 	buf->lt[buf->ptr]=strdup(lt);
 	buf->ts[buf->ptr]=time(NULL);
 	buf->ptr=(buf->ptr+1)%buf->nlines;
@@ -43,4 +47,20 @@ int buf_print(buffer *buf, colour lc, char *lt, bool nl)
 	if(buf)
 		return(add_to_buffer(buf, lc, lt));
 	return(0);
+}
+
+void in_update(char *inp)
+{
+	printf(LOCATE, height, 1);
+	int ino=inp?strlen(inp):0;
+	if(ino>78)
+	{
+		int off=20*max((ino+27-width)/20, 0);
+		printf("%.10s ... %s" CLR, inp, inp+off+10);
+	}
+	else
+	{
+		printf("%s" CLR, inp?inp:"");
+	}	
+	fflush(stdout);
 }

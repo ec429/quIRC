@@ -249,11 +249,13 @@ int main(int argc, char *argv[])
 	}
 	bufs=(buffer *)malloc(sizeof(buffer));
 	init_buffer(bufs, STATUS, "status", buflines); // buf 0 is always STATUS
+	nbufs=1;
+	buffer *cbuf=bufs;
+	bufs->nick=nick;
 	fd_set master, readfds;
 	FD_ZERO(&master);
 	FD_SET(STDIN_FILENO, &master);
 	int fdmax=STDIN_FILENO;
-	int serverhandle=0;
 	printf(CLA);
 	printf("\n");
 	if(server)
@@ -263,9 +265,18 @@ int main(int argc, char *argv[])
 		settitle(cstr);
 		sprintf(cstr, "Connecting to %s", server);
 		buf_print(bufs, c_status, cstr, true);
-		serverhandle=irc_connect(server, portno, nick, uname, fname, &master, &fdmax);
-		sprintf(cstr, "quIRC - connected to %s", server);
-		settitle(cstr);
+		int serverhandle=irc_connect(server, portno, nick, uname, fname, &master, &fdmax);
+		if(serverhandle)
+		{
+			sprintf(cstr, "quIRC - connected to %s", server);
+			settitle(cstr);
+			bufs=(buffer *)realloc(bufs, ++nbufs*sizeof(buffer));
+			init_buffer(bufs+1, SERVER, server, buflines);
+			cbuf=bufs+1;
+			cbuf->handle=serverhandle;
+			cbuf->nick=nick;
+			cbuf->server=cbuf;
+		}
 	}
 	else
 	{
@@ -284,7 +295,7 @@ int main(int argc, char *argv[])
 			shread:
 			if(strncmp(shad[shlp], ">>", 2)==0)
 			{
-				irc_tx(serverhandle, shad[shlp]+3);
+				irc_tx(cbuf->handle, shad[shlp]+3);
 			}
 			if(strncmp(shad[shlp], "<<", 2)==0) // read
 			{
@@ -350,7 +361,7 @@ int main(int argc, char *argv[])
 									int sp=ino-1;
 									while(sp>0 && !strchr(" \t", inp[sp-1]))
 										sp--;
-									name *curr=bufs->nlist;
+									name *curr=cbuf->nlist;
 									name *found=NULL;bool tmany=false;
 									while(curr)
 									{
@@ -358,13 +369,13 @@ int main(int argc, char *argv[])
 										{
 											if(tmany)
 											{
-												buf_print(bufs, c_err, curr->data, true);
+												buf_print(cbuf, c_err, curr->data, true);
 											}
 											else if(found)
 											{
-												buf_print(bufs, c_err, "[tab] Multiple nicks match", true);
-												buf_print(bufs, c_err, found->data, true);
-												buf_print(bufs, c_err, curr->data, true);
+												buf_print(cbuf, c_err, "[tab] Multiple nicks match", true);
+												buf_print(cbuf, c_err, found->data, true);
+												buf_print(cbuf, c_err, curr->data, true);
 												found=NULL;tmany=true;
 											}
 											else
@@ -383,7 +394,7 @@ int main(int argc, char *argv[])
 									}
 									else if(!tmany)
 									{
-										buf_print(bufs, c_err, "[tab] No nicks match", true);
+										buf_print(cbuf, c_err, "[tab] No nicks match", true);
 									}
 								}
 							}
@@ -414,394 +425,393 @@ int main(int argc, char *argv[])
 						}
 						else
 						{
-							update:
-							printf(LOCATE, height, 1);
-							ino=inp?strlen(inp):0;
-							if(ino>78)
-							{
-								int off=20*max((ino+27-width)/20, 0);
-								printf("%.10s ... %s" CLR, inp, inp+off+10);
-							}
-							else
-							{
-								printf("%s" CLR, inp?inp:"");
-							}	
-							fflush(stdout);
+							in_update(inp);
 						}
-					}
-					else if(fd==serverhandle)
-					{
-						char *packet;
-						int e;
-						if((e=irc_rx(serverhandle, &packet))!=0)
-						{
-							char emsg[64];
-							sprintf(emsg, "error: irc_rx(%d, &%p): %d", serverhandle, packet, e);
-							buf_print(NULL, c_err, emsg, true);
-							state=5;
-							qmsg="client crashed";
-						}
-						else if(packet)
-						{
-							char *pdata=strdup(packet);
-							if(packet[0])
-							{
-								char *p=packet;
-								if(*p==':')
-								{
-									p=strchr(p, ' ');
-								}
-								char *cmd=strtok(p, " ");
-								if(*packet==':') *p=0;
-								if(isdigit(*cmd))
-								{
-									int num=0;
-									sscanf(cmd, "%d", &num);
-									switch(num)
-									{
-										case 353:
-											// 353 dest {@|+} #chan :name [name [...]]
-											strtok(NULL, " "); // dest
-											strtok(NULL, " "); // @ or +, dunno what for
-											char *ch=strtok(NULL, " "); // channel
-											if(strcmp(ch, chan)==0)
-											{
-												char *nn;
-												while((nn=strtok(NULL, ":@ ")))
-												{
-													name *new=(name *)malloc(sizeof(name));
-													new->data=strdup(nn);
-													new->prev=NULL;
-													new->next=bufs->nlist;
-													if(bufs->nlist)
-														bufs->nlist->prev=new;
-													bufs->nlist=new;
-												}
-											}
-										break;
-										default:
-											0;
-											char umsg[6+strlen(cmd+4)];
-											sprintf(umsg, "<<%d? %s", num, cmd+4);
-											buf_print(bufs, c_unn, umsg, true);
-										break;
-									}
-								}
-								else if(strcmp(cmd, "PING")==0)
-								{
-									char *sender=strtok(NULL, " ");
-									char pong[8+strlen(uname)+strlen(sender)];
-									sprintf(pong, "PONG %s %s", uname, sender+1);
-									irc_tx(serverhandle, pong);
-								}
-								else if(strcmp(cmd, "MODE")==0)
-								{
-									if(chan && !join)
-									{
-										char joinmsg[8+strlen(chan)];
-										sprintf(joinmsg, "JOIN %s", chan);
-										irc_tx(serverhandle, joinmsg);
-										char jmsg[16+strlen(chan)];
-										sprintf(jmsg, "auto-Joining %s", chan);
-										buf_print(bufs, c_join[0], jmsg, true);
-										join=true;
-									}
-									// apart from using it as a trigger, we don't look at modes just yet
-								}
-								else if(strcmp(cmd, "PRIVMSG")==0)
-								{
-									char *dest=strtok(NULL, " \t");
-									char *msg=dest+strlen(dest)+2; // prefixed with :
-									char *src=packet+1;
-									char *bang=strchr(src, '!');
-									if(bang)
-										*bang=0;
-									if(strlen(src)>maxnlen)
-									{
-										src[maxnlen-4]=src[maxnlen-3]=src[maxnlen-2]='.';
-										src[maxnlen-1]=src[strlen(src)-1];
-										src[maxnlen]=0;
-									}
-									if(*msg==1) // CTCP
-									{
-										if(strncmp(msg, "\001ACTION ", 8)==0)
-										{
-											msg[strlen(msg)-1]=0; // remove trailing \001
-											char *out=(char *)malloc(5+max(maxnlen, strlen(src)));
-											memset(out, ' ', 2+max(maxnlen-strlen(src), 0));
-											out[2+max(maxnlen-strlen(src), 0)]=0;
-											strcat(out, src);
-											strcat(out, " ");
-											wordline(msg+8, 3+max(maxnlen, strlen(src)), &out);
-											buf_print(bufs, c_actn[1], out, true);
-											free(out);
-										}
-										else if(strncmp(msg, "\001FINGER", 7)==0)
-										{
-											char resp[32+strlen(src)+strlen(fname)];
-											sprintf(resp, "NOTICE %s \001FINGER :%s\001", src, fname);
-											irc_tx(serverhandle, resp);
-										}
-										else if(strncmp(msg, "\001VERSION", 8)==0)
-										{
-											char resp[32+strlen(src)+strlen(version)];
-											sprintf(resp, "NOTICE %s \001VERSION %s:%s:%s\001", src, "quIRC", version, CC_VERSION);
-											irc_tx(serverhandle, resp);
-										}
-									}
-									else
-									{
-										char *out=(char *)malloc(5+max(maxnlen, strlen(src)));
-										memset(out, ' ', max(maxnlen-strlen(src), 0));
-										out[max(maxnlen-strlen(src), 0)]=0;
-										sprintf(out+strlen(out), "<%s> ", src);
-										wordline(msg, 3+max(maxnlen, strlen(src)), &out);
-										buf_print(bufs, c_msg[1], out, true);
-										free(out);
-									}
-								}
-								else if(strcmp(cmd, "NOTICE")==0)
-								{
-									char *dest=strtok(NULL, " ");
-									char *msg=dest+strlen(dest)+2; // prefixed with :
-									char *src=packet+1;
-									char *bang=strchr(src, '!');
-									if(bang)
-										*bang=0;
-									if(shli)
-									{
-										if(strcmp(src, shsrc)==0)
-										{
-											if((!shtext)||strcmp(msg, shtext))
-											{
-												shlp++;
-												shsrc=NULL;
-												if(shlp>=shli) // end reached, wipe it out
-												{
-													for(shlp=0;shlp<shli;shlp++)
-														free(shad[shlp]);
-													shli=0;
-												}
-											}
-										}
-									}
-									if(strlen(src)>maxnlen)
-									{
-										src[maxnlen-4]=src[maxnlen-3]=src[maxnlen-2]='.';
-										src[maxnlen-1]=src[strlen(src)-1];
-										src[maxnlen]=0;
-									}
-									char *out=(char *)malloc(16+max(maxnlen, strlen(src)));
-									memset(out, ' ', max(maxnlen-strlen(src), 0));
-									out[max(maxnlen-strlen(src), 0)]=0;
-									sprintf(out+strlen(out), "(from %s) ", src);
-									wordline(msg, 9+max(maxnlen, strlen(src)), &out);
-									buf_print(bufs, c_notice[1], out, true);
-									free(out);
-								}
-								else if(strcmp(cmd, "JOIN")==0)
-								{
-									char *dest=strtok(NULL, " \t");
-									char *src=packet+1;
-									char *bang=strchr(src, '!');
-									if(bang)
-										*bang=0;
-									if(strcmp(src, nick)==0)
-									{
-										char dstr[20+strlen(src)+strlen(dest+1)];
-										sprintf(dstr, "You (%s) have joined %s", src, dest+1);
-										buf_print(bufs, c_join[1], dstr, true);
-										chan=strdup(dest+1);
-										join=true;
-										char cstr[16+strlen(chan)+strlen(server)];
-										sprintf(cstr, "quIRC - %s on %s", chan, server);
-										settitle(cstr);
-									}
-									else
-									{
-										if(strlen(src)>maxnlen)
-										{
-											src[maxnlen-4]=src[maxnlen-3]=src[maxnlen-2]='.';
-											src[maxnlen-1]=src[strlen(src)-1];
-											src[maxnlen]=0;
-										}
-										char dstr[16+strlen(src)+strlen(dest+1)];
-										sprintf(dstr, "=%s= has joined %s", src, dest+1);
-										buf_print(bufs, c_join[1], dstr, true);
-										name *new=(name *)malloc(sizeof(name));
-										new->data=strdup(src);
-										new->prev=NULL;
-										new->next=bufs->nlist;
-										if(bufs->nlist)
-											bufs->nlist->prev=new;
-										bufs->nlist=new;
-									}
-									resetcol();
-								}
-								else if(strcmp(cmd, "PART")==0)
-								{
-									char *dest=strtok(NULL, " \t");
-									char *src=packet+1;
-									char *bang=strchr(src, '!');
-									if(bang)
-										*bang=0;
-									if(strcmp(src, nick)==0)
-									{
-										char dstr[20+strlen(src)+strlen(dest)];
-										sprintf(dstr, "You (%s) have left %s", src, dest);
-										buf_print(bufs, c_part[1], dstr, true);
-										chan=NULL;
-										char cstr[24+strlen(server)];
-										sprintf(cstr, "quIRC - connected to %s", server);
-										settitle(cstr);
-										name *curr=bufs->nlist;
-										while(curr)
-										{
-											name *next=curr->next;
-											free(curr->data);
-											free(curr);
-											curr=next;
-										}
-										bufs->nlist=NULL;
-									}
-									else
-									{
-										if(strlen(src)>maxnlen)
-										{
-											src[maxnlen-4]=src[maxnlen-3]=src[maxnlen-2]='.';
-											src[maxnlen-1]=src[strlen(src)-1];
-											src[maxnlen]=0;
-										}
-										char dstr[16+strlen(src)+strlen(dest)];
-										sprintf(dstr, "=%s= has left %s", src, dest);
-										buf_print(bufs, c_part[1], dstr, true);
-										name *curr=bufs->nlist;
-										while(curr)
-										{
-											name *next=curr->next;
-											if(strcmp(curr->data, src)==0)
-											{
-												if(curr->prev)
-												{
-													curr->prev->next=curr->next;
-												}
-												else
-												{
-													bufs->nlist=curr->next;
-												}
-												if(curr->next)
-													curr->next->prev=curr->prev;
-												free(curr->data);
-												free(curr);
-											}
-											curr=next;
-										}
-									}
-									resetcol();
-								}
-								else if(strcmp(cmd, "QUIT")==0)
-								{
-									char *dest=strtok(NULL, "");
-									char *src=packet+1;
-									char *bang=strchr(src, '!');
-									if(bang)
-										*bang=0;
-									setcolour(c_quit[1]);
-									if(strcmp(src, nick)==0) // this shouldn't happen???
-									{
-										char dstr[24+strlen(src)+strlen(server)+strlen(dest+1)];
-										sprintf(dstr, "You (%s) have left %s (%s)", src, server, dest+1);
-										buf_print(bufs, c_quit[1], dstr, true);
-									}
-									else
-									{
-										if(strlen(src)>maxnlen)
-										{
-											src[maxnlen-4]=src[maxnlen-3]=src[maxnlen-2]='.';
-											src[maxnlen-1]=src[strlen(src)-1];
-											src[maxnlen]=0;
-										}
-										char dstr[24+strlen(src)+strlen(server)+strlen(dest+1)];
-										sprintf(dstr, "=%s= has left %s (%s)", src, server, dest+1);
-										buf_print(bufs, c_quit[1], dstr, true);
-										name *curr=bufs->nlist;
-										while(curr)
-										{
-											name *next=curr->next;
-											if(strcmp(curr->data, src)==0)
-											{
-												if(curr->prev)
-												{
-													curr->prev->next=curr->next;
-												}
-												else
-												{
-													bufs->nlist=curr->next;
-												}
-												if(curr->next)
-													curr->next->prev=curr->prev;
-												free(curr->data);
-												free(curr);
-											}
-											curr=next;
-										}
-									}
-									resetcol();
-								}
-								else if(strcmp(cmd, "NICK")==0)
-								{
-									char *dest=strtok(NULL, " \t");
-									char *src=packet+1;
-									char *bang=strchr(src, '!');
-									if(bang)
-										*bang=0;
-									setcolour(c_nick[1]);
-									if(strcmp(dest+1, nick)==0)
-									{
-										char dstr[30+strlen(src)+strlen(dest+1)];
-										sprintf(dstr, "You (%s) are now known as %s", src, dest+1);
-										buf_print(bufs, c_nick[1], dstr, true);
-									}
-									else
-									{
-										if(strlen(src)>maxnlen)
-										{
-											src[maxnlen-4]=src[maxnlen-3]=src[maxnlen-2]='.';
-											src[maxnlen-1]=src[strlen(src)-1];
-											src[maxnlen]=0;
-										}
-										char dstr[30+strlen(src)+strlen(dest+1)];
-										sprintf(dstr, "=%s= is now known as %s", src, dest+1);
-										buf_print(bufs, c_nick[1], dstr, true);
-									}
-									name *curr=bufs->nlist;
-									while(curr)
-									{
-										if(strcmp(curr->data, src)==0)
-										{
-											free(curr->data);
-											curr->data=strdup(dest+1);
-										}
-										curr=curr->next;
-									}
-									resetcol();
-								}
-								else
-								{
-									char dstr[5+strlen(pdata)];
-									sprintf(dstr, "<? %s", pdata);
-									buf_print(bufs, c_unk, dstr, true);
-								}
-							}
-							free(pdata);
-							free(packet);
-						}
-						goto update;
 					}
 					else
 					{
-						fprintf(stderr, "\nselect() returned data on unknown fd %d!\n", fd);
-						state=1;
+						int b;
+						for(b=0;b<nbufs;b++)
+						{
+							if(fd==bufs[b].handle)
+							{
+								char *packet;
+								int e;
+								if((e=irc_rx(fd, &packet))!=0)
+								{
+									char emsg[64];
+									sprintf(emsg, "error: irc_rx(%d, &%p): %d", fd, packet, e);
+									if(cbuf==bufs)
+										buf_print(bufs, c_err, emsg, true);
+									else
+										add_to_buffer(bufs, c_err, emsg);
+									state=5;
+									qmsg="client crashed";
+								}
+								else if(packet)
+								{
+									char *pdata=strdup(packet);
+									if(packet[0])
+									{
+										char *p=packet;
+										if(*p==':')
+										{
+											p=strchr(p, ' ');
+										}
+										char *cmd=strtok(p, " ");
+										if(*packet==':') *p=0;
+										if(isdigit(*cmd))
+										{
+											int num=0;
+											sscanf(cmd, "%d", &num);
+											switch(num)
+											{
+												case 353:
+													// 353 dest {@|+} #chan :name [name [...]]
+													strtok(NULL, " "); // dest
+													strtok(NULL, " "); // @ or +, dunno what for
+													char *ch=strtok(NULL, " "); // channel
+													if(strcmp(ch, chan)==0)
+													{
+														char *nn;
+														while((nn=strtok(NULL, ":@ ")))
+														{
+															name *new=(name *)malloc(sizeof(name));
+															new->data=strdup(nn);
+															new->prev=NULL;
+															new->next=cbuf->nlist;
+															if(cbuf->nlist)
+																cbuf->nlist->prev=new;
+															cbuf->nlist=new;
+														}
+													}
+												break;
+												default:
+													0;
+													char umsg[6+strlen(cmd+4)];
+													sprintf(umsg, "<<%d? %s", num, cmd+4);
+													buf_print(cbuf, c_unn, umsg, true);
+												break;
+											}
+										}
+										else if(strcmp(cmd, "PING")==0)
+										{
+											char *sender=strtok(NULL, " ");
+											char pong[8+strlen(uname)+strlen(sender)];
+											sprintf(pong, "PONG %s %s", uname, sender+1);
+											irc_tx(cbuf->handle, pong);
+										}
+										else if(strcmp(cmd, "MODE")==0)
+										{
+											if(chan && !join)
+											{
+												char joinmsg[8+strlen(chan)];
+												sprintf(joinmsg, "JOIN %s", chan);
+												irc_tx(cbuf->handle, joinmsg);
+												char jmsg[16+strlen(chan)];
+												sprintf(jmsg, "auto-Joining %s", chan);
+												buf_print(cbuf, c_join[0], jmsg, true);
+												join=true;
+											}
+											// apart from using it as a trigger, we don't look at modes just yet
+										}
+										else if(strcmp(cmd, "PRIVMSG")==0)
+										{
+											char *dest=strtok(NULL, " \t");
+											char *msg=dest+strlen(dest)+2; // prefixed with :
+											char *src=packet+1;
+											char *bang=strchr(src, '!');
+											if(bang)
+												*bang=0;
+											if(strlen(src)>maxnlen)
+											{
+												src[maxnlen-4]=src[maxnlen-3]=src[maxnlen-2]='.';
+												src[maxnlen-1]=src[strlen(src)-1];
+												src[maxnlen]=0;
+											}
+											if(*msg==1) // CTCP
+											{
+												if(strncmp(msg, "\001ACTION ", 8)==0)
+												{
+													msg[strlen(msg)-1]=0; // remove trailing \001
+													char *out=(char *)malloc(5+max(maxnlen, strlen(src)));
+													memset(out, ' ', 2+max(maxnlen-strlen(src), 0));
+													out[2+max(maxnlen-strlen(src), 0)]=0;
+													strcat(out, src);
+													strcat(out, " ");
+													wordline(msg+8, 3+max(maxnlen, strlen(src)), &out);
+													buf_print(cbuf, c_actn[1], out, true);
+													free(out);
+												}
+												else if(strncmp(msg, "\001FINGER", 7)==0)
+												{
+													char resp[32+strlen(src)+strlen(fname)];
+													sprintf(resp, "NOTICE %s \001FINGER :%s\001", src, fname);
+													irc_tx(cbuf->handle, resp);
+												}
+												else if(strncmp(msg, "\001VERSION", 8)==0)
+												{
+													char resp[32+strlen(src)+strlen(version)];
+													sprintf(resp, "NOTICE %s \001VERSION %s:%s:%s\001", src, "quIRC", version, CC_VERSION);
+													irc_tx(cbuf->handle, resp);
+												}
+											}
+											else
+											{
+												char *out=(char *)malloc(5+max(maxnlen, strlen(src)));
+												memset(out, ' ', max(maxnlen-strlen(src), 0));
+												out[max(maxnlen-strlen(src), 0)]=0;
+												sprintf(out+strlen(out), "<%s> ", src);
+												wordline(msg, 3+max(maxnlen, strlen(src)), &out);
+												buf_print(cbuf, c_msg[1], out, true);
+												free(out);
+											}
+										}
+										else if(strcmp(cmd, "NOTICE")==0)
+										{
+											char *dest=strtok(NULL, " ");
+											char *msg=dest+strlen(dest)+2; // prefixed with :
+											char *src=packet+1;
+											char *bang=strchr(src, '!');
+											if(bang)
+												*bang=0;
+											if(shli)
+											{
+												if(strcmp(src, shsrc)==0)
+												{
+													if((!shtext)||strcmp(msg, shtext))
+													{
+														shlp++;
+														shsrc=NULL;
+														if(shlp>=shli) // end reached, wipe it out
+														{
+															for(shlp=0;shlp<shli;shlp++)
+																free(shad[shlp]);
+															shli=0;
+														}
+													}
+												}
+											}
+											if(strlen(src)>maxnlen)
+											{
+												src[maxnlen-4]=src[maxnlen-3]=src[maxnlen-2]='.';
+												src[maxnlen-1]=src[strlen(src)-1];
+												src[maxnlen]=0;
+											}
+											char *out=(char *)malloc(16+max(maxnlen, strlen(src)));
+											memset(out, ' ', max(maxnlen-strlen(src), 0));
+											out[max(maxnlen-strlen(src), 0)]=0;
+											sprintf(out+strlen(out), "(from %s) ", src);
+											wordline(msg, 9+max(maxnlen, strlen(src)), &out);
+											buf_print(cbuf, c_notice[1], out, true);
+											free(out);
+										}
+										else if(strcmp(cmd, "JOIN")==0)
+										{
+											char *dest=strtok(NULL, " \t");
+											char *src=packet+1;
+											char *bang=strchr(src, '!');
+											if(bang)
+												*bang=0;
+											if(strcmp(src, cbuf->server->nick)==0)
+											{
+												char dstr[20+strlen(src)+strlen(dest+1)];
+												sprintf(dstr, "You (%s) have joined %s", src, dest+1);
+												buf_print(cbuf, c_join[1], dstr, true);
+												chan=strdup(dest+1);
+												join=true;
+												char cstr[16+strlen(chan)+strlen(server)];
+												sprintf(cstr, "quIRC - %s on %s", chan, server);
+												settitle(cstr);
+											}
+											else
+											{
+												if(strlen(src)>maxnlen)
+												{
+													src[maxnlen-4]=src[maxnlen-3]=src[maxnlen-2]='.';
+													src[maxnlen-1]=src[strlen(src)-1];
+													src[maxnlen]=0;
+												}
+												char dstr[16+strlen(src)+strlen(dest+1)];
+												sprintf(dstr, "=%s= has joined %s", src, dest+1);
+												buf_print(cbuf, c_join[1], dstr, true);
+												name *new=(name *)malloc(sizeof(name));
+												new->data=strdup(src);
+												new->prev=NULL;
+												new->next=cbuf->nlist;
+												if(cbuf->nlist)
+													cbuf->nlist->prev=new;
+												cbuf->nlist=new;
+											}
+											resetcol();
+										}
+										else if(strcmp(cmd, "PART")==0)
+										{
+											char *dest=strtok(NULL, " \t");
+											char *src=packet+1;
+											char *bang=strchr(src, '!');
+											if(bang)
+												*bang=0;
+											if(strcmp(src, cbuf->server->nick)==0)
+											{
+												char dstr[20+strlen(src)+strlen(dest)];
+												sprintf(dstr, "You (%s) have left %s", src, dest);
+												buf_print(cbuf, c_part[1], dstr, true);
+												chan=NULL;
+												char cstr[24+strlen(server)];
+												sprintf(cstr, "quIRC - connected to %s", server);
+												settitle(cstr);
+												name *curr=cbuf->nlist;
+												while(curr)
+												{
+													name *next=curr->next;
+													free(curr->data);
+													free(curr);
+													curr=next;
+												}
+												cbuf->nlist=NULL;
+											}
+											else
+											{
+												if(strlen(src)>maxnlen)
+												{
+													src[maxnlen-4]=src[maxnlen-3]=src[maxnlen-2]='.';
+													src[maxnlen-1]=src[strlen(src)-1];
+													src[maxnlen]=0;
+												}
+												char dstr[16+strlen(src)+strlen(dest)];
+												sprintf(dstr, "=%s= has left %s", src, dest);
+												buf_print(cbuf, c_part[1], dstr, true);
+												name *curr=cbuf->nlist;
+												while(curr)
+												{
+													name *next=curr->next;
+													if(strcmp(curr->data, src)==0)
+													{
+														if(curr->prev)
+														{
+															curr->prev->next=curr->next;
+														}
+														else
+														{
+															cbuf->nlist=curr->next;
+														}
+														if(curr->next)
+															curr->next->prev=curr->prev;
+														free(curr->data);
+														free(curr);
+													}
+													curr=next;
+												}
+											}
+											resetcol();
+										}
+										else if(strcmp(cmd, "QUIT")==0)
+										{
+											char *dest=strtok(NULL, "");
+											char *src=packet+1;
+											char *bang=strchr(src, '!');
+											if(bang)
+												*bang=0;
+											setcolour(c_quit[1]);
+											if(strcmp(src, cbuf->server->nick)==0) // this shouldn't happen???
+											{
+												char dstr[24+strlen(src)+strlen(server)+strlen(dest+1)];
+												sprintf(dstr, "You (%s) have left %s (%s)", src, server, dest+1);
+												buf_print(cbuf, c_quit[1], dstr, true);
+											}
+											else
+											{
+												if(strlen(src)>maxnlen)
+												{
+													src[maxnlen-4]=src[maxnlen-3]=src[maxnlen-2]='.';
+													src[maxnlen-1]=src[strlen(src)-1];
+													src[maxnlen]=0;
+												}
+												char dstr[24+strlen(src)+strlen(server)+strlen(dest+1)];
+												sprintf(dstr, "=%s= has left %s (%s)", src, server, dest+1);
+												buf_print(cbuf, c_quit[1], dstr, true);
+												name *curr=cbuf->nlist;
+												while(curr)
+												{
+													name *next=curr->next;
+													if(strcmp(curr->data, src)==0)
+													{
+														if(curr->prev)
+														{
+															curr->prev->next=curr->next;
+														}
+														else
+														{
+															cbuf->nlist=curr->next;
+														}
+														if(curr->next)
+															curr->next->prev=curr->prev;
+														free(curr->data);
+														free(curr);
+													}
+													curr=next;
+												}
+											}
+											resetcol();
+										}
+										else if(strcmp(cmd, "NICK")==0)
+										{
+											char *dest=strtok(NULL, " \t");
+											char *src=packet+1;
+											char *bang=strchr(src, '!');
+											if(bang)
+												*bang=0;
+											setcolour(c_nick[1]);
+											if(strcmp(dest+1, cbuf->server->nick)==0)
+											{
+												char dstr[30+strlen(src)+strlen(dest+1)];
+												sprintf(dstr, "You (%s) are now known as %s", src, dest+1);
+												buf_print(cbuf, c_nick[1], dstr, true);
+											}
+											else
+											{
+												if(strlen(src)>maxnlen)
+												{
+													src[maxnlen-4]=src[maxnlen-3]=src[maxnlen-2]='.';
+													src[maxnlen-1]=src[strlen(src)-1];
+													src[maxnlen]=0;
+												}
+												char dstr[30+strlen(src)+strlen(dest+1)];
+												sprintf(dstr, "=%s= is now known as %s", src, dest+1);
+												buf_print(cbuf, c_nick[1], dstr, true);
+											}
+											name *curr=cbuf->nlist;
+											while(curr)
+											{
+												if(strcmp(curr->data, src)==0)
+												{
+													free(curr->data);
+													curr->data=strdup(dest+1);
+												}
+												curr=curr->next;
+											}
+											resetcol();
+										}
+										else
+										{
+											char dstr[5+strlen(pdata)];
+											sprintf(dstr, "<? %s", pdata);
+											buf_print(cbuf, c_unk, dstr, true);
+										}
+									}
+									free(pdata);
+									free(packet);
+								}
+								in_update(inp);
+								b=nbufs+1;
+							}
+						}
+						if(b==nbufs)
+						{
+							fprintf(stderr, "\nselect() returned data on unknown fd %d!\n", fd);
+							state=1;
+						}
 					}
 				}
 			}
@@ -829,48 +839,46 @@ int main(int argc, char *argv[])
 					}
 					else if(strcmp(cmd, "server")==0)
 					{
-						if(serverhandle)
+						if(args)
 						{
-							buf_print(bufs, c_err, "Already connected to a server!", false);
+							server=strdup(args);
+							char *newport=strchr(server, ':');
+							if(newport)
+							{
+								*newport=0;
+								portno=newport+1;
+							}
+							char cstr[24+strlen(server)];
+							sprintf(cstr, "quIRC - connecting to %s", server);
+							settitle(cstr);
+							char dstr[30+strlen(server)+strlen(portno)];
+							sprintf(dstr, "Connecting to %s on port %s...", server, portno);
+							buf_print(cbuf, c_status, dstr, false);
+							int serverhandle=irc_connect(server, portno, nick, uname, fname, &master, &fdmax);
+							if(serverhandle)
+							{
+								sprintf(cstr, "quIRC - connected to %s", server);
+								settitle(cstr);
+								bufs=(buffer *)realloc(bufs, ++nbufs*sizeof(buffer));
+								init_buffer(bufs+nbufs-1, SERVER, server, buflines);
+								cbuf=bufs+nbufs-1;
+								cbuf->handle=serverhandle;
+								cbuf->nick=nick;
+								cbuf->server=cbuf;
+							}
 						}
 						else
 						{
-							if(args)
-							{
-								server=strdup(args);
-								char *newport=strchr(server, ':');
-								if(newport)
-								{
-									*newport=0;
-									portno=newport+1;
-								}
-								char cstr[24+strlen(server)];
-								sprintf(cstr, "quIRC - connecting to %s", server);
-								settitle(cstr);
-								char dstr[30+strlen(server)+strlen(portno)];
-								sprintf(dstr, "Connecting to %s on port %s...", server, portno);
-								buf_print(bufs, c_status, dstr, false);
-								serverhandle=irc_connect(server, portno, nick, uname, fname, &master, &fdmax);
-								sprintf(cstr, "quIRC - connected to %s", server);
-								settitle(cstr);
-							}
-							else
-							{
-								buf_print(bufs, c_err, "Must specify a server!", false);
-							}
+							buf_print(cbuf, c_err, "Must specify a server!", false);
 						}
 						free(inp);inp=NULL;
 						state=0;
 					}
 					else if(strcmp(cmd, "join")==0)
 					{
-						if(!serverhandle)
+						if(!cbuf->handle)
 						{
-							buf_print(bufs, c_err, "Not connected to a server!", false);
-						}
-						else if(chan)
-						{
-							buf_print(bufs, c_err, "Already in a channel (quirc can currently only handle one channel)", false);
+							buf_print(cbuf, c_err, "/join: must be run in the context of a server!", false);
 						}
 						else if(args)
 						{
@@ -879,43 +887,28 @@ int main(int argc, char *argv[])
 							if(!pass) pass="";
 							char joinmsg[8+strlen(chan)+strlen(pass)];
 							sprintf(joinmsg, "JOIN %s %s", chan, pass);
-							irc_tx(serverhandle, joinmsg);
-							buf_print(bufs, c_join[0], "Joining", false);
+							irc_tx(cbuf->handle, joinmsg);
+							buf_print(cbuf, c_join[0], "Joining", false);
 						}
 						else
 						{
-							buf_print(bufs, c_err, "Must specify a channel!", false);
+							buf_print(cbuf, c_err, "Must specify a channel!", false);
 						}
 						free(inp);inp=NULL;
 						state=0;
 					}
 					else if((strcmp(cmd, "part")==0)||(strcmp(cmd, "leave")==0))
 					{
-						if(!serverhandle)
+						if(cbuf->type!=CHANNEL)
 						{
-							buf_print(bufs, c_err, "Not connected to a server!", false);
-						}
-						else if(!chan)
-						{
-							buf_print(bufs, c_err, "Not in any channels!", false);
-						}
-						else if(args)
-						{
-							if(strcmp(chan, strtok(args, " "))==0)
-							{
-								char partmsg[8+strlen(chan)];
-								sprintf(partmsg, "PART %s", chan);
-								irc_tx(serverhandle, partmsg);
-								buf_print(bufs, c_part[0], "Leaving", false);
-							}
-							else
-							{
-								buf_print(bufs, c_err, "Not in that channel!", false);
-							}
+							buf_print(cbuf, c_err, "/part: This view is not a channel!", false);
 						}
 						else
 						{
-							buf_print(bufs, c_err, "Must specify a channel!", false);
+							char partmsg[8+strlen(cbuf->bname)];
+							sprintf(partmsg, "PART %s", cbuf->bname);
+							irc_tx(cbuf->handle, partmsg);
+							buf_print(cbuf, c_part[0], "Leaving", false);
 						}
 						free(inp);inp=NULL;
 						state=0;
@@ -925,26 +918,26 @@ int main(int argc, char *argv[])
 						if(args)
 						{
 							char *nn=strtok(args, " ");
-							nick=strdup(nn);
-							if(serverhandle)
+							if(cbuf->handle)
 							{
-								char nmsg[8+strlen(nick)];
-								sprintf(nmsg, "NICK %s", nick);
-								irc_tx(serverhandle, nmsg);
+								cbuf->server->nick=strdup(nn);
+								char nmsg[8+strlen(cbuf->server->nick)];
+								sprintf(nmsg, "NICK %s", cbuf->server->nick);
+								irc_tx(cbuf->handle, nmsg);
 							}
 						}
 						else
 						{
-							buf_print(bufs, c_err, "Must specify a nickname!", false);
+							buf_print(cbuf, c_err, "Must specify a nickname!", false);
 						}
 						free(inp);inp=NULL;
 						state=0;
 					}
 					else if(strcmp(cmd, "msg")==0)
 					{
-						if(!serverhandle)
+						if(!cbuf->handle)
 						{
-							buf_print(bufs, c_err, "Not connected to a server!", false);
+							buf_print(cbuf, c_err, "/msg: must be run in the context of a server!", false);
 						}
 						else if(args)
 						{
@@ -954,7 +947,7 @@ int main(int argc, char *argv[])
 							{
 								char privmsg[12+strlen(dest)+strlen(text)];
 								sprintf(privmsg, "PRIVMSG %s %s", dest, text);
-								irc_tx(serverhandle, privmsg);
+								irc_tx(cbuf->handle, privmsg);
 								while(text[strlen(text)-1]=='\n')
 									text[strlen(text)-1]=0; // stomp out trailing newlines, they break things
 								char *out=(char *)malloc(16+max(maxnlen, strlen(dest)));
@@ -962,58 +955,58 @@ int main(int argc, char *argv[])
 								out[2+max(maxnlen-strlen(dest), 0)]=0;
 								sprintf(out+strlen(out), "(to %s) ", dest);
 								wordline(text, 9+max(maxnlen, strlen(dest)), &out);
-								buf_print(bufs, c_msg[0], out, false);
+								buf_print(cbuf, c_msg[0], out, false);
 								free(out);
 							}
 							else
 							{
-								buf_print(bufs, c_err, "Must specify a message!", false);
+								buf_print(cbuf, c_err, "/msg: must specify a message!", false);
 							}
 						}
 						else
 						{
-								buf_print(bufs, c_err, "Must specify a recipient!", false);
+								buf_print(cbuf, c_err, "/msg: must specify a recipient!", false);
 						}
 						free(inp);inp=NULL;
 						state=0;
 					}
 					else if(strcmp(cmd, "me")==0)
 					{
-						if(!serverhandle)
+						if(!cbuf->handle)
 						{
-							buf_print(bufs, c_err, "Not connected to a server!", false);
+							buf_print(cbuf, c_err, "/me: must be run in the context of a server!", false);
 						}
 						else if(args)
 						{
 							char privmsg[32+strlen(chan)+strlen(args)];
 							sprintf(privmsg, "PRIVMSG %s :\001ACTION %s\001", chan, args);
-							irc_tx(serverhandle, privmsg);
+							irc_tx(cbuf->handle, privmsg);
 							while(args[strlen(args)-1]=='\n')
 								args[strlen(args)-1]=0; // stomp out trailing newlines, they break things
-							char *out=(char *)malloc(5+max(maxnlen, strlen(nick)));
-							memset(out, ' ', 2+max(maxnlen-strlen(nick), 0));
-							out[2+max(maxnlen-strlen(nick), 0)]=0;
-							sprintf(out+strlen(out), "%s ", nick);
-							wordline(args, 3+max(maxnlen, strlen(nick)), &out);
-							buf_print(bufs, c_actn[0], out, false);
+							char *out=(char *)malloc(5+max(maxnlen, strlen(cbuf->server->nick)));
+							memset(out, ' ', 2+max(maxnlen-strlen(cbuf->server->nick), 0));
+							out[2+max(maxnlen-strlen(cbuf->server->nick), 0)]=0;
+							sprintf(out+strlen(out), "%s ", cbuf->server->nick);
+							wordline(args, 3+max(maxnlen, strlen(cbuf->server->nick)), &out);
+							buf_print(cbuf, c_actn[0], out, false);
 							free(out);
 						}
 						else
 						{
-							buf_print(bufs, c_err, "Must specify an action!", false);
+							buf_print(cbuf, c_err, "/me: must specify an action!", false);
 						}
 						free(inp);inp=NULL;
 						state=0;
 					}
 					else if(strcmp(cmd, "cmd")==0)
 					{
-						if(!serverhandle)
+						if(!cbuf->handle)
 						{
-							buf_print(bufs, c_err, "Not connected to a server!", false);
+							buf_print(cbuf, c_err, "/cmd: must be run in the context of a server!", false);
 						}
 						else
 						{
-							irc_tx(serverhandle, args);
+							irc_tx(cbuf->handle, args);
 						}
 						free(inp);inp=NULL;
 						state=0;
@@ -1023,31 +1016,31 @@ int main(int argc, char *argv[])
 						if(!cmd) cmd="";
 						char dstr[30+strlen(cmd)];
 						sprintf(dstr, "%s: Unrecognised command!", cmd);
-						buf_print(bufs, c_err, dstr, false);
+						buf_print(cbuf, c_err, dstr, false);
 						free(inp);inp=NULL;
 						state=0;
 					}
 				}
 				else
 				{
-					if(serverhandle && chan)
+					if(cbuf->type==CHANNEL) // TODO add PRIVATE
 					{
 						char pmsg[12+strlen(chan)+strlen(inp)];
 						sprintf(pmsg, "PRIVMSG %s :%s", chan, inp);
-						irc_tx(serverhandle, pmsg);
+						irc_tx(cbuf->handle, pmsg);
 						while(inp[strlen(inp)-1]=='\n')
 							inp[strlen(inp)-1]=0; // stomp out trailing newlines, they break things
-						char *out=(char *)malloc(3+max(maxnlen, strlen(nick)));
-						memset(out, ' ', max(maxnlen-strlen(nick), 0));
-						out[max(maxnlen-strlen(nick), 0)]=0;
-						sprintf(out+strlen(out), "<%s> ", nick);
-						wordline(inp, 3+max(maxnlen, strlen(nick)), &out);
-						buf_print(bufs, c_msg[0], out, false);
+						char *out=(char *)malloc(3+max(maxnlen, strlen(cbuf->server->nick)));
+						memset(out, ' ', max(maxnlen-strlen(cbuf->server->nick), 0));
+						out[max(maxnlen-strlen(cbuf->server->nick), 0)]=0;
+						sprintf(out+strlen(out), "<%s> ", cbuf->server->nick);
+						wordline(inp, 3+max(maxnlen, strlen(cbuf->server->nick)), &out);
+						buf_print(cbuf, c_msg[0], out, false);
 						free(out);
 					}
 					else
 					{
-						buf_print(bufs, c_err, "Can't talk - not in a channel!", false);
+						buf_print(cbuf, c_err, "Can't talk - view is not channel!", false);
 					}
 					free(inp);inp=NULL;
 					state=0;
@@ -1057,12 +1050,17 @@ int main(int argc, char *argv[])
 	}
 	if(state>0)
 		printf("quirc exiting\n");
-	if(serverhandle!=0)
+	int b;
+	for(b=0;b<nbufs;b++)
 	{
-		if(!qmsg) qmsg="Quirc Quit.";
-		char quit[7+strlen(qmsg)];
-		sprintf(quit, "QUIT %s", qmsg);
-		irc_tx(serverhandle, quit);
+		cbuf=bufs+b;
+		if(cbuf->handle!=0)
+		{
+			if(!qmsg) qmsg="Quirc Quit.";
+			char quit[7+strlen(qmsg)];
+			sprintf(quit, "QUIT %s", qmsg);
+			irc_tx(cbuf->handle, quit);
+		}
 	}
 	ttyreset(STDOUT_FILENO);
 	return(state>0?state:0);

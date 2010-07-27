@@ -16,10 +16,7 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
-
-// helper fn macros
-#define max(a,b)	((a)>(b)?(a):(b))
-#define min(a,b)	((a)<(b)?(a):(b))
+#include "bits.h"
 
 int irc_connect(char *server, char *portno, char *nick, char *username, char *fullname, fd_set *master, int *fdmax);
 int irc_tx(int fd, char * packet);

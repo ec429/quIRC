@@ -10,6 +10,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+// helper fn macros
+#define max(a,b)	((a)>(b)?(a):(b))
+#define min(a,b)	((a)<(b)?(a):(b))
+
 int width, height; // term size (set in quirc.c)
 
 char * fgetl(FILE *); // gets a line of string data; returns a malloc-like pointer (preserves trailing \n)
