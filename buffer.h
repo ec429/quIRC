@@ -23,10 +23,12 @@ typedef struct
 	colour *lc;
 	char **lt;
 	time_t *ts;
+	bool filled;
 }
 buffer;
 
 buffer *bufs;
 
 int init_buffer(buffer *buf, btype type, char *bname, int nlines);
-int add_to_buffer(buffer *buf, colour lc, char *lt, time_t ts);
+int add_to_buffer(buffer *buf, colour lc, char *lt);
+int buf_print(buffer *buf, colour lc, char *lt);

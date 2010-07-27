@@ -8,17 +8,34 @@
 
 int init_buffer(buffer *buf, btype type, char *bname, int nlines)
 {
-	buffer[0].type=type;
-	buffer[0].bname=bname;
-	buffer[0].nlines=nlines;
-	buffer[0].ptr=0;
-	buffer[0].lc=(colour *)malloc(nlines*sizeof(colour));
-	buffer[0].lt=(char **)malloc(nlines*sizeof(char *));
-	buffer[0].ts=(time_t *)malloc(nlines*sizeof(time_t));
+	buf->type=type;
+	buf->bname=bname;
+	buf->nlines=nlines;
+	buf->ptr=0;
+	buf->lc=(colour *)malloc(nlines*sizeof(colour));
+	buf->lt=(char **)malloc(nlines*sizeof(char *));
+	buf->ts=(time_t *)malloc(nlines*sizeof(time_t));
+	buf->filled=false;
 	return(0);
 }
 
-int add_to_buffer(buffer *buf, colour lc, char *lt, time_t ts)
+int add_to_buffer(buffer *buf, colour lc, char *lt)
 {
-	
+	buf->lc[buf->ptr]=lc;
+	buf->lt[buf->ptr]=strdup(lt);
+	buf->ts[buf->ptr]=time(NULL);
+	buf->ptr=(buf->ptr+1)%buf->nlines;
+	if(buf->ptr==0)
+		buf->filled=true;
+	return(0);
+}
+
+int buf_print(buffer *buf, colour lc, char *lt)
+{
+	printf(CLA "\n");
+	printf(LOCATE, height-2, 1);
+	setcolour(lc);
+	printf(CLA "%s" CLR "\n" CLA "\n", lt);
+	resetcol();
+	return(add_to_buffer(buf, lc, lt));
 }

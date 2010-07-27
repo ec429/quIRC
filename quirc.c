@@ -132,6 +132,10 @@ int main(int argc, char *argv[])
 					{
 						what=c_actn;
 					}
+					else if(strcmp(cmd, "status")==0)
+					{
+						what=&c_status;which=-1;
+					}
 					else if(strcmp(cmd, "err")==0)
 					{
 						what=&c_err;which=-1;
@@ -251,7 +255,7 @@ int main(int argc, char *argv[])
 		return(1);
 	}
 	bufs=(buffer *)malloc(sizeof(buffer));
-	init_buffer(bufs, STATUS, "status", buflines);
+	init_buffer(bufs, STATUS, "status", buflines); // buf 0 is always STATUS
 	fd_set master, readfds;
 	FD_ZERO(&master);
 	FD_SET(STDIN_FILENO, &master);
@@ -262,7 +266,11 @@ int main(int argc, char *argv[])
 		char cstr[24+strlen(server)];
 		sprintf(cstr, "quIRC - connecting to %s", server);
 		settitle(cstr);
-		printf("Connecting to %s\n", server);
+		sprintf(cstr, "Connecting to %s\n", server);
+		setcolour(c_status);
+		printf("%s", cstr);
+		add_to_buffer(bufs, c_status, cstr);
+		resetcol();
 		serverhandle=irc_connect(server, portno, nick, uname, fname, &master, &fdmax);
 		sprintf(cstr, "quIRC - connected to %s", server);
 		settitle(cstr);
