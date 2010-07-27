@@ -35,22 +35,28 @@ char * fgetl(FILE *fp)
 	return(nlout);
 }
 
-int wordline(char *msg, int x)
+int wordline(char *msg, int x, char **out)
 {
+	off_t ol=(out&&*out)?strlen(*out)+1:0;
 	char *ptr=strtok(msg, " ");
 	while(ptr)
 	{
-		x+=strlen(ptr)+1;
-		if((x>=width) && (strlen(ptr)<width))
+		off_t pl=strlen(ptr);
+		*out=(char *)realloc(*out, ol+pl+4);
+		x+=pl+1;
+		if((x>=width) && (pl<width))
 		{
-			printf("\n");
-			x=strlen(ptr);
+			strcat(*out, "\n");
+			ol++;
+			x=pl;
 		}
 		else if(ptr!=msg)
 		{
-			printf(" ");
+			strcat(*out, " ");
+			ol++;
 		}
-		printf("%s", ptr);
+		strcat(*out, ptr);
+		ol+=pl;
 		ptr=strtok(NULL, " ");
 	}
 	return(x);

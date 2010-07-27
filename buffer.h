@@ -18,7 +18,8 @@ typedef enum
 {
 	STATUS,
 	SERVER,
-	CHANNEL
+	CHANNEL,
+	PRIVATE
 }
 btype;
 

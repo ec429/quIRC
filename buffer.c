@@ -39,5 +39,7 @@ int buf_print(buffer *buf, colour lc, char *lt)
 	printf(LOCATE, height-2, 1);
 	printf("%s" CLR "\n" CLA "\n", lt);
 	resetcol();
-	return(add_to_buffer(buf, lc, lt));
+	if(buf)
+		return(add_to_buffer(buf, lc, lt));
+	return(0);
 }

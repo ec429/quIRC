@@ -425,7 +425,7 @@ int main(int argc, char *argv[])
 							ino=inp?strlen(inp):0;
 							if(ino>78)
 							{
-								int off=20*max((ino-53)/20, 0);
+								int off=20*max((ino+27-width)/20, 0);
 								printf("%.10s ... %s" CLR, inp, inp+off+10);
 							}
 							else
@@ -441,7 +441,9 @@ int main(int argc, char *argv[])
 						int e;
 						if((e=irc_rx(serverhandle, &packet))!=0)
 						{
-							fprintf(stderr, "error: irc_rx(%d, &%p): %d\n", serverhandle, packet, e);
+							char emsg[64];
+							sprintf(emsg, "error: irc_rx(%d, &%p): %d", serverhandle, packet, e);
+							buf_print(NULL, c_err, emsg);
 							state=5;
 							qmsg="client crashed";
 						}
@@ -484,11 +486,10 @@ int main(int argc, char *argv[])
 											}
 										break;
 										default:
-											printf(CLA "\n");
-											printf(LOCATE, height-2, 1);
-											setcolour(c_unn);
-											printf(CLA "<<%d? %s" CLR "\n" CLA "\n", num, cmd+4);
-											resetcol();
+											0;
+											char umsg[6+strlen(cmd+4)];
+											sprintf(umsg, "<<%d? %s", num, cmd+4);
+											buf_print(bufs, c_unn, umsg);
 										break;
 									}
 								}
@@ -506,11 +507,9 @@ int main(int argc, char *argv[])
 										char joinmsg[8+strlen(chan)];
 										sprintf(joinmsg, "JOIN %s", chan);
 										irc_tx(serverhandle, joinmsg);
-										printf(CLA "\n");
-										printf(LOCATE, height-2, 1);
-										setcolour(c_join[0]);
-										printf(CLA "auto-Joining %s" CLR "\n" CLA "\n", chan);
-										resetcol();
+										char jmsg[16+strlen(chan)];
+										sprintf(jmsg, "auto-Joining %s", chan);
+										buf_print(bufs, c_join[0], jmsg);
 										join=true;
 									}
 									// apart from using it as a trigger, we don't look at modes just yet
@@ -534,13 +533,14 @@ int main(int argc, char *argv[])
 										if(strncmp(msg, "\001ACTION ", 8)==0)
 										{
 											msg[strlen(msg)-1]=0; // remove trailing \001
-											printf(CLA "\n");
-											printf(LOCATE, height-2, 3+max(maxnlen-strlen(src), 0));
-											setcolour(c_actn[1]);
-											printf(CLA "%s ", src);
-											wordline(msg+8, 3+max(maxnlen, strlen(src)));
-											printf(CLR "\n" CLA "\n");
-											resetcol();
+											char *out=(char *)malloc(5+max(maxnlen, strlen(src)));
+											memset(out, ' ', 2+max(maxnlen-strlen(src), 0));
+											out[2+max(maxnlen-strlen(src), 0)]=0;
+											strcat(out, src);
+											strcat(out, " ");
+											wordline(msg+8, 3+max(maxnlen, strlen(src)), &out);
+											buf_print(bufs, c_actn[1], out);
+											free(out);
 										}
 										else if(strncmp(msg, "\001FINGER", 7)==0)
 										{
@@ -557,13 +557,13 @@ int main(int argc, char *argv[])
 									}
 									else
 									{
-										printf(CLA "\n");
-										printf(LOCATE, height-2, 1+max(maxnlen-strlen(src), 0));
-										setcolour(c_msg[1]);
-										printf(CLA "<%s> ", src);
-										wordline(msg, 3+max(maxnlen, strlen(src)));
-										printf(CLR "\n" CLA "\n");
-										resetcol();
+										char *out=(char *)malloc(5+max(maxnlen, strlen(src)));
+										memset(out, ' ', max(maxnlen-strlen(src), 0));
+										out[max(maxnlen-strlen(src), 0)]=0;
+										sprintf(out+strlen(out), "<%s> ", src);
+										wordline(msg, 3+max(maxnlen, strlen(src)), &out);
+										buf_print(bufs, c_msg[1], out);
+										free(out);
 									}
 								}
 								else if(strcmp(cmd, "NOTICE")==0)
@@ -597,13 +597,13 @@ int main(int argc, char *argv[])
 										src[maxnlen-1]=src[strlen(src)-1];
 										src[maxnlen]=0;
 									}
-									printf(CLA "\n");
-									printf(LOCATE, height-2, 1+max(maxnlen-strlen(src), 0));
-									setcolour(c_notice[1]);
-									printf(CLA "(from %s) ", src);
-									wordline(msg, 9+max(maxnlen, strlen(src)));
-									printf(CLR "\n" CLA "\n");
-									resetcol();
+									char *out=(char *)malloc(16+max(maxnlen, strlen(src)));
+									memset(out, ' ', max(maxnlen-strlen(src), 0));
+									out[max(maxnlen-strlen(src), 0)]=0;
+									sprintf(out+strlen(out), "(from %s) ", src);
+									wordline(msg, 9+max(maxnlen, strlen(src)), &out);
+									buf_print(bufs, c_notice[1], out);
+									free(out);
 								}
 								else if(strcmp(cmd, "JOIN")==0)
 								{
@@ -985,7 +985,7 @@ int main(int argc, char *argv[])
 								printf(LOCATE, height-2, 3+max(maxnlen-strlen(nick), 0));
 								setcolour(c_msg[0]);
 								printf(CLA "<to %s> ", dest);
-								wordline(text, 9+max(maxnlen, strlen(dest)));
+								//wordline(text, 9+max(maxnlen, strlen(dest)));
 								printf(CLR "\n" CLA "\n");
 								resetcol();
 							}
@@ -1024,7 +1024,7 @@ int main(int argc, char *argv[])
 							printf(LOCATE, height-2, 3+max(maxnlen-strlen(nick), 0));
 							setcolour(c_actn[0]);
 							printf(CLA "%s ", nick);
-							wordline(args, 3+max(maxnlen, strlen(nick)));
+							//wordline(args, 3+max(maxnlen, strlen(nick)));
 							printf(CLR "\n" CLA "\n");
 							resetcol();
 						}
@@ -1072,7 +1072,7 @@ int main(int argc, char *argv[])
 						printf(LOCATE, height-2, 1+max(maxnlen-strlen(nick), 0));
 						setcolour(c_msg[0]);
 						printf(CLA "<%s> ", nick);
-						wordline(inp, 3+max(maxnlen, strlen(nick)));
+						//wordline(inp, 3+max(maxnlen, strlen(nick)));
 						printf(CLR "\n" CLA "\n");
 						resetcol();
 					}

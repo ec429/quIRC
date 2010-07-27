@@ -13,4 +13,4 @@
 int width, height; // term size (set in quirc.c)
 
 char * fgetl(FILE *); // gets a line of string data; returns a malloc-like pointer (preserves trailing \n)
-int wordline(char *, int x); // prints a string, breaking lines in between words
+int wordline(char *, int x, char **); // prepares a string for printing, breaking lines in between words
