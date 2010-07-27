@@ -3,7 +3,7 @@
 VERSION=$(git describe --tags)
 read MAJOR MINOR REVS GIT <<< ${VERSION//[-.]/ }
 
-CCVER=$($CC -v 2>&1 | tail -n 1)
+CCVER=$(cc -v 2>&1 | tail -n 1)
 
 cat >version.h <<_EOM
 /*
@@ -18,5 +18,5 @@ cat >version.h <<_EOM
 #define VERSION_MIN $MINOR // Minor version
 #define VERSION_REV $REVS // Revision number
 #define VERSION_TXT "$GIT" // Rest of git describe
-#define CC_VERSION	"$CCVER" // last line of $CC -v
+#define CC_VERSION	"$CCVER" // last line of cc -v
 _EOM
