@@ -34,3 +34,20 @@ char * fgetl(FILE *fp)
 	}
 	return(nlout);
 }
+
+int wordline(char *msg, int x)
+{
+	char *ptr=strtok(msg, " ");
+	while(ptr)
+	{
+		x+=strlen(ptr)+1;
+		if((x>=width) && (strlen(ptr)<width))
+		{
+			printf("\n");
+			x=strlen(ptr)+1;
+		}
+		printf("%s ", ptr);
+		ptr=strtok(NULL, " ");
+	}
+	return(x);
+}

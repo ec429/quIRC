@@ -10,3 +10,4 @@
 #include <stdlib.h>
 
 char * fgetl(FILE *); // gets a line of string data; returns a malloc-like pointer (preserves trailing \n)
+int wordline(char *, int x); // prints a string, breaking lines in between words
