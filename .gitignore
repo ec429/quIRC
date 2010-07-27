@@ -1,5 +1,6 @@
 *~
 quirc
 *.o
+.quirc
 .quirc-shadow
 version.h

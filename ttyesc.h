@@ -5,6 +5,7 @@
 	See quirc.c for license information
 	ttyesc: ANSI Terminal Escape Sequences
 */
+#pragma once
 
 #define CLS			"\033[2J" // You might recognise these two names...
 #define LOCATE		"\033[%d;%dH" // as being very similar to some basic keywords... :p

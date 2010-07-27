@@ -5,9 +5,9 @@ CFLAGS ?= -Wall
 
 all: quirc
 
-quirc: quirc.c ttyraw.o ttyraw.h ttyesc.o ttyesc.h irc.o irc.h bits.o bits.h numeric.h
+quirc: quirc.c ttyraw.o ttyraw.h ttyesc.o ttyesc.h irc.o irc.h bits.o bits.h colour.o colour.h numeric.h
 	./gitversion
-	$(CC) $(CFLAGS) -o quirc quirc.c ttyraw.o ttyesc.o irc.o bits.o
+	$(CC) $(CFLAGS) -o quirc quirc.c ttyraw.o ttyesc.o irc.o bits.o colour.o
 
 ttyraw.o: ttyraw.c ttyraw.h
 	$(CC) $(CFLAGS) -o ttyraw.o -c ttyraw.c
@@ -21,4 +21,6 @@ irc.o: irc.c irc.h
 bits.o: bits.c bits.h
 	$(CC) $(CFLAGS) -o bits.o -c bits.c
 
+colour.o: colour.c colour.h
+	$(CC) $(CFLAGS) -o colour.o -c colour.c
 

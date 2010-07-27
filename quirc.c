@@ -29,6 +29,7 @@
 #include "ttyesc.h"
 #include "irc.h"
 #include "bits.h"
+#include "colour.h"
 #include "numeric.h"
 #include "version.h"
 
@@ -49,6 +50,17 @@
 
 int main(int argc, char *argv[])
 {
+	// default colours
+	colour c_msg[2]={{7, 0, 0, 1}, {7, 0, 0, 0}};
+	colour c_notice[2]={{7, 0, 1, 0}, {7, 0, 1, 0}};
+	colour c_join[2]={{2, 0, 1, 0}, {2, 0, 1, 0}};
+	colour c_part[2]={{6, 0, 1, 0}, {6, 0, 1, 0}};
+	colour c_quit[2]={{3, 0, 1, 0}, {3, 0, 1, 0}};
+	colour c_nick[2]={{4, 0, 1, 0}, {4, 0, 1, 0}};
+	colour c_actn[2]={{0, 3, 0, 1}, {0, 3, 0, 0}};
+	colour c_err={1, 0, 1, 0};
+	colour c_unk={3, 4, 0, 0};
+	colour c_unn={1, 6, 0, 1};
 	int width=0, height=0;
 	char *cols=getenv("COLUMNS"), *rows=getenv("ROWS");
 	if(cols) sscanf(cols, "%u", &width);
@@ -62,6 +74,7 @@ int main(int argc, char *argv[])
 	printf("\n");
 	char *server=NULL, *portno="6667", *uname="quirc", *fname=(char *)malloc(20+strlen(VERSION_TXT)), *nick="ac", *chan=NULL;
 	sprintf(fname, "quIRC %hhu.%hhu.%hhu%s", VERSION_MAJ, VERSION_MIN, VERSION_REV, VERSION_TXT);
+	char *version=fname;
 	char *qmsg=fname;
 	char *rcfile=".quirc";
 	char *rcshad=".quirc-shadow";
@@ -83,6 +96,12 @@ int main(int argc, char *argv[])
 				{
 					if(strcmp(cmd, "server")==0)
 						server=strdup(strtok(NULL, "\n"));
+					else if(strcmp(cmd, "port")==0)
+						portno=strdup(strtok(NULL, "\n"));
+					else if(strcmp(cmd, "uname")==0)
+						uname=strdup(strtok(NULL, "\n"));
+					else if(strcmp(cmd, "fname")==0)
+						fname=strdup(strtok(NULL, "\n"));
 					else if(strcmp(cmd, "nick")==0)
 						nick=strdup(strtok(NULL, "\n"));
 					else if(strcmp(cmd, "chan")==0)
@@ -306,7 +325,7 @@ int main(int argc, char *argv[])
 										default:
 											printf(CLA "\n");
 											printf(LOCATE, height-2, 1);
-											setcol(1, 6, false, true);
+											setcolour(c_unn);
 											printf(CLA "<<%d?" CLR "\n" CLA "\n", num);
 											resetcol();
 										break;
@@ -328,7 +347,7 @@ int main(int argc, char *argv[])
 										irc_tx(serverhandle, joinmsg);
 										printf(CLA "\n");
 										printf(LOCATE, height-2, 1);
-										setcol(2, 0, true, false);
+										setcolour(c_join[0]);
 										printf(CLA "auto-Joining %s" CLR "\n" CLA "\n", chan);
 										resetcol();
 										join=true;
@@ -354,7 +373,7 @@ int main(int argc, char *argv[])
 										msg[strlen(msg)-1]=0; // remove trailing \001
 										printf(CLA "\n");
 										printf(LOCATE, height-2, 3+max(maxnlen-strlen(src), 0));
-										setcol(0, 3, false, true);
+										setcolour(c_actn[1]);
 										printf(CLA "%s %s" CLR "\n" CLA "\n", src, msg+8);
 										resetcol();
 									}
@@ -362,7 +381,9 @@ int main(int argc, char *argv[])
 									{
 										printf(CLA "\n");
 										printf(LOCATE, height-2, 1+max(maxnlen-strlen(src), 0));
+										setcolour(c_msg[1]);
 										printf(CLA "<%s> %s" CLR "\n" CLA "\n", src, msg);
+										resetcol();
 									}
 								}
 								else if(strcmp(cmd, "NOTICE")==0)
@@ -398,7 +419,7 @@ int main(int argc, char *argv[])
 									}
 									printf(CLA "\n");
 									printf(LOCATE, height-2, 1+max(maxnlen-strlen(src), 0));
-									setcol(7, 0, true, false);
+									setcolour(c_notice[1]);
 									printf(CLA "<%s> %s" CLR "\n" CLA "\n", src, msg);
 									resetcol();
 								}
@@ -411,7 +432,7 @@ int main(int argc, char *argv[])
 										*bang=0;
 									printf(CLA "\n");
 									printf(LOCATE, height-2, 1);
-									setcol(2, 0, true, false);
+									setcolour(c_join[1]);
 									if(strcmp(src, nick)==0)
 									{
 										printf(CLA "You (%s) have joined %s" CLR "\n" CLA "\n", src, dest+1);
@@ -439,7 +460,7 @@ int main(int argc, char *argv[])
 										*bang=0;
 									printf(CLA "\n");
 									printf(LOCATE, height-2, 1);
-									setcol(2, 0, true, false);
+									setcolour(c_part[1]);
 									if(strcmp(src, nick)==0)
 									{
 										printf(CLA "You (%s) have left %s" CLR "\n" CLA "\n", src, dest);
@@ -465,7 +486,7 @@ int main(int argc, char *argv[])
 										*bang=0;
 									printf(CLA "\n");
 									printf(LOCATE, height-2, 1);
-									setcol(3, 0, true, false);
+									setcolour(c_quit[1]);
 									if(strcmp(src, nick)==0)
 									{
 										printf(CLA "You (%s) have left %s (%s)" CLR "\n" CLA "\n", src, server, dest+1); // this shouldn't happen???
@@ -491,7 +512,7 @@ int main(int argc, char *argv[])
 										*bang=0;
 									printf(CLA "\n");
 									printf(LOCATE, height-2, 1);
-									setcol(4, 0, true, false);
+									setcolour(c_nick[1]);
 									if(strcmp(dest+1, nick)==0)
 									{
 										printf(CLA "You (%s) are now known as %s" CLR "\n" CLA "\n", src, dest+1);
@@ -512,7 +533,7 @@ int main(int argc, char *argv[])
 								{
 									printf(CLA "\n");
 									printf(LOCATE, height-2, 1);
-									setcol(3, 4, false, false);
+									setcolour(c_unk);
 									printf(CLA "<? %s" CLR "\n" CLA "\n", pdata);
 									resetcol();
 								}
@@ -556,7 +577,7 @@ int main(int argc, char *argv[])
 						if(serverhandle)
 						{
 							printf(LOCATE, height-2, 1);
-							setcol(1, 0, true, false);
+							setcolour(c_err);
 							printf(CLA "Already connected to a server!\n" CLA "\n");
 							resetcol();
 						}
@@ -578,7 +599,7 @@ int main(int argc, char *argv[])
 							else
 							{
 								printf(LOCATE, height-2, 1);
-								setcol(1, 0, true, false);
+								setcolour(c_err);
 								printf(CLA "Must specify a server!\n" CLA "\n");
 								resetcol();
 							}
@@ -591,14 +612,14 @@ int main(int argc, char *argv[])
 						if(!serverhandle)
 						{
 							printf(LOCATE, height-2, 1);
-							setcol(1, 0, true, false);
+							setcolour(c_err);
 							printf(CLA "Not connected to a server!\n" CLA "\n");
 							resetcol();
 						}
 						else if(chan)
 						{
 							printf(LOCATE, height-2, 1);
-							setcol(1, 0, true, false);
+							setcolour(c_err);
 							printf(CLA "Already in a channel (quirc can currently only handle one channel)\n" CLA "\n");
 							resetcol();
 						}
@@ -614,7 +635,7 @@ int main(int argc, char *argv[])
 						else
 						{
 							printf(LOCATE, height-2, 1);
-							setcol(1, 0, true, false);
+							setcolour(c_err);
 							printf(CLA "Must specify a channel!\n" CLA "\n");
 							resetcol();
 						}
@@ -626,14 +647,14 @@ int main(int argc, char *argv[])
 						if(!serverhandle)
 						{
 							printf(LOCATE, height-2, 1);
-							setcol(1, 0, true, false);
+							setcolour(c_err);
 							printf(CLA "Not connected to a server!\n" CLA "\n");
 							resetcol();
 						}
 						else if(!chan)
 						{
 							printf(LOCATE, height-2, 1);
-							setcol(1, 0, true, false);
+							setcolour(c_err);
 							printf(CLA "Not in any channels!\n" CLA "\n");
 							resetcol();
 						}
@@ -648,7 +669,7 @@ int main(int argc, char *argv[])
 							else
 							{
 								printf(LOCATE, height-2, 1);
-								setcol(1, 0, true, false);
+								setcolour(c_err);
 								printf(CLA "Not in that channel!\n" CLA "\n");
 								resetcol();
 							}
@@ -656,7 +677,7 @@ int main(int argc, char *argv[])
 						else
 						{
 							printf(LOCATE, height-2, 1);
-							setcol(1, 0, true, false);
+							setcolour(c_err);
 							printf(CLA "Must specify a channel!\n" CLA "\n");
 							resetcol();
 						}
@@ -679,7 +700,7 @@ int main(int argc, char *argv[])
 						else
 						{
 							printf(LOCATE, height-2, 1);
-							setcol(1, 0, true, false);
+							setcolour(c_err);
 							printf(CLA "Must specify a nickname!\n" CLA "\n");
 							resetcol();
 						}
@@ -691,7 +712,7 @@ int main(int argc, char *argv[])
 						if(!serverhandle)
 						{
 							printf(LOCATE, height-2, 1);
-							setcol(1, 0, true, false);
+							setcolour(c_err);
 							printf(CLA "Not connected to a server!\n" CLA "\n");
 							resetcol();
 						}
@@ -708,7 +729,7 @@ int main(int argc, char *argv[])
 							else
 							{
 								printf(LOCATE, height-2, 1);
-								setcol(1, 0, true, false);
+								setcolour(c_err);
 								printf(CLA "Must specify a message!\n" CLA "\n");
 								resetcol();
 							}
@@ -716,7 +737,7 @@ int main(int argc, char *argv[])
 						else
 						{
 							printf(LOCATE, height-2, 1);
-							setcol(1, 0, true, false);
+							setcolour(c_err);
 							printf(CLA "Must specify a recipient!\n" CLA "\n");
 							resetcol();
 						}
@@ -728,7 +749,7 @@ int main(int argc, char *argv[])
 						if(!serverhandle)
 						{
 							printf(LOCATE, height-2, 1);
-							setcol(1, 0, true, false);
+							setcolour(c_err);
 							printf(CLA "Not connected to a server!\n" CLA "\n");
 							resetcol();
 						}
@@ -738,14 +759,14 @@ int main(int argc, char *argv[])
 							sprintf(privmsg, "PRIVMSG %s :\001ACTION %s\001", chan, args);
 							irc_tx(serverhandle, privmsg);
 							printf(LOCATE, height-2, 3+max(maxnlen-strlen(nick), 0));
-							setcol(0, 3, false, true);
+							setcolour(c_actn[0]);
 							printf(CLA "%s %s" CLR "\n" CLA "\n", nick, args);
 							resetcol();
 						}
 						else
 						{
 							printf(LOCATE, height-2, 1);
-							setcol(1, 0, true, false);
+							setcolour(c_err);
 							printf(CLA "Must specify an action!\n" CLA "\n");
 							resetcol();
 						}
@@ -757,7 +778,7 @@ int main(int argc, char *argv[])
 						if(!serverhandle)
 						{
 							printf(LOCATE, height-2, 1);
-							setcol(1, 0, true, false);
+							setcolour(c_err);
 							printf(CLA "Not connected to a server!\n" CLA "\n");
 							resetcol();
 						}
@@ -784,14 +805,14 @@ int main(int argc, char *argv[])
 						sprintf(pmsg, "PRIVMSG %s :%s", chan, inp);
 						irc_tx(serverhandle, pmsg);
 						printf(LOCATE, height-2, 1+max(maxnlen-strlen(nick), 0));
-						setcol(7, 0, false, true);
+						setcolour(c_msg[0]);
 						printf(CLA "<%s> %s" CLR "\n" CLA "\n", nick, inp);
 						resetcol();
 					}
 					else
 					{
 						printf(LOCATE, height-2, 1);
-						setcol(1, 0, true, false);
+						setcolour(c_err);
 						printf(CLA "Can't talk - not in a channel!\n" CLA "\n");
 						resetcol();
 					}
