@@ -24,3 +24,12 @@ bits.o: bits.c bits.h
 colour.o: colour.c colour.h
 	$(CC) $(CFLAGS) -o colour.o -c colour.c
 
+dist: all
+	VERSION = `git describe`
+	mkdir quirc_$(VERSION)
+	cp * quirc_$(VERSION)
+	rm quirc_$(VERSION)/.quirc*
+	tar -cvvf quirc_$(VERSION)
+	gzip quirc_$(VERSION).tar
+	rm -r quirc_$(VERSION)
+
