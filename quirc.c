@@ -516,7 +516,7 @@ int main(int argc, char *argv[])
 										printf(LOCATE, height-2, 3+max(maxnlen-strlen(src), 0));
 										setcolour(c_actn[1]);
 										printf(CLA "%s ", src);
-										wordline(msg, 3+max(maxnlen, strlen(src)));
+										wordline(msg+8, 3+max(maxnlen, strlen(src)));
 										printf(CLR "\n" CLA "\n");
 										resetcol();
 									}
