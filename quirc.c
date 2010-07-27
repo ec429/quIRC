@@ -58,7 +58,6 @@ name;
 
 int main(int argc, char *argv[])
 {
-	int width=0, height=0;
 	char *cols=getenv("COLUMNS"), *rows=getenv("ROWS");
 	if(cols) sscanf(cols, "%u", &width);
 	if(rows) sscanf(rows, "%u", &height);
