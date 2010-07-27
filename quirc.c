@@ -218,6 +218,18 @@ int main(int argc, char *argv[])
 		{
 			chan=NULL;
 		}
+		else if(strncmp(argv[arg], "--server=", 9)==0)
+			server=argv[arg]+9;
+		else if(strncmp(argv[arg], "--port=", 7)==0)
+			portno=argv[arg]+7;
+		else if(strncmp(argv[arg], "--uname=", 8)==0)
+			uname=argv[arg]+8;
+		else if(strncmp(argv[arg], "--fname=", 8)==0)
+			fname=argv[arg]+8;
+		else if(strncmp(argv[arg], "--nick=", 7)==0)
+			nick=argv[arg]+7;
+		else if(strncmp(argv[arg], "--chan=", 7)==0)
+			chan=argv[arg]+7;
 	}
 	printf(GPL_MSG);
 	int e=ttyraw(STDOUT_FILENO);
@@ -320,7 +332,7 @@ int main(int argc, char *argv[])
 								if(c=='\t') // tab completion of nicks
 								{
 									int sp=ino-1;
-									while(sp>0 && !strchr(" \t", inp[sp]))
+									while(sp>0 && !strchr(" \t", inp[sp-1]))
 										sp--;
 									name *curr=nlist;
 									name *found=NULL;bool tmany=false;
