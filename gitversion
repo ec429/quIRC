@@ -15,5 +15,5 @@ cat >version.h <<_EOM
 #define VERSION_MAJ $MAJOR // Major version
 #define VERSION_MIN $MINOR // Minor version
 #define VERSION_REV $REVS // Revision number
-#define VERSION_TXT "$GIT" // Rest of git describe
+#define VERSION_TXT "-$GIT" // Rest of git describe
 _EOM

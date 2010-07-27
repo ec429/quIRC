@@ -55,6 +55,11 @@ int main(int argc, char *argv[])
 	if(rows) sscanf(rows, "%u", &height);
 	if(!width) width=80;
 	if(!height) height=24;
+	settitle("quIRC - not connected");
+	resetcol();
+	printf(CLS);
+	printf(LOCATE, height, 1);
+	printf(GPL_MSG);
 	char *server=NULL, *portno="6667", *uname="quirc", *fname=(char *)malloc(20+strlen(VERSION_TXT)), *nick="ac", *chan=NULL;
 	sprintf(fname, "quIRC %hhu.%hhu.%hhu%s", VERSION_MAJ, VERSION_MIN, VERSION_REV, VERSION_TXT);
 	char *qmsg=fname;
@@ -67,10 +72,10 @@ int main(int argc, char *argv[])
 		while(!feof(rcfp))
 		{
 			char *line=fgetl(rcfp);
-			if(*line!='#') // #lines are comments
+			if(!strchr("#\n", *line)) // #lines are comments
 			{
 				char *cmd=strtok(line, " \t");
-				if(*cmd=='c')
+				if(*cmd=='%')
 				{
 					// it's a colour specifier; custom colours aren't done yet
 				}
@@ -92,6 +97,19 @@ int main(int argc, char *argv[])
 		}
 		fclose(rcfp);
 	}
+	FILE *rcsfp=fopen(rcshad, "r");
+	int shli=0;
+	char **shad=NULL;
+	if(rcsfp)
+	{
+		while(!feof(rcsfp))
+		{
+			shad=(char **)realloc(shad, ++shli*sizeof(char *));
+			shad[shli-1]=fgetl(rcsfp);
+		}
+		fclose(rcsfp);
+	}
+	int shlp=0;
 	int maxnlen=16;
 	int arg;
 	for(arg=1;arg<argc;arg++)
@@ -130,11 +148,6 @@ int main(int argc, char *argv[])
 		perror("ttyraw");
 		return(1);
 	}
-	settitle("quIRC - not connected");
-	resetcol();
-	printf(CLS);
-	printf(LOCATE, height, 1);
-	printf(GPL_MSG);
 	fd_set master, readfds;
 	FD_ZERO(&master);
 	FD_SET(STDIN_FILENO, &master);
@@ -155,12 +168,41 @@ int main(int argc, char *argv[])
 	printf(CLA);
 	printf("\n");
 	struct timeval timeout;
-	timeout.tv_sec=0;
-	timeout.tv_usec=25000;
 	char *inp=NULL;
+	char *shsrc=NULL;char *shtext=NULL;
 	int state=0; // odd-numbered states are fatal
 	while(!(state%2))
 	{
+		timeout.tv_sec=0;
+		timeout.tv_usec=25000;
+		if(shli && !shsrc)
+		{
+			shread:
+			if(strncmp(shad[shlp], ">>", 2)==0)
+			{
+				irc_tx(serverhandle, shad[shlp]+3);
+			}
+			if(strncmp(shad[shlp], "<<", 2)==0) // read
+			{
+				shsrc=strtok(shad[shlp]+3, " \n");
+				shtext=strtok(NULL, " \n");
+				if(strcmp(shtext, "*")==0)
+					shtext=NULL;
+			}
+			else
+			{
+				shlp++;
+				if(shlp>=shli) // end reached, wipe it out
+				{
+					for(shlp=0;shlp<shli;shlp++)
+						free(shad[shlp]);
+					shli=0;
+				}
+				else
+					goto shread;
+			}
+		}
+		
 		fflush(stdin);
 		readfds=master;
 		if(select(fdmax+1, &readfds, NULL, NULL, &timeout)==-1)
@@ -283,6 +325,11 @@ int main(int argc, char *argv[])
 										char joinmsg[8+strlen(chan)];
 										sprintf(joinmsg, "JOIN %s", chan);
 										irc_tx(serverhandle, joinmsg);
+										printf(CLA "\n");
+										printf(LOCATE, height-2, 1);
+										setcol(2, 0, true, false);
+										printf(CLA "auto-Joining %s" CLR "\n" CLA "\n", chan);
+										resetcol();
 										join=true;
 									}
 									// apart from using it as a trigger, we don't look at modes just yet
@@ -319,11 +366,29 @@ int main(int argc, char *argv[])
 								}
 								else if(strcmp(cmd, "NOTICE")==0)
 								{
-									char *msg=cmd+strlen(cmd)+1; // prefixed with :
+									char *dest=strtok(NULL, " ");
+									char *msg=dest+strlen(dest)+2; // prefixed with :
 									char *src=packet+1;
 									char *bang=strchr(src, '!');
 									if(bang)
 										*bang=0;
+									if(shli)
+									{
+										if(strcmp(src, shsrc)==0)
+										{
+											if((!shtext)||strcmp(msg, shtext))
+											{
+												shlp++;
+												shsrc=NULL;
+												if(shlp>=shli) // end reached, wipe it out
+												{
+													for(shlp=0;shlp<shli;shlp++)
+														free(shad[shlp]);
+													shli=0;
+												}
+											}
+										}
+									}
 									if(strlen(src)>maxnlen)
 									{
 										src[maxnlen-4]=src[maxnlen-3]=src[maxnlen-2]='.';
