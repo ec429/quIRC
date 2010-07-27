@@ -74,6 +74,8 @@ int main(int argc, char *argv[])
 	char *qmsg=fname;
 	char *rcfile=".quirc";
 	char *rcshad=".quirc-shadow";
+	char *home=getenv("HOME");
+	if(home) chdir(home);
 	bool join=false;
 	FILE *rcfp=fopen(rcfile, "r");
 	if(rcfp)

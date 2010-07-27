@@ -31,7 +31,7 @@ Commands: are prefixed with a '/'.  Anything else is a message to be sent to the
 
 Configuration:
 	quIRC can be configured through an "rc file" as follows.
-	In the directory from which you will be running quIRC (such as $HOME), create a file called ".quirc", and open it in your editor.
+	In your home directory (/home/username), create a file called ".quirc", and open it in your editor.
 	In this file you can set a server, nick and channel to automatically use, with lines
 		server <url>
 		nick <nickname>
