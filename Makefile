@@ -10,9 +10,11 @@ all: quirc
 install: all
 	install -sD quirc $(PREFIX)/bin/quirc
 
-quirc: quirc.c ttyraw.o ttyraw.h ttyesc.o ttyesc.h irc.o irc.h bits.o bits.h colour.o colour.h numeric.h
+quirc: quirc.c ttyraw.o ttyraw.h ttyesc.o ttyesc.h irc.o irc.h bits.o bits.h colour.o colour.h buffer.o buffer.h numeric.h
 	-./gitversion
-	$(CC) $(CFLAGS) -o quirc quirc.c ttyraw.o ttyesc.o irc.o bits.o colour.o
+	$(CC) $(CFLAGS) -o quirc quirc.c ttyraw.o ttyesc.o irc.o bits.o colour.o buffer.o
+
+# TODO use funky make cleverness for these rules as they're all basically the same
 
 ttyraw.o: ttyraw.c ttyraw.h
 	$(CC) $(CFLAGS) -o ttyraw.o -c ttyraw.c
@@ -28,6 +30,9 @@ bits.o: bits.c bits.h
 
 colour.o: colour.c colour.h
 	$(CC) $(CFLAGS) -o colour.o -c colour.c
+
+buffer.o: buffer.c buffer.h
+	$(CC) $(CFLAGS) -o buffer.o -c buffer.c
 
 dist: all
 	-mkdir quirc_$(VERSION)

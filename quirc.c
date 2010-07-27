@@ -31,6 +31,7 @@
 #include "bits.h"
 #define COLOURS	0 // activate default colours in colour.h
 #include "colour.h"
+#include "buffer.h"
 #include "numeric.h"
 #include "version.h"
 
@@ -58,6 +59,7 @@ name;
 
 int main(int argc, char *argv[])
 {
+	int buflines=100; // will make configable later
 	char *cols=getenv("COLUMNS"), *rows=getenv("ROWS");
 	if(cols) sscanf(cols, "%u", &width);
 	if(rows) sscanf(rows, "%u", &height);
@@ -248,6 +250,8 @@ int main(int argc, char *argv[])
 		perror("ttyraw");
 		return(1);
 	}
+	bufs=(buffer *)malloc(sizeof(buffer));
+	init_buffer(bufs, STATUS, "status", buflines);
 	fd_set master, readfds;
 	FD_ZERO(&master);
 	FD_SET(STDIN_FILENO, &master);
