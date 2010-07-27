@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
 	if(rows) sscanf(rows, "%u", &height);
 	if(!width) width=80;
 	if(!height) height=24;
-	char *server=NULL, *portno="6667", *uname="quirc", *fname=(char *)malloc(20+strlen(VERSION_TXT)), *nick="ac";
+	char *server=NULL, *portno="6667", *uname="quirc", *fname=(char *)malloc(20+strlen(VERSION_TXT)), *nick="ac", *chan=NULL;
 	sprintf(fname, "quIRC %hhu.%hhu.%hhu%s", VERSION_MAJ, VERSION_MIN, VERSION_REV, VERSION_TXT);
 	char *qmsg=fname;
 	int maxnlen=16;
@@ -451,7 +451,21 @@ int main(int argc, char *argv[])
 					}
 					else if(strcmp(cmd, "join")==0)
 					{
-						if(args)
+						if(!serverhandle)
+						{
+							printf(LOCATE, height-2, 1);
+							setcol(1, 0, true, false);
+							printf(CLA "Not connected to a server!\n" CLA "\n");
+							resetcol();
+						}
+						else if(chan)
+						{
+							printf(LOCATE, height-2, 1);
+							setcol(1, 0, true, false);
+							printf(CLA "Already in a channel (quirc can currently only handle one channel)\n" CLA "\n");
+							resetcol();
+						}
+						else if(args)
 						{
 							char *chan=strtok(args, " ");
 							char *pass=strtok(NULL, ", ");
@@ -472,12 +486,35 @@ int main(int argc, char *argv[])
 					}
 					else if(strcmp(cmd, "part")==0)
 					{
-						if(args)
+						if(!serverhandle)
 						{
-							char *chan=strtok(args, " ");
-							char partmsg[8+strlen(chan)];
-							sprintf(partmsg, "PART %s", chan);
-							irc_tx(serverhandle, partmsg);
+							printf(LOCATE, height-2, 1);
+							setcol(1, 0, true, false);
+							printf(CLA "Not connected to a server!\n" CLA "\n");
+							resetcol();
+						}
+						else if(!chan)
+						{
+							printf(LOCATE, height-2, 1);
+							setcol(1, 0, true, false);
+							printf(CLA "Not in any channels!\n" CLA "\n");
+							resetcol();
+						}
+						else if(args)
+						{
+							if(strcmp(chan, strtok(args, " "))==0)
+							{
+								char partmsg[8+strlen(chan)];
+								sprintf(partmsg, "PART %s", chan);
+								irc_tx(serverhandle, partmsg);
+							}
+							else
+							{
+								printf(LOCATE, height-2, 1);
+								setcol(1, 0, true, false);
+								printf(CLA "Not in that channel!\n" CLA "\n");
+								resetcol();
+							}
 						}
 						else
 						{
@@ -495,9 +532,12 @@ int main(int argc, char *argv[])
 						{
 							char *nn=strtok(args, " ");
 							nick=strdup(nn);
-							char nmsg[8+strlen(nick)];
-							sprintf(nmsg, "NICK %s", nick);
-							irc_tx(serverhandle, nmsg);
+							if(serverhandle)
+							{
+								char nmsg[8+strlen(nick)];
+								sprintf(nmsg, "NICK %s", nick);
+								irc_tx(serverhandle, nmsg);
+							}
 						}
 						else
 						{
@@ -511,7 +551,17 @@ int main(int argc, char *argv[])
 					}
 					else if(strcmp(cmd, "cmd")==0)
 					{
-						irc_tx(serverhandle, args);
+						if(!serverhandle)
+						{
+							printf(LOCATE, height-2, 1);
+							setcol(1, 0, true, false);
+							printf(CLA "Not connected to a server!\n" CLA "\n");
+							resetcol();
+						}
+						else
+						{
+							irc_tx(serverhandle, args);
+						}
 						free(inp);inp=NULL;
 						state=0;
 					}
