@@ -580,6 +580,7 @@ int main(int argc, char *argv[])
 					{
 						char pmsg[12+strlen(chan)+strlen(inp)];
 						sprintf(pmsg, "PRIVMSG %s %s", chan, inp);
+						irc_tx(serverhandle, pmsg);
 						printf(LOCATE, height-2, 1);
 						setcol(7, 0, false, true);
 						printf(CLA "<%s> %s\n" CLA "\n", nick, inp);
