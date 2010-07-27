@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
 	resetcol();
 	printf(CLS);
 	printf(LOCATE, height, 1);
-	printf(GPL_MSG);
+	printf("\n");
 	char *server=NULL, *portno="6667", *uname="quirc", *fname=(char *)malloc(20+strlen(VERSION_TXT)), *nick="ac", *chan=NULL;
 	sprintf(fname, "quIRC %hhu.%hhu.%hhu%s", VERSION_MAJ, VERSION_MIN, VERSION_REV, VERSION_TXT);
 	char *qmsg=fname;
@@ -141,6 +141,7 @@ int main(int argc, char *argv[])
 			chan=NULL;
 		}
 	}
+	printf(GPL_MSG);
 	int e=ttyraw(STDOUT_FILENO);
 	if(e)
 	{
