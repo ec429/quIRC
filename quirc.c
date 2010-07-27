@@ -323,8 +323,7 @@ int main(int argc, char *argv[])
 								}
 								else if(strcmp(cmd, "QUIT")==0)
 								{
-									char *dest=strtok(NULL, " \t");
-									char *msg=dest+strlen(dest)+1; // prefixed with :
+									char *dest=strtok(NULL, "");
 									char *src=packet+1;
 									char *bang=strchr(src, '!');
 									if(bang)
@@ -334,7 +333,7 @@ int main(int argc, char *argv[])
 									setcol(3, 0, true, false);
 									if(strcmp(src, nick)==0)
 									{
-										printf(CLA "You (%s) have left %s (%s)\n" CLA "\n", src, dest, msg);
+										printf(CLA "You (%s) have left %s (%s)\n" CLA "\n", src, server, dest+1); // this shouldn't happen???
 									}
 									else
 									{
@@ -344,7 +343,7 @@ int main(int argc, char *argv[])
 											src[maxnlen-1]=src[strlen(src)-1];
 											src[maxnlen]=0;
 										}
-										printf(CLA "=%s= has left %s (%s)\n" CLA "\n", src, dest, msg);
+										printf(CLA "=%s= has left %s (%s)\n" CLA "\n", src, server, dest+1);
 									}
 									resetcol();
 								}
@@ -487,7 +486,7 @@ int main(int argc, char *argv[])
 						free(inp);inp=NULL;
 						state=0;
 					}
-					else if(strcmp(cmd, "part")==0)
+					else if((strcmp(cmd, "part")==0)||(strcmp(cmd, "leave")==0))
 					{
 						if(!serverhandle)
 						{
@@ -589,6 +588,31 @@ int main(int argc, char *argv[])
 						free(inp);inp=NULL;
 						state=0;
 					}
+					else if(strcmp(cmd, "me")==0)
+					{
+						if(!serverhandle)
+						{
+							printf(LOCATE, height-2, 1);
+							setcol(1, 0, true, false);
+							printf(CLA "Not connected to a server!\n" CLA "\n");
+							resetcol();
+						}
+						else if(args)
+						{
+							char privmsg[32+strlen(chan)+strlen(args)];
+							sprintf(privmsg, "PRIVMSG %s :ACTION\001%s\001", chan, args);
+							irc_tx(serverhandle, privmsg);
+						}
+						else
+						{
+							printf(LOCATE, height-2, 1);
+							setcol(1, 0, true, false);
+							printf(CLA "Must specify an action!\n" CLA "\n");
+							resetcol();
+						}
+						free(inp);inp=NULL;
+						state=0;
+					}
 					else if(strcmp(cmd, "cmd")==0)
 					{
 						if(!serverhandle)
@@ -618,7 +642,7 @@ int main(int argc, char *argv[])
 					if(serverhandle && chan)
 					{
 						char pmsg[12+strlen(chan)+strlen(inp)];
-						sprintf(pmsg, "PRIVMSG %s %s", chan, inp);
+						sprintf(pmsg, "PRIVMSG %s :%s", chan, inp);
 						irc_tx(serverhandle, pmsg);
 						printf(LOCATE, height-2, 1+max(maxnlen-strlen(nick), 0));
 						setcol(7, 0, false, true);
