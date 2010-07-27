@@ -67,6 +67,7 @@ int main(int argc, char *argv[])
 	resetcol();
 	printf(LOCATE, height, 1);
 	printf("\n");
+	int maxnlen=16;
 	char *server=NULL, *portno="6667", *uname="quirc", *fname=(char *)malloc(20+strlen(VERSION_TXT)), *nick="ac", *chan=NULL;
 	sprintf(fname, "quIRC %hhu.%hhu.%hhu%s%s", VERSION_MAJ, VERSION_MIN, VERSION_REV, VERSION_TXT[0]?"-":"", VERSION_TXT);
 	char version[16+strlen(VERSION_TXT)];
@@ -155,18 +156,21 @@ int main(int argc, char *argv[])
 				}
 				else
 				{
+					char *rest=strtok(NULL, "\n");
 					if(strcmp(cmd, "server")==0)
-						server=strdup(strtok(NULL, "\n"));
+						server=strdup(rest);
 					else if(strcmp(cmd, "port")==0)
-						portno=strdup(strtok(NULL, "\n"));
+						portno=strdup(rest);
 					else if(strcmp(cmd, "uname")==0)
-						uname=strdup(strtok(NULL, "\n"));
+						uname=strdup(rest);
 					else if(strcmp(cmd, "fname")==0)
-						fname=strdup(strtok(NULL, "\n"));
+						fname=strdup(rest);
 					else if(strcmp(cmd, "nick")==0)
-						nick=strdup(strtok(NULL, "\n"));
+						nick=strdup(rest);
 					else if(strcmp(cmd, "chan")==0)
-						chan=strdup(strtok(NULL, "\n"));
+						chan=strdup(rest);
+					else if(strcmp(cmd, "mnln")==0)
+						sscanf(rest, "%u", &maxnlen);
 					else
 					{
 						fprintf(stderr, "Unrecognised cmd %s in .quirc (ignoring)\n", cmd);
@@ -190,7 +194,6 @@ int main(int argc, char *argv[])
 		fclose(rcsfp);
 	}
 	int shlp=0;
-	int maxnlen=16;
 	int arg;
 	for(arg=1;arg<argc;arg++)
 	{
@@ -211,6 +214,10 @@ int main(int argc, char *argv[])
 		else if(strncmp(argv[arg], "--height=", 9)==0)
 		{
 			sscanf(argv[arg]+9, "%u", &height);
+		}
+		else if(strncmp(argv[arg], "--maxnicklen=", 13)==0)
+		{
+			sscanf(argv[arg]+13, "%u", &maxnlen);
 		}
 		else if(strcmp(argv[arg], "--no-auto-connect")==0)
 		{

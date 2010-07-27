@@ -32,10 +32,11 @@ Commands: are prefixed with a '/'.  Anything else is a message to be sent to the
 Configuration:
 	quIRC can be configured through an "rc file" as follows.
 	In your home directory (/home/username), create a file called ".quirc", and open it in your editor.
-	In this file you can set a server, nick and channel to automatically use, with lines
+	In this file you can set a server, nick and channel to automatically use, and the maximum length of nick that will be displayed, with lines
 		server <url>
 		nick <nickname>
 		chan <channel>
+		mnln <maxnicklen>
 	You can also customise the colours quIRC uses.  A custom colour line starts with '%', followed optionally by 'S' or 'R' (only use this colour when Sending or Receiving respectively), followed by an identifier, then space or tab, then four space-separated numbers.  Like this
 		%[S|R]<ident>	<fore> <back> <hi> <ul>
 	Fore and Back set the foreground and background colours (8 colours each, red=1 green=2 blue=4, add for mixtures, eg white=7).  Hi sets bright, Ul sets underline; both are true if nonzero.
