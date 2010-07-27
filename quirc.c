@@ -28,6 +28,7 @@
 #include "ttyraw.h"
 #include "ttyesc.h"
 #include "irc.h"
+#include "bits.h"
 #include "numeric.h"
 #include "version.h"
 
@@ -57,6 +58,40 @@ int main(int argc, char *argv[])
 	char *server=NULL, *portno="6667", *uname="quirc", *fname=(char *)malloc(20+strlen(VERSION_TXT)), *nick="ac", *chan=NULL;
 	sprintf(fname, "quIRC %hhu.%hhu.%hhu%s", VERSION_MAJ, VERSION_MIN, VERSION_REV, VERSION_TXT);
 	char *qmsg=fname;
+	char *rcfile=".quirc";
+	char *rcshad=".quirc-shadow";
+	bool join=false;
+	FILE *rcfp=fopen(rcfile, "r");
+	if(rcfp)
+	{
+		while(!feof(rcfp))
+		{
+			char *line=fgetl(rcfp);
+			if(*line!='#') // #lines are comments
+			{
+				char *cmd=strtok(line, " \t");
+				if(*cmd=='c')
+				{
+					// it's a colour specifier; custom colours aren't done yet
+				}
+				else
+				{
+					if(strcmp(cmd, "server")==0)
+						server=strdup(strtok(NULL, "\n"));
+					else if(strcmp(cmd, "nick")==0)
+						nick=strdup(strtok(NULL, "\n"));
+					else if(strcmp(cmd, "chan")==0)
+						chan=strdup(strtok(NULL, "\n"));
+					else
+					{
+						fprintf(stderr, "Unrecognised cmd %s in .quirc (ignoring)\n", cmd);
+					}
+				}
+			}
+			free(line);
+		}
+		fclose(rcfp);
+	}
 	int maxnlen=16;
 	int arg;
 	for(arg=1;arg<argc;arg++)
@@ -78,6 +113,14 @@ int main(int argc, char *argv[])
 		else if(strncmp(argv[arg], "--height=", 9)==0)
 		{
 			sscanf(argv[arg]+9, "%u", &height);
+		}
+		else if(strcmp(argv[arg], "--no-auto-connect")==0)
+		{
+			server=NULL;
+		}
+		else if(strcmp(argv[arg], "--no-auto-join")==0)
+		{
+			chan=NULL;
 		}
 	}
 	int e=ttyraw(STDOUT_FILENO);
@@ -220,7 +263,9 @@ int main(int argc, char *argv[])
 										default:
 											printf(CLA "\n");
 											printf(LOCATE, height-2, 1);
-											printf(CLA "<<%d?\n" CLA "\n", num);
+											setcol(1, 6, false, true);
+											printf(CLA "<<%d?" CLR "\n" CLA "\n", num);
+											resetcol();
 										break;
 									}
 								}
@@ -230,6 +275,17 @@ int main(int argc, char *argv[])
 									char pong[8+strlen(uname)+strlen(sender)];
 									sprintf(pong, "PONG %s %s", uname, sender+1);
 									irc_tx(serverhandle, pong);
+								}
+								else if(strcmp(cmd, "MODE")==0)
+								{
+									if(chan && !join)
+									{
+										char joinmsg[8+strlen(chan)];
+										sprintf(joinmsg, "JOIN %s", chan);
+										irc_tx(serverhandle, joinmsg);
+										join=true;
+									}
+									// apart from using it as a trigger, we don't look at modes just yet
 								}
 								else if(strcmp(cmd, "PRIVMSG")==0)
 								{
@@ -245,9 +301,21 @@ int main(int argc, char *argv[])
 										src[maxnlen-1]=src[strlen(src)-1];
 										src[maxnlen]=0;
 									}
-									printf(CLA "\n");
-									printf(LOCATE, height-2, 1+max(maxnlen-strlen(src), 0));
-									printf(CLA "<%s> %s\n" CLA "\n", src, msg);
+									if((*msg==1) && !strncmp(msg, "\001ACTION ", 8))
+									{
+										msg[strlen(msg)-1]=0; // remove trailing \001
+										printf(CLA "\n");
+										printf(LOCATE, height-2, 3+max(maxnlen-strlen(src), 0));
+										setcol(0, 3, false, true);
+										printf(CLA "%s %s" CLR "\n" CLA "\n", src, msg+8);
+										resetcol();
+									}
+									else
+									{
+										printf(CLA "\n");
+										printf(LOCATE, height-2, 1+max(maxnlen-strlen(src), 0));
+										printf(CLA "<%s> %s" CLR "\n" CLA "\n", src, msg);
+									}
 								}
 								else if(strcmp(cmd, "NOTICE")==0)
 								{
@@ -265,7 +333,7 @@ int main(int argc, char *argv[])
 									printf(CLA "\n");
 									printf(LOCATE, height-2, 1+max(maxnlen-strlen(src), 0));
 									setcol(7, 0, true, false);
-									printf(CLA "<%s> %s\n" CLA "\n", src, msg);
+									printf(CLA "<%s> %s" CLR "\n" CLA "\n", src, msg);
 									resetcol();
 								}
 								else if(strcmp(cmd, "JOIN")==0)
@@ -280,8 +348,9 @@ int main(int argc, char *argv[])
 									setcol(2, 0, true, false);
 									if(strcmp(src, nick)==0)
 									{
-										printf(CLA "You (%s) have joined %s\n" CLA "\n", src, dest+1);
+										printf(CLA "You (%s) have joined %s" CLR "\n" CLA "\n", src, dest+1);
 										chan=strdup(dest+1);
+										join=true;
 									}
 									else
 									{
@@ -291,7 +360,7 @@ int main(int argc, char *argv[])
 											src[maxnlen-1]=src[strlen(src)-1];
 											src[maxnlen]=0;
 										}
-										printf(CLA "=%s= has joined %s\n" CLA "\n", src, dest+1);
+										printf(CLA "=%s= has joined %s" CLR "\n" CLA "\n", src, dest+1);
 									}
 									resetcol();
 								}
@@ -307,7 +376,7 @@ int main(int argc, char *argv[])
 									setcol(2, 0, true, false);
 									if(strcmp(src, nick)==0)
 									{
-										printf(CLA "You (%s) have left %s\n" CLA "\n", src, dest);
+										printf(CLA "You (%s) have left %s" CLR "\n" CLA "\n", src, dest);
 									}
 									else
 									{
@@ -317,7 +386,7 @@ int main(int argc, char *argv[])
 											src[maxnlen-1]=src[strlen(src)-1];
 											src[maxnlen]=0;
 										}
-										printf(CLA "=%s= has left %s\n" CLA "\n", src, dest);
+										printf(CLA "=%s= has left %s" CLR "\n" CLA "\n", src, dest);
 									}
 									resetcol();
 								}
@@ -333,7 +402,7 @@ int main(int argc, char *argv[])
 									setcol(3, 0, true, false);
 									if(strcmp(src, nick)==0)
 									{
-										printf(CLA "You (%s) have left %s (%s)\n" CLA "\n", src, server, dest+1); // this shouldn't happen???
+										printf(CLA "You (%s) have left %s (%s)" CLR "\n" CLA "\n", src, server, dest+1); // this shouldn't happen???
 									}
 									else
 									{
@@ -343,7 +412,7 @@ int main(int argc, char *argv[])
 											src[maxnlen-1]=src[strlen(src)-1];
 											src[maxnlen]=0;
 										}
-										printf(CLA "=%s= has left %s (%s)\n" CLA "\n", src, server, dest+1);
+										printf(CLA "=%s= has left %s (%s)" CLR "\n" CLA "\n", src, server, dest+1);
 									}
 									resetcol();
 								}
@@ -359,7 +428,7 @@ int main(int argc, char *argv[])
 									setcol(4, 0, true, false);
 									if(strcmp(dest+1, nick)==0)
 									{
-										printf(CLA "You (%s) are now known as %s\n" CLA "\n", src, dest+1);
+										printf(CLA "You (%s) are now known as %s" CLR "\n" CLA "\n", src, dest+1);
 									}
 									else
 									{
@@ -369,7 +438,7 @@ int main(int argc, char *argv[])
 											src[maxnlen-1]=src[strlen(src)-1];
 											src[maxnlen]=0;
 										}
-										printf(CLA "=%s= is now known as %s\n" CLA "\n", src, dest+1);
+										printf(CLA "=%s= is now known as %s" CLR "\n" CLA "\n", src, dest+1);
 									}
 									resetcol();
 								}
@@ -378,7 +447,7 @@ int main(int argc, char *argv[])
 									printf(CLA "\n");
 									printf(LOCATE, height-2, 1);
 									setcol(3, 4, false, false);
-									printf(CLA "<? %s\n" CLA "\n", pdata);
+									printf(CLA "<? %s" CLR "\n" CLA "\n", pdata);
 									resetcol();
 								}
 							}
@@ -600,8 +669,12 @@ int main(int argc, char *argv[])
 						else if(args)
 						{
 							char privmsg[32+strlen(chan)+strlen(args)];
-							sprintf(privmsg, "PRIVMSG %s :ACTION\001%s\001", chan, args);
+							sprintf(privmsg, "PRIVMSG %s :\001ACTION %s\001", chan, args);
 							irc_tx(serverhandle, privmsg);
+							printf(LOCATE, height-2, 3+max(maxnlen-strlen(nick), 0));
+							setcol(0, 3, false, true);
+							printf(CLA "%s %s" CLR "\n" CLA "\n", nick, args);
+							resetcol();
 						}
 						else
 						{
@@ -646,7 +719,7 @@ int main(int argc, char *argv[])
 						irc_tx(serverhandle, pmsg);
 						printf(LOCATE, height-2, 1+max(maxnlen-strlen(nick), 0));
 						setcol(7, 0, false, true);
-						printf(CLA "<%s> %s\n" CLA "\n", nick, inp);
+						printf(CLA "<%s> %s" CLR "\n" CLA "\n", nick, inp);
 						resetcol();
 					}
 					else

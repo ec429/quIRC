@@ -1,3 +1,4 @@
 *~
 quirc
 *.o
+.quirc-shadow

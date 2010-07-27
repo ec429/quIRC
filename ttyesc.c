@@ -10,30 +10,20 @@
 
 int setcol(int fore, int back, bool hi, bool ul)
 {
-	if(fore>7)
+	if((fore<0)||(fore>7))
 		return(1);
-	if(back>7)
+	if((back<0)||(back>7))
 		return(2);
-	if(fore>=0)
-	{
-		putchar('\033');
-		putchar('[');
-		putchar('0'+(hi?1:0)+(ul?4:0));
-		putchar(';');
-		putchar('3');
-		putchar('0'+fore);
-		putchar('m');
-	}
-	if(back>=0)
-	{
-		putchar('\033');
-		putchar('[');
-		putchar('0'+(hi?1:0)+(ul?4:0));
-		putchar(';');
-		putchar('4');
-		putchar('0'+back);
-		putchar('m');
-	}
+	putchar('\033');
+	putchar('[');
+	putchar('0'+(hi?1:0)+(ul?4:0));
+	putchar(';');
+	putchar('3');
+	putchar('0'+fore);
+	putchar(';');
+	putchar('4');
+	putchar('0'+back);
+	putchar('m');
 	fflush(stdout);
 	return(0);
 }
