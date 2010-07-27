@@ -29,6 +29,7 @@
 #include "ttyesc.h"
 #include "irc.h"
 #include "bits.h"
+#define COLOURS	0 // activate default colours in colour.h
 #include "colour.h"
 #include "numeric.h"
 #include "version.h"
@@ -48,19 +49,15 @@
 
 #define USAGE_MSG "quirc [-h][-v]\n"
 
+typedef struct _name
+{
+	char *data;
+	struct _name *next, *prev;
+}
+name;
+
 int main(int argc, char *argv[])
 {
-	// default colours
-	colour c_msg[2]={{7, 0, 0, 1}, {7, 0, 0, 0}};
-	colour c_notice[2]={{7, 0, 1, 0}, {7, 0, 1, 0}};
-	colour c_join[2]={{2, 0, 1, 0}, {2, 0, 1, 0}};
-	colour c_part[2]={{6, 0, 1, 0}, {6, 0, 1, 0}};
-	colour c_quit[2]={{3, 0, 1, 0}, {3, 0, 1, 0}};
-	colour c_nick[2]={{4, 0, 1, 0}, {4, 0, 1, 0}};
-	colour c_actn[2]={{0, 3, 0, 1}, {0, 3, 0, 0}};
-	colour c_err={1, 0, 1, 0};
-	colour c_unk={3, 4, 0, 0};
-	colour c_unn={1, 6, 0, 1};
 	int width=0, height=0;
 	char *cols=getenv("COLUMNS"), *rows=getenv("ROWS");
 	if(cols) sscanf(cols, "%u", &width);
@@ -90,7 +87,70 @@ int main(int argc, char *argv[])
 				char *cmd=strtok(line, " \t");
 				if(*cmd=='%')
 				{
-					// it's a colour specifier; custom colours aren't done yet
+					int which=0;
+					// custom colours
+					if(*++cmd=='S')
+					{
+						which=1;
+						cmd++;
+					}
+					else if(*cmd=='R')
+					{
+						which=2;
+						cmd++;
+					}
+					colour *what=NULL;
+					if(strcmp(cmd, "msg")==0)
+					{
+						what=c_msg;
+					}
+					else if(strcmp(cmd, "notice")==0)
+					{
+						what=c_notice;
+					}
+					else if(strcmp(cmd, "join")==0)
+					{
+						what=c_join;
+					}
+					else if(strcmp(cmd, "part")==0)
+					{
+						what=c_part;
+					}
+					else if(strcmp(cmd, "quit")==0)
+					{
+						what=c_quit;
+					}
+					else if(strcmp(cmd, "nick")==0)
+					{
+						what=c_nick;
+					}
+					else if(strcmp(cmd, "act")==0)
+					{
+						what=c_actn;
+					}
+					else if(strcmp(cmd, "err")==0)
+					{
+						what=&c_err;which=-1;
+					}
+					else if(strcmp(cmd, "unk")==0)
+					{
+						what=&c_unk;which=-1;
+					}
+					else if(strcmp(cmd, "unn")==0)
+					{
+						what=&c_unn;which=-1;
+					}
+					if(what)
+					{
+						char *spec=strtok(NULL, "\n");
+						colour new;int hi, ul;
+						sscanf(spec, "%d %d %d %d", &new.fore, &new.back, &hi, &ul);
+						new.hi=hi;new.ul=ul;
+						if(which!=2)
+							what[0]=new;
+						if((which%2)==0)
+							what[1]=new;
+					}
 				}
 				else
 				{
@@ -180,6 +240,8 @@ int main(int argc, char *argv[])
 		settitle(cstr);
 		printf("Connecting to %s\n", server);
 		serverhandle=irc_connect(server, portno, nick, uname, fname, &master, &fdmax);
+		sprintf(cstr, "quIRC - connected to %s", server);
+		settitle(cstr);
 	}
 	else
 	{
@@ -190,6 +252,7 @@ int main(int argc, char *argv[])
 	struct timeval timeout;
 	char *inp=NULL;
 	char *shsrc=NULL;char *shtext=NULL;
+	name *nlist=NULL;
 	int state=0; // odd-numbered states are fatal
 	while(!(state%2))
 	{
@@ -248,10 +311,57 @@ int main(int argc, char *argv[])
 						{
 							if(ino)
 								inp[ino-1]=0;
+							inp[ino]=0;
 						}
 						else if(c<32) // this also stomps on the newline 
 						{
 							inp[ino]=0;
+							if(ino>0)
+							{
+								if(c=='\t') // tab completion of nicks
+								{
+									int sp=ino-1;
+									while(sp>0 && !strchr(" \t", inp[sp]))
+										sp--;
+									name *curr=nlist;
+									name *found=NULL;bool tmany=false;
+									while(curr)
+									{
+										if(strncmp(inp+sp, curr->data, ino-sp)==0)
+										{
+											if(found)
+											{
+												printf(CLA "\n");
+												printf(LOCATE, height-2, 1);
+												setcolour(c_err);
+												printf(CLA "[tab] Multiple nicks match" CLR "\n" CLA "\n");
+												resetcol();
+												found=curr=NULL;tmany=true;
+											}
+											else
+												found=curr;
+										}
+										if(curr)
+											curr=curr->next;
+									}
+									if(found)
+									{
+										inp=(char *)realloc(inp, sp+strlen(found->data)+4);
+										if(sp)
+											sprintf(inp+sp, "%s", found->data);
+										else
+											sprintf(inp+sp, "%s: ", found->data);
+									}
+									else if(!tmany)
+									{
+										printf(CLA "\n");
+										printf(LOCATE, height-2, 1);
+										setcolour(c_err);
+										printf(CLA "[tab] No nicks match" CLR "\n" CLA "\n");
+										resetcol();
+									}
+								}
+							}
 						}
 						if(c=='\033') // escape sequence
 						{
@@ -322,11 +432,32 @@ int main(int argc, char *argv[])
 									sscanf(cmd, "%d", &num);
 									switch(num)
 									{
+										case 353:
+											// 353 dest {@|+} #chan :name [name [...]]
+											strtok(NULL, " "); // dest
+											strtok(NULL, " "); // @ or +, dunno what for
+											char *ch=strtok(NULL, " "); // channel
+											if(strcmp(ch, chan)==0)
+											{
+												char *nn;
+												while((nn=strtok(NULL, ":@ ")))
+												{
+													name *new=(name *)malloc(sizeof(name));
+													new->data=strdup(nn);
+													printf("%s\n", nn);
+													new->prev=NULL;
+													new->next=nlist;
+													if(nlist)
+														nlist->prev=new;
+													nlist=new;
+												}
+											}
+										break;
 										default:
 											printf(CLA "\n");
 											printf(LOCATE, height-2, 1);
 											setcolour(c_unn);
-											printf(CLA "<<%d?" CLR "\n" CLA "\n", num);
+											printf(CLA "<<%d? %s" CLR "\n" CLA "\n", num, cmd+4);
 											resetcol();
 										break;
 									}
@@ -438,6 +569,9 @@ int main(int argc, char *argv[])
 										printf(CLA "You (%s) have joined %s" CLR "\n" CLA "\n", src, dest+1);
 										chan=strdup(dest+1);
 										join=true;
+										char cstr[16+strlen(chan)+strlen(server)];
+										sprintf(cstr, "quIRC - %s on %s", chan, server);
+										settitle(cstr);
 									}
 									else
 									{
@@ -448,6 +582,13 @@ int main(int argc, char *argv[])
 											src[maxnlen]=0;
 										}
 										printf(CLA "=%s= has joined %s" CLR "\n" CLA "\n", src, dest+1);
+										name *new=(name *)malloc(sizeof(name));
+										new->data=strdup(src);
+										new->prev=NULL;
+										new->next=nlist;
+										if(nlist)
+											nlist->prev=new;
+										nlist=new;
 									}
 									resetcol();
 								}
@@ -464,6 +605,19 @@ int main(int argc, char *argv[])
 									if(strcmp(src, nick)==0)
 									{
 										printf(CLA "You (%s) have left %s" CLR "\n" CLA "\n", src, dest);
+										chan=NULL;
+										char cstr[24+strlen(server)];
+										sprintf(cstr, "quIRC - connected to %s", server);
+										settitle(cstr);
+										name *curr=nlist;
+										while(curr)
+										{
+											name *next=curr->next;
+											free(curr->data);
+											free(curr);
+											curr=next;
+										}
+										nlist=NULL;
 									}
 									else
 									{
@@ -474,6 +628,27 @@ int main(int argc, char *argv[])
 											src[maxnlen]=0;
 										}
 										printf(CLA "=%s= has left %s" CLR "\n" CLA "\n", src, dest);
+										name *curr=nlist;
+										while(curr)
+										{
+											name *next=curr->next;
+											if(strcmp(curr->data, src)==0)
+											{
+												if(curr->prev)
+												{
+													curr->prev->next=curr->next;
+												}
+												else
+												{
+													nlist=curr->next;
+												}
+												if(curr->next)
+													curr->next->prev=curr->prev;
+												free(curr->data);
+												free(curr);
+											}
+											curr=next;
+										}
 									}
 									resetcol();
 								}
@@ -500,6 +675,27 @@ int main(int argc, char *argv[])
 											src[maxnlen]=0;
 										}
 										printf(CLA "=%s= has left %s (%s)" CLR "\n" CLA "\n", src, server, dest+1);
+										name *curr=nlist;
+										while(curr)
+										{
+											name *next=curr->next;
+											if(strcmp(curr->data, src)==0)
+											{
+												if(curr->prev)
+												{
+													curr->prev->next=curr->next;
+												}
+												else
+												{
+													nlist=curr->next;
+												}
+												if(curr->next)
+													curr->next->prev=curr->prev;
+												free(curr->data);
+												free(curr);
+											}
+											curr=next;
+										}
 									}
 									resetcol();
 								}
@@ -526,6 +722,16 @@ int main(int argc, char *argv[])
 											src[maxnlen]=0;
 										}
 										printf(CLA "=%s= is now known as %s" CLR "\n" CLA "\n", src, dest+1);
+										name *curr=nlist;
+										while(curr)
+										{
+											if(strcmp(curr->data, src)==0)
+											{
+												free(curr->data);
+												curr->data=strdup(dest+1);
+											}
+											curr=curr->next;
+										}
 									}
 									resetcol();
 								}
