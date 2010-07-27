@@ -326,6 +326,12 @@ int main(int argc, char *argv[])
 						else if(c<32) // this also stomps on the newline 
 						{
 							inp[ino]=0;
+							if(c==1)
+							{
+								free(inp);
+								inp=NULL;
+								ino=0;
+							}
 							if(ino>0)
 							{
 								if(c=='\t') // tab completion of nicks
@@ -564,8 +570,8 @@ int main(int argc, char *argv[])
 									printf(CLA "\n");
 									printf(LOCATE, height-2, 1+max(maxnlen-strlen(src), 0));
 									setcolour(c_notice[1]);
-									printf(CLA "<%s> ", src);
-									wordline(msg, 3+max(maxnlen, strlen(src)));
+									printf(CLA "(from %s) ", src);
+									wordline(msg, 9+max(maxnlen, strlen(src)));
 									printf(CLR "\n" CLA "\n");
 									resetcol();
 								}
@@ -946,6 +952,12 @@ int main(int argc, char *argv[])
 								char privmsg[12+strlen(dest)+strlen(text)];
 								sprintf(privmsg, "PRIVMSG %s %s", dest, text);
 								irc_tx(serverhandle, privmsg);
+								printf(LOCATE, height-2, 3+max(maxnlen-strlen(nick), 0));
+								setcolour(c_msg[0]);
+								printf(CLA "<to %s> ", dest);
+								wordline(text, 9+max(maxnlen, strlen(dest)));
+								printf(CLR "\n" CLA "\n");
+								resetcol();
 							}
 							else
 							{
@@ -981,7 +993,9 @@ int main(int argc, char *argv[])
 							irc_tx(serverhandle, privmsg);
 							printf(LOCATE, height-2, 3+max(maxnlen-strlen(nick), 0));
 							setcolour(c_actn[0]);
-							printf(CLA "%s %s" CLR "\n" CLA "\n", nick, args);
+							printf(CLA "%s ", nick);
+							wordline(args, 3+max(maxnlen, strlen(nick)));
+							printf(CLR "\n" CLA "\n");
 							resetcol();
 						}
 						else
@@ -1027,7 +1041,9 @@ int main(int argc, char *argv[])
 						irc_tx(serverhandle, pmsg);
 						printf(LOCATE, height-2, 1+max(maxnlen-strlen(nick), 0));
 						setcolour(c_msg[0]);
-						printf(CLA "<%s> %s" CLR "\n" CLA "\n", nick, inp);
+						printf(CLA "<%s> ", nick);
+						wordline(inp, 3+max(maxnlen, strlen(nick)));
+						printf(CLR "\n" CLA "\n");
 						resetcol();
 					}
 					else

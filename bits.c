@@ -41,12 +41,16 @@ int wordline(char *msg, int x)
 	while(ptr)
 	{
 		x+=strlen(ptr)+1;
-		if((x>=width) && (strlen(ptr)<width))
+		if((x>width) && (strlen(ptr)<width))
 		{
 			printf("\n");
-			x=strlen(ptr)+1;
+			x=strlen(ptr);
 		}
-		printf("%s ", ptr);
+		else if(ptr!=msg)
+		{
+			printf(" ");
+		}
+		printf("%s", ptr);
 		ptr=strtok(NULL, " ");
 	}
 	return(x);
