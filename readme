@@ -61,3 +61,6 @@ Configuration:
 		unn
 			Unknown numerics (splurged to output)
 
+Input controls: At present you cannot edit input with the cursors; you have to backspace.
+	Typing part of a nick and then pressing (tab) will cause the nick to be autocompleted.
+	Ctrl-A clears the current input.
