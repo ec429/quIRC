@@ -2,6 +2,7 @@
 
 CC ?= gcc
 CFLAGS ?= -Wall
+VERSION := `git describe --tags`
 
 all: quirc
 
@@ -25,11 +26,9 @@ colour.o: colour.c colour.h
 	$(CC) $(CFLAGS) -o colour.o -c colour.c
 
 dist: all
-	VERSION = `git describe`
-	mkdir quirc_$(VERSION)
-	cp * quirc_$(VERSION)
-	rm quirc_$(VERSION)/.quirc*
-	tar -cvvf quirc_$(VERSION)
+	-mkdir quirc_$(VERSION)
+	for p in $$(ls); do cp $$p quirc_$(VERSION)/$$p; done;
+	tar -cvvf quirc_$(VERSION).tar quirc_$(VERSION)/
 	gzip quirc_$(VERSION).tar
 	rm -r quirc_$(VERSION)
 
