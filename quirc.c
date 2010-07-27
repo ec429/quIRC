@@ -282,6 +282,7 @@ int main(int argc, char *argv[])
 									if(strcmp(src, nick)==0)
 									{
 										printf(CLA "You (%s) have joined %s\n" CLA "\n", src, dest+1);
+										chan=strdup(dest+1);
 									}
 									else
 									{
