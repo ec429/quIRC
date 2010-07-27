@@ -3,6 +3,8 @@
 VERSION=$(git describe --tags)
 read MAJOR MINOR REVS GIT <<< ${VERSION//[-.]/ }
 
+CCVER=$($CC -v 2>&1 | tail -n 1)
+
 cat >version.h <<_EOM
 /*
 	quIRC - simple terminal-based IRC client
@@ -15,5 +17,6 @@ cat >version.h <<_EOM
 #define VERSION_MAJ $MAJOR // Major version
 #define VERSION_MIN $MINOR // Minor version
 #define VERSION_REV $REVS // Revision number
-#define VERSION_TXT "-$GIT" // Rest of git describe
+#define VERSION_TXT "$GIT" // Rest of git describe
+#define CC_VERSION	"$CCVER" // last line of $CC -v
 _EOM
