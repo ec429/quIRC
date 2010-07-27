@@ -65,7 +65,6 @@ int main(int argc, char *argv[])
 	if(!height) height=24;
 	settitle("quIRC - not connected");
 	resetcol();
-	printf(CLS);
 	printf(LOCATE, height, 1);
 	printf("\n");
 	char *server=NULL, *portno="6667", *uname="quirc", *fname=(char *)malloc(20+strlen(VERSION_TXT)), *nick="ac", *chan=NULL;
