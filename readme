@@ -1,0 +1,63 @@
+==quIRC:readme==
+
+quIRC is a simple terminal-based IRC (Internet Relay Chat) client.  It is written in C.
+
+Commands: are prefixed with a '/'.  Anything else is a message to be sent to the channel.   (The < and > are just markup, don't type them!)
+	/server <url>
+		Connects to the given server.  At present quIRC can only connect to one server at once.
+
+	/nick <nickname>
+		Sets your nickname
+
+	/join <channel>
+		Joins the given channel.  At present quIRC can only join one channel at once.
+
+	/me <action>
+		Sends an 'action' to the channel.
+
+	/msg <recipient> <message>
+		Private message; sends the message to the given recipient.
+
+	/cmd <command>
+		Allows you to send a raw command to the server; not recommended.
+
+	/part <channel>
+	/leave <channel>
+		Leaves (departs) the given channel.
+
+	/quit [<message>]
+	/exit [<message>]
+		Quits quIRC, optionally sending a 'quit message' to the server.
+
+Configuration:
+	quIRC can be configured through an "rc file" as follows.
+	In the directory from which you will be running quIRC (such as $HOME), create a file called ".quirc", and open it in your editor.
+	In this file you can set a server, nick and channel to automatically use, with lines
+		server <url>
+		nick <nickname>
+		chan <channel>
+	You can also customise the colours quIRC uses.  A custom colour line starts with '%', followed optionally by 'S' or 'R' (only use this colour when Sending or Receiving respectively), followed by an identifier, then space or tab, then four space-separated numbers.  Like this
+		%[S|R]<ident>	<fore> <back> <hi> <ul>
+	Fore and Back set the foreground and background colours (8 colours each, red=1 green=2 blue=4, add for mixtures, eg white=7).  Hi sets bright, Ul sets underline; both are true if nonzero.
+	<ident> can be any of
+		msg
+			Ordinary messages
+		notice
+			Notices
+		join
+			Channel-Join notifications
+		part
+			Channel-Leave notifications
+		quit
+			Quit-messages
+		nick
+			Nick-change notifications
+		act
+			Actions ('/me does something')
+		err
+			error messages
+		unk
+			Unknown commands (splurged to output)
+		unn
+			Unknown numerics (splurged to output)
+
