@@ -4,3 +4,6 @@ quirc
 .quirc
 .quirc-shadow
 version.h
+*.tar
+*.tar.gz
+*.tgz
