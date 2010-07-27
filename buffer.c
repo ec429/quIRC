@@ -8,27 +8,27 @@
 
 #include "buffer.h"
 
-int init_buffer(buffer *buf, btype type, char *bname, int nlines)
+int init_buffer(int buf, btype type, char *bname, int nlines)
 {
-	buf->type=type;
-	buf->bname=strdup(bname);
-	buf->nlist=NULL;
-	buf->handle=0;
-	buf->server=0;
-	buf->nick=NULL;
-	buf->nlines=nlines;
-	buf->ptr=0;
-	buf->lc=(colour *)malloc(nlines*sizeof(colour));
-	buf->lt=(char **)malloc(nlines*sizeof(char *));
-	buf->ts=(time_t *)malloc(nlines*sizeof(time_t));
-	buf->filled=false;
+	bufs[buf].type=type;
+	bufs[buf].bname=strdup(bname);
+	bufs[buf].nlist=NULL;
+	bufs[buf].handle=0;
+	bufs[buf].server=0;
+	bufs[buf].nick=NULL;
+	bufs[buf].nlines=nlines;
+	bufs[buf].ptr=0;
+	bufs[buf].lc=(colour *)malloc(nlines*sizeof(colour));
+	bufs[buf].lt=(char **)malloc(nlines*sizeof(char *));
+	bufs[buf].ts=(time_t *)malloc(nlines*sizeof(time_t));
+	bufs[buf].filled=false;
 	return(0);
 }
 
-int free_buffer(buffer *buf)
+int free_buffer(int buf)
 {
-	free(buf->bname);
-	name *curr=buf->nlist;
+	free(bufs[buf].bname);
+	name *curr=bufs[buf].nlist;
 	while(curr)
 	{
 		name *next=curr->next;
@@ -36,35 +36,36 @@ int free_buffer(buffer *buf)
 		free(curr);
 		curr=next;
 	}
-	buf->nlist=NULL;
-	free(buf->lc);
+	bufs[buf].nlist=NULL;
+	free(bufs[buf].lc);
 	int l;
-	for(l=0;l<(buf->filled?buf->nlines:buf->ptr);l++)
-		free(buf->lt[l]);
-	free(buf->lt);
-	free(buf->ts);
+	for(l=0;l<(bufs[buf].filled?bufs[buf].nlines:bufs[buf].ptr);l++)
+		free(bufs[buf].lt[l]);
+	free(bufs[buf].lt);
+	free(bufs[buf].ts);
 	return(0);
 }
 
-int add_to_buffer(buffer *buf, colour lc, char *lt)
+int add_to_buffer(int buf, colour lc, char *lt)
 {
-	buf->lc[buf->ptr]=lc;
-	if(buf->filled) free(buf->lt[buf->ptr]);
-	buf->lt[buf->ptr]=strdup(lt);
-	buf->ts[buf->ptr]=time(NULL);
-	buf->ptr=(buf->ptr+1)%buf->nlines;
-	if(buf->ptr==0)
-		buf->filled=true;
+	bufs[buf].lc[bufs[buf].ptr]=lc;
+	if(bufs[buf].filled) free(bufs[buf].lt[bufs[buf].ptr]);
+	bufs[buf].lt[bufs[buf].ptr]=strdup(lt);
+	bufs[buf].ts[bufs[buf].ptr]=time(NULL);
+	bufs[buf].ptr=(bufs[buf].ptr+1)%bufs[buf].nlines;
+	if(bufs[buf].ptr==0)
+		bufs[buf].filled=true;
 	return(0);
 }
 
-int buf_print(buffer *buf, colour lc, char *lt, bool nl)
+int buf_print(int buf, colour lc, char *lt, bool nl)
 {
 	setcolour(lc);
 	if(nl) printf(CLA "\n");
 	printf(LOCATE, height-2, 1);
-	printf("%s" CLR "\n" CLA "\n", lt);
+	printf("%s" CLR "\n", lt);
 	resetcol();
+	printf(CLA "\n");
 	if(buf)
 		return(add_to_buffer(buf, lc, lt));
 	return(0);

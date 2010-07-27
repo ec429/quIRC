@@ -50,8 +50,8 @@ buffer;
 int nbufs;
 buffer *bufs;
 
-int init_buffer(buffer *buf, btype type, char *bname, int nlines);
-int free_buffer(buffer *buf); // frees the contents, but not the buffer * itself
-int add_to_buffer(buffer *buf, colour lc, char *lt);
-int buf_print(buffer *buf, colour lc, char *lt, bool nl); // don't include trailing \n, because buf_print appends CLR \n
+int init_buffer(int buf, btype type, char *bname, int nlines);
+int free_buffer(int buf); // frees the contents, but not the buffer * itself
+int add_to_buffer(int buf, colour lc, char *lt);
+int buf_print(int buf, colour lc, char *lt, bool nl); // don't include trailing \n, because buf_print appends CLR \n
 void in_update(char *inp);

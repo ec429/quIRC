@@ -248,10 +248,10 @@ int main(int argc, char *argv[])
 		return(1);
 	}
 	bufs=(buffer *)malloc(sizeof(buffer));
-	init_buffer(bufs, STATUS, "status", buflines); // buf 0 is always STATUS
+	init_buffer(0, STATUS, "status", buflines); // buf 0 is always STATUS
 	nbufs=1;
 	int cbuf=0;
-	bufs->nick=strdup(nick);
+	bufs[0].nick=strdup(nick);
 	fd_set master, readfds;
 	FD_ZERO(&master);
 	FD_SET(STDIN_FILENO, &master);
@@ -264,14 +264,14 @@ int main(int argc, char *argv[])
 		sprintf(cstr, "quIRC - connecting to %s", server);
 		settitle(cstr);
 		sprintf(cstr, "Connecting to %s", server);
-		buf_print(bufs, c_status, cstr, true);
+		buf_print(0, c_status, cstr, true);
 		int serverhandle=irc_connect(server, portno, nick, uname, fname, &master, &fdmax);
 		if(serverhandle)
 		{
 			sprintf(cstr, "quIRC - connected to %s", server);
 			settitle(cstr);
 			bufs=(buffer *)realloc(bufs, ++nbufs*sizeof(buffer));
-			init_buffer(&bufs[1], SERVER, server, buflines);
+			init_buffer(1, SERVER, server, buflines);
 			cbuf=1;
 			bufs[cbuf].handle=serverhandle;
 			bufs[cbuf].nick=strdup(nick);
@@ -280,7 +280,7 @@ int main(int argc, char *argv[])
 	}
 	else
 	{
-		buf_print(bufs, c_status, "Not connected - use /server to connect", true);
+		buf_print(0, c_status, "Not connected - use /server to connect", true);
 	}
 	struct timeval timeout;
 	char *inp=NULL;
@@ -369,13 +369,13 @@ int main(int argc, char *argv[])
 										{
 											if(tmany)
 											{
-												buf_print(&bufs[cbuf], c_err, curr->data, true);
+												buf_print(cbuf, c_err, curr->data, true);
 											}
 											else if(found)
 											{
-												buf_print(&bufs[cbuf], c_err, "[tab] Multiple nicks match", true);
-												buf_print(&bufs[cbuf], c_err, found->data, true);
-												buf_print(&bufs[cbuf], c_err, curr->data, true);
+												buf_print(cbuf, c_err, "[tab] Multiple nicks match", true);
+												buf_print(cbuf, c_err, found->data, true);
+												buf_print(cbuf, c_err, curr->data, true);
 												found=NULL;tmany=true;
 											}
 											else
@@ -394,7 +394,7 @@ int main(int argc, char *argv[])
 									}
 									else if(!tmany)
 									{
-										buf_print(&bufs[cbuf], c_err, "[tab] No nicks match", true);
+										buf_print(cbuf, c_err, "[tab] No nicks match", true);
 									}
 								}
 							}
@@ -442,9 +442,9 @@ int main(int argc, char *argv[])
 									char emsg[64];
 									sprintf(emsg, "error: irc_rx(%d, &%p): %d", fd, packet, e);
 									if(cbuf==0)
-										buf_print(bufs, c_err, emsg, true);
+										buf_print(0, c_err, emsg, true);
 									else
-										add_to_buffer(bufs, c_err, emsg);
+										add_to_buffer(0, c_err, emsg);
 									state=5;
 									qmsg="client crashed";
 								}
@@ -491,9 +491,9 @@ int main(int argc, char *argv[])
 													char umsg[16+strlen(cmd+4)];
 													sprintf(umsg, "<<%d? %s", num, cmd+4);
 													if(cbuf==b)
-														buf_print(&bufs[b], c_unn, umsg, true);
+														buf_print(b, c_unn, umsg, true);
 													else
-														add_to_buffer(&bufs[b], c_unn, umsg);
+														add_to_buffer(b, c_unn, umsg);
 												break;
 											}
 										}
@@ -513,7 +513,7 @@ int main(int argc, char *argv[])
 												irc_tx(bufs[cbuf].handle, joinmsg);
 												char jmsg[16+strlen(chan)];
 												sprintf(jmsg, "auto-Joining %s", chan);
-												buf_print(&bufs[cbuf], c_join[0], jmsg, true);
+												buf_print(cbuf, c_join[0], jmsg, true);
 												join=true;
 											}
 											// apart from using it as a trigger, we don't look at modes just yet
@@ -543,7 +543,7 @@ int main(int argc, char *argv[])
 													strcat(out, src);
 													strcat(out, " ");
 													wordline(msg+8, 3+max(maxnlen, strlen(src)), &out);
-													buf_print(&bufs[cbuf], c_actn[1], out, true);
+													buf_print(cbuf, c_actn[1], out, true);
 													free(out);
 												}
 												else if(strncmp(msg, "\001FINGER", 7)==0)
@@ -566,7 +566,7 @@ int main(int argc, char *argv[])
 												out[max(maxnlen-strlen(src), 0)]=0;
 												sprintf(out+strlen(out), "<%s> ", src);
 												wordline(msg, 3+max(maxnlen, strlen(src)), &out);
-												buf_print(&bufs[cbuf], c_msg[1], out, true);
+												buf_print(cbuf, c_msg[1], out, true);
 												free(out);
 											}
 										}
@@ -606,7 +606,7 @@ int main(int argc, char *argv[])
 											out[max(maxnlen-strlen(src), 0)]=0;
 											sprintf(out+strlen(out), "(from %s) ", src);
 											wordline(msg, 9+max(maxnlen, strlen(src)), &out);
-											buf_print(&bufs[cbuf], c_notice[1], out, true);
+											buf_print(cbuf, c_notice[1], out, true);
 											free(out);
 										}
 										else if(strcmp(cmd, "JOIN")==0)
@@ -620,14 +620,14 @@ int main(int argc, char *argv[])
 											{
 												char dstr[20+strlen(src)+strlen(dest+1)];
 												sprintf(dstr, "You (%s) have joined %s", src, dest+1);
-												buf_print(&bufs[cbuf], c_join[1], dstr, true);
+												buf_print(cbuf, c_join[1], dstr, true);
 												chan=strdup(dest+1);
 												join=true;
 												char cstr[16+strlen(chan)+strlen(server)];
 												sprintf(cstr, "quIRC - %s on %s", chan, server);
 												settitle(cstr);
 												bufs=(buffer *)realloc(bufs, ++nbufs*sizeof(buffer));
-												init_buffer(&bufs[nbufs-1], CHANNEL, chan, buflines);
+												init_buffer(nbufs-1, CHANNEL, chan, buflines);
 												bufs[nbufs-1].server=cbuf;
 												cbuf=nbufs-1;
 												bufs[cbuf].handle=bufs[bufs[cbuf].server].handle;
@@ -642,7 +642,7 @@ int main(int argc, char *argv[])
 												}
 												char dstr[16+strlen(src)+strlen(dest+1)];
 												sprintf(dstr, "=%s= has joined %s", src, dest+1);
-												buf_print(&bufs[cbuf], c_join[1], dstr, true);
+												buf_print(cbuf, c_join[1], dstr, true);
 												name *new=(name *)malloc(sizeof(name));
 												new->data=strdup(src);
 												new->prev=NULL;
@@ -664,13 +664,13 @@ int main(int argc, char *argv[])
 											{
 												char dstr[20+strlen(src)+strlen(dest)];
 												sprintf(dstr, "You (%s) have left %s", src, dest);
-												buf_print(&bufs[cbuf], c_part[1], dstr, true);
+												buf_print(cbuf, c_part[1], dstr, true);
 												chan=NULL;
 												char cstr[24+strlen(server)];
 												sprintf(cstr, "quIRC - connected to %s", server);
 												settitle(cstr);
 												int srv=bufs[cbuf].server;
-												free_buffer(&bufs[cbuf]); // we leave the actual thing behind, and just free its contents
+												free_buffer(cbuf); // we leave the actual thing behind, and just free its contents
 												cbuf=srv;
 											}
 											else
@@ -683,7 +683,7 @@ int main(int argc, char *argv[])
 												}
 												char dstr[16+strlen(src)+strlen(dest)];
 												sprintf(dstr, "=%s= has left %s", src, dest);
-												buf_print(&bufs[cbuf], c_part[1], dstr, true);
+												buf_print(cbuf, c_part[1], dstr, true);
 												name *curr=bufs[cbuf].nlist;
 												while(curr)
 												{
@@ -720,7 +720,7 @@ int main(int argc, char *argv[])
 											{
 												char dstr[24+strlen(src)+strlen(server)+strlen(dest+1)];
 												sprintf(dstr, "You (%s) have left %s (%s)", src, server, dest+1);
-												buf_print(&bufs[cbuf], c_quit[1], dstr, true);
+												buf_print(cbuf, c_quit[1], dstr, true);
 											}
 											else
 											{
@@ -732,7 +732,7 @@ int main(int argc, char *argv[])
 												}
 												char dstr[24+strlen(src)+strlen(server)+strlen(dest+1)];
 												sprintf(dstr, "=%s= has left %s (%s)", src, server, dest+1);
-												buf_print(&bufs[cbuf], c_quit[1], dstr, true);
+												buf_print(cbuf, c_quit[1], dstr, true);
 												name *curr=bufs[cbuf].nlist;
 												while(curr)
 												{
@@ -769,7 +769,7 @@ int main(int argc, char *argv[])
 											{
 												char dstr[30+strlen(src)+strlen(dest+1)];
 												sprintf(dstr, "You (%s) are now known as %s", src, dest+1);
-												buf_print(&bufs[cbuf], c_nick[1], dstr, true);
+												buf_print(cbuf, c_nick[1], dstr, true);
 											}
 											else
 											{
@@ -781,7 +781,7 @@ int main(int argc, char *argv[])
 												}
 												char dstr[30+strlen(src)+strlen(dest+1)];
 												sprintf(dstr, "=%s= is now known as %s", src, dest+1);
-												buf_print(&bufs[cbuf], c_nick[1], dstr, true);
+												buf_print(cbuf, c_nick[1], dstr, true);
 											}
 											name *curr=bufs[cbuf].nlist;
 											while(curr)
@@ -799,7 +799,7 @@ int main(int argc, char *argv[])
 										{
 											char dstr[5+strlen(pdata)];
 											sprintf(dstr, "<? %s", pdata);
-											buf_print(&bufs[cbuf], c_unk, dstr, true);
+											buf_print(cbuf, c_unk, dstr, true);
 										}
 									}
 									free(pdata);
@@ -855,14 +855,14 @@ int main(int argc, char *argv[])
 							settitle(cstr);
 							char dstr[30+strlen(server)+strlen(portno)];
 							sprintf(dstr, "Connecting to %s on port %s...", server, portno);
-							buf_print(&bufs[cbuf], c_status, dstr, false);
+							buf_print(cbuf, c_status, dstr, false);
 							int serverhandle=irc_connect(server, portno, nick, uname, fname, &master, &fdmax);
 							if(serverhandle)
 							{
 								sprintf(cstr, "quIRC - connected to %s", server);
 								settitle(cstr);
 								bufs=(buffer *)realloc(bufs, ++nbufs*sizeof(buffer));
-								init_buffer(&bufs[nbufs-1], SERVER, server, buflines);
+								init_buffer(nbufs-1, SERVER, server, buflines);
 								cbuf=nbufs-1;
 								bufs[cbuf].handle=serverhandle;
 								bufs[cbuf].nick=strdup(nick);
@@ -871,7 +871,7 @@ int main(int argc, char *argv[])
 						}
 						else
 						{
-							buf_print(&bufs[cbuf], c_err, "Must specify a server!", false);
+							buf_print(cbuf, c_err, "Must specify a server!", false);
 						}
 						free(inp);inp=NULL;
 						state=0;
@@ -880,7 +880,7 @@ int main(int argc, char *argv[])
 					{
 						if(!bufs[cbuf].handle)
 						{
-							buf_print(&bufs[cbuf], c_err, "/join: must be run in the context of a server!", false);
+							buf_print(cbuf, c_err, "/join: must be run in the context of a server!", false);
 						}
 						else if(args)
 						{
@@ -890,11 +890,11 @@ int main(int argc, char *argv[])
 							char joinmsg[8+strlen(chan)+strlen(pass)];
 							sprintf(joinmsg, "JOIN %s %s", chan, pass);
 							irc_tx(bufs[cbuf].handle, joinmsg);
-							buf_print(&bufs[cbuf], c_join[0], "Joining", false);
+							buf_print(cbuf, c_join[0], "Joining", false);
 						}
 						else
 						{
-							buf_print(&bufs[cbuf], c_err, "Must specify a channel!", false);
+							buf_print(cbuf, c_err, "Must specify a channel!", false);
 						}
 						free(inp);inp=NULL;
 						state=0;
@@ -903,14 +903,14 @@ int main(int argc, char *argv[])
 					{
 						if(bufs[cbuf].type!=CHANNEL)
 						{
-							buf_print(&bufs[cbuf], c_err, "/part: This view is not a channel!", false);
+							buf_print(cbuf, c_err, "/part: This view is not a channel!", false);
 						}
 						else
 						{
 							char partmsg[8+strlen(bufs[cbuf].bname)];
 							sprintf(partmsg, "PART %s", bufs[cbuf].bname);
 							irc_tx(bufs[cbuf].handle, partmsg);
-							buf_print(&bufs[cbuf], c_part[0], "Leaving", false);
+							buf_print(cbuf, c_part[0], "Leaving", false);
 						}
 						free(inp);inp=NULL;
 						state=0;
@@ -934,7 +934,7 @@ int main(int argc, char *argv[])
 						}
 						else
 						{
-							buf_print(&bufs[cbuf], c_err, "Must specify a nickname!", false);
+							buf_print(cbuf, c_err, "Must specify a nickname!", false);
 						}
 						free(inp);inp=NULL;
 						state=0;
@@ -943,7 +943,7 @@ int main(int argc, char *argv[])
 					{
 						if(!bufs[cbuf].handle)
 						{
-							buf_print(&bufs[cbuf], c_err, "/msg: must be run in the context of a server!", false);
+							buf_print(cbuf, c_err, "/msg: must be run in the context of a server!", false);
 						}
 						else if(args)
 						{
@@ -961,17 +961,17 @@ int main(int argc, char *argv[])
 								out[2+max(maxnlen-strlen(dest), 0)]=0;
 								sprintf(out+strlen(out), "(to %s) ", dest);
 								wordline(text, 9+max(maxnlen, strlen(dest)), &out);
-								buf_print(&bufs[cbuf], c_msg[0], out, false);
+								buf_print(cbuf, c_msg[0], out, false);
 								free(out);
 							}
 							else
 							{
-								buf_print(&bufs[cbuf], c_err, "/msg: must specify a message!", false);
+								buf_print(cbuf, c_err, "/msg: must specify a message!", false);
 							}
 						}
 						else
 						{
-								buf_print(&bufs[cbuf], c_err, "/msg: must specify a recipient!", false);
+								buf_print(cbuf, c_err, "/msg: must specify a recipient!", false);
 						}
 						free(inp);inp=NULL;
 						state=0;
@@ -980,7 +980,7 @@ int main(int argc, char *argv[])
 					{
 						if(bufs[cbuf].type!=CHANNEL) // TODO add PRIVATE
 						{
-							buf_print(&bufs[cbuf], c_err, "/me: this view is not a channel!", false);
+							buf_print(cbuf, c_err, "/me: this view is not a channel!", false);
 						}
 						else if(args)
 						{
@@ -994,12 +994,12 @@ int main(int argc, char *argv[])
 							out[2+max(maxnlen-strlen(bufs[bufs[cbuf].server].nick), 0)]=0;
 							sprintf(out+strlen(out), "%s ", bufs[bufs[cbuf].server].nick);
 							wordline(args, 3+max(maxnlen, strlen(bufs[bufs[cbuf].server].nick)), &out);
-							buf_print(&bufs[cbuf], c_actn[0], out, false);
+							buf_print(cbuf, c_actn[0], out, false);
 							free(out);
 						}
 						else
 						{
-							buf_print(&bufs[cbuf], c_err, "/me: must specify an action!", false);
+							buf_print(cbuf, c_err, "/me: must specify an action!", false);
 						}
 						free(inp);inp=NULL;
 						state=0;
@@ -1008,7 +1008,7 @@ int main(int argc, char *argv[])
 					{
 						if(!bufs[cbuf].handle)
 						{
-							buf_print(&bufs[cbuf], c_err, "/cmd: must be run in the context of a server!", false);
+							buf_print(cbuf, c_err, "/cmd: must be run in the context of a server!", false);
 						}
 						else
 						{
@@ -1022,7 +1022,7 @@ int main(int argc, char *argv[])
 						if(!cmd) cmd="";
 						char dstr[30+strlen(cmd)];
 						sprintf(dstr, "%s: Unrecognised command!", cmd);
-						buf_print(&bufs[cbuf], c_err, dstr, false);
+						buf_print(cbuf, c_err, dstr, false);
 						free(inp);inp=NULL;
 						state=0;
 					}
@@ -1041,12 +1041,12 @@ int main(int argc, char *argv[])
 						out[max(maxnlen-strlen(bufs[bufs[cbuf].server].nick), 0)]=0;
 						sprintf(out+strlen(out), "<%s> ", bufs[bufs[cbuf].server].nick);
 						wordline(inp, 3+max(maxnlen, strlen(bufs[bufs[cbuf].server].nick)), &out);
-						buf_print(&bufs[cbuf], c_msg[0], out, false);
+						buf_print(cbuf, c_msg[0], out, false);
 						free(out);
 					}
 					else
 					{
-						buf_print(&bufs[cbuf], c_err, "Can't talk - view is not a channel!", false);
+						buf_print(cbuf, c_err, "Can't talk - view is not a channel!", false);
 					}
 					free(inp);inp=NULL;
 					state=0;
