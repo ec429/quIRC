@@ -3,11 +3,15 @@
 CC ?= gcc
 CFLAGS ?= -Wall
 VERSION := `git describe --tags`
+PREFIX ?= /usr/local
 
 all: quirc
 
+install: all
+	install -sD quirc $(PREFIX)/bin/quirc
+
 quirc: quirc.c ttyraw.o ttyraw.h ttyesc.o ttyesc.h irc.o irc.h bits.o bits.h colour.o colour.h numeric.h
-	./gitversion
+	-./gitversion
 	$(CC) $(CFLAGS) -o quirc quirc.c ttyraw.o ttyesc.o irc.o bits.o colour.o
 
 ttyraw.o: ttyraw.c ttyraw.h
