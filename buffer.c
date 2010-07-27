@@ -11,10 +11,10 @@
 int init_buffer(buffer *buf, btype type, char *bname, int nlines)
 {
 	buf->type=type;
-	buf->bname=bname;
+	buf->bname=strdup(bname);
 	buf->nlist=NULL;
 	buf->handle=0;
-	buf->server=NULL;
+	buf->server=0;
 	buf->nick=NULL;
 	buf->nlines=nlines;
 	buf->ptr=0;
@@ -22,6 +22,27 @@ int init_buffer(buffer *buf, btype type, char *bname, int nlines)
 	buf->lt=(char **)malloc(nlines*sizeof(char *));
 	buf->ts=(time_t *)malloc(nlines*sizeof(time_t));
 	buf->filled=false;
+	return(0);
+}
+
+int free_buffer(buffer *buf)
+{
+	free(buf->bname);
+	name *curr=buf->nlist;
+	while(curr)
+	{
+		name *next=curr->next;
+		free(curr->data);
+		free(curr);
+		curr=next;
+	}
+	buf->nlist=NULL;
+	free(buf->lc);
+	int l;
+	for(l=0;l<(buf->filled?buf->nlines:buf->ptr);l++)
+		free(buf->lt[l]);
+	free(buf->lt);
+	free(buf->ts);
 	return(0);
 }
 
