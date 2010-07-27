@@ -6,6 +6,8 @@
 	buffer: multiple-buffer control
 */
 
+#include "buffer.h"
+
 int init_buffer(buffer *buf, btype type, char *bname, int nlines)
 {
 	buf->type=type;
@@ -32,10 +34,10 @@ int add_to_buffer(buffer *buf, colour lc, char *lt)
 
 int buf_print(buffer *buf, colour lc, char *lt)
 {
+	setcolour(lc);
 	printf(CLA "\n");
 	printf(LOCATE, height-2, 1);
-	setcolour(lc);
-	printf(CLA "%s" CLR "\n" CLA "\n", lt);
+	printf("%s" CLR "\n" CLA "\n", lt);
 	resetcol();
 	return(add_to_buffer(buf, lc, lt));
 }

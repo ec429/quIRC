@@ -261,26 +261,23 @@ int main(int argc, char *argv[])
 	FD_SET(STDIN_FILENO, &master);
 	int fdmax=STDIN_FILENO;
 	int serverhandle=0;
+	printf(CLA);
+	printf("\n");
 	if(server)
 	{
 		char cstr[24+strlen(server)];
 		sprintf(cstr, "quIRC - connecting to %s", server);
 		settitle(cstr);
-		sprintf(cstr, "Connecting to %s\n", server);
-		setcolour(c_status);
-		printf("%s", cstr);
-		add_to_buffer(bufs, c_status, cstr);
-		resetcol();
+		sprintf(cstr, "Connecting to %s", server);
+		buf_print(bufs, c_status, cstr);
 		serverhandle=irc_connect(server, portno, nick, uname, fname, &master, &fdmax);
 		sprintf(cstr, "quIRC - connected to %s", server);
 		settitle(cstr);
 	}
 	else
 	{
-		printf("Not connected - use /server to connect\n");
+		buf_print(bufs, c_status, "Not connected - use /server to connect");
 	}
-	printf(CLA);
-	printf("\n");
 	struct timeval timeout;
 	char *inp=NULL;
 	char *shsrc=NULL;char *shtext=NULL;
@@ -369,11 +366,7 @@ int main(int argc, char *argv[])
 										{
 											if(found)
 											{
-												printf(CLA "\n");
-												printf(LOCATE, height-2, 1);
-												setcolour(c_err);
-												printf(CLA "[tab] Multiple nicks match" CLR "\n" CLA "\n");
-												resetcol();
+												buf_print(bufs, c_err, "[tab] Multiple nicks match");
 												found=curr=NULL;tmany=true;
 											}
 											else
