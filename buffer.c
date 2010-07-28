@@ -129,8 +129,9 @@ int buf_print(int buf, colour lc, char *lt, bool nl)
 	{
 		setcolour(lc);
 		if(nl) printf(CLA "\n");
+		printf(LOCATE CLA, height-1, 1);
 		printf(LOCATE, height-2, 1);
-		printf("%s" CLR "\n", lt);
+		printf(CLA "%s" CLR "\n", lt);
 		resetcol();
 		printf(CLA "\n");
 	}
