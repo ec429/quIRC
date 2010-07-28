@@ -25,7 +25,7 @@ int init_buffer(int buf, btype type, char *bname, int nlines)
 	return(0);
 }
 
-int free_buffer(int buf, int *cbuf)
+int free_buffer(int buf)
 {
 	free(bufs[buf].bname);
 	name *curr=bufs[buf].nlist;
@@ -43,8 +43,8 @@ int free_buffer(int buf, int *cbuf)
 		free(bufs[buf].lt[l]);
 	free(bufs[buf].lt);
 	free(bufs[buf].ts);
-	if((*cbuf)>=buf)
-		(*cbuf)--;
+	if(cbuf>=buf)
+		cbuf--;
 	nbufs--;
 	int b;
 	for(b=buf;b<nbufs;b++)
@@ -77,9 +77,9 @@ int add_to_buffer(int buf, colour lc, char *lt)
 	return(0);
 }
 
-int redraw_buffer(int buf)
+int redraw_buffer(void)
 {
-	if(bufs[buf].ptr||bufs[buf].filled)
+	if(bufs[cbuf].ptr||bufs[cbuf].filled)
 	{
 		printf(LOCATE, height-1, 1);
 		resetcol();
@@ -88,13 +88,36 @@ int redraw_buffer(int buf)
 		dash[width-1]=0;
 		printf("%s" CLR "\n", dash);
 		int l;
-		for(l=(bufs[buf].filled?(bufs[buf].ptr+1)%bufs[buf].nlines:0);l!=bufs[buf].ptr;l=(l+1)%bufs[buf].nlines)
+		for(l=(bufs[cbuf].filled?(bufs[cbuf].ptr+1)%bufs[cbuf].nlines:0);l!=bufs[cbuf].ptr;l=(l+1)%bufs[cbuf].nlines)
 		{
-			setcolour(bufs[buf].lc[l]);
-			printf("%s" CLR "\n", bufs[buf].lt[l]);
+			setcolour(bufs[cbuf].lc[l]);
+			printf("%s" CLR "\n", bufs[cbuf].lt[l]);
 			resetcol();
 		}
 		printf(CLA "\n");
+	}
+	switch(bufs[cbuf].type)
+	{
+		case STATUS:
+			settitle("quIRC - status");
+		break;
+		case SERVER: // have to scope it for the cstr 'variably modified type'
+			{
+				char cstr[16+strlen(bufs[cbuf].bname)];
+				sprintf(cstr, "quIRC - %s", bufs[cbuf].bname);
+				settitle(cstr);
+			}
+		break;
+		case CHANNEL: // have to scope it for the cstr 'variably modified type'
+			{
+				char cstr[16+strlen(bufs[cbuf].bname)+strlen(bufs[bufs[cbuf].server].bname)];
+				sprintf(cstr, "quIRC - %s on %s", bufs[cbuf].bname, bufs[bufs[cbuf].server].bname);
+				settitle(cstr);
+			}
+		break;
+		default:
+			settitle("quIRC");
+		break;
 	}
 	return(0);
 }

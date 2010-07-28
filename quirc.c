@@ -425,13 +425,14 @@ int main(int argc, char *argv[])
 												{
 													case 'D': // C-left
 														cbuf=max(cbuf-1, 0);
-														redraw_buffer(cbuf);
+														redraw_buffer();
 													break;
 													case 'C': // C-right
 														cbuf=min(cbuf+1, nbufs-1);
-														redraw_buffer(cbuf);
+														redraw_buffer();
 													break;
 												}
+												
 											}
 										}
 									break;
@@ -461,7 +462,7 @@ int main(int argc, char *argv[])
 									char emsg[64];
 									sprintf(emsg, "error: irc_rx(%d, &%p): %d", fd, packet, e);
 									cbuf=0;
-									redraw_buffer(cbuf);
+									redraw_buffer();
 									buf_print(0, c_err, emsg, true);
 									state=5;
 									qmsg="client crashed";
@@ -536,6 +537,23 @@ int main(int argc, char *argv[])
 												join=true;
 											}
 											// apart from using it as a trigger, we don't look at modes just yet
+										}
+										else if(strcmp(cmd, "KILL")==0)
+										{
+											char *dest=strtok(NULL, " \t"); // user to be killed
+											if(strcmp(dest, bufs[b].nick)==0) // if it's us
+											{
+												close(fd);
+												int b2;
+												for(b2=0;b2<nbufs;b2++)
+												{
+													while((b2<nbufs) && ((bufs[b2].server==b) || (bufs[b2].server==0)))
+													{
+														free_buffer(b2);
+													}
+												}
+												redraw_buffer();
+											}
 										}
 										else if(strcmp(cmd, "PRIVMSG")==0)
 										{
@@ -648,8 +666,8 @@ int main(int argc, char *argv[])
 												sprintf(dstr, "You (%s) have joined %s", src, dest+1);
 												chan=strdup(dest+1);
 												join=true;
-												char cstr[16+strlen(chan)+strlen(server)];
-												sprintf(cstr, "quIRC - %s on %s", chan, server);
+												char cstr[16+strlen(src)+strlen(bufs[b].bname)];
+												sprintf(cstr, "quIRC - %s on %s", src, bufs[b].bname);
 												settitle(cstr);
 												bufs=(buffer *)realloc(bufs, ++nbufs*sizeof(buffer));
 												init_buffer(nbufs-1, CHANNEL, chan, buflines);
@@ -696,13 +714,20 @@ int main(int argc, char *argv[])
 											if(strcmp(src, bufs[b].nick)==0)
 											{
 												chan=NULL;
-												char cstr[24+strlen(server)];
-												sprintf(cstr, "quIRC - connected to %s", server);
-												settitle(cstr);
-												if((bufs[cbuf].server==b) && (bufs[cbuf].type==CHANNEL) && (strcmp(dest, bufs[cbuf].bname)==0))
+												int b2;
+												for(b2=0;b2<nbufs;b2++)
 												{
-													free_buffer(cbuf, &cbuf);
-													cbuf=b;
+													if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (strcmp(dest, bufs[b2].bname)==0))
+													{
+														if(b2==cbuf)
+														{
+															cbuf=b;
+															char cstr[24+strlen(bufs[b].bname)];
+															sprintf(cstr, "quIRC - connected to %s", bufs[b].bname);
+															settitle(cstr);
+														}
+														free_buffer(b2);
+													}
 												}
 											}
 											else
