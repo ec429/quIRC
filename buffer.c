@@ -25,7 +25,7 @@ int init_buffer(int buf, btype type, char *bname, int nlines)
 	return(0);
 }
 
-int free_buffer(int buf)
+int free_buffer(int buf, int *cbuf)
 {
 	free(bufs[buf].bname);
 	name *curr=bufs[buf].nlist;
@@ -43,6 +43,25 @@ int free_buffer(int buf)
 		free(bufs[buf].lt[l]);
 	free(bufs[buf].lt);
 	free(bufs[buf].ts);
+	if((*cbuf)>=buf)
+		(*cbuf)--;
+	nbufs--;
+	int b;
+	for(b=buf;b<nbufs;b++)
+	{
+		bufs[b]=bufs[b+1];
+	}
+	for(b=0;b<nbufs;b++)
+	{
+		if(bufs[b].server==buf)
+		{
+			bufs[b].server=0; // orphaned; should not happen
+		}
+		else if(bufs[b].server>buf)
+		{
+			bufs[b].server--;
+		}
+	}
 	return(0);
 }
 
@@ -71,9 +90,59 @@ int buf_print(int buf, colour lc, char *lt, bool nl)
 	return(0);
 }
 
-void in_update(char *inp)
+void in_update(char *inp, int cbuf)
 {
-	printf(LOCATE, height, 1);
+	printf(LOCATE, height-1, 1);
+	// tab strip
+	int mbw = (width-1)/nbufs;
+	int b;
+	for(b=0;b<nbufs;b++)
+	{
+		putchar(' ');
+		// (status) {server} [channel] <user>
+		char brack[2]={'!', '!'};
+		switch(bufs[b].type)
+		{
+			case STATUS:
+				brack[0]='(';brack[1]=')';
+			break;
+			case SERVER:
+				brack[0]='{';brack[1]='}';
+			break;
+			case CHANNEL:
+				brack[0]='[';brack[1]=']';
+			break;
+			case PRIVATE:
+				brack[0]='<';brack[1]='>';
+			break;
+		}
+		colour c={7, 0, false, false};
+		if(b==cbuf)
+		{
+			c.back=2;
+			c.hi=true;
+		}
+		else if(b==bufs[cbuf].server)
+		{
+			c.back=4;
+			c.ul=true;
+		}
+		setcolour(c);
+		putchar(brack[0]);
+		if(strlen(bufs[b].bname)>mbw-3)
+		{
+			int r=(mbw-6)/2;
+			printf("%.*s...%s", mbw-r-3, bufs[b].bname, bufs[b].bname+r);
+		}
+		else
+		{
+			printf("%s", bufs[b].bname);
+		}
+		putchar(brack[1]);
+		resetcol();
+	}
+	putchar('\n');
+	// input
 	int ino=inp?strlen(inp):0;
 	if(ino>78)
 	{

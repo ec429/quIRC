@@ -425,7 +425,7 @@ int main(int argc, char *argv[])
 						}
 						else
 						{
-							in_update(inp);
+							in_update(inp, cbuf);
 						}
 					}
 					else
@@ -670,7 +670,7 @@ int main(int argc, char *argv[])
 												sprintf(cstr, "quIRC - connected to %s", server);
 												settitle(cstr);
 												int srv=bufs[cbuf].server;
-												free_buffer(cbuf); // we leave the actual thing behind, and just free its contents
+												free_buffer(cbuf, &cbuf);
 												cbuf=srv;
 											}
 											else
@@ -805,7 +805,7 @@ int main(int argc, char *argv[])
 									free(pdata);
 									free(packet);
 								}
-								in_update(inp);
+								in_update(inp, cbuf);
 								b=nbufs+1;
 							}
 						}
@@ -1051,6 +1051,7 @@ int main(int argc, char *argv[])
 					free(inp);inp=NULL;
 					state=0;
 				}
+				in_update(inp, cbuf);
 			break;
 		}
 	}
