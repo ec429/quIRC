@@ -1182,8 +1182,8 @@ int main(int argc, char *argv[])
 				{
 					if(bufs[cbuf].type==CHANNEL) // TODO add PRIVATE
 					{
-						char pmsg[12+strlen(chan)+strlen(inp)];
-						sprintf(pmsg, "PRIVMSG %s :%s", chan, inp);
+						char pmsg[12+strlen(bufs[cbuf].bname)+strlen(inp)];
+						sprintf(pmsg, "PRIVMSG %s :%s", bufs[cbuf].bname, inp);
 						irc_tx(bufs[cbuf].handle, pmsg);
 						while(inp[strlen(inp)-1]=='\n')
 							inp[strlen(inp)-1]=0; // stomp out trailing newlines, they break things
