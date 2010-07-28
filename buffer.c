@@ -77,6 +77,23 @@ int add_to_buffer(int buf, colour lc, char *lt)
 	return(0);
 }
 
+int redraw_buffer(int buf)
+{
+	if(bufs[buf].ptr||bufs[buf].filled)
+	{
+		printf(LOCATE, height-2, 1);
+		int l;
+		for(l=(bufs[buf].filled?(bufs[buf].ptr+1)%bufs[buf].nlines:0);l!=bufs[buf].ptr;l=(l+1)%bufs[buf].nlines)
+		{
+			setcolour(bufs[buf].lc[l]);
+			printf("%s" CLR "\n", bufs[buf].lt[l]);
+		}
+		resetcol();
+		printf(CLA "\n");
+	}
+	return(0);
+}
+
 int buf_print(int buf, colour lc, char *lt, bool nl)
 {
 	setcolour(lc);

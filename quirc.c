@@ -401,7 +401,7 @@ int main(int argc, char *argv[])
 						}
 						if(c=='\033') // escape sequence
 						{
-							if(getchar()=='\133')
+							if(getchar()=='\133') // 1b 5b
 							{
 								switch(getchar())
 								{
@@ -414,6 +414,25 @@ int main(int argc, char *argv[])
 										{
 											if(ino)
 												inp[ino-1]=0;
+										}
+									break;
+									case '1': // ^[[1
+										if(getchar()==';')
+										{
+											if(getchar()=='5')
+											{
+												switch(getchar())
+												{
+													case 'D': // C-left
+														cbuf=max(cbuf-1, 0);
+														redraw_buffer(cbuf);
+													break;
+													case 'C': // C-right
+														cbuf=min(cbuf+1, nbufs-1);
+														redraw_buffer(cbuf);
+													break;
+												}
+											}
 										}
 									break;
 								}
@@ -628,7 +647,7 @@ int main(int argc, char *argv[])
 												settitle(cstr);
 												bufs=(buffer *)realloc(bufs, ++nbufs*sizeof(buffer));
 												init_buffer(nbufs-1, CHANNEL, chan, buflines);
-												bufs[nbufs-1].server=cbuf;
+												bufs[nbufs-1].server=bufs[cbuf].server;
 												cbuf=nbufs-1;
 												bufs[cbuf].handle=bufs[bufs[cbuf].server].handle;
 											}
@@ -926,6 +945,7 @@ int main(int argc, char *argv[])
 								char nmsg[8+strlen(bufs[bufs[cbuf].server].nick)];
 								sprintf(nmsg, "NICK %s", bufs[bufs[cbuf].server].nick);
 								irc_tx(bufs[cbuf].handle, nmsg);
+								buf_print(cbuf, c_status, "Changing nick", false);
 							}
 							else
 							{
