@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "ttyesc.h"
 
 // helper fn macros
 #define max(a,b)	((a)>(b)?(a):(b))
