@@ -52,7 +52,7 @@
 
 int main(int argc, char *argv[])
 {
-	int buflines=100; // will make configable later
+	int buflines=256; // will make configable later
 	char *cols=getenv("COLUMNS"), *rows=getenv("ROWS");
 	if(cols) sscanf(cols, "%u", &width);
 	if(rows) sscanf(rows, "%u", &height);
@@ -260,22 +260,28 @@ int main(int argc, char *argv[])
 	printf("\n");
 	if(server)
 	{
-		char cstr[24+strlen(server)];
+		char cstr[36+strlen(server)+strlen(portno)];
 		sprintf(cstr, "quIRC - connecting to %s", server);
 		settitle(cstr);
-		sprintf(cstr, "Connecting to %s", server);
-		buf_print(0, c_status, cstr, true);
+		sprintf(cstr, "Connecting to %s on port %s...", server, portno);
+		setcolour(c_status);
+		printf(CLA "\n");
+		printf(LOCATE, height-2, 1);
+		printf("%s" CLR "\n", cstr);
+		resetcol();
+		printf(CLA "\n");
 		int serverhandle=irc_connect(server, portno, nick, uname, fname, &master, &fdmax);
 		if(serverhandle)
 		{
-			sprintf(cstr, "quIRC - connected to %s", server);
-			settitle(cstr);
 			bufs=(buffer *)realloc(bufs, ++nbufs*sizeof(buffer));
 			init_buffer(1, SERVER, server, buflines);
 			cbuf=1;
 			bufs[cbuf].handle=serverhandle;
 			bufs[cbuf].nick=strdup(nick);
 			bufs[cbuf].server=1;
+			add_to_buffer(1, c_status, cstr);
+			sprintf(cstr, "quIRC - connected to %s", server);
+			settitle(cstr);
 		}
 	}
 	else
@@ -957,18 +963,23 @@ int main(int argc, char *argv[])
 							settitle(cstr);
 							char dstr[30+strlen(server)+strlen(portno)];
 							sprintf(dstr, "Connecting to %s on port %s...", server, portno);
-							buf_print(cbuf, c_status, dstr, false);
+							setcolour(c_status);
+							printf(LOCATE, height-2, 1);
+							printf("%s" CLR "\n", dstr);
+							resetcol();
+							printf(CLA "\n");
 							int serverhandle=irc_connect(server, portno, nick, uname, fname, &master, &fdmax);
 							if(serverhandle)
 							{
-								sprintf(cstr, "quIRC - connected to %s", server);
-								settitle(cstr);
 								bufs=(buffer *)realloc(bufs, ++nbufs*sizeof(buffer));
 								init_buffer(nbufs-1, SERVER, server, buflines);
 								cbuf=nbufs-1;
 								bufs[cbuf].handle=serverhandle;
 								bufs[cbuf].nick=strdup(nick);
 								bufs[cbuf].server=cbuf;
+								add_to_buffer(cbuf, c_status, dstr);
+								sprintf(cstr, "quIRC - connected to %s", server);
+								settitle(cstr);
 							}
 						}
 						else
