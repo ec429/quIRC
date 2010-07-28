@@ -22,6 +22,7 @@ int init_buffer(int buf, btype type, char *bname, int nlines)
 	bufs[buf].lt=(char **)malloc(sizeof(char *[nlines]));
 	bufs[buf].ts=(time_t *)malloc(sizeof(time_t[nlines]));
 	bufs[buf].filled=false;
+	bufs[buf].alert=false;
 	return(0);
 }
 
@@ -74,28 +75,27 @@ int add_to_buffer(int buf, colour lc, char *lt)
 	bufs[buf].ptr=(bufs[buf].ptr+1)%bufs[buf].nlines;
 	if(bufs[buf].ptr==0)
 		bufs[buf].filled=true;
+	bufs[buf].alert=true;
+	bufs[cbuf].alert=false;
 	return(0);
 }
 
 int redraw_buffer(void)
 {
-	if(bufs[cbuf].ptr||bufs[cbuf].filled)
+	printf(LOCATE, height-1, 1);
+	resetcol();
+	char dash[width];
+	memset(dash, '-', width-1);
+	dash[width-1]=0;
+	printf("%s" CLR "\n", dash);
+	int l;
+	for(l=(bufs[cbuf].filled?(bufs[cbuf].ptr+1)%bufs[cbuf].nlines:0);l!=bufs[cbuf].ptr;l=(l+1)%bufs[cbuf].nlines)
 	{
-		printf(LOCATE, height-1, 1);
+		setcolour(bufs[cbuf].lc[l]);
+		printf("%s" CLR "\n", bufs[cbuf].lt[l]);
 		resetcol();
-		char dash[width];
-		memset(dash, '-', width-1);
-		dash[width-1]=0;
-		printf("%s" CLR "\n", dash);
-		int l;
-		for(l=(bufs[cbuf].filled?(bufs[cbuf].ptr+1)%bufs[cbuf].nlines:0);l!=bufs[cbuf].ptr;l=(l+1)%bufs[cbuf].nlines)
-		{
-			setcolour(bufs[cbuf].lc[l]);
-			printf("%s" CLR "\n", bufs[cbuf].lt[l]);
-			resetcol();
-		}
-		printf(CLA "\n");
 	}
+	printf(CLA "\n");
 	switch(bufs[cbuf].type)
 	{
 		case STATUS:
@@ -119,6 +119,7 @@ int redraw_buffer(void)
 			settitle("quIRC");
 		break;
 	}
+	bufs[cbuf].alert=false;
 	return(0);
 }
 
@@ -172,6 +173,12 @@ void in_update(char *inp)
 		{
 			c.back=4;
 			c.ul=true;
+		}
+		if(bufs[b].alert)
+		{
+			c.fore=1;
+			c.hi=true;
+			c.ul=false; // can't have both at once: it's not really a bitmask
 		}
 		setcolour(c);
 		putchar(brack[0]);

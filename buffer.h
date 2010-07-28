@@ -44,6 +44,7 @@ typedef struct _buf
 	char **lt;
 	time_t *ts;
 	bool filled;
+	bool alert; // tab has new messages?
 }
 buffer;
 
