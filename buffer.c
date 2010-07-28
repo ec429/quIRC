@@ -197,7 +197,7 @@ void in_update(char *inp)
 	printf(CLR "\n");
 	// input
 	int ino=inp?strlen(inp):0;
-	if(ino>78)
+	if(ino>width-2)
 	{
 		int off=20*max((ino+27-width)/20, 0);
 		printf("%.10s ... %s" CLR, inp, inp+off+10);
