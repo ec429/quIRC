@@ -8,7 +8,7 @@ PREFIX ?= /usr/local
 all: quirc
 
 install: all
-	install -sD quirc $(PREFIX)/bin/quirc
+	install -D quirc $(PREFIX)/bin/quirc
 
 quirc: quirc.c ttyraw.o ttyraw.h ttyesc.o ttyesc.h irc.o irc.h bits.o bits.h colour.o colour.h buffer.o buffer.h numeric.h
 	-./gitversion

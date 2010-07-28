@@ -371,7 +371,7 @@ int main(int argc, char *argv[])
 									name *found=NULL;bool tmany=false;
 									while(curr)
 									{
-										if(strncmp(inp+sp, curr->data, ino-sp)==0)
+										if(strncasecmp(inp+sp, curr->data, ino-sp)==0)
 										{
 											if(tmany)
 											{
@@ -751,10 +751,12 @@ int main(int argc, char *argv[])
 													src[maxnlen]=0;
 												}
 												int b2;
+												bool match=false;
 												for(b2=0;b2<nbufs;b2++)
 												{
 													if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (strcmp(dest, bufs[b2].bname)==0))
 													{
+														match=true;
 														char dstr[16+strlen(src)+strlen(dest)];
 														sprintf(dstr, "=%s= has left %s", src, dest);
 														buf_print(b2, c_part[1], dstr, true);
@@ -780,6 +782,12 @@ int main(int argc, char *argv[])
 															curr=next;
 														}
 													}
+												}
+												if(!match)
+												{
+													char dstr[4+strlen(pdata)];
+													sprintf(dstr, "?? %s", pdata);
+													buf_print(b, c_err, dstr, true);
 												}
 											}
 											resetcol();
@@ -814,10 +822,12 @@ int main(int argc, char *argv[])
 													src[maxnlen]=0;
 												}
 												int b2;
+												bool match=false;
 												for(b2=0;b2<nbufs;b2++)
 												{
 													if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (strcmp(dest+1, bufs[b2].bname)==0))
 													{
+														match=true;
 														char dstr[24+strlen(src)+strlen(server)+strlen(dest+1)];
 														sprintf(dstr, "=%s= has left %s (%s)", src, server, dest+1);
 														buf_print(b2, c_quit[1], dstr, true);
@@ -843,6 +853,12 @@ int main(int argc, char *argv[])
 															curr=next;
 														}
 													}
+												}
+												if(!match)
+												{
+													char dstr[4+strlen(pdata)];
+													sprintf(dstr, "?? %s", pdata);
+													buf_print(b, c_err, dstr, true);
 												}
 											}
 											resetcol();
@@ -887,10 +903,12 @@ int main(int argc, char *argv[])
 													src[maxnlen]=0;
 												}
 												int b2;
+												bool match=false;
 												for(b2=0;b2<nbufs;b2++)
 												{
 													if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL))
 													{
+														match=true;
 														name *curr=bufs[b2].nlist;
 														while(curr)
 														{
@@ -905,6 +923,12 @@ int main(int argc, char *argv[])
 															curr=curr->next;
 														}
 													}
+												}
+												if(!match)
+												{
+													char dstr[4+strlen(pdata)];
+													sprintf(dstr, "?? %s", pdata);
+													buf_print(b, c_err, dstr, true);
 												}
 											}
 											resetcol();
