@@ -4,13 +4,13 @@ quIRC is a simple terminal-based IRC (Internet Relay Chat) client.  It is writte
 
 Commands: are prefixed with a '/'.  Anything else is a message to be sent to the channel.   (The < and > are just markup, don't type them!)
 	/server <url>
-		Connects to the given server.  At present quIRC can only connect to one server at once.
+		Connects to the given server (will open in a new tab).
 
 	/nick <nickname>
-		Sets your nickname
+		Sets your nickname.  Scope is server-wide (or, in (status) tab, sets default for new /servers).
 
 	/join <channel>
-		Joins the given channel.  At present quIRC can only join one channel at once.
+		Joins the given channel (will open in a new tab).
 
 	/me <action>
 		Sends an 'action' to the channel.
@@ -55,6 +55,8 @@ Configuration:
 			Nick-change notifications
 		act
 			Actions ('/me does something')
+		status
+			status messages
 		err
 			error messages
 		unk
@@ -65,3 +67,4 @@ Configuration:
 Input controls: At present you cannot edit input with the cursors; you have to backspace.
 	Typing part of a nick and then pressing (tab) will cause the nick to be autocompleted.
 	Ctrl-A clears the current input.
+	Ctrl-left and Ctrl-right change tab.
