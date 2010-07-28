@@ -18,9 +18,9 @@ int init_buffer(int buf, btype type, char *bname, int nlines)
 	bufs[buf].nick=NULL;
 	bufs[buf].nlines=nlines;
 	bufs[buf].ptr=0;
-	bufs[buf].lc=(colour *)malloc(nlines*sizeof(colour));
-	bufs[buf].lt=(char **)malloc(nlines*sizeof(char *));
-	bufs[buf].ts=(time_t *)malloc(nlines*sizeof(time_t));
+	bufs[buf].lc=(colour *)malloc(sizeof(colour[nlines]));
+	bufs[buf].lt=(char **)malloc(sizeof(char *[nlines]));
+	bufs[buf].ts=(time_t *)malloc(sizeof(time_t[nlines]));
 	bufs[buf].filled=false;
 	return(0);
 }
@@ -81,14 +81,19 @@ int redraw_buffer(int buf)
 {
 	if(bufs[buf].ptr||bufs[buf].filled)
 	{
-		printf(LOCATE, height-2, 1);
+		printf(LOCATE, height-1, 1);
+		resetcol();
+		char dash[width];
+		memset(dash, '-', width-1);
+		dash[width-1]=0;
+		printf("%s" CLR "\n", dash);
 		int l;
 		for(l=(bufs[buf].filled?(bufs[buf].ptr+1)%bufs[buf].nlines:0);l!=bufs[buf].ptr;l=(l+1)%bufs[buf].nlines)
 		{
 			setcolour(bufs[buf].lc[l]);
 			printf("%s" CLR "\n", bufs[buf].lt[l]);
+			resetcol();
 		}
-		resetcol();
 		printf(CLA "\n");
 	}
 	return(0);

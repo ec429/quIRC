@@ -454,16 +454,15 @@ int main(int argc, char *argv[])
 						{
 							if(fd==bufs[b].handle)
 							{
-								char *packet;
+								char *packet; // TODO detect appropriate destination buffer for packet
 								int e;
 								if((e=irc_rx(fd, &packet))!=0)
 								{
 									char emsg[64];
 									sprintf(emsg, "error: irc_rx(%d, &%p): %d", fd, packet, e);
-									if(cbuf==0)
-										buf_print(0, c_err, emsg, true);
-									else
-										add_to_buffer(0, c_err, emsg);
+									cbuf=0;
+									redraw_buffer(cbuf);
+									buf_print(0, c_err, emsg, true);
 									state=5;
 									qmsg="client crashed";
 								}
