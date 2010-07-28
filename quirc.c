@@ -805,10 +805,10 @@ int main(int argc, char *argv[])
 												int b2;
 												for(b2=0;b2<nbufs;b2++)
 												{
-													if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (strcmp(dest+1, bufs[b2].bname)==0))
+													if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL))
 													{
-														char dstr[24+strlen(src)+strlen(server)+strlen(dest+1)];
-														sprintf(dstr, "You (%s) have left %s (%s)", src, server, dest+1);
+														char dstr[24+strlen(src)+strlen(bufs[b].bname)+strlen(dest+1)];
+														sprintf(dstr, "You (%s) have left %s (%s)", src, bufs[b].bname, dest+1);
 														buf_print(b2, c_quit[1], dstr, true);
 													}
 												}
@@ -822,21 +822,19 @@ int main(int argc, char *argv[])
 													src[maxnlen]=0;
 												}
 												int b2;
-												bool match=false;
 												for(b2=0;b2<nbufs;b2++)
 												{
-													if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (strcmp(dest+1, bufs[b2].bname)==0))
+													if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL))
 													{
-														match=true;
-														char dstr[24+strlen(src)+strlen(server)+strlen(dest+1)];
-														sprintf(dstr, "=%s= has left %s (%s)", src, server, dest+1);
-														buf_print(b2, c_quit[1], dstr, true);
 														name *curr=bufs[b2].nlist;
 														while(curr)
 														{
 															name *next=curr->next;
 															if(strcmp(curr->data, src)==0)
 															{
+																char dstr[24+strlen(src)+strlen(bufs[b].bname)+strlen(dest+1)];
+																sprintf(dstr, "=%s= has left %s (%s)", src, bufs[b].bname, dest+1);
+																buf_print(b2, c_quit[1], dstr, true);
 																if(curr->prev)
 																{
 																	curr->prev->next=curr->next;
@@ -853,12 +851,6 @@ int main(int argc, char *argv[])
 															curr=next;
 														}
 													}
-												}
-												if(!match)
-												{
-													char dstr[4+strlen(pdata)];
-													sprintf(dstr, "?? %s", pdata);
-													buf_print(b, c_err, dstr, true);
 												}
 											}
 											resetcol();
