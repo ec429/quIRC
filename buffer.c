@@ -186,7 +186,21 @@ void in_update(char *inp)
 		if(strlen(bufs[b].bname)>mbw-3)
 		{
 			int r=mbw/2;
-			printf("%.*s...%s", mbw-(r+3), bufs[b].bname, bufs[b].bname+strlen(bufs[b].bname)-(r-3));
+			if(bufs[b].type==SERVER)
+			{
+				if(strlen(bufs[b].bname)>mbw+5)
+				{
+					printf("%.*s...%.*s", mbw-(r+3), bufs[b].bname+4, r-3, bufs[b].bname+strlen(bufs[b].bname)-(r+1));
+				}
+				else
+				{
+					printf("%.*s", strlen(bufs[b].bname)-8, bufs[b].bname+4);
+				}
+			}
+			else
+			{
+				printf("%.*s...%s", mbw-(r+3), bufs[b].bname, bufs[b].bname+strlen(bufs[b].bname)-(r-3));
+			}
 		}
 		else
 		{
