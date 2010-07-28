@@ -101,18 +101,19 @@ int redraw_buffer(int buf)
 
 int buf_print(int buf, colour lc, char *lt, bool nl)
 {
-	setcolour(lc);
-	if(nl) printf(CLA "\n");
-	printf(LOCATE, height-2, 1);
-	printf("%s" CLR "\n", lt);
-	resetcol();
-	printf(CLA "\n");
-	if(buf)
-		return(add_to_buffer(buf, lc, lt));
-	return(0);
+	if(buf==cbuf)
+	{
+		setcolour(lc);
+		if(nl) printf(CLA "\n");
+		printf(LOCATE, height-2, 1);
+		printf("%s" CLR "\n", lt);
+		resetcol();
+		printf(CLA "\n");
+	}
+	return(add_to_buffer(buf, lc, lt));
 }
 
-void in_update(char *inp, int cbuf)
+void in_update(char *inp)
 {
 	printf(LOCATE, height-1, 1);
 	// tab strip
@@ -163,7 +164,7 @@ void in_update(char *inp, int cbuf)
 		putchar(brack[1]);
 		resetcol();
 	}
-	putchar('\n');
+	printf(CLR "\n");
 	// input
 	int ino=inp?strlen(inp):0;
 	if(ino>78)
