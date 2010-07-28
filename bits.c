@@ -42,7 +42,7 @@ int wordline(char *msg, int x, char **out)
 	while(ptr)
 	{
 		off_t pl=strlen(ptr);
-		*out=(char *)realloc(*out, ol+pl+4+strlen(CLR));
+		*out=(char *)realloc(*out, ol+pl+8+strlen(CLR));
 		x+=pl+1;
 		if((x>=width) && (pl<width))
 		{

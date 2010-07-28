@@ -92,8 +92,9 @@ int redraw_buffer(void)
 	for(l=(bufs[cbuf].filled?(bufs[cbuf].ptr+1)%bufs[cbuf].nlines:0);l!=bufs[cbuf].ptr;l=(l+1)%bufs[cbuf].nlines)
 	{
 		setcolour(bufs[cbuf].lc[l]);
-		printf("%s" CLR "\n", bufs[cbuf].lt[l]);
+		printf("%s", bufs[cbuf].lt[l]);
 		resetcol();
+		printf(CLR "\n");
 	}
 	printf(CLA "\n");
 	switch(bufs[cbuf].type)
