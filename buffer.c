@@ -185,7 +185,7 @@ void in_update(char *inp)
 		if(strlen(bufs[b].bname)>mbw-3)
 		{
 			int r=(mbw-6)/2;
-			printf("%.*s...%s", mbw-r-3, bufs[b].bname, bufs[b].bname+r);
+			printf("%.*s...%s", mbw-(r+9), bufs[b].bname, bufs[b].bname+r);
 		}
 		else
 		{
