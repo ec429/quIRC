@@ -550,6 +550,7 @@ int main(int argc, char *argv[])
 											if(strcmp(dest, bufs[b].nick)==0) // if it's us
 											{
 												close(fd);
+												FD_CLR(fd, &master);
 												int b2;
 												for(b2=0;b2<nbufs;b2++)
 												{
@@ -985,6 +986,32 @@ int main(int argc, char *argv[])
 						else
 						{
 							buf_print(cbuf, c_err, "Must specify a server!", false);
+						}
+						free(inp);inp=NULL;
+						state=0;
+					}
+					else if(strcmp(cmd, "disconnect")==0)
+					{
+						int b=bufs[cbuf].server;
+						if(b>0)
+						{
+							buf_print(cbuf, c_status, "Disconnecting...", false);
+							close(bufs[b].handle);
+							FD_CLR(bufs[b].handle, &master);
+							int b2;
+							for(b2=1;b2<nbufs;b2++)
+							{
+								while((b2<nbufs) && ((bufs[b2].server==b) || (bufs[b2].server==0)))
+								{
+									free_buffer(b2);
+								}
+							}
+							cbuf=0;
+							redraw_buffer();
+						}
+						else
+						{
+							buf_print(cbuf, c_err, "Can't disconnect (status)!", false);
 						}
 						free(inp);inp=NULL;
 						state=0;
