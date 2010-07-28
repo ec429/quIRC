@@ -515,6 +515,11 @@ int main(int argc, char *argv[])
 														}
 													}
 												break;
+												case RPL_MOTDSTART:
+												case RPL_MOTD:
+												case RPL_ENDOFMOTD:
+													// silently ignore the motd, because they're always far too long and annoying
+												break;
 												default:
 													;
 													char umsg[16+strlen(cmd+4)];
