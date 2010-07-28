@@ -1035,7 +1035,11 @@ int main(int argc, char *argv[])
 							char joinmsg[8+strlen(chan)+strlen(pass)];
 							sprintf(joinmsg, "JOIN %s %s", chan, pass);
 							irc_tx(bufs[cbuf].handle, joinmsg);
-							buf_print(cbuf, c_join[0], "Joining", false);
+							setcolour(c_join[0]);
+							printf(LOCATE, height-2, 1);
+							printf("Joining" CLR "\n");
+							resetcol();
+							printf(CLA "\n");
 						}
 						else
 						{
@@ -1076,6 +1080,7 @@ int main(int argc, char *argv[])
 							else
 							{
 								nick=strdup(nn);
+								buf_print(cbuf, c_status, "Default nick changed", false);
 							}
 						}
 						else
