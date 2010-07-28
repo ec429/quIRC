@@ -132,9 +132,9 @@ int buf_print(int buf, colour lc, char *lt, bool nl)
 		if(nl) printf(CLA "\n");
 		printf(LOCATE CLA, height-1, 1);
 		printf(LOCATE, height-2, 1);
-		printf(CLA "%s" CLR "\n", lt);
+		printf(CLA "%s", lt);
 		resetcol();
-		printf(CLA "\n");
+		printf(CLR "\n" CLA "\n");
 	}
 	return(add_to_buffer(buf, lc, lt));
 }
