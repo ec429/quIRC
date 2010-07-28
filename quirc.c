@@ -683,7 +683,7 @@ int main(int argc, char *argv[])
 												settitle(cstr);
 												bufs=(buffer *)realloc(bufs, ++nbufs*sizeof(buffer));
 												init_buffer(nbufs-1, CHANNEL, chan, buflines);
-												bufs[nbufs-1].server=bufs[cbuf].server;
+												bufs[nbufs-1].server=bufs[b].server;
 												cbuf=nbufs-1;
 												buf_print(cbuf, c_join[1], dstr, true);
 												bufs[cbuf].handle=bufs[bufs[cbuf].server].handle;

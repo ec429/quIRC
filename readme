@@ -68,3 +68,11 @@ Input controls: At present you cannot edit input with the cursors; you have to b
 	Typing part of a nick and then pressing (tab) will cause the nick to be autocompleted.
 	Ctrl-A clears the current input.
 	Ctrl-left and Ctrl-right change tab.
+
+Tabs: these have various indicators.
+	The parens bracketing the name tell you what kind of tab it is:
+		()	status
+		{}	server
+		[]	channel
+	The background colour is *green* for the current tab, and *blue* for the current tab's parent server (if applicable).
+	The foreground colour of tabs other than the current tab will turn *red* to indicate that there are new messages on that tab.

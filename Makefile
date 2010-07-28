@@ -37,6 +37,7 @@ buffer.o: buffer.c buffer.h
 dist: all
 	-mkdir quirc_$(VERSION)
 	for p in $$(ls); do cp $$p quirc_$(VERSION)/$$p; done;
+	rm quirc_$(VERSION)/*.tar.gz
 	tar -cvvf quirc_$(VERSION).tar quirc_$(VERSION)/
 	gzip quirc_$(VERSION).tar
 	rm -r quirc_$(VERSION)
