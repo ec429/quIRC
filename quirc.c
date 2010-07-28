@@ -697,13 +697,36 @@ int main(int argc, char *argv[])
 													src[maxnlen]=0;
 												}
 												int b2;
+												bool match=false;
 												for(b2=0;b2<nbufs;b2++)
 												{
 													if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (strcmp(dest+1, bufs[b2].bname)==0))
 													{
+														match=true;
 														char dstr[16+strlen(src)+strlen(dest+1)];
 														sprintf(dstr, "=%s= has joined %s", src, dest+1);
 														buf_print(b2, c_join[1], dstr, true);
+														name *curr=bufs[b2].nlist; // cull existing copies of this nick
+														while(curr)
+														{
+															name *next=curr->next;
+															if(strcmp(curr->data, src)==0)
+															{
+																if(curr->prev)
+																{
+																	curr->prev->next=curr->next;
+																}
+																else
+																{
+																	bufs[b2].nlist=curr->next;
+																}
+																if(curr->next)
+																	curr->next->prev=curr->prev;
+																free(curr->data);
+																free(curr);
+															}
+															curr=next;
+														}
 														name *new=(name *)malloc(sizeof(name));
 														new->data=strdup(src);
 														new->prev=NULL;
@@ -712,6 +735,12 @@ int main(int argc, char *argv[])
 															bufs[cbuf].nlist->prev=new;
 														bufs[cbuf].nlist=new;
 													}
+												}
+												if(!match)
+												{
+													char dstr[4+strlen(pdata)];
+													sprintf(dstr, "?? %s", pdata);
+													buf_print(b, c_err, dstr, true);
 												}
 											}
 											resetcol();
