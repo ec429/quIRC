@@ -747,9 +747,9 @@ int main(int argc, char *argv[])
 														new->data=strdup(src);
 														new->prev=NULL;
 														new->next=bufs[cbuf].nlist;
-														if(bufs[cbuf].nlist)
-															bufs[cbuf].nlist->prev=new;
-														bufs[cbuf].nlist=new;
+														if(bufs[b2].nlist)
+															bufs[b2].nlist->prev=new;
+														bufs[b2].nlist=new;
 													}
 												}
 												if(!match)
