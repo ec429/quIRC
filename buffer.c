@@ -144,6 +144,12 @@ int redraw_buffer(void)
 
 int buf_print(int buf, colour lc, char *lt, bool nl)
 {
+	if(force_redraw)
+	{
+		int e=add_to_buffer(buf, lc, lt);
+		redraw_buffer();
+		return(e);
+	}
 	if((buf==cbuf) && (bufs[buf].scroll==0))
 	{
 		setcolour(lc);
