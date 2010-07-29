@@ -457,7 +457,7 @@ int main(int argc, char *argv[])
 							char d=getchar();
 							if((d&0xf0)==0xb0)
 							{
-								cbuf=max(d&0x0f, 0);
+								cbuf=min(max(d&0x0f, 0), nbufs-1);
 								redraw_buffer();
 							}
 						}
