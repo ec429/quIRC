@@ -37,6 +37,9 @@ Configuration:
 		nick <nickname>
 		chan <channel>
 		mnln <maxnicklen>
+	You can also set mirc-colour-compatibility, with
+		mcc <mcc-level>
+	where 0 doesn't scan for mirc-colours, 1 silently strips them out, and 2 displays the appropriate colour.  The default is mcc 1.
 	You can also customise the colours quIRC uses.  A custom colour line starts with '%', followed optionally by 'S' or 'R' (only use this colour when Sending or Receiving respectively), followed by an identifier, then space or tab, then four space-separated numbers.  Like this
 		%[S|R]<ident>	<fore> <back> <hi> <ul>
 	Fore and Back set the foreground and background colours (8 colours each, red=1 green=2 blue=4, add for mixtures, eg white=7).  Hi sets bright, Ul sets underline; both are true if nonzero.

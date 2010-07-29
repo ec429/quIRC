@@ -82,6 +82,25 @@ int wordline(char *msg, int x, char **out)
 						(*out)[optr++]='m';
 					}
 				}
+				else
+				{
+					ptr++;
+					if(mirc_colour_compat==2)
+					{
+						ol+=10;
+						*out=(char *)realloc(*out, ol+pl+8+strlen(CLR));
+						(*out)[optr++]='\033';
+						(*out)[optr++]='[';
+						(*out)[optr++]='0';
+						(*out)[optr++]=';';
+						(*out)[optr++]='3';
+						(*out)[optr++]='7';
+						(*out)[optr++]=';';
+						(*out)[optr++]='4';
+						(*out)[optr++]='0';
+						(*out)[optr++]='m';
+					}
+				}
 			}
 			(*out)[optr++]=*ptr++;
 		}
