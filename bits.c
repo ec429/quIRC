@@ -67,7 +67,7 @@ int wordline(char *msg, int x, char **out)
 					ptr+=bytes;
 					if(mirc_colour_compat==2)
 					{
-						ol+=10;
+						ol+=12;
 						*out=(char *)realloc(*out, ol+pl+8+strlen(CLR));
 						colour mcc=c_mirc(fore, back);
 						(*out)[optr++]='\033';
@@ -107,7 +107,7 @@ int wordline(char *msg, int x, char **out)
 					ptr++;
 					if(mirc_colour_compat==2)
 					{
-						ol+=10;
+						ol+=12;
 						*out=(char *)realloc(*out, ol+pl+8+strlen(CLR));
 						(*out)[optr++]='\033';
 						(*out)[optr++]='[';
