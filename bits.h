@@ -10,12 +10,15 @@
 #include <stdlib.h>
 #include <string.h>
 #include "ttyesc.h"
+#include "colour.h"
 
 // helper fn macros
 #define max(a,b)	((a)>(b)?(a):(b))
 #define min(a,b)	((a)<(b)?(a):(b))
 
-int width, height; // term size (set in quirc.c)
+// global settings & state (set in quirc.c)
+int width, height; // term size
+int mirc_colour_compat;
 
 char * fgetl(FILE *); // gets a line of string data; returns a malloc-like pointer (preserves trailing \n)
 int wordline(char *, int x, char **); // prepares a string for printing, breaking lines in between words

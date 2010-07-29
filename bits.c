@@ -55,7 +55,37 @@ int wordline(char *msg, int x, char **out)
 			strcat(*out, " ");
 			ol++;
 		}
-		strcat(*out, ptr);
+		int optr=strlen(*out);
+		while(*ptr)
+		{
+			if((*ptr==3) && mirc_colour_compat)
+			{
+				int fore=0, back=0;
+				ssize_t bytes=0;
+				if(sscanf(ptr, "\003%u,%u%zn", &fore, &back, &bytes))
+				{
+					ptr+=bytes;
+					if(mirc_colour_compat==2)
+					{
+						ol+=10;
+						*out=(char *)realloc(*out, ol+pl+8+strlen(CLR));
+						colour mcc=c_mirc(fore, back);
+						(*out)[optr++]='\033';
+						(*out)[optr++]='[';
+						(*out)[optr++]='0';
+						(*out)[optr++]=';';
+						(*out)[optr++]='3';
+						(*out)[optr++]='0'+mcc.fore;
+						(*out)[optr++]=';';
+						(*out)[optr++]='4';
+						(*out)[optr++]='0'+mcc.back;
+						(*out)[optr++]='m';
+					}
+				}
+			}
+			(*out)[optr++]=*ptr++;
+		}
+		(*out)[optr]=0;
 		ol+=pl;
 		ptr=strtok(NULL, " ");
 	}

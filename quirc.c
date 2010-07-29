@@ -27,10 +27,10 @@
 
 #include "ttyraw.h"
 #include "ttyesc.h"
-#include "irc.h"
-#include "bits.h"
 #define COLOURS	0 // activate default colours in colour.h
 #include "colour.h"
+#include "irc.h"
+#include "bits.h"
 #include "buffer.h"
 #include "numeric.h"
 #include "version.h"
@@ -53,6 +53,7 @@
 int main(int argc, char *argv[])
 {
 	int buflines=256; // will make configable later
+	mirc_colour_compat=1; // silently strip
 	char *cols=getenv("COLUMNS"), *rows=getenv("ROWS");
 	if(cols) sscanf(cols, "%u", &width);
 	if(rows) sscanf(rows, "%u", &height);
@@ -170,6 +171,8 @@ int main(int argc, char *argv[])
 						chan=strdup(rest);
 					else if(strcmp(cmd, "mnln")==0)
 						sscanf(rest, "%u", &maxnlen);
+					else if(strcmp(cmd, "mcc")==0)
+						sscanf(rest, "%u", &mirc_colour_compat);
 					else
 					{
 						fprintf(stderr, "Unrecognised cmd %s in .quirc (ignoring)\n", cmd);
@@ -217,6 +220,10 @@ int main(int argc, char *argv[])
 		else if(strncmp(argv[arg], "--maxnicklen=", 13)==0)
 		{
 			sscanf(argv[arg]+13, "%u", &maxnlen);
+		}
+		else if(strncmp(argv[arg], "--mcc=", 6)==0)
+		{
+			sscanf(argv[arg]+6, "%u", &mirc_colour_compat);
 		}
 		else if(strcmp(argv[arg], "--no-auto-connect")==0)
 		{

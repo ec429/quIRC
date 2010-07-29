@@ -12,6 +12,7 @@ typedef struct
 colour;
 
 int setcolour(colour);
+colour c_mirc(int, int);
 
 #ifdef COLOURS
 colour c_msg[2]={{7, 0, false, true}, {7, 0, false, false}};
