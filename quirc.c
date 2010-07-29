@@ -452,7 +452,16 @@ int main(int argc, char *argv[])
 								}
 							}
 						}
-						if(c=='\n')
+						else if(c==0xc2) // c2 bN = alt-N
+						{
+							char d=getchar();
+							if((d&0xf0)==0xb0)
+							{
+								cbuf=max(d&0x0f, 0);
+								redraw_buffer();
+							}
+						}
+						else if(c=='\n')
 						{
 							state=3;
 						}
