@@ -40,7 +40,7 @@
 #define min(a,b)	((a)<(b)?(a):(b))
 
 // interface text
-#define GPL_MSG "%1$s -- Copyright (C) 2010 Edward Cree\n\tThis program comes with ABSOLUTELY NO WARRANTY.\n\tThis is free software, and you are welcome to redistribute it\n\tunder certain conditions.  (GNU GPL v3+)\n\tFor further details, see the file 'COPYING' in the %1$s directory.\n", "quirc"
+#define GPL_MSG "quirc -- Copyright (C) 2010 Edward Cree\n\tThis program comes with ABSOLUTELY NO WARRANTY.\n\tThis is free software, and you are welcome to redistribute it\n\tunder certain conditions.  (GNU GPL v3+)\n\tFor further details, see the file 'COPYING' in the quirc directory."
 
 #define VERSION_MSG " %s %hhu.%hhu.%hhu%s%s\n\
  Copyright (C) 2010 Edward Cree.\n\
@@ -246,7 +246,6 @@ int main(int argc, char *argv[])
 		else if(strncmp(argv[arg], "--chan=", 7)==0)
 			chan=argv[arg]+7;
 	}
-	printf(GPL_MSG);
 	int e=ttyraw(STDOUT_FILENO);
 	if(e)
 	{
@@ -259,12 +258,11 @@ int main(int argc, char *argv[])
 	nbufs=1;
 	cbuf=0;
 	bufs[0].nick=strdup(nick);
+	buf_print(0, c_status, GPL_MSG, false);
 	fd_set master, readfds;
 	FD_ZERO(&master);
 	FD_SET(STDIN_FILENO, &master);
 	int fdmax=STDIN_FILENO;
-	printf(CLA);
-	printf("\n");
 	if(server)
 	{
 		char cstr[36+strlen(server)+strlen(portno)];
