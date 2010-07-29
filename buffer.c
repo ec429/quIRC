@@ -69,6 +69,21 @@ int free_buffer(int buf)
 
 int add_to_buffer(int buf, colour lc, char *lt)
 {
+	char *nl;
+	while((nl=strchr(lt, '\n'))!=NULL)
+	{
+		char *ln=strndup(lt, (size_t)(nl-lt));
+		add_to_buffer(buf, lc, ln);
+		free(ln);
+		lt=nl+1;
+	}
+	while(strlen(lt)>width)
+	{
+		char *ln=strndup(lt, width);
+		add_to_buffer(buf, lc, ln);
+		free(ln);
+		lt+=width;
+	}
 	bufs[buf].lc[bufs[buf].ptr]=lc;
 	if(bufs[buf].filled) free(bufs[buf].lt[bufs[buf].ptr]);
 	bufs[buf].lt[bufs[buf].ptr]=strdup(lt);
@@ -85,15 +100,13 @@ int add_to_buffer(int buf, colour lc, char *lt)
 
 int redraw_buffer(void)
 {
-	printf(CLS LOCATE, height-1, 1);
-	resetcol();
-	char dash[width];
-	memset(dash, '-', width-1);
-	dash[width-1]=0;
-	printf("%s" CLR "\n", dash);
-	int l;
-	int sl = ( bufs[cbuf].filled ? (bufs[cbuf].ptr+bufs[cbuf].nlines-(bufs[cbuf].scroll+height))%bufs[cbuf].nlines : max(bufs[cbuf].ptr-(bufs[cbuf].scroll+height), 0) );
+	int sl = ( bufs[cbuf].filled ? (bufs[cbuf].ptr+bufs[cbuf].nlines-(bufs[cbuf].scroll+height-2))%bufs[cbuf].nlines : max(bufs[cbuf].ptr-(bufs[cbuf].scroll+height-2), 0) );
 	int el = ( bufs[cbuf].filled ? (bufs[cbuf].ptr+bufs[cbuf].nlines-bufs[cbuf].scroll)%bufs[cbuf].nlines : max(bufs[cbuf].ptr-bufs[cbuf].scroll, 0) );
+	int dl=el-sl;
+	if(dl<0) dl+=bufs[cbuf].nlines;
+	printf(CLS LOCATE, height-(dl+1), 1);
+	resetcol();
+	int l;
 	for(l=sl;l!=el;l=(l+1)%bufs[cbuf].nlines)
 	{
 		setcolour(bufs[cbuf].lc[l]);
