@@ -40,6 +40,7 @@ typedef struct _buf
 	char *nick; // used for server
 	int nlines;
 	int ptr;
+	int scroll;
 	colour *lc;
 	char **lt;
 	time_t *ts;

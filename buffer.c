@@ -18,6 +18,7 @@ int init_buffer(int buf, btype type, char *bname, int nlines)
 	bufs[buf].nick=NULL;
 	bufs[buf].nlines=nlines;
 	bufs[buf].ptr=0;
+	bufs[buf].scroll=0;
 	bufs[buf].lc=(colour *)malloc(sizeof(colour[nlines]));
 	bufs[buf].lt=(char **)malloc(sizeof(char *[nlines]));
 	bufs[buf].ts=(time_t *)malloc(sizeof(time_t[nlines]));
@@ -75,6 +76,8 @@ int add_to_buffer(int buf, colour lc, char *lt)
 	bufs[buf].ptr=(bufs[buf].ptr+1)%bufs[buf].nlines;
 	if(bufs[buf].ptr==0)
 		bufs[buf].filled=true;
+	if(bufs[buf].scroll)
+		bufs[buf].scroll=min(bufs[buf].scroll+1, bufs[buf].nlines-1);
 	bufs[buf].alert=true;
 	bufs[cbuf].alert=false;
 	return(0);
@@ -89,7 +92,9 @@ int redraw_buffer(void)
 	dash[width-1]=0;
 	printf("%s" CLR "\n", dash);
 	int l;
-	for(l=(bufs[cbuf].filled?(bufs[cbuf].ptr+1)%bufs[cbuf].nlines:0);l!=bufs[cbuf].ptr;l=(l+1)%bufs[cbuf].nlines)
+	int sl = ( bufs[cbuf].filled ? (bufs[cbuf].ptr+bufs[cbuf].nlines-(bufs[cbuf].scroll+height))%bufs[cbuf].nlines : max(bufs[cbuf].ptr-(bufs[cbuf].scroll+height), 0) );
+	int el = ( bufs[cbuf].filled ? (bufs[cbuf].ptr+bufs[cbuf].nlines-bufs[cbuf].scroll)%bufs[cbuf].nlines : max(bufs[cbuf].ptr-bufs[cbuf].scroll, 0) );
+	for(l=sl;l!=el;l=(l+1)%bufs[cbuf].nlines)
 	{
 		setcolour(bufs[cbuf].lc[l]);
 		printf("%s", bufs[cbuf].lt[l]);
@@ -126,7 +131,7 @@ int redraw_buffer(void)
 
 int buf_print(int buf, colour lc, char *lt, bool nl)
 {
-	if(buf==cbuf)
+	if((buf==cbuf) && (bufs[buf].scroll==0))
 	{
 		setcolour(lc);
 		if(nl) printf(CLA "\n");

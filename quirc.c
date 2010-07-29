@@ -444,6 +444,18 @@ int main(int argc, char *argv[])
 														cbuf=min(cbuf+1, nbufs-1);
 														redraw_buffer();
 													break;
+													case 'A': // C-up
+														bufs[cbuf].scroll=min(bufs[cbuf].scroll+1, bufs[cbuf].filled?bufs[cbuf].nlines:bufs[cbuf].ptr);
+														redraw_buffer();
+													break;
+													case 'B': // C-down
+														bufs[cbuf].scroll=max(bufs[cbuf].scroll-1, 0);
+														redraw_buffer();
+													break;
+													case 'F': // C-end
+														bufs[cbuf].scroll=0;
+														redraw_buffer();
+													break;
 												}
 												
 											}
