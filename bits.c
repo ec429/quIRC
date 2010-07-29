@@ -47,7 +47,7 @@ int wordline(char *msg, int x, char **out)
 		if((x>=width) && (pl<width))
 		{
 			strcat(*out, "\n" CLR);
-			ol++;
+			ol+=(1+strlen(CLR));
 			x=pl;
 		}
 		else if(ptr!=msg)
