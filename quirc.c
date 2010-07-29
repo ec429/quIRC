@@ -461,7 +461,7 @@ int main(int argc, char *argv[])
 								redraw_buffer();
 							}
 						}
-						else if(c=='\n')
+						if(c=='\n')
 						{
 							state=3;
 						}
