@@ -764,7 +764,7 @@ int main(int argc, char *argv[])
 														name *new=(name *)malloc(sizeof(name));
 														new->data=strdup(src);
 														new->prev=NULL;
-														new->next=bufs[cbuf].nlist;
+														new->next=bufs[b2].nlist;
 														if(bufs[b2].nlist)
 															bufs[b2].nlist->prev=new;
 														bufs[b2].nlist=new;
