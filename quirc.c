@@ -303,12 +303,12 @@ int main(int argc, char *argv[])
 	{
 		timeout.tv_sec=0;
 		timeout.tv_usec=25000;
-		if(shli && !shsrc)
+		if(shli && !shsrc) // TODO: proper scripting capability with regex-match on the << (expectation) lines and attachment to a buffer
 		{
 			shread:
 			if(strncmp(shad[shlp], ">>", 2)==0)
 			{
-				irc_tx(bufs[cbuf].handle, shad[shlp]+3);
+				irc_tx(bufs[1].handle, shad[shlp]+3); // because of how auto-ident works, this should always be on buffer 1 (the first server)
 			}
 			if(strncmp(shad[shlp], "<<", 2)==0) // read
 			{
