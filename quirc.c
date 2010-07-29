@@ -1054,6 +1054,90 @@ int main(int argc, char *argv[])
 						free(inp);inp=NULL;
 						state=-1;
 					}
+					else if(strcmp(cmd, "set")==0) // set options
+					{
+						if(args)
+						{
+							char *opt=strtok(args, " ");
+							if(opt)
+							{
+								char *val=strtok(NULL, " ");
+								if(strcmp(opt, "width")==0)
+								{
+									if(val)
+									{
+										sscanf(val, "%u", &width);
+									}
+									else
+									{
+										width=80;
+									}
+									buf_print(cbuf, c_status, "width set", false);
+									redraw_buffer();
+								}
+								else if(strcmp(opt, "height")==0)
+								{
+									if(val)
+									{
+										sscanf(val, "%u", &height);
+									}
+									else
+									{
+										height=24;
+									}
+									buf_print(cbuf, c_status, "height set", false);
+									redraw_buffer();
+								}
+								else if(strcmp(opt, "fred")==0)
+								{
+									if(val)
+									{
+										sscanf(val, "%u", &force_redraw);
+									}
+									else
+									{
+										force_redraw=1;
+									}
+									if(force_redraw)
+									{
+										buf_print(cbuf, c_status, "force-redraw enabled", false);
+										redraw_buffer();
+									}
+									else
+									{
+										buf_print(cbuf, c_status, "force-redraw disabled", false);
+									}
+								}
+								else if(strcmp(opt, "mnln")==0)
+								{
+									if(val)
+									{
+										sscanf(val, "%u", &maxnlen);
+									}
+									else
+									{
+										maxnlen=16;
+									}
+									buf_print(cbuf, c_status, "maxnicklen set", false);
+									redraw_buffer();
+								}
+								else
+								{
+									buf_print(cbuf, c_err, "set: No such option!", false);
+								}
+							}
+							else
+							{
+								buf_print(cbuf, c_err, "set what?", false);
+							}
+						}
+						else
+						{
+							buf_print(cbuf, c_err, "set what?", false);
+						}
+						free(inp);inp=NULL;
+						state=0;
+					}
 					else if(strcmp(cmd, "server")==0)
 					{
 						if(args)
