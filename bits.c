@@ -62,7 +62,7 @@ int wordline(char *msg, int x, char **out)
 			{
 				int fore=0, back=0;
 				ssize_t bytes=0;
-				if(sscanf(ptr, "\003%u,%u%zn", &fore, &back, &bytes))
+				if(sscanf(ptr, "\003%u,%u%zn", &fore, &back, &bytes)==2)
 				{
 					ptr+=bytes;
 					if(mirc_colour_compat==2)
@@ -70,6 +70,26 @@ int wordline(char *msg, int x, char **out)
 						ol+=10;
 						*out=(char *)realloc(*out, ol+pl+8+strlen(CLR));
 						colour mcc=c_mirc(fore, back);
+						(*out)[optr++]='\033';
+						(*out)[optr++]='[';
+						(*out)[optr++]='0';
+						(*out)[optr++]=';';
+						(*out)[optr++]='3';
+						(*out)[optr++]='0'+mcc.fore;
+						(*out)[optr++]=';';
+						(*out)[optr++]='4';
+						(*out)[optr++]='0'+mcc.back;
+						(*out)[optr++]='m';
+					}
+				}
+				else if(sscanf(ptr, "\003%u%zn", &fore, &bytes)==1)
+				{
+					ptr+=bytes;
+					if(mirc_colour_compat==2)
+					{
+						ol+=12;
+						*out=(char *)realloc(*out, ol+pl+8+strlen(CLR));
+						colour mcc=c_mirc(fore, 1);
 						(*out)[optr++]='\033';
 						(*out)[optr++]='[';
 						(*out)[optr++]='0';
@@ -102,7 +122,10 @@ int wordline(char *msg, int x, char **out)
 					}
 				}
 			}
-			(*out)[optr++]=*ptr++;
+			else
+			{
+				(*out)[optr++]=*ptr++;
+			}
 		}
 		(*out)[optr]=0;
 		ol+=pl;
