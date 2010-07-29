@@ -449,12 +449,18 @@ int main(int argc, char *argv[])
 														redraw_buffer();
 													break;
 													case 'B': // C-down
-														bufs[cbuf].scroll=max(bufs[cbuf].scroll-1, 0);
-														redraw_buffer();
+														if(bufs[cbuf].scroll)
+														{
+															bufs[cbuf].scroll=bufs[cbuf].scroll-1;
+															redraw_buffer();
+														}
 													break;
 													case 'F': // C-end
-														bufs[cbuf].scroll=0;
-														redraw_buffer();
+														if(bufs[cbuf].scroll)
+														{
+															bufs[cbuf].scroll=0;
+															redraw_buffer();
+														}
 													break;
 												}
 												

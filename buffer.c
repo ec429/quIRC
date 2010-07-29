@@ -85,7 +85,7 @@ int add_to_buffer(int buf, colour lc, char *lt)
 
 int redraw_buffer(void)
 {
-	printf(LOCATE, height-1, 1);
+	printf(CLS LOCATE, height-1, 1);
 	resetcol();
 	char dash[width];
 	memset(dash, '-', width-1);
@@ -140,6 +140,10 @@ int buf_print(int buf, colour lc, char *lt, bool nl)
 		printf(CLA "%s", lt);
 		resetcol();
 		printf(CLR "\n" CLA "\n");
+	}
+	else if(!nl)
+	{
+		redraw_buffer();
 	}
 	return(add_to_buffer(buf, lc, lt));
 }
