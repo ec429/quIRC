@@ -350,7 +350,7 @@ int main(int argc, char *argv[])
 						printf("\010\010\010" CLA);
 						int ino=inp?strlen(inp):0;
 						inp=(char *)realloc(inp, ino+2);
-						char c=inp[ino]=getchar();
+						unsigned char c=inp[ino]=getchar();
 						inp[ino+1]=0;
 						if(strchr("\010\177", c)) // various backspace-type characters
 						{
@@ -358,7 +358,7 @@ int main(int argc, char *argv[])
 								inp[ino-1]=0;
 							inp[ino]=0;
 						}
-						else if(c<32) // this also stomps on the newline 
+						else if((c<32)||(c>127)) // this also stomps on the newline 
 						{
 							inp[ino]=0;
 							if(c==1)
@@ -452,7 +452,7 @@ int main(int argc, char *argv[])
 								}
 							}
 						}
-						else if(c==0xc2) // c2 bN = alt-N
+						else if(c==0xc2) // c2 bN = alt-N (for N in 0...9)
 						{
 							char d=getchar();
 							if((d&0xf0)==0xb0)
@@ -573,15 +573,33 @@ int main(int argc, char *argv[])
 												close(fd);
 												FD_CLR(fd, &master);
 												int b2;
-												for(b2=0;b2<nbufs;b2++)
+												for(b2=1;b2<nbufs;b2++)
 												{
 													while((b2<nbufs) && ((bufs[b2].server==b) || (bufs[b2].server==0)))
 													{
 														free_buffer(b2);
+														if(b2==cbuf)
+															cbuf=0;
 													}
 												}
 												redraw_buffer();
 											}
+										}
+										else if(strcmp(cmd, "ERROR")==0) // assume it's fatal
+										{
+											close(fd);
+											FD_CLR(fd, &master);
+											int b2;
+											for(b2=1;b2<nbufs;b2++)
+											{
+												while((b2<nbufs) && ((bufs[b2].server==b) || (bufs[b2].server==0)))
+												{
+													free_buffer(b2);
+													if(b2==cbuf)
+														cbuf=0;
+												}
+											}
+											redraw_buffer();
 										}
 										else if(strcmp(cmd, "PRIVMSG")==0)
 										{
