@@ -48,7 +48,7 @@
  This is free software: you are free to change and redistribute it.\n\
  There is NO WARRANTY, to the extent permitted by law.\n", "quirc", VERSION_MAJ, VERSION_MIN, VERSION_REV, VERSION_TXT[0]?"-":"", VERSION_TXT
 
-#define USAGE_MSG "quirc [-h][-v]\n"
+#define USAGE_MSG "quirc [--width=<cols>] [--height=<rows>] [--maxnicklen=<mnln>] [--mcc=<mcc>]\n\t[--force-redraw=<fred>] [--no-auto-connect] [--no-auto-join]\n\t[--server=<server>] [--uname=<uname>] [--fname=<fname>] [--nick=<nick>]\n\t[--chan=<chan>] [--port=<port>]\nquirc {-h|--help|-v|--version}\n"
 
 int main(int argc, char *argv[])
 {
@@ -62,8 +62,6 @@ int main(int argc, char *argv[])
 	if(!height) height=24;
 	settitle("quIRC - not connected");
 	resetcol();
-	printf(LOCATE, height, 1);
-	printf("\n");
 	int maxnlen=16;
 	char *server=NULL, *portno="6667", *uname="quirc", *fname=(char *)malloc(20+strlen(VERSION_TXT)), *nick=strdup("ac"), *chan=NULL;
 	sprintf(fname, "quIRC %hhu.%hhu.%hhu%s%s", VERSION_MAJ, VERSION_MIN, VERSION_REV, VERSION_TXT[0]?"-":"", VERSION_TXT);
@@ -299,6 +297,7 @@ int main(int argc, char *argv[])
 	else
 	{
 		buf_print(0, c_status, "Not connected - use /server to connect", true);
+		in_update("");
 	}
 	struct timeval timeout;
 	char *inp=NULL;
