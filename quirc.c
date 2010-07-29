@@ -418,7 +418,7 @@ int main(int argc, char *argv[])
 							{
 								switch(getchar())
 								{
-									case '[': // left cursor counts as a backspace
+									case 'D': // left cursor counts as a backspace
 										if(ino)
 											inp[ino-1]=0;
 									break;
