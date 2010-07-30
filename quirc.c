@@ -444,7 +444,7 @@ int main(int argc, char *argv[])
 												{
 													if(d=='5') // C-PgUp
 													{
-														bufs[cbuf].scroll=min(bufs[cbuf].scroll+height-2, bufs[cbuf].filled?bufs[cbuf].nlines:bufs[cbuf].ptr);
+														bufs[cbuf].scroll=min(bufs[cbuf].scroll+height-2, bufs[cbuf].filled?bufs[cbuf].nlines:bufs[cbuf].ptr-1);
 														redraw_buffer();
 													}
 													else // d=='6' // C-PgDn
@@ -475,7 +475,7 @@ int main(int argc, char *argv[])
 														redraw_buffer();
 													break;
 													case 'A': // C-up
-														bufs[cbuf].scroll=min(bufs[cbuf].scroll+1, bufs[cbuf].filled?bufs[cbuf].nlines:bufs[cbuf].ptr);
+														bufs[cbuf].scroll=min(bufs[cbuf].scroll+1, bufs[cbuf].filled?bufs[cbuf].nlines:bufs[cbuf].ptr-1);
 														redraw_buffer();
 													break;
 													case 'B': // C-down
@@ -493,11 +493,8 @@ int main(int argc, char *argv[])
 														}
 													break;
 													case 'H': // C-home
-														if(bufs[cbuf].scroll)
-														{
-															bufs[cbuf].scroll=bufs[cbuf].filled?bufs[cbuf].nlines:bufs[cbuf].ptr;
-															redraw_buffer();
-														}
+														bufs[cbuf].scroll=bufs[cbuf].filled?bufs[cbuf].nlines:bufs[cbuf].ptr-1;
+														redraw_buffer();
 													break;
 												}
 												
