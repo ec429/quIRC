@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
 	int buflines=256; // will make configable later
 	mirc_colour_compat=1; // silently strip
 	force_redraw=0; // don't
-	char *cols=getenv("COLUMNS"), *rows=getenv("ROWS");
+	char *cols=getenv("COLUMNS"), *rows=getenv("LINES");
 	if(cols) sscanf(cols, "%u", &width);
 	if(rows) sscanf(rows, "%u", &height);
 	if(!width) width=80;
@@ -444,7 +444,7 @@ int main(int argc, char *argv[])
 												{
 													if(d=='5') // C-PgUp
 													{
-														bufs[cbuf].scroll=min(bufs[cbuf].scroll+height-2, bufs[cbuf].filled?bufs[cbuf].nlines:bufs[cbuf].ptr-1);
+														bufs[cbuf].scroll=min(bufs[cbuf].scroll+height-2, bufs[cbuf].filled?bufs[cbuf].nlines-1:bufs[cbuf].ptr-1);
 														redraw_buffer();
 													}
 													else // d=='6' // C-PgDn
@@ -475,7 +475,7 @@ int main(int argc, char *argv[])
 														redraw_buffer();
 													break;
 													case 'A': // C-up
-														bufs[cbuf].scroll=min(bufs[cbuf].scroll+1, bufs[cbuf].filled?bufs[cbuf].nlines:bufs[cbuf].ptr-1);
+														bufs[cbuf].scroll=min(bufs[cbuf].scroll+1, bufs[cbuf].filled?bufs[cbuf].nlines-1:bufs[cbuf].ptr-1);
 														redraw_buffer();
 													break;
 													case 'B': // C-down
@@ -493,7 +493,7 @@ int main(int argc, char *argv[])
 														}
 													break;
 													case 'H': // C-home
-														bufs[cbuf].scroll=bufs[cbuf].filled?bufs[cbuf].nlines:bufs[cbuf].ptr-1;
+														bufs[cbuf].scroll=bufs[cbuf].filled?bufs[cbuf].nlines-1:bufs[cbuf].ptr-1;
 														redraw_buffer();
 													break;
 												}
