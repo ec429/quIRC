@@ -52,7 +52,7 @@
 
 int main(int argc, char *argv[])
 {
-	int buflines=256; // will make configable later
+	int buflines=256;
 	mirc_colour_compat=1; // silently strip
 	force_redraw=0; // don't
 	char *cols=getenv("COLUMNS"), *rows=getenv("LINES");
@@ -174,6 +174,8 @@ int main(int argc, char *argv[])
 						sscanf(rest, "%u", &mirc_colour_compat);
 					else if(strcmp(cmd, "fred")==0)
 						sscanf(rest, "%u", &force_redraw);
+					else if(strcmp(cmd, "buf")==0)
+						sscanf(rest, "%u", &buflines);
 					else
 					{
 						fprintf(stderr, "Unrecognised cmd %s in .quirc (ignoring)\n", cmd);
@@ -229,6 +231,10 @@ int main(int argc, char *argv[])
 		else if(strncmp(argv[arg], "--force-redraw=", 15)==0)
 		{
 			sscanf(argv[arg]+15, "%u", &force_redraw);
+		}
+		else if(strncmp(argv[arg], "--buf-lines=", 12)==0)
+		{
+			sscanf(argv[arg]+12, "%u", &buflines);
 		}
 		else if(strcmp(argv[arg], "--no-auto-connect")==0)
 		{
@@ -1138,6 +1144,19 @@ int main(int argc, char *argv[])
 										mirc_colour_compat=1;
 									}
 									buf_print(cbuf, c_status, "mcc set", false);
+									redraw_buffer();
+								}
+								else if(strcmp(opt, "buf")==0)
+								{
+									if(val)
+									{
+										sscanf(val, "%u", &buflines);
+									}
+									else
+									{
+										buflines=256;
+									}
+									buf_print(cbuf, c_status, "buf set", false);
 									redraw_buffer();
 								}
 								else
