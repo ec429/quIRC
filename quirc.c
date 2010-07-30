@@ -776,12 +776,6 @@ int main(int argc, char *argv[])
 											}
 											else
 											{
-												if(strlen(src)>maxnlen)
-												{
-													src[maxnlen-4]=src[maxnlen-3]=src[maxnlen-2]='.';
-													src[maxnlen-1]=src[strlen(src)-1];
-													src[maxnlen]=0;
-												}
 												int b2;
 												bool match=false;
 												for(b2=0;b2<nbufs;b2++)
@@ -859,12 +853,6 @@ int main(int argc, char *argv[])
 											}
 											else
 											{
-												if(strlen(src)>maxnlen)
-												{
-													src[maxnlen-4]=src[maxnlen-3]=src[maxnlen-2]='.';
-													src[maxnlen-1]=src[strlen(src)-1];
-													src[maxnlen]=0;
-												}
 												int b2;
 												bool match=false;
 												for(b2=0;b2<nbufs;b2++)
@@ -930,12 +918,6 @@ int main(int argc, char *argv[])
 											}
 											else
 											{
-												if(strlen(src)>maxnlen)
-												{
-													src[maxnlen-4]=src[maxnlen-3]=src[maxnlen-2]='.';
-													src[maxnlen-1]=src[strlen(src)-1];
-													src[maxnlen]=0;
-												}
 												int b2;
 												for(b2=0;b2<nbufs;b2++)
 												{
@@ -1003,12 +985,6 @@ int main(int argc, char *argv[])
 											}
 											else
 											{
-												if(strlen(src)>maxnlen)
-												{
-													src[maxnlen-4]=src[maxnlen-3]=src[maxnlen-2]='.';
-													src[maxnlen-1]=src[strlen(src)-1];
-													src[maxnlen]=0;
-												}
 												int b2;
 												bool match=false;
 												for(b2=0;b2<nbufs;b2++)
