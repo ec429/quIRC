@@ -420,7 +420,8 @@ int main(int argc, char *argv[])
 						{
 							if(getchar()=='\133') // 1b 5b
 							{
-								switch(getchar())
+								unsigned char d=getchar();
+								switch(d)
 								{
 									case 'D': // left cursor counts as a backspace
 										if(ino)
@@ -431,6 +432,31 @@ int main(int argc, char *argv[])
 										{
 											if(ino)
 												inp[ino-1]=0;
+										}
+									break;
+									case '5': // ^[[5
+									case '6': // ^[[6
+										if(getchar()==';')
+										{
+											if(getchar()=='5')
+											{
+												if(getchar()=='~')
+												{
+													if(d=='5') // C-PgUp
+													{
+														bufs[cbuf].scroll=min(bufs[cbuf].scroll+height-2, bufs[cbuf].filled?bufs[cbuf].nlines:bufs[cbuf].ptr);
+														redraw_buffer();
+													}
+													else // d=='6' // C-PgDn
+													{
+														if(bufs[cbuf].scroll)
+														{
+															bufs[cbuf].scroll=max(bufs[cbuf].scroll-(height-2), 0);
+															redraw_buffer();
+														}
+													}
+												}
+											}
 										}
 									break;
 									case '1': // ^[[1
@@ -466,6 +492,13 @@ int main(int argc, char *argv[])
 															redraw_buffer();
 														}
 													break;
+													case 'H': // C-home
+														if(bufs[cbuf].scroll)
+														{
+															bufs[cbuf].scroll=bufs[cbuf].filled?bufs[cbuf].nlines:bufs[cbuf].ptr;
+															redraw_buffer();
+														}
+													break;
 												}
 												
 											}
@@ -476,7 +509,7 @@ int main(int argc, char *argv[])
 						}
 						else if(c==0xc2) // c2 bN = alt-N (for N in 0...9)
 						{
-							char d=getchar();
+							unsigned char d=getchar();
 							if((d&0xf0)==0xb0)
 							{
 								cbuf=min(max(d&0x0f, 0), nbufs-1);
