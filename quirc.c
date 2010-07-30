@@ -1127,6 +1127,19 @@ int main(int argc, char *argv[])
 									buf_print(cbuf, c_status, "maxnicklen set", false);
 									redraw_buffer();
 								}
+								else if(strcmp(opt, "mcc")==0)
+								{
+									if(val)
+									{
+										sscanf(val, "%u", &mirc_colour_compat);
+									}
+									else
+									{
+										mirc_colour_compat=1;
+									}
+									buf_print(cbuf, c_status, "mcc set", false);
+									redraw_buffer();
+								}
 								else
 								{
 									buf_print(cbuf, c_err, "set: No such option!", false);
