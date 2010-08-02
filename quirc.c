@@ -1326,7 +1326,7 @@ int main(int argc, char *argv[])
 							if(text)
 							{
 								char privmsg[12+strlen(dest)+strlen(text)];
-								sprintf(privmsg, "PRIVMSG %s %s", dest, text);
+								sprintf(privmsg, "PRIVMSG %s :%s", dest, text);
 								irc_tx(bufs[cbuf].handle, privmsg);
 								while(text[strlen(text)-1]=='\n')
 									text[strlen(text)-1]=0; // stomp out trailing newlines, they break things
