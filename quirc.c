@@ -674,10 +674,12 @@ int main(int argc, char *argv[])
 												src[maxnlen]=0;
 											}
 											int b2;
+											bool match=false;
 											for(b2=0;b2<nbufs;b2++)
 											{
 												if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (strcmp(dest, bufs[b2].bname)==0))
 												{
+													match=true;
 													if(*msg==1) // CTCP
 													{
 														if(strncmp(msg, "\001ACTION ", 8)==0)
@@ -716,6 +718,16 @@ int main(int argc, char *argv[])
 														free(out);
 													}
 												}
+											}
+											if(!match)
+											{
+												char *out=(char *)malloc(16+max(maxnlen, strlen(src)));
+												memset(out, ' ', max(maxnlen-strlen(src), 0));
+												out[max(maxnlen-strlen(src), 0)]=0;
+												sprintf(out+strlen(out), "(from %s) ", src);
+												wordline(msg, 9+max(maxnlen, strlen(src)), &out);
+												buf_print(b, c_msg[1], out, true);
+												free(out);
 											}
 										}
 										else if(strcmp(cmd, "NOTICE")==0)
