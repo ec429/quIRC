@@ -573,7 +573,7 @@ int main(int argc, char *argv[])
 													int b2;
 													for(b2=0;b2<nbufs;b2++)
 													{
-														if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (strcmp(ch, bufs[b2].bname)==0))
+														if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (strcasecmp(ch, bufs[b2].bname)==0))
 														{
 															char *nn;
 															while((nn=strtok(NULL, ":@ ")))
@@ -678,7 +678,7 @@ int main(int argc, char *argv[])
 											bool match=false;
 											for(b2=0;b2<nbufs;b2++)
 											{
-												if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (strcmp(dest, bufs[b2].bname)==0))
+												if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (strcasecmp(dest, bufs[b2].bname)==0))
 												{
 													match=true;
 													if(*msg==1) // CTCP (TODO: show message for unrecognised CTCP cmds)
@@ -720,44 +720,53 @@ int main(int argc, char *argv[])
 													}
 												}
 											}
-											if(!match)
+											if(!match) // TODO try matching dest to nick; if that fails print ?? followed by the pdata
 											{
-												if(*msg==1) // CTCP
+												if(strcasecmp(dest, bufs[b].nick)==0)
 												{
-													if(strncmp(msg, "\001ACTION ", 8)==0)
+													if(*msg==1) // CTCP
 													{
-														msg[strlen(msg)-1]=0; // remove trailing \001
-														char *out=(char *)malloc(5+max(maxnlen, strlen(src)));
-														memset(out, ' ', 2+max(maxnlen-strlen(src), 0));
-														out[2+max(maxnlen-strlen(src), 0)]=0;
-														strcat(out, src);
-														strcat(out, " ");
-														wordline(msg+8, 3+max(maxnlen, strlen(src)), &out);
-														buf_print(b, c_actn[1], out, true);
+														if(strncmp(msg, "\001ACTION ", 8)==0)
+														{
+															msg[strlen(msg)-1]=0; // remove trailing \001
+															char *out=(char *)malloc(5+max(maxnlen, strlen(src)));
+															memset(out, ' ', 2+max(maxnlen-strlen(src), 0));
+															out[2+max(maxnlen-strlen(src), 0)]=0;
+															strcat(out, src);
+															strcat(out, " ");
+															wordline(msg+8, 3+max(maxnlen, strlen(src)), &out);
+															buf_print(b, c_actn[1], out, true);
+															free(out);
+														}
+														else if(strncmp(msg, "\001FINGER", 7)==0)
+														{
+															char resp[32+strlen(from)+strlen(fname)];
+															sprintf(resp, "NOTICE %s \001FINGER :%s\001", from, fname);
+															irc_tx(fd, resp);
+														}
+														else if(strncmp(msg, "\001VERSION", 8)==0)
+														{
+															char resp[32+strlen(from)+strlen(version)];
+															sprintf(resp, "NOTICE %s \001VERSION %s:%s:%s\001", from, "quIRC", version, CC_VERSION);
+															irc_tx(fd, resp);
+														}
+													}
+													else
+													{
+														char *out=(char *)malloc(16+max(maxnlen, strlen(src)));
+														memset(out, ' ', max(maxnlen-strlen(src), 0));
+														out[max(maxnlen-strlen(src), 0)]=0;
+														sprintf(out+strlen(out), "(from %s) ", src);
+														wordline(msg, 9+max(maxnlen, strlen(src)), &out);
+														buf_print(b, c_msg[1], out, true);
 														free(out);
-													}
-													else if(strncmp(msg, "\001FINGER", 7)==0)
-													{
-														char resp[32+strlen(from)+strlen(fname)];
-														sprintf(resp, "NOTICE %s \001FINGER :%s\001", from, fname);
-														irc_tx(fd, resp);
-													}
-													else if(strncmp(msg, "\001VERSION", 8)==0)
-													{
-														char resp[32+strlen(from)+strlen(version)];
-														sprintf(resp, "NOTICE %s \001VERSION %s:%s:%s\001", from, "quIRC", version, CC_VERSION);
-														irc_tx(fd, resp);
 													}
 												}
 												else
 												{
-													char *out=(char *)malloc(16+max(maxnlen, strlen(src)));
-													memset(out, ' ', max(maxnlen-strlen(src), 0));
-													out[max(maxnlen-strlen(src), 0)]=0;
-													sprintf(out+strlen(out), "(from %s) ", src);
-													wordline(msg, 9+max(maxnlen, strlen(src)), &out);
-													buf_print(b, c_msg[1], out, true);
-													free(out);
+													char dstr[4+strlen(pdata)];
+													sprintf(dstr, "?? %s", pdata);
+													buf_print(b, c_err, dstr, true);
 												}
 											}
 											free(from);
@@ -830,7 +839,7 @@ int main(int argc, char *argv[])
 												bool match=false;
 												for(b2=0;b2<nbufs;b2++)
 												{
-													if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (strcmp(dest+1, bufs[b2].bname)==0))
+													if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (strcasecmp(dest+1, bufs[b2].bname)==0))
 													{
 														match=true;
 														char dstr[16+strlen(src)+strlen(dest+1)];
@@ -888,7 +897,7 @@ int main(int argc, char *argv[])
 												int b2;
 												for(b2=0;b2<nbufs;b2++)
 												{
-													if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (strcmp(dest, bufs[b2].bname)==0))
+													if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (strcasecmp(dest, bufs[b2].bname)==0))
 													{
 														if(b2==cbuf)
 														{
@@ -907,7 +916,7 @@ int main(int argc, char *argv[])
 												bool match=false;
 												for(b2=0;b2<nbufs;b2++)
 												{
-													if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (strcmp(dest, bufs[b2].bname)==0))
+													if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (strcasecmp(dest, bufs[b2].bname)==0))
 													{
 														match=true;
 														char dstr[16+strlen(src)+strlen(dest)];
