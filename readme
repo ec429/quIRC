@@ -2,6 +2,12 @@
 
 quIRC is a simple terminal-based IRC (Internet Relay Chat) client.  It is written in C.
 
+Getting Help:
+	If this file doesn't answer your question, you can find help from several other places.
+	First port of call is the website, http://dev-null.chu.cam.ac.uk (sometimes it's not there, in which case try http://alistairsserver.no-ip.org:50001).
+	Then there's the github page, http://github.com/ec429/quIRC (which should also have an up-to-date link to the abovementioned website).
+	Or try our IRC channel, #quirc on irc.newnet.net (if your problem doesn't prevent you from joining us there!)
+
 Commands: are prefixed with a '/'.  Anything else is a message to be sent to the channel.   (The < and > are just markup, don't type them!)
 	/server <url>
 		Connects to the given server (will open in a new tab).
