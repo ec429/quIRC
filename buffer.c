@@ -169,6 +169,7 @@ int buf_print(int buf, colour lc, char *lt, bool nl)
 
 void in_update(char *inp)
 {
+	resetcol();
 	printf(LOCATE, height-1, 1);
 	// tab strip
 	int mbw = (width-1)/nbufs;

@@ -535,7 +535,7 @@ int main(int argc, char *argv[])
 						{
 							if(fd==bufs[b].handle)
 							{
-								char *packet; // TODO detect appropriate destination buffer for packet
+								char *packet;
 								int e;
 								if((e=irc_rx(fd, &packet))!=0)
 								{
@@ -578,34 +578,7 @@ int main(int argc, char *argv[])
 															char *nn;
 															while((nn=strtok(NULL, ":@ ")))
 															{
-																name *curr=bufs[b2].nlist; // cull existing copies of this nick
-																while(curr)
-																{
-																	name *next=curr->next;
-																	if(strcmp(curr->data, nn)==0)
-																	{
-																		if(curr->prev)
-																		{
-																			curr->prev->next=curr->next;
-																		}
-																		else
-																		{
-																			bufs[b2].nlist=curr->next;
-																		}
-																		if(curr->next)
-																			curr->next->prev=curr->prev;
-																		free(curr->data);
-																		free(curr);
-																	}
-																	curr=next;
-																}
-																name *new=(name *)malloc(sizeof(name));
-																new->data=strdup(nn);
-																new->prev=NULL;
-																new->next=bufs[b2].nlist;
-																if(bufs[b2].nlist)
-																	bufs[b2].nlist->prev=new;
-																bufs[b2].nlist=new;
+																n_add(&bufs[b2].nlist, nn);
 															}
 														}
 													}
@@ -866,34 +839,7 @@ int main(int argc, char *argv[])
 														char dstr[16+strlen(src)+strlen(dest+1)];
 														sprintf(dstr, "=%s= has joined %s", src, dest+1);
 														buf_print(b2, c_join[1], dstr, true);
-														name *curr=bufs[b2].nlist; // cull existing copies of this nick
-														while(curr)
-														{
-															name *next=curr->next;
-															if(strcmp(curr->data, src)==0)
-															{
-																if(curr->prev)
-																{
-																	curr->prev->next=curr->next;
-																}
-																else
-																{
-																	bufs[b2].nlist=curr->next;
-																}
-																if(curr->next)
-																	curr->next->prev=curr->prev;
-																free(curr->data);
-																free(curr);
-															}
-															curr=next;
-														}
-														name *new=(name *)malloc(sizeof(name));
-														new->data=strdup(src);
-														new->prev=NULL;
-														new->next=bufs[b2].nlist;
-														if(bufs[b2].nlist)
-															bufs[b2].nlist->prev=new;
-														bufs[b2].nlist=new;
+														n_add(&bufs[b2].nlist, src);
 													}
 												}
 												if(!match)
@@ -903,7 +849,6 @@ int main(int argc, char *argv[])
 													buf_print(b, c_err, dstr, true);
 												}
 											}
-											resetcol();
 										}
 										else if(strcmp(cmd, "PART")==0)
 										{
@@ -943,27 +888,7 @@ int main(int argc, char *argv[])
 														char dstr[16+strlen(src)+strlen(dest)];
 														sprintf(dstr, "=%s= has left %s", src, dest);
 														buf_print(b2, c_part[1], dstr, true);
-														name *curr=bufs[b2].nlist;
-														while(curr)
-														{
-															name *next=curr->next;
-															if(strcmp(curr->data, src)==0)
-															{
-																if(curr->prev)
-																{
-																	curr->prev->next=curr->next;
-																}
-																else
-																{
-																	bufs[b2].nlist=curr->next;
-																}
-																if(curr->next)
-																	curr->next->prev=curr->prev;
-																free(curr->data);
-																free(curr);
-															}
-															curr=next;
-														}
+														n_cull(&bufs[b2].nlist, src);
 													}
 												}
 												if(!match)
@@ -973,7 +898,6 @@ int main(int argc, char *argv[])
 													buf_print(b, c_err, dstr, true);
 												}
 											}
-											resetcol();
 										}
 										else if(strcmp(cmd, "QUIT")==0)
 										{
@@ -1003,34 +927,15 @@ int main(int argc, char *argv[])
 												{
 													if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL))
 													{
-														name *curr=bufs[b2].nlist;
-														while(curr)
+														if(n_cull(&bufs[b2].nlist, src))
 														{
-															name *next=curr->next;
-															if(strcmp(curr->data, src)==0)
-															{
-																char dstr[24+strlen(src)+strlen(bufs[b].bname)+strlen(dest+1)];
-																sprintf(dstr, "=%s= has left %s (%s)", src, bufs[b].bname, dest+1);
-																buf_print(b2, c_quit[1], dstr, true);
-																if(curr->prev)
-																{
-																	curr->prev->next=curr->next;
-																}
-																else
-																{
-																	bufs[b2].nlist=curr->next;
-																}
-																if(curr->next)
-																	curr->next->prev=curr->prev;
-																free(curr->data);
-																free(curr);
-															}
-															curr=next;
+															char dstr[24+strlen(src)+strlen(bufs[b].bname)+strlen(dest+1)];
+															sprintf(dstr, "=%s= has left %s (%s)", src, bufs[b].bname, dest+1);
+															buf_print(b2, c_quit[1], dstr, true);
 														}
 													}
 												}
 											}
-											resetcol();
 										}
 										else if(strcmp(cmd, "NICK")==0)
 										{
@@ -1050,16 +955,8 @@ int main(int argc, char *argv[])
 													if(bufs[b2].server==b)
 													{
 														buf_print(b2, c_nick[1], dstr, true);
-														name *curr=bufs[b2].nlist;
-														while(curr)
-														{
-															if(strcmp(curr->data, src)==0)
-															{
-																free(curr->data);
-																curr->data=strdup(dest+1);
-															}
-															curr=curr->next;
-														}
+														n_cull(&bufs[b2].nlist, src);
+														n_add(&bufs[b2].nlist, dest+1);
 													}
 												}
 											}
@@ -1072,18 +969,12 @@ int main(int argc, char *argv[])
 													if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL))
 													{
 														match=true;
-														name *curr=bufs[b2].nlist;
-														while(curr)
+														if(n_cull(&bufs[b2].nlist, src))
 														{
-															if(strcmp(curr->data, src)==0)
-															{
-																free(curr->data);
-																curr->data=strdup(dest+1);
-																char dstr[30+strlen(src)+strlen(dest+1)];
-																sprintf(dstr, "=%s= is now known as %s", src, dest+1);
-																buf_print(b2, c_nick[1], dstr, true);
-															}
-															curr=curr->next;
+															n_add(&bufs[b2].nlist, dest+1);
+															char dstr[30+strlen(src)+strlen(dest+1)];
+															sprintf(dstr, "=%s= is now known as %s", src, dest+1);
+															buf_print(b2, c_nick[1], dstr, true);
 														}
 													}
 												}
@@ -1094,7 +985,6 @@ int main(int argc, char *argv[])
 													buf_print(b, c_err, dstr, true);
 												}
 											}
-											resetcol();
 										}
 										else
 										{

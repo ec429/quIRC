@@ -16,13 +16,7 @@
 #include "ttyesc.h"
 #include "colour.h"
 #include "bits.h"
-
-typedef struct _name
-{
-	char *data;
-	struct _name *next, *prev;
-}
-name;
+#include "names.h"
 
 typedef enum
 {
