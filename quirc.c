@@ -312,7 +312,7 @@ int main(int argc, char *argv[])
 	while(!(state%2))
 	{
 		timeout.tv_sec=0;
-		timeout.tv_usec=25000;
+		timeout.tv_usec=250000;
 		if(shli && !shsrc) // TODO: proper scripting capability with regex-match on the << (expectation) lines and attachment to a buffer
 		{
 			shread:
@@ -1049,7 +1049,10 @@ int main(int argc, char *argv[])
 										width=80;
 									}
 									buf_print(cbuf, c_status, "width set", false);
-									redraw_buffer();
+									if(force_redraw<3)
+									{
+										redraw_buffer();
+									}
 								}
 								else if(strcmp(opt, "height")==0)
 								{
@@ -1062,7 +1065,10 @@ int main(int argc, char *argv[])
 										height=24;
 									}
 									buf_print(cbuf, c_status, "height set", false);
-									redraw_buffer();
+									if(force_redraw<3)
+									{
+										redraw_buffer();
+									}
 								}
 								else if(strcmp(opt, "fred")==0)
 								{
@@ -1076,7 +1082,9 @@ int main(int argc, char *argv[])
 									}
 									if(force_redraw)
 									{
-										buf_print(cbuf, c_status, "force-redraw enabled", false);
+										char fmsg[36];
+										sprintf(fmsg, "force-redraw level %u enabled", force_redraw);
+										buf_print(cbuf, c_status, fmsg, false);
 										redraw_buffer();
 									}
 									else
@@ -1095,7 +1103,10 @@ int main(int argc, char *argv[])
 										maxnlen=16;
 									}
 									buf_print(cbuf, c_status, "maxnicklen set", false);
-									redraw_buffer();
+									if(force_redraw<3)
+									{
+										redraw_buffer();
+									}
 								}
 								else if(strcmp(opt, "mcc")==0)
 								{
@@ -1108,7 +1119,10 @@ int main(int argc, char *argv[])
 										mirc_colour_compat=1;
 									}
 									buf_print(cbuf, c_status, "mcc set", false);
-									redraw_buffer();
+									if(force_redraw<3)
+									{
+										redraw_buffer();
+									}
 								}
 								else if(strcmp(opt, "buf")==0)
 								{
@@ -1121,7 +1135,10 @@ int main(int argc, char *argv[])
 										buflines=256;
 									}
 									buf_print(cbuf, c_status, "buf set", false);
-									redraw_buffer();
+									if(force_redraw<3)
+									{
+										redraw_buffer();
+									}
 								}
 								else
 								{
@@ -1199,7 +1216,10 @@ int main(int argc, char *argv[])
 								}
 							}
 							cbuf=0;
-							redraw_buffer();
+							if(force_redraw<3)
+							{
+								redraw_buffer();
+							}
 						}
 						else
 						{
@@ -1393,12 +1413,16 @@ int main(int argc, char *argv[])
 				{
 					redraw_buffer();
 				}
-				in_update(inp);
+				if(force_redraw<3)
+				{
+					in_update(inp);
+				}
 			break;
 		}
 		if(force_redraw>=3) // 'extremely paranoid' mode
 		{
 			redraw_buffer();
+			in_update(inp);
 		}
 	}
 	if(state>0)
