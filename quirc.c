@@ -578,6 +578,27 @@ int main(int argc, char *argv[])
 															char *nn;
 															while((nn=strtok(NULL, ":@ ")))
 															{
+																name *curr=bufs[b2].nlist; // cull existing copies of this nick
+																while(curr)
+																{
+																	name *next=curr->next;
+																	if(strcmp(curr->data, nn)==0)
+																	{
+																		if(curr->prev)
+																		{
+																			curr->prev->next=curr->next;
+																		}
+																		else
+																		{
+																			bufs[b2].nlist=curr->next;
+																		}
+																		if(curr->next)
+																			curr->next->prev=curr->prev;
+																		free(curr->data);
+																		free(curr);
+																	}
+																	curr=next;
+																}
 																name *new=(name *)malloc(sizeof(name));
 																new->data=strdup(nn);
 																new->prev=NULL;
