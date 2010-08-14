@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
 {
 	int buflines=256;
 	mirc_colour_compat=1; // silently strip
-	force_redraw=0; // don't
+	force_redraw=1; // redraw the whole screen whenever anything happens
 	char *cols=getenv("COLUMNS"), *rows=getenv("LINES");
 	if(cols) sscanf(cols, "%u", &width);
 	if(rows) sscanf(rows, "%u", &height);
@@ -1389,8 +1389,16 @@ int main(int argc, char *argv[])
 					free(inp);inp=NULL;
 					state=0;
 				}
+				if(force_redraw==2) // 'slight paranoia' mode
+				{
+					redraw_buffer();
+				}
 				in_update(inp);
 			break;
+		}
+		if(force_redraw>=3) // 'extremely paranoid' mode
+		{
+			redraw_buffer();
 		}
 	}
 	if(state>0)
