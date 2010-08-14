@@ -16,7 +16,7 @@ name * n_add(name ** list, char *data)
 	new->prev=NULL;
 	new->next=*list;
 	if(*list)
-		*list->prev=new;
+		(*list)->prev=new;
 	*list=new;
 	return(new);
 }
