@@ -18,6 +18,11 @@ Commands: are prefixed with a '/'.  Anything else is a message to be sent to the
 	/msg <recipient> <message>
 		Private message; sends the message to the given recipient.
 
+	/set <option> [<value>]
+		Sets configuration options; the options are analogous to those in .quirc, with one or two extras.
+			The options 'height' and 'width' are used to tell quIRC how many rows and columns your terminal has (for cursor-positioning).  quIRC will try to deduce these values (from environment variables $LINES and $COLUMNS, using defaults of 80x24 if these env vars are not found), but you can override those guesses here or on the command line.
+			The option 'buf' sets the length (in lines) to be used for the scrollback of any new buffers that are opened.  You cannot (yet) resize the scrollback of existing buffers.
+
 	/cmd <command>
 		Allows you to send a raw command to the server; not recommended.
 
@@ -76,6 +81,10 @@ Input controls: At present you cannot edit input with the cursors; you have to b
 	Ctrl-A clears the current input.
 	Ctrl-left and Ctrl-right change tab.
 	Alt-[#], where [#] is a number key, changes to tab [#], where (status) is tab 0.
+
+Scrollback controls:
+	You can scroll the current buffer with Ctrl-Up/Dn (and Ctrl-PgUp/Dn) to scroll a line (resp. a page) at a time.
+	You can also use Ctrl-Home/End to jump to the top/bottom of the buffer.
 
 Tabs: these have various indicators.
 	The parens bracketing the name tell you what kind of tab it is:
