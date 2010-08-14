@@ -1,0 +1,6 @@
+==quIRC:future plans==
+
+Scripting language.  Under development in branch 'script'.
+Debug mode.  /Every/ message send to or from a server to be displayed in that server's buffer; socket operations would be tracked in (status).
+curses.  The current hardwired ANSI-escapes code for painting the screen is clumsy.
+Interface separation.  The main event loop is currently chock-full of implementation details; it should just be a command parser and marshal.
