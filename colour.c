@@ -28,3 +28,14 @@ converted:
 	}
 	return(rv);
 }
+
+int c_init(void)
+{
+	c_list = (colour *)malloc(19*sizeof(colour));
+	if(!c_list)
+	{
+		return(1);
+	}
+	#include "c_init.c"
+	return(0);
+}

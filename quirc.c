@@ -27,7 +27,6 @@
 
 #include "ttyraw.h"
 #include "ttyesc.h"
-#define COLOURS	0 // activate default colours in colour.h
 #include "colour.h"
 #include "irc.h"
 #include "bits.h"
@@ -52,6 +51,11 @@
 
 int main(int argc, char *argv[])
 {
+	if(c_init())
+	{
+		fprintf(stderr, "Failed to initialise colours (malloc failure)\n");
+		return(1);
+	}
 	int buflines=256;
 	mirc_colour_compat=1; // silently strip
 	force_redraw=1; // redraw the whole screen whenever anything happens

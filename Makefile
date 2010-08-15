@@ -2,6 +2,7 @@
 
 CC ?= gcc
 CFLAGS ?= -Wall
+AWK ?= gawk
 VERSION := `git describe --tags`
 PREFIX ?= /usr/local
 
@@ -28,7 +29,7 @@ irc.o: irc.c irc.h
 bits.o: bits.c bits.h
 	$(CC) $(CFLAGS) -o bits.o -c bits.c
 
-colour.o: colour.c colour.h
+colour.o: colour.c colour.h c_init.c
 	$(CC) $(CFLAGS) -o colour.o -c colour.c
 
 buffer.o: buffer.c buffer.h
@@ -36,6 +37,9 @@ buffer.o: buffer.c buffer.h
 
 names.o: names.c names.h
 	$(CC) $(CFLAGS) -o names.o -c names.c
+
+c_init.c: colour.d c_init.awk
+	$(AWK) -f c_init.awk colour.d > c_init.c
 
 dist: all
 	-mkdir quirc_$(VERSION)

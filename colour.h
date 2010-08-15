@@ -1,4 +1,5 @@
-#include "stdbool.h"
+#include <stdlib.h>
+#include <stdbool.h>
 #include "ttyesc.h"
 #pragma once
 
@@ -13,17 +14,19 @@ colour;
 
 int setcolour(colour);
 colour c_mirc(int, int);
+int c_init(void);
 
-#ifdef COLOURS
-colour c_msg[2]={{7, 0, false, true}, {7, 0, false, false}};
-colour c_notice[2]={{7, 0, true, false}, {7, 0, true, false}};
-colour c_join[2]={{2, 0, true, false}, {2, 0, true, false}};
-colour c_part[2]={{6, 0, true, false}, {6, 0, true, false}};
-colour c_quit[2]={{3, 0, true, false}, {3, 0, true, false}};
-colour c_nick[2]={{4, 0, true, false}, {4, 0, true, false}};
-colour c_actn[2]={{0, 3, false, true}, {0, 3, false, false}};
-colour c_status={5, 0, false, false};
-colour c_err={1, 0, true, false};
-colour c_unk={3, 4, false, false};
-colour c_unn={1, 6, false, true};
-#endif // COLOURS
+colour * c_list;
+
+// These should really be generated procedurally
+#define c_msg		c_list
+#define c_notice	(c_list+2)
+#define c_join		(c_list+4)
+#define c_part		(c_list+6)
+#define c_quit		(c_list+8)
+#define c_nick		(c_list+10)
+#define c_actn		(c_list+12)
+#define c_status	c_list[14]
+#define c_err		c_list[15]
+#define c_unk		c_list[16]
+#define c_unn		c_list[17]
