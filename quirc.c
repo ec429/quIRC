@@ -32,22 +32,12 @@
 #include "bits.h"
 #include "buffer.h"
 #include "numeric.h"
+#include "config.h"
 #include "version.h"
 
 // helper fn macros
 #define max(a,b)	((a)>(b)?(a):(b))
 #define min(a,b)	((a)<(b)?(a):(b))
-
-// interface text
-#define GPL_MSG "quirc -- Copyright (C) 2010 Edward Cree\n\tThis program comes with ABSOLUTELY NO WARRANTY.\n\tThis is free software, and you are welcome to redistribute it\n\tunder certain conditions.  (GNU GPL v3+)\n\tFor further details, see the file 'COPYING' in the quirc directory."
-
-#define VERSION_MSG " %s %hhu.%hhu.%hhu%s%s\n\
- Copyright (C) 2010 Edward Cree.\n\
- License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n\
- This is free software: you are free to change and redistribute it.\n\
- There is NO WARRANTY, to the extent permitted by law.\n", "quirc", VERSION_MAJ, VERSION_MIN, VERSION_REV, VERSION_TXT[0]?"-":"", VERSION_TXT
-
-#define USAGE_MSG "quirc [--width=<cols>] [--height=<rows>] [--maxnicklen=<mnln>] [--mcc=<mcc>]\n\t[--force-redraw=<fred>] [--no-auto-connect] [--no-auto-join]\n\t[--server=<server>] [--uname=<uname>] [--fname=<fname>] [--nick=<nick>]\n\t[--chan=<chan>] [--port=<port>]\nquirc {-h|--help|-v|--version}\n"
 
 int main(int argc, char *argv[])
 {
@@ -80,117 +70,10 @@ int main(int argc, char *argv[])
 	FILE *rcfp=fopen(rcfile, "r");
 	if(rcfp)
 	{
-		while(!feof(rcfp))
-		{
-			char *line=fgetl(rcfp);
-			if(!strchr("#\n", *line)) // #lines are comments
-			{
-				char *cmd=strtok(line, " \t");
-				if(*cmd=='%')
-				{
-					int which=0;
-					// custom colours
-					if(*++cmd=='S')
-					{
-						which=1;
-						cmd++;
-					}
-					else if(*cmd=='R')
-					{
-						which=2;
-						cmd++;
-					}
-					colour *what=NULL;
-					if(strcmp(cmd, "msg")==0)
-					{
-						what=c_msg;
-					}
-					else if(strcmp(cmd, "notice")==0)
-					{
-						what=c_notice;
-					}
-					else if(strcmp(cmd, "join")==0)
-					{
-						what=c_join;
-					}
-					else if(strcmp(cmd, "part")==0)
-					{
-						what=c_part;
-					}
-					else if(strcmp(cmd, "quit")==0)
-					{
-						what=c_quit;
-					}
-					else if(strcmp(cmd, "nick")==0)
-					{
-						what=c_nick;
-					}
-					else if(strcmp(cmd, "act")==0)
-					{
-						what=c_actn;
-					}
-					else if(strcmp(cmd, "status")==0)
-					{
-						what=&c_status;which=-1;
-					}
-					else if(strcmp(cmd, "err")==0)
-					{
-						what=&c_err;which=-1;
-					}
-					else if(strcmp(cmd, "unk")==0)
-					{
-						what=&c_unk;which=-1;
-					}
-					else if(strcmp(cmd, "unn")==0)
-					{
-						what=&c_unn;which=-1;
-					}
-					if(what)
-					{
-						char *spec=strtok(NULL, "\n");
-						colour new;int hi, ul;
-						sscanf(spec, "%d %d %d %d", &new.fore, &new.back, &hi, &ul);
-						new.hi=hi;new.ul=ul;
-						if(which!=2)
-							what[0]=new;
-						if((which%2)==0)
-							what[1]=new;
-					}
-				}
-				else
-				{
-					char *rest=strtok(NULL, "\n");
-					if(strcmp(cmd, "server")==0)
-						server=strdup(rest);
-					else if(strcmp(cmd, "port")==0)
-						portno=strdup(rest);
-					else if(strcmp(cmd, "uname")==0)
-						uname=strdup(rest);
-					else if(strcmp(cmd, "fname")==0)
-						fname=strdup(rest);
-					else if(strcmp(cmd, "nick")==0)
-						nick=strdup(rest);
-					else if(strcmp(cmd, "chan")==0)
-						chan=strdup(rest);
-					else if(strcmp(cmd, "mnln")==0)
-						sscanf(rest, "%u", &maxnlen);
-					else if(strcmp(cmd, "mcc")==0)
-						sscanf(rest, "%u", &mirc_colour_compat);
-					else if(strcmp(cmd, "fred")==0)
-						sscanf(rest, "%u", &force_redraw);
-					else if(strcmp(cmd, "buf")==0)
-						sscanf(rest, "%u", &buflines);
-					else
-					{
-						fprintf(stderr, "Unrecognised cmd %s in .quirc (ignoring)\n", cmd);
-					}
-				}
-			}
-			free(line);
-		}
+		rcread(rcfp, &server, &portno, &uname, &fname, &nick, &chan, &maxnlen, &buflines);
 		fclose(rcfp);
 	}
-	FILE *rcsfp=fopen(rcshad, "r");
+	FILE *rcsfp=fopen(rcshad, "r"); // this is the shadow file, which will be replaced by proper qu-script later
 	int shli=0;
 	char **shad=NULL;
 	if(rcsfp)
@@ -203,71 +86,25 @@ int main(int argc, char *argv[])
 		fclose(rcsfp);
 	}
 	int shlp=0;
-	int arg;
-	for(arg=1;arg<argc;arg++)
+	
+	signed int e=pargs(argc, argv, &server, &portno, &uname, &fname, &nick, &chan, &maxnlen, &buflines);
+	if(e>=0)
 	{
-		if((strcmp(argv[arg], "--help")==0)||(strcmp(argv[arg], "-h")==0))
-		{
-			fprintf(stderr, USAGE_MSG);
-			return(0);
-		}
-		else if((strcmp(argv[arg], "--version")==0)||(strcmp(argv[arg], "-v")==0))
-		{
-			fprintf(stderr, VERSION_MSG);
-			return(0);
-		}
-		else if(strncmp(argv[arg], "--width=", 8)==0) // just in case you need to force them
-		{
-			sscanf(argv[arg]+8, "%u", &width);
-		}
-		else if(strncmp(argv[arg], "--height=", 9)==0)
-		{
-			sscanf(argv[arg]+9, "%u", &height);
-		}
-		else if(strncmp(argv[arg], "--maxnicklen=", 13)==0)
-		{
-			sscanf(argv[arg]+13, "%u", &maxnlen);
-		}
-		else if(strncmp(argv[arg], "--mcc=", 6)==0)
-		{
-			sscanf(argv[arg]+6, "%u", &mirc_colour_compat);
-		}
-		else if(strncmp(argv[arg], "--force-redraw=", 15)==0)
-		{
-			sscanf(argv[arg]+15, "%u", &force_redraw);
-		}
-		else if(strncmp(argv[arg], "--buf-lines=", 12)==0)
-		{
-			sscanf(argv[arg]+12, "%u", &buflines);
-		}
-		else if(strcmp(argv[arg], "--no-auto-connect")==0)
-		{
-			server=NULL;
-		}
-		else if(strcmp(argv[arg], "--no-auto-join")==0)
-		{
-			chan=NULL;
-		}
-		else if(strncmp(argv[arg], "--server=", 9)==0)
-			server=argv[arg]+9;
-		else if(strncmp(argv[arg], "--port=", 7)==0)
-			portno=argv[arg]+7;
-		else if(strncmp(argv[arg], "--uname=", 8)==0)
-			uname=argv[arg]+8;
-		else if(strncmp(argv[arg], "--fname=", 8)==0)
-			fname=argv[arg]+8;
-		else if(strncmp(argv[arg], "--nick=", 7)==0)
-			nick=strdup(argv[arg]+7);
-		else if(strncmp(argv[arg], "--chan=", 7)==0)
-			chan=argv[arg]+7;
+		return(e);
 	}
-	int e=ttyraw(STDOUT_FILENO);
+	
+	e=ttyraw(STDOUT_FILENO);
 	if(e)
 	{
 		fprintf(stderr, "Failed to set raw mode on tty.\n");
 		perror("ttyraw");
 		return(1);
 	}
+	
+	int i;
+	for(i=0;i<height;i++) // push old stuff off the top of the screen, so it's preserved
+		printf("\n");
+	
 	bufs=(buffer *)malloc(sizeof(buffer));
 	init_buffer(0, STATUS, "status", buflines); // buf 0 is always STATUS
 	nbufs=1;

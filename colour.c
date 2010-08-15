@@ -1,3 +1,11 @@
+/*
+	quIRC - simple terminal-based IRC client
+	Copyright (C) 2010 Edward Cree
+
+	See quirc.c for license information
+	colour: defined colours & mirc-colour-compat
+*/
+
 #include "colour.h"
 
 int setcolour(colour c)
