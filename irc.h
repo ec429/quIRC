@@ -23,9 +23,10 @@
 #include "buffer.h"
 #include "colour.h"
 #include "config.h"
+#include "numeric.h"
 
 int irc_connect(char *server, char *portno, char *nick, char *username, char *fullname, fd_set *master, int *fdmax);
 int autoconnect(fd_set *master, int *fdmax);
 int irc_tx(int fd, char * packet);
 int irc_rx(int fd, char ** data);
-
+int irc_numeric(char *cmd, int b); // strtok() state leaks across the boundaries of this function, beware!

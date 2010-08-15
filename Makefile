@@ -6,7 +6,7 @@ AWK ?= gawk
 VERSION := `git describe --tags`
 PREFIX ?= /usr/local
 LIBS := ttyraw.o ttyesc.o irc.o bits.o colour.o buffer.o names.o config.o input.o
-INCLUDE := ttyraw.h ttyesc.h irc.h bits.h colour.h buffer.h names.h config.h input.h numeric.h version.h
+INCLUDE := ttyraw.h ttyesc.h irc.h bits.h colour.h buffer.h names.h config.h input.h version.h
 
 all: quirc
 
@@ -21,7 +21,7 @@ quirc: quirc.c $(LIBS) $(INCLUDE)
 %.o: %.c %.h
 	$(CC) -c $(CFLAGS) $(CPPFLAGS) $< -o $@
 
-irc.o: irc.c irc.h bits.h buffer.h colour.h config.h
+irc.o: irc.c irc.h bits.h buffer.h colour.h config.h numeric.h
 
 bits.o: bits.c bits.h ttyesc.h colour.h config.h
 

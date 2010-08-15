@@ -131,3 +131,43 @@ int irc_rx(int fd, char ** data)
 	}
 	return(0);
 }
+
+int irc_numeric(char *cmd, int b)
+{
+	int num=0;
+	sscanf(cmd, "%d", &num);
+	switch(num)
+	{
+		case RPL_NAMREPLY:
+			// 353 dest {@|+} #chan :name [name [...]]
+			strtok(NULL, " "); // dest
+			strtok(NULL, " "); // @ or +, dunno what for
+			char *ch=strtok(NULL, " "); // channel
+			int b2;
+			for(b2=0;b2<nbufs;b2++)
+			{
+				if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (strcasecmp(ch, bufs[b2].bname)==0))
+				{
+					char *nn;
+					while((nn=strtok(NULL, ":@ ")))
+					{
+						n_add(&bufs[b2].nlist, nn);
+					}
+				}
+			}
+		break;
+		case RPL_MOTDSTART:
+		case RPL_MOTD:
+		case RPL_ENDOFMOTD:
+			// silently ignore the motd, because they're always far too long and annoying
+		break;
+		default:
+			;
+			char *rest=strtok(NULL, "");
+			char umsg[16+strlen(rest)];
+			sprintf(umsg, "<<%d? %s", num, rest);
+			buf_print(b, c_unn, umsg, true);
+		break;
+	}
+	return(num);
+}

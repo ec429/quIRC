@@ -184,40 +184,7 @@ int main(int argc, char *argv[])
 										if(*packet==':') *p=0;
 										if(isdigit(*cmd))
 										{
-											int num=0;
-											sscanf(cmd, "%d", &num);
-											switch(num)
-											{
-												case RPL_NAMREPLY:
-													// 353 dest {@|+} #chan :name [name [...]]
-													strtok(NULL, " "); // dest
-													strtok(NULL, " "); // @ or +, dunno what for
-													char *ch=strtok(NULL, " "); // channel
-													int b2;
-													for(b2=0;b2<nbufs;b2++)
-													{
-														if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (strcasecmp(ch, bufs[b2].bname)==0))
-														{
-															char *nn;
-															while((nn=strtok(NULL, ":@ ")))
-															{
-																n_add(&bufs[b2].nlist, nn);
-															}
-														}
-													}
-												break;
-												case RPL_MOTDSTART:
-												case RPL_MOTD:
-												case RPL_ENDOFMOTD:
-													// silently ignore the motd, because they're always far too long and annoying
-												break;
-												default:
-													;
-													char umsg[16+strlen(cmd+4)];
-													sprintf(umsg, "<<%d? %s", num, cmd+4);
-													buf_print(b, c_unn, umsg, true);
-												break;
-											}
+											irc_numeric(cmd, b);
 										}
 										else if(strcmp(cmd, "PING")==0)
 										{
