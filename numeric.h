@@ -6,6 +6,11 @@
 	numeric: IRC numeric replies
 */
 
+/*
+	A symbolic name defined here does not necessarily imply recognition or decoding of that numeric reply.
+	Some numeric replies are non-normative; that is, they are not defined in the original RFC1459, but instead are either defined in later RFCs (1459 is still the standard at time of writing) or are entirely experimental.  These are denoted with an X before the name (of the form RPL_X_BOGOSITY); where a numeric is being identified purely on the basis of usage "in the wild", the symbolic name will be completely arbitrary and may not align with usage elsewhere.
+*/
+
 /* Error replies */
 #define	ERR_NOSUCHNICK			401	// "<nickname> :No such nick/channel"	Used to indicate the nickname parameter supplied to a command is currently unused.
 #define	ERR_NOSUCHSERVER		402 // "<server name> :No such server"	Used to indicate the server name given currently doesn't exist.
@@ -73,7 +78,8 @@
 #define	RPL_LISTEND				323	// ":End of /LIST"	Replies RPL_LISTSTART, RPL_LIST, RPL_LISTEND mark the start, actual replies with data and end of the server's response to a LIST command. If there are no channels available to return, only the start and end reply must be sent.
 #define	RPL_CHANNELMODEIS		324	// "<channel> <mode> <mode params>"
 #define	RPL_NOTOPIC				331	// "<channel> :No topic is set"
-#define	RPL_TOPIC				332	// "<channel> :<topic>"	When sending a TOPIC message to determine the channel topic, one of two replies is sent. If the topic is set, RPL_TOPIC is sent back else RPL_NOTOPIC. 
+#define	RPL_TOPIC				332	// "<channel> :<topic>"	When sending a TOPIC message to determine the channel topic, one of two replies is sent. If the topic is set, RPL_TOPIC is sent back else RPL_NOTOPIC.
+#define RPL_X_TOPICWASSET		333	// "<channel> <nick> <time>" Indicates who set the TOPIC, and when.  Not normative.
 #define	RPL_INVITING			341	// "<channel> <nick>"	Returned by the server to indicate that the attempted INVITE message was successful and is being passed onto the end client.
 #define	RPL_SUMMONING			342	// "<user> :Summoning user to IRC"	Returned by a server answering a SUMMON message to indicate that it is summoning that user.
 #define	RPL_VERSION				351	// "<version>.<debuglevel> <server> :<comments>"	Reply by the server showing its version details. The <version> is the version of the software being used (including any patchlevel revisions) and the <debuglevel> is used to indicate if the server is running in "debug mode".  The "comments" field may contain any comments about the version or further version details.

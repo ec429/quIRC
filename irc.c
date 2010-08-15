@@ -132,7 +132,7 @@ int irc_rx(int fd, char ** data)
 	return(0);
 }
 
-int irc_numeric(char *cmd, int b)
+int irc_numeric(char *cmd, int b) // TODO check the strtok()s for NULLs
 {
 	int num=0;
 	char *ch;
@@ -173,7 +173,7 @@ int irc_numeric(char *cmd, int b)
 				{
 					bufs[b2].namreply=false;
 					char lmsg[32+strlen(ch)];
-					sprintf(lmsg, "NAMES list received for %s\n", ch);
+					sprintf(lmsg, "NAMES list received for %s", ch);
 					buf_print(b2, c_status, lmsg, true);
 				}
 			}
@@ -188,6 +188,50 @@ int irc_numeric(char *cmd, int b)
 			char *motdline=strtok(NULL, "");
 			if(strlen(motdline)>=skip) motdline+=skip;
 			buf_print(b, c_notice[1], motdline, true);
+		break;
+		case RPL_TOPIC: // 332 dest <channel> :<topic>
+			ch=strtok(NULL, " "); // channel
+			char *topic=strtok(NULL, "")+1;
+			for(b2=0;b2<nbufs;b2++)
+			{
+				if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (strcasecmp(ch, bufs[b2].bname)==0))
+				{
+					char tmsg[32+strlen(ch)+strlen(topic)];
+					sprintf(tmsg, "Topic for %s is %s", ch, topic);
+					buf_print(b2, c_notice[1], tmsg, true);
+				}
+			}
+		break;
+		case RPL_NOTOPIC: // 331 dest <channel> :No topic is set
+			ch=strtok(NULL, " "); // channel
+			for(b2=0;b2<nbufs;b2++)
+			{
+				if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (strcasecmp(ch, bufs[b2].bname)==0))
+				{
+					char tmsg[32+strlen(ch)];
+					sprintf(tmsg, "No topic is set for %s", ch);
+					buf_print(b2, c_notice[1], tmsg, true);
+				}
+			}
+		break;
+		case RPL_X_TOPICWASSET: // 331 dest <channel> <nick> <time>
+			ch=strtok(NULL, " "); // channel
+			char *nick=strtok(NULL, " "); // by whom?
+			char *time=strtok(NULL, ""); // when?
+			for(b2=0;b2<nbufs;b2++)
+			{
+				if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (strcasecmp(ch, bufs[b2].bname)==0))
+				{
+					time_t when;
+					sscanf(time, "%u", (unsigned int *)&when);
+					char ts[256];
+					struct tm *tm = gmtime(&when);
+					size_t tslen = strftime(ts, sizeof(ts), "%H:%M:%S GMT on %a, %d %b %Y", tm); // TODO options controlling date format (eg. ISO 8601)
+					char tmsg[32+strlen(nick)+tslen];
+					sprintf(tmsg, "Topic was set by %s at %s", nick, ts);
+					buf_print(b2, c_status, tmsg, true);
+				}
+			}
 		break;
 		default:
 			;
