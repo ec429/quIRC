@@ -21,13 +21,13 @@ quirc: quirc.c $(LIBS) $(INCLUDE)
 %.o: %.c %.h
 	$(CC) -c $(CFLAGS) $(CPPFLAGS) $< -o $@
 
-irc.o: irc.c irc.h bits.h
+irc.o: irc.c irc.h bits.h buffer.h colour.h config.h
 
-bits.o: bits.c bits.h ttyesc.h colour.h
+bits.o: bits.c bits.h ttyesc.h colour.h config.h
 
 colour.o: colour.c colour.h c_init.c ttyesc.h
 
-buffer.o: buffer.c buffer.h ttyesc.h colour.h bits.h names.h
+buffer.o: buffer.c buffer.h ttyesc.h colour.h bits.h names.h text.h
 
 config.o: config.c config.h bits.h colour.h text.h version.h
 

@@ -12,7 +12,7 @@ int irc_connect(char *server, char *portno, char *nick, char *username, char *fu
 {
 	int serverhandle;
 	struct addrinfo hints, *servinfo;
-	//printf("Looking up server: %s:%s\n", server, portno);
+	// Look up server
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family=AF_INET;
 	hints.ai_socktype = SOCK_STREAM; // TCP stream sockets
@@ -23,13 +23,11 @@ int irc_connect(char *server, char *portno, char *nick, char *username, char *fu
 		return(0); // 0 indicates failure as rv is new serverhandle value
 	}
 	char sip[INET_ADDRSTRLEN];
-	//printf("running, connecting to server...\n");
 	struct addrinfo *p;
 	// loop through all the results and connect to the first we can
 	for(p = servinfo; p != NULL; p = p->ai_next)
 	{
 		inet_ntop(p->ai_family, &(((struct sockaddr_in*)p->ai_addr)->sin_addr), sip, sizeof(sip));
-		//printf("connecting to %s\n", sip);
 		if((serverhandle = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1)
 		{
 			perror("socket");
@@ -50,7 +48,7 @@ int irc_connect(char *server, char *portno, char *nick, char *username, char *fu
 		fprintf(stderr, "failed to connect\n\n");
 		return(0); // 0 indicates failure as rv is new serverhandle value
 	}
-	freeaddrinfo(servinfo); // all done with this structure
+	freeaddrinfo(servinfo); // don't need this any more
 	
 	FD_SET(serverhandle, master);
 	*fdmax=max(*fdmax, serverhandle);
@@ -66,6 +64,33 @@ int irc_connect(char *server, char *portno, char *nick, char *username, char *fu
 	return(serverhandle);
 }
 
+int autoconnect(fd_set *master, int *fdmax)
+{
+	char cstr[36+strlen(server)+strlen(portno)];
+	sprintf(cstr, "quIRC - connecting to %s", server);
+	settitle(cstr);
+	sprintf(cstr, "Connecting to %s on port %s...", server, portno);
+	setcolour(c_status);
+	printf(CLA "\n");
+	printf(LOCATE, height-2, 1);
+	printf("%s" CLR "\n", cstr);
+	resetcol();
+	printf(CLA "\n");
+	int serverhandle=irc_connect(server, portno, nick, username, fname, master, fdmax);
+	if(serverhandle)
+	{
+		bufs=(buffer *)realloc(bufs, ++nbufs*sizeof(buffer));
+		init_buffer(1, SERVER, server, buflines);
+		cbuf=1;
+		bufs[cbuf].handle=serverhandle;
+		bufs[cbuf].nick=strdup(nick);
+		bufs[cbuf].server=1;
+		add_to_buffer(1, c_status, cstr);
+		sprintf(cstr, "quIRC - connected to %s", server);
+		settitle(cstr);
+	}
+	return(serverhandle);
+}
 
 int irc_tx(int fd, char * packet)
 {

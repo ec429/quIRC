@@ -16,28 +16,7 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#define _GNU_SOURCE // feature test macro
-
-#include <stdio.h>
-#include <string.h>
-#include <unistd.h>
-#include <sys/time.h>
-#include <ctype.h>
-#include <errno.h>
-
-#include "ttyraw.h"
-#include "ttyesc.h"
-#include "colour.h"
-#include "irc.h"
-#include "bits.h"
-#include "buffer.h"
-#include "numeric.h"
-#include "config.h"
-#include "version.h"
-
-// helper fn macros
-#define max(a,b)	((a)>(b)?(a):(b))
-#define min(a,b)	((a)<(b)?(a):(b))
+#include "quirc.h"
 
 int main(int argc, char *argv[])
 {
@@ -46,21 +25,13 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "Failed to initialise colours (malloc failure)\n");
 		return(1);
 	}
-	int buflines=256;
-	mirc_colour_compat=1; // silently strip
-	force_redraw=1; // redraw the whole screen whenever anything happens
-	char *cols=getenv("COLUMNS"), *rows=getenv("LINES");
-	if(cols) sscanf(cols, "%u", &width);
-	if(rows) sscanf(rows, "%u", &height);
-	if(!width) width=80;
-	if(!height) height=24;
+	if(def_config())
+	{
+		fprintf(stderr, "Failed to apply default configuration\n");
+		return(1);
+	}
 	settitle("quIRC - not connected");
 	resetcol();
-	int maxnlen=16;
-	char *server=NULL, *portno="6667", *uname="quirc", *fname=(char *)malloc(20+strlen(VERSION_TXT)), *nick=strdup("ac"), *chan=NULL;
-	sprintf(fname, "quIRC %hhu.%hhu.%hhu%s%s", VERSION_MAJ, VERSION_MIN, VERSION_REV, VERSION_TXT[0]?"-":"", VERSION_TXT);
-	char version[16+strlen(VERSION_TXT)];
-	sprintf(version, "%hhu.%hhu.%hhu%s%s", VERSION_MAJ, VERSION_MIN, VERSION_REV, VERSION_TXT[0]?"-":"", VERSION_TXT);
 	char *qmsg=fname;
 	char *rcfile=".quirc";
 	char *rcshad=".quirc-shadow";
@@ -70,7 +41,7 @@ int main(int argc, char *argv[])
 	FILE *rcfp=fopen(rcfile, "r");
 	if(rcfp)
 	{
-		rcread(rcfp, &server, &portno, &uname, &fname, &nick, &chan, &maxnlen, &buflines);
+		rcread(rcfp);
 		fclose(rcfp);
 	}
 	FILE *rcsfp=fopen(rcshad, "r"); // this is the shadow file, which will be replaced by proper qu-script later
@@ -87,7 +58,7 @@ int main(int argc, char *argv[])
 	}
 	int shlp=0;
 	
-	signed int e=pargs(argc, argv, &server, &portno, &uname, &fname, &nick, &chan, &maxnlen, &buflines);
+	signed int e=pargs(argc, argv);
 	if(e>=0)
 	{
 		return(e);
@@ -96,7 +67,7 @@ int main(int argc, char *argv[])
 	e=ttyraw(STDOUT_FILENO);
 	if(e)
 	{
-		fprintf(stderr, "Failed to set raw mode on tty.\n");
+		fprintf(stderr, "Failed to set raw mode on tty\n");
 		perror("ttyraw");
 		return(1);
 	}
@@ -105,47 +76,27 @@ int main(int argc, char *argv[])
 	for(i=0;i<height;i++) // push old stuff off the top of the screen, so it's preserved
 		printf("\n");
 	
-	bufs=(buffer *)malloc(sizeof(buffer));
-	init_buffer(0, STATUS, "status", buflines); // buf 0 is always STATUS
-	nbufs=1;
-	cbuf=0;
-	bufs[0].nick=strdup(nick);
-	buf_print(0, c_status, GPL_MSG, false);
+	e=initialise_buffers(buflines, nick);
+	if(e)
+	{
+		fprintf(stderr, "Failed to set up buffers\n");
+		return(1);
+	}
+	
 	fd_set master, readfds;
 	FD_ZERO(&master);
 	FD_SET(STDIN_FILENO, &master);
 	int fdmax=STDIN_FILENO;
+	int serverhandle=0;
 	if(server)
 	{
-		char cstr[36+strlen(server)+strlen(portno)];
-		sprintf(cstr, "quIRC - connecting to %s", server);
-		settitle(cstr);
-		sprintf(cstr, "Connecting to %s on port %s...", server, portno);
-		setcolour(c_status);
-		printf(CLA "\n");
-		printf(LOCATE, height-2, 1);
-		printf("%s" CLR "\n", cstr);
-		resetcol();
-		printf(CLA "\n");
-		int serverhandle=irc_connect(server, portno, nick, uname, fname, &master, &fdmax);
-		if(serverhandle)
-		{
-			bufs=(buffer *)realloc(bufs, ++nbufs*sizeof(buffer));
-			init_buffer(1, SERVER, server, buflines);
-			cbuf=1;
-			bufs[cbuf].handle=serverhandle;
-			bufs[cbuf].nick=strdup(nick);
-			bufs[cbuf].server=1;
-			add_to_buffer(1, c_status, cstr);
-			sprintf(cstr, "quIRC - connected to %s", server);
-			settitle(cstr);
-		}
+		serverhandle = autoconnect(&master, &fdmax);
 	}
-	else
+	if(!serverhandle)
 	{
 		buf_print(0, c_status, "Not connected - use /server to connect", true);
-		in_update("");
 	}
+	in_update("");
 	struct timeval timeout;
 	char *inp=NULL;
 	char *shsrc=NULL;char *shtext=NULL;
@@ -440,8 +391,8 @@ int main(int argc, char *argv[])
 										else if(strcmp(cmd, "PING")==0)
 										{
 											char *sender=strtok(NULL, " ");
-											char pong[8+strlen(uname)+strlen(sender)];
-											sprintf(pong, "PONG %s %s", uname, sender+1);
+											char pong[8+strlen(username)+strlen(sender)];
+											sprintf(pong, "PONG %s %s", username, sender+1);
 											irc_tx(fd, pong);
 										}
 										else if(strcmp(cmd, "MODE")==0)
@@ -1019,7 +970,7 @@ int main(int argc, char *argv[])
 							printf("%s" CLR "\n", dstr);
 							resetcol();
 							printf(CLA "\n");
-							int serverhandle=irc_connect(server, portno, nick, uname, fname, &master, &fdmax);
+							int serverhandle=irc_connect(server, portno, nick, username, fname, &master, &fdmax);
 							if(serverhandle)
 							{
 								bufs=(buffer *)realloc(bufs, ++nbufs*sizeof(buffer));

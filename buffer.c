@@ -8,6 +8,21 @@
 
 #include "buffer.h"
 
+int initialise_buffers(int buflines, char *nick)
+{
+	bufs=(buffer *)malloc(sizeof(buffer));
+	if(!bufs)
+		return(1);
+	init_buffer(0, STATUS, "status", buflines); // buf 0 is always STATUS
+	nbufs=1;
+	cbuf=0;
+	bufs[0].nick=strdup(nick);
+	if(!bufs[0].nick)
+		return(1);
+	buf_print(0, c_status, GPL_MSG, false);
+	return(0);
+}
+
 int init_buffer(int buf, btype type, char *bname, int nlines)
 {
 	bufs[buf].type=type;

@@ -8,7 +8,29 @@
 
 #include "config.h"
 
-int rcread(FILE *rcfp, char **server, char **portno, char **uname, char **fname, char **nick, char **chan, int *maxnlen, int *buflines)
+int def_config(void)
+{
+	buflines=256;
+	mirc_colour_compat=1; // silently strip
+	force_redraw=1; // redraw the whole screen whenever anything happens
+	char *cols=getenv("COLUMNS"), *rows=getenv("LINES");
+	if(cols) sscanf(cols, "%u", &width);
+	if(rows) sscanf(rows, "%u", &height);
+	if(!width) width=80;
+	if(!height) height=24;
+	maxnlen=16;
+	server=NULL;
+	portno="6667";
+	username="quirc";
+	fname=(char *)malloc(20+strlen(VERSION_TXT));
+	nick=strdup("ac");
+	chan=NULL;
+	sprintf(fname, "quIRC %hhu.%hhu.%hhu%s%s", VERSION_MAJ, VERSION_MIN, VERSION_REV, VERSION_TXT[0]?"-":"", VERSION_TXT);
+	sprintf(version, "%hhu.%hhu.%hhu%s%s", VERSION_MAJ, VERSION_MIN, VERSION_REV, VERSION_TXT[0]?"-":"", VERSION_TXT);
+	return(0);
+}
+
+int rcread(FILE *rcfp)
 {
 	while(!feof(rcfp))
 	{
@@ -93,25 +115,25 @@ int rcread(FILE *rcfp, char **server, char **portno, char **uname, char **fname,
 		{
 			char *rest=strtok(NULL, "\n");
 			if(strcmp(cmd, "server")==0)
-				*server=strdup(rest);
+				server=strdup(rest);
 			else if(strcmp(cmd, "port")==0)
-				*portno=strdup(rest);
+				portno=strdup(rest);
 			else if(strcmp(cmd, "uname")==0)
-				*uname=strdup(rest);
+				username=strdup(rest);
 			else if(strcmp(cmd, "fname")==0)
-				*fname=strdup(rest);
+				fname=strdup(rest);
 			else if(strcmp(cmd, "nick")==0)
-				*nick=strdup(rest);
+				nick=strdup(rest);
 			else if(strcmp(cmd, "chan")==0)
-				*chan=strdup(rest);
+				chan=strdup(rest);
 			else if(strcmp(cmd, "mnln")==0)
-				sscanf(rest, "%u", maxnlen);
+				sscanf(rest, "%u", &maxnlen);
 			else if(strcmp(cmd, "mcc")==0)
 				sscanf(rest, "%u", &mirc_colour_compat);
 			else if(strcmp(cmd, "fred")==0)
 				sscanf(rest, "%u", &force_redraw);
 			else if(strcmp(cmd, "buf")==0)
-				sscanf(rest, "%u", buflines);
+				sscanf(rest, "%u", &buflines);
 			else
 			{
 				fprintf(stderr, "Unrecognised cmd %s in .quirc (ignoring)\n", cmd);
@@ -122,7 +144,7 @@ int rcread(FILE *rcfp, char **server, char **portno, char **uname, char **fname,
 	return(0);
 }
 
-signed int pargs(int argc, char *argv[], char **server, char **portno, char **uname, char **fname, char **nick, char **chan, int *maxnlen, int *buflines)
+signed int pargs(int argc, char *argv[])
 {
 	bool check=false;
 	int arg;
@@ -148,7 +170,7 @@ signed int pargs(int argc, char *argv[], char **server, char **portno, char **un
 		}
 		else if(strncmp(argv[arg], "--maxnicklen=", 13)==0)
 		{
-			sscanf(argv[arg]+13, "%u", maxnlen);
+			sscanf(argv[arg]+13, "%u", &maxnlen);
 		}
 		else if(strncmp(argv[arg], "--mcc=", 6)==0)
 		{
@@ -160,32 +182,32 @@ signed int pargs(int argc, char *argv[], char **server, char **portno, char **un
 		}
 		else if(strncmp(argv[arg], "--buf-lines=", 12)==0)
 		{
-			sscanf(argv[arg]+12, "%u", buflines);
+			sscanf(argv[arg]+12, "%u", &buflines);
 		}
 		else if((strcmp(argv[arg], "--no-server")==0)||(strcmp(argv[arg], "--no-auto-connect")==0)) // the "-auto" forms are from older versions; depr
 		{
-			*server=NULL;
+			server=NULL;
 		}
 		else if((strcmp(argv[arg], "--no-chan")==0)||(strcmp(argv[arg], "--no-auto-join")==0))
 		{
-			*chan=NULL;
+			chan=NULL;
 		}
 		else if((strcmp(argv[arg], "--check")==0)||(strcmp(argv[arg], "--lint")==0))
 		{
 			check=true;
 		}
 		else if(strncmp(argv[arg], "--server=", 9)==0)
-			*server=argv[arg]+9;
+			server=argv[arg]+9;
 		else if(strncmp(argv[arg], "--port=", 7)==0)
-			*portno=argv[arg]+7;
+			portno=argv[arg]+7;
 		else if(strncmp(argv[arg], "--uname=", 8)==0)
-			*uname=argv[arg]+8;
+			username=argv[arg]+8;
 		else if(strncmp(argv[arg], "--fname=", 8)==0)
-			*fname=argv[arg]+8;
+			fname=argv[arg]+8;
 		else if(strncmp(argv[arg], "--nick=", 7)==0)
-			*nick=strdup(argv[arg]+7);
+			nick=strdup(argv[arg]+7);
 		else if(strncmp(argv[arg], "--chan=", 7)==0)
-			*chan=argv[arg]+7;
+			chan=argv[arg]+7;
 		else
 		{
 			fprintf(stderr, "Unrecognised argument '%s'\n", argv[arg]);

@@ -1,3 +1,5 @@
+#pragma once
+
 /*
 	quIRC - simple terminal-based IRC client
 	Copyright (C) 2010 Edward Cree
