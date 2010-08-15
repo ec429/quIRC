@@ -22,10 +22,10 @@ int def_config(void)
 	server=NULL;
 	portno="6667";
 	username="quirc";
-	fname=(char *)malloc(20+strlen(VERSION_TXT));
+	fname=(char *)malloc(64+strlen(VERSION_TXT));
 	nick=strdup("ac");
 	chan=NULL;
-	sprintf(fname, "quIRC %hhu.%hhu.%hhu%s%s", VERSION_MAJ, VERSION_MIN, VERSION_REV, VERSION_TXT[0]?"-":"", VERSION_TXT);
+	sprintf(fname, "quIRC %hhu.%hhu.%hhu%s%s : http://github.com/ec429/quIRC", VERSION_MAJ, VERSION_MIN, VERSION_REV, VERSION_TXT[0]?"-":"", VERSION_TXT);
 	sprintf(version, "%hhu.%hhu.%hhu%s%s", VERSION_MAJ, VERSION_MIN, VERSION_REV, VERSION_TXT[0]?"-":"", VERSION_TXT);
 	return(0);
 }

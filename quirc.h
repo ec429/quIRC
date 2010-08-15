@@ -23,4 +23,5 @@
 #include "buffer.h"
 #include "numeric.h"
 #include "config.h"
+#include "input.h"
 #include "version.h"

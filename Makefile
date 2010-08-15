@@ -5,8 +5,8 @@ CFLAGS ?= -Wall
 AWK ?= gawk
 VERSION := `git describe --tags`
 PREFIX ?= /usr/local
-LIBS := ttyraw.o ttyesc.o irc.o bits.o colour.o buffer.o names.o config.o
-INCLUDE := ttyraw.h ttyesc.h irc.h bits.h colour.h buffer.h names.h config.h numeric.h version.h
+LIBS := ttyraw.o ttyesc.o irc.o bits.o colour.o buffer.o names.o config.o input.o
+INCLUDE := ttyraw.h ttyesc.h irc.h bits.h colour.h buffer.h names.h config.h input.h numeric.h version.h
 
 all: quirc
 
@@ -30,6 +30,8 @@ colour.o: colour.c colour.h c_init.c ttyesc.h
 buffer.o: buffer.c buffer.h ttyesc.h colour.h bits.h names.h text.h
 
 config.o: config.c config.h bits.h colour.h text.h version.h
+
+input.o: input.c input.h ttyesc.h names.h buffer.h
 
 c_init.c: colour.d c_init.awk
 	$(AWK) -f c_init.awk colour.d > c_init.c
