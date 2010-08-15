@@ -170,7 +170,7 @@ signed int pargs(int argc, char *argv[], char **server, char **portno, char **un
 		{
 			*chan=NULL;
 		}
-		else if(strcmp(argv[arg], "--check")==0)
+		else if((strcmp(argv[arg], "--check")==0)||(strcmp(argv[arg], "--lint")==0))
 		{
 			check=true;
 		}
@@ -186,6 +186,10 @@ signed int pargs(int argc, char *argv[], char **server, char **portno, char **un
 			*nick=strdup(argv[arg]+7);
 		else if(strncmp(argv[arg], "--chan=", 7)==0)
 			*chan=argv[arg]+7;
+		else
+		{
+			fprintf(stderr, "Unrecognised argument '%s'\n", argv[arg]);
+		}
 	}
 	if(check) return(0);
 	return(-1);
