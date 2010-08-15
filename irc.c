@@ -138,11 +138,12 @@ int irc_numeric(char *cmd, int b)
 	char *ch;
 	int b2;
 	sscanf(cmd, "%d", &num);
+	char *dest=strtok(NULL, " "); // TODO: check it's for us
+	int skip=0;
 	switch(num)
 	{
 		case RPL_NAMREPLY:
 			// 353 dest {@|+} #chan :name [name [...]]
-			strtok(NULL, " "); // dest
 			strtok(NULL, " "); // @ or +, dunno what for
 			ch=strtok(NULL, " "); // channel
 			for(b2=0;b2<nbufs;b2++)
@@ -165,7 +166,6 @@ int irc_numeric(char *cmd, int b)
 		break;
 		case RPL_ENDOFNAMES:
 			// 366 dest #chan :End of /NAMES list
-			strtok(NULL, " "); // dest
 			ch=strtok(NULL, " "); // channel
 			for(b2=0;b2<nbufs;b2++)
 			{
@@ -178,16 +178,22 @@ int irc_numeric(char *cmd, int b)
 				}
 			}
 		break;
-		case RPL_MOTDSTART:
-		case RPL_MOTD:
-		case RPL_ENDOFMOTD:
-			// silently ignore the motd, because they're always far too long and annoying
+		case RPL_ENDOFMOTD: // 376 dest :End of MOTD command
+			/* fallthrough */
+		case RPL_MOTDSTART: // 375 dest :- <server> Message of the day -
+			skip=1;
+			/* fallthrough */
+		case RPL_MOTD: // 372 dest :- <text>
+			if(!skip) skip=3;
+			char *motdline=strtok(NULL, "");
+			if(strlen(motdline)>=skip) motdline+=skip;
+			buf_print(b, c_notice[1], motdline, true);
 		break;
 		default:
 			;
 			char *rest=strtok(NULL, "");
-			char umsg[16+strlen(rest)];
-			sprintf(umsg, "<<%d? %s", num, rest);
+			char umsg[16+strlen(dest)+strlen(rest)];
+			sprintf(umsg, "<<%d? %s %s", num, dest, rest);
 			buf_print(b, c_unn, umsg, true);
 		break;
 	}

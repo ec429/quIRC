@@ -9,5 +9,3 @@ curses.  The current hardwired ANSI-escapes code for painting the screen is clum
 Interface separation.  The main event loop is currently chock-full of implementation details; it should just be a command parser and marshal.  Some work has been done in this direction (0.4.8 changes) but there's a lot left to do.
 
 Input editing.  Should use something based on Emacs line editing keys (C-a will mean 'go to start of line', unlike now when it means 'backspace to start of line'!).  May be provided by curses - investigate.
-
-MOTD.  The numerics handler currently ignores these.
