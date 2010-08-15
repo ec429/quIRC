@@ -16,31 +16,20 @@ install: all
 quirc: quirc.c $(LIBS) $(INCLUDE)
 	$(CC) $(CFLAGS) -o quirc quirc.c $(LIBS)
 
-# TODO use funky make cleverness for these rules as they're all basically the same
+# funky make cleverness to generate object files; a %.o /always/ depends on its %.h as well as its %.c
 
-ttyraw.o: ttyraw.c ttyraw.h
-	$(CC) $(CFLAGS) -o ttyraw.o -c ttyraw.c
-
-ttyesc.o: ttyesc.c ttyesc.h
-	$(CC) $(CFLAGS) -o ttyesc.o -c ttyesc.c
+%.o: %.c %.h
+	$(CC) -c $(CFLAGS) $(CPPFLAGS) $< -o $@
 
 irc.o: irc.c irc.h bits.h
-	$(CC) $(CFLAGS) -o irc.o -c irc.c
 
 bits.o: bits.c bits.h ttyesc.h colour.h
-	$(CC) $(CFLAGS) -o bits.o -c bits.c
 
 colour.o: colour.c colour.h c_init.c ttyesc.h
-	$(CC) $(CFLAGS) -o colour.o -c colour.c
 
 buffer.o: buffer.c buffer.h ttyesc.h colour.h bits.h names.h
-	$(CC) $(CFLAGS) -o buffer.o -c buffer.c
-
-names.o: names.c names.h
-	$(CC) $(CFLAGS) -o names.o -c names.c
 
 config.o: config.c config.h bits.h colour.h text.h version.h
-	$(CC) $(CFLAGS) -o config.o -c config.c
 
 c_init.c: colour.d c_init.awk
 	$(AWK) -f c_init.awk colour.d > c_init.c
