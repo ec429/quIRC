@@ -129,8 +129,10 @@
 #define	RPL_LUSEROP				252	// "<integer> :operator(s) online"
 #define	RPL_LUSERUNKNOWN		253	// "<integer> :unknown connection(s)"
 #define	RPL_LUSERCHANNELS		254	// "<integer> :channels formed"
-#define	RPL_LUSERME				255	// ":I have <integer> clients and <integer> servers"	In processing an LUSERS message, the server sends a set of replies from RPL_LUSERCLIENT, RPL_LUSEROP, RPL_USERUNKNOWN, RPL_LUSERCHANNELS and RPL_LUSERME. When replying, a server must send back RPL_LUSERCLIENT and RPL_LUSERME. The other replies are only sent back if a non-zero count is found for them.
+#define	RPL_LUSERME				255	// ":I have <integer> clients and <integer> servers"	In processing an LUSERS message, the server sends a set of replies from RPL_LUSERCLIENT, RPL_LUSEROP, RPL_LUSERUNKNOWN, RPL_LUSERCHANNELS and RPL_LUSERME. When replying, a server must send back RPL_LUSERCLIENT and RPL_LUSERME. The other replies are only sent back if a non-zero count is found for them.
 #define	RPL_ADMINME				256	// "<server> :Administrative info"
 #define	RPL_ADMINLOC1			257	// ":<admin info>"
 #define	RPL_ADMINLOC2			258	// ":<admin info>"
 #define	RPL_ADMINEMAIL			259	// ":<admin info>"	When replying to an ADMIN message, a server is expected to use replies RLP_ADMINME through to RPL_ADMINEMAIL and provide a text message with each. For RPL_ADMINLOC1 a description of what city, state and country the server is in is expected, followed by details of the university and department (RPL_ADMINLOC2) and finally the administrative contact for the server (an email address here is required) in RPL_ADMINEMAIL.
+#define RPL_X_LOCALUSERS		265	// ":Current Local Users: <integer>\tMax: <integer>"  Appears to count the users connected directly to the server.  Non-normative.
+#define RPL_X_GLOBALUSERS		266	// ":Current Global Users: <integer>\tMax: <integer>"  Appears to count the users connected to the network.  Non-normative.

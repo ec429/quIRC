@@ -93,7 +93,7 @@ int add_to_buffer(int buf, colour lc, char *lt)
 		free(ln);
 		lt=nl+1;
 	}
-	while(strlen(lt)>width)
+	while(strlen(lt)>width) // should be prevented by wordline() usage; occasionally isn't
 	{
 		char *ln=strndup(lt, width);
 		add_to_buffer(buf, lc, ln);

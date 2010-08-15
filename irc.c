@@ -179,7 +179,6 @@ int irc_numeric(char *cmd, int b) // TODO check the strtok()s for NULLs
 			}
 		break;
 		case RPL_ENDOFMOTD: // 376 dest :End of MOTD command
-			/* fallthrough */
 		case RPL_MOTDSTART: // 375 dest :- <server> Message of the day -
 			skip=1;
 			/* fallthrough */
@@ -233,12 +232,38 @@ int irc_numeric(char *cmd, int b) // TODO check the strtok()s for NULLs
 				}
 			}
 		break;
+		case RPL_LUSERCLIENT: // 251 <dest> :There are <integer> users and <integer> invisible on <integer> servers"
+		case RPL_LUSERME: // 255 <dest> ":I have <integer> clients and <integer> servers
+			{
+				char *rest=strtok(NULL, "");
+				buf_print(b, c_status, rest+1, true);
+			}
+		break;
+		case RPL_LUSEROP: // 252 <dest> <integer> :operator(s) online
+		case RPL_LUSERUNKNOWN: // 253 <dest> "<integer> :unknown connection(s)
+		case RPL_LUSERCHANNELS: // 254 <dest> "<integer> :channels formed
+			{
+				char *count=strtok(NULL, " ");
+				char *rest=strtok(NULL, "");
+				char lmsg[2+strlen(count)+strlen(rest)];
+				sprintf(lmsg, "%s %s", count, rest+1);
+				buf_print(b, c_status, lmsg, true);
+			}
+		break;
+		case RPL_X_LOCALUSERS: // 265 <dest> :Current Local Users: <integer>\tMax: <integer>
+		case RPL_X_GLOBALUSERS: // 266 <dest> :Current Global Users: <integer>\tMax: <integer>
+			{
+				char *rest=strtok(NULL, "");
+				buf_print(b, c_status, rest+1, true);
+			}
+		break;
 		default:
-			;
-			char *rest=strtok(NULL, "");
-			char umsg[16+strlen(dest)+strlen(rest)];
-			sprintf(umsg, "<<%d? %s %s", num, dest, rest);
-			buf_print(b, c_unn, umsg, true);
+			{
+				char *rest=strtok(NULL, "");
+				char umsg[16+strlen(dest)+strlen(rest)];
+				sprintf(umsg, "<<%d? %s %s", num, dest, rest);
+				buf_print(b, c_unn, umsg, true);
+			}
 		break;
 	}
 	return(num);
