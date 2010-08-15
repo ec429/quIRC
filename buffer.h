@@ -38,14 +38,15 @@ typedef struct _buf
 	int handle; // used for server
 	int server; // used by channels and private to denote their 'parent' server.  In server, points to self.  Is an offset into 'bufs'
 	char *nick; // used for server
-	int nlines;
-	int ptr;
-	int scroll;
-	colour *lc;
-	char **lt;
-	time_t *ts;
+	int nlines; // number of lines allocated
+	int ptr; // pointer to current line
+	int scroll; // current scroll position (distance up from ptr)
+	colour *lc; // array of colours for lines
+	char **lt; // array of text for lines
+	time_t *ts; // array of timestamps for lines (not used now, but there ready for eg. mergebuffers)
 	bool filled;
 	bool alert; // tab has new messages?
+	bool namreply; // tab is in the middle of reading a list of NAMES replies (RPL_NAMREPLY)?
 }
 buffer;
 

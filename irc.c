@@ -135,6 +135,8 @@ int irc_rx(int fd, char ** data)
 int irc_numeric(char *cmd, int b)
 {
 	int num=0;
+	char *ch;
+	int b2;
 	sscanf(cmd, "%d", &num);
 	switch(num)
 	{
@@ -142,17 +144,37 @@ int irc_numeric(char *cmd, int b)
 			// 353 dest {@|+} #chan :name [name [...]]
 			strtok(NULL, " "); // dest
 			strtok(NULL, " "); // @ or +, dunno what for
-			char *ch=strtok(NULL, " "); // channel
-			int b2;
+			ch=strtok(NULL, " "); // channel
 			for(b2=0;b2<nbufs;b2++)
 			{
 				if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (strcasecmp(ch, bufs[b2].bname)==0))
 				{
+					if(!bufs[b2].namreply)
+					{
+						bufs[b2].namreply=true;
+						n_free(bufs[b2].nlist);
+						bufs[b2].nlist=NULL;
+					}
 					char *nn;
 					while((nn=strtok(NULL, ":@ ")))
 					{
 						n_add(&bufs[b2].nlist, nn);
 					}
+				}
+			}
+		break;
+		case RPL_ENDOFNAMES:
+			// 366 dest #chan :End of /NAMES list
+			strtok(NULL, " "); // dest
+			ch=strtok(NULL, " "); // channel
+			for(b2=0;b2<nbufs;b2++)
+			{
+				if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (strcasecmp(ch, bufs[b2].bname)==0))
+				{
+					bufs[b2].namreply=false;
+					char lmsg[32+strlen(ch)];
+					sprintf(lmsg, "NAMES list received for %s\n", ch);
+					buf_print(b2, c_status, lmsg, true);
 				}
 			}
 		break;

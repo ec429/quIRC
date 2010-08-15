@@ -39,6 +39,7 @@ int init_buffer(int buf, btype type, char *bname, int nlines)
 	bufs[buf].ts=(time_t *)malloc(sizeof(time_t[nlines]));
 	bufs[buf].filled=false;
 	bufs[buf].alert=false;
+	bufs[buf].namreply=false;
 	return(0);
 }
 
