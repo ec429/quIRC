@@ -4,6 +4,8 @@ Scripting language.  Under development in branch 'script'.
 
 Debug mode.  /Every/ message send to or from a server to be displayed in that server's buffer; socket operations would be tracked in (status).
 
+Quiet mode.  Don't emit diagnostics for eg. unrecognised IRC traffic (such as numerics).
+
 curses.  The current hardwired ANSI-escapes code for painting the screen is clumsy.
 
 Interface separation.  The main event loop is currently chock-full of implementation details; it should just be a command parser and marshal.  Some work has been done in this direction (0.4.8 changes) but there's a lot left to do.
