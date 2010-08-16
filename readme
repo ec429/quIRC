@@ -54,6 +54,9 @@ Configuration:
 	Another setting here is force-redraw, with
 		fred <force-redraw>
 	which is "1 to force redraw, 0 to not".
+	The size of each scrollback buffer, in lines, can be set with
+		buf <buf-lines>
+	the default being 256.  Larger values will, of course, increase memory consumption.
 	These settings and others can be overridden at runtime with commandline options.  For details run "quirc --help".
 	You can also customise the colours quIRC uses.  A custom colour line starts with '%', followed optionally by 'S' or 'R' (only use this colour when Sending or Receiving respectively), followed by an identifier, then space or tab, then four space-separated numbers.  Like this
 		%[S|R]<ident>	<fore> <back> <hi> <ul>
