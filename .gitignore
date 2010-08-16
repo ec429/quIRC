@@ -4,3 +4,5 @@ quirc
 *.tar
 *.tar.gz
 *.tgz
+version.h
+version
