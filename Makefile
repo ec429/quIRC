@@ -8,7 +8,7 @@ PREFIX ?= /usr/local
 LIBS := ttyraw.o ttyesc.o irc.o bits.o colour.o buffer.o names.o config.o input.o
 INCLUDE := ttyraw.h ttyesc.h irc.h bits.h colour.h buffer.h names.h config.h input.h version.h
 
-all: quirc doc
+all: quirc
 
 install: all
 	install -D quirc $(PREFIX)/bin/quirc
@@ -23,7 +23,7 @@ clean:
 	rm *.o quirc
 
 realclean: clean
-	rm c_init.c
+	rm c_init.c README version.h
 
 doc: README
 
