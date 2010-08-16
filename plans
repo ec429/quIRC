@@ -19,3 +19,5 @@ Top status bar.  Carry the info in the xterm title and maybe more info besides. 
 If any string (server, channel, nick) is too long to fit its slot, it will be crushed according to the usual crushing rules.
 
 crush().  Refactored version of the nick-crushing code, that can be applied to any string and max-length.
+
+Pidfiles and attaching.  When you run quirc, if there is an existing quirc process running, your new instance should simply signal that process to open the requested server/channel in a new tab, and the new instance should then close (after emitting a suitable diagnostic).

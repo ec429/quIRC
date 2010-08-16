@@ -13,8 +13,17 @@ all: quirc
 install: all
 	install -D quirc $(PREFIX)/bin/quirc
 
+uninstall:
+	rm $(PREFIX)/bin/quirc
+
 quirc: quirc.c $(LIBS) $(INCLUDE)
 	$(CC) $(CFLAGS) -o quirc quirc.c $(LIBS)
+
+clean:
+	rm *.o quirc
+
+realclean: clean
+	rm c_init.c
 
 # funky make cleverness to generate object files; a %.o /always/ depends on its %.h as well as its %.c
 
@@ -36,11 +45,9 @@ input.o: input.c input.h ttyesc.h names.h buffer.h
 c_init.c: colour.d c_init.awk
 	$(AWK) -f c_init.awk colour.d > c_init.c
 
-version.h:
+# version is touched by a git-commit hook
+version.h: version
 	./gitversion
-
-# version.h is phony because, although the file exists, we always want to update it
-.PHONY: version.h
 
 dist: all
 	-mkdir quirc_$(VERSION)
