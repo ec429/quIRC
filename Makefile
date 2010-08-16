@@ -8,7 +8,7 @@ PREFIX ?= /usr/local
 LIBS := ttyraw.o ttyesc.o irc.o bits.o colour.o buffer.o names.o config.o input.o
 INCLUDE := ttyraw.h ttyesc.h irc.h bits.h colour.h buffer.h names.h config.h input.h version.h
 
-all: quirc
+all: quirc doc
 
 install: all
 	install -D quirc $(PREFIX)/bin/quirc
@@ -24,6 +24,11 @@ clean:
 
 realclean: clean
 	rm c_init.c
+
+doc: README
+
+README: readme.htm
+	html2text -nobs -o README < readme.htm
 
 # funky make cleverness to generate object files; a %.o /always/ depends on its %.h as well as its %.c
 

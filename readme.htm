@@ -1,0 +1,127 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<title>quIRC: README</title>
+	<meta http-equiv="Content-Type" content="text/html;charset=utf-8;" />
+	<link rel="stylesheet" href="readme.css" />
+	<style>
+		tt {margin-left:4em;}
+	</style>
+</head>
+<body>
+<div id="title">
+<h1>quIRC: readme</h1>
+<h5>quIRC is a simple terminal-based IRC (Internet Relay Chat) client.  It is written in C.</h5>
+</div><!--#title-->
+<div id="furtherhelp">
+<h2>Further Help</h2>
+<p>If this file doesn&apos;t answer your question, you can find help from several other places.</p>
+<p>First port of call is the website, <a href="http://dev-null.chu.cam.ac.uk">http://dev-null.chu.cam.ac.uk</a> (sometimes it&apos;s not there, in which case try <a href="http://alistairsserver.no-ip.org:50001">http://alistairsserver.no-ip.org:50001</a>).<br />
+Then there&apos;s the github page, <a href="http://github.com/ec429/quIRC">http://github.com/ec429/quIRC</a> (which should also have an up-to-date link to the abovementioned website).</p>
+<p>Or try our IRC channel, #quirc on irc.newnet.net (if your problem doesn&apos;t prevent you from joining us there!)</p>
+</div><!--#furtherhelp-->
+<div id="commands">
+<h2>Commands</h2>
+<p>All commands are prefixed with a &apos;/&apos;.  Anything else is a message to be sent to the channel.</p>
+<dl>
+<dt>/server <em>url</em></dt>
+<dd>Connects to the given server (will open in a new tab).</dd>
+<dt>/nick <em>nickname</em></dt>
+<dd>Sets your nickname.  Scope is server-wide (or, in (status) tab, sets default for new /servers).</dd>
+<dt>/join <em>channel</em></dt>
+<dd>Joins the given channel (will open in a new tab).</dd>
+<dt>/me <em>action</em></dt>
+<dd>Sends an &apos;action&apos; to the channel.</dd>
+<dt>/msg <em>recipient</em> <em>message</em></dt>
+<dd>Private message; sends the message to the given recipient.</dd>
+<dt>/set <em>option</em> [<em>value</em>]</dt>
+<dd>Sets configuration options; the options are analogous to those in .quirc, with one or two extras.
+<ul>
+<li>The options &apos;height&apos; and &apos;width&apos; are used to tell quIRC how many rows and columns your terminal has (for cursor-positioning).  quIRC will try to deduce these values (from environment variables $LINES and $COLUMNS, using defaults of 80x24 if these env vars are not found), but you can override those guesses here or on the command line.</li>
+</ul>
+</dd>
+<dt>/cmd <em>command</em></dt>
+<dd>Allows you to send a raw command to the server; not recommended.</dd>
+<dt>/part <em>channel</em></dt>
+<dt>/leave <em>channel</em></dt>
+<dd>Leaves (departs) the given channel.</dd>
+<dt>/quit [<em>message</em>]</dt>
+<dt>/exit [<em>message</em>]</dt>
+<dd>Quits quIRC, optionally sending a &apos;quit message&apos; to the server.</dd>
+</dl>
+</div><!--#commands-->
+<div id="configuration">
+<h2>Configuration</h2>
+<p>quIRC can be configured through an &quot;rc file&quot; as follows.</p>
+<p>In your home directory (/home/username), create a file called &quot;.quirc&quot;, and open it in your editor.</p>
+<p>In this file you can set a server, nick and channel to automatically use, and the maximum length of nick that will be displayed, with lines<br />
+<tt>server <em>url</em></tt><br />
+<tt>nick <em>nickname</em></tt><br />
+<tt>chan <em>channel</em></tt><br />
+<tt>mnln <em>maxnicklen</em></tt></p>
+<p>You can also set mirc-colour-compatibility, with<br />
+<tt>mcc <em>mcc-level</em></tt><br />
+where 0 doesn&apos;t scan for mirc-colours, 1 silently strips them out, and 2 displays the appropriate colour.  The default is mcc 1.</p>
+<p>Another setting here is force-redraw, with<br />
+<tt>fred <em>force-redraw</em></tt><br />
+which is &quot;1 to force redraw, 0 to not&quot;.</p>
+<p>The size of each scrollback buffer, in lines, can be set with<br />
+<tt>buf <em>buf-lines</em></tt><br />
+the default being 256.  Larger values will, of course, increase memory consumption.</p>
+<p>These settings and others can be overridden at runtime with commandline options.  For details run &quot;quirc --help&quot;.</p>
+<p>You can also customise the colours quIRC uses.  A custom colour line starts with &apos;%&apos;, followed optionally by &apos;S&apos; or &apos;R&apos; (only use this colour when Sending or Receiving respectively), followed by an identifier, then space or tab, then four space-separated numbers.  Like this:<br />
+<tt>%[S|R]<em>ident</em>	<em>fore</em> <em>back</em> <em>hi</em> <em>ul</em></tt></p>
+<p>Fore and Back set the foreground and background colours (8 colours each, red=1 green=2 blue=4, add for mixtures, eg white=7).  Hi sets bright, Ul sets underline; both are true if nonzero.</p>
+<p><em>ident</em> can be any of</p>
+<dl>
+<dt>msg</dt>
+<dd>Ordinary messages</dd>
+<dt>notice</dt>
+<dd>Notices</dd>
+<dt>join</dt>
+<dd>Channel-Join notifications</dd>
+<dt>part</dt>
+<dd>Channel-Leave notifications</dd>
+<dt>quit</dt>
+<dd>Quit-messages</dd>
+<dt>nick</dt>
+<dd>Nick-change notifications</dd>
+<dt>act</dt>
+<dd>Actions (&apos;/me does something&apos;)</dd>
+<dt>status</dt>
+<dd>status messages</dd>
+<dt>err</dt>
+<dd>error messages</dd>
+<dt>unk</dt>
+<dd>Unknown commands (splurged to output)</dd>
+<dt>unn</dt>
+<dd>Unknown numerics (splurged to output)</dd>
+</dl>
+</div><!--#configuration-->
+<div id="inputcontrols">
+<h2>Input controls</h2>
+<p>At present you cannot edit input with the cursors; you have to backspace.</p>
+<p>Typing part of a nick and then pressing <em>(tab)</em> will cause the nick to be autocompleted.<br />
+Ctrl-A clears the current input.</p>
+Ctrl-left and Ctrl-right change tab.<br />
+Alt-<em>[#]</em>, where <em>[#]</em> is a number key, changes to tab <em>[#]</em>, where (status) is tab 0.</p>
+</div><!--#inputcontrols-->
+<div id="scrollcontrols">
+<h2>Scrollback controls</h2>
+<p>You can scroll the current buffer with Ctrl-Up/Dn (and Ctrl-PgUp/Dn) to scroll a line (resp. a page) at a time.<br />
+You can also use Ctrl-Home/End to jump to the top/bottom of the buffer.</p>
+</div><!--#scrollcontrols-->
+<div id="tabstrip">
+<h2>Tab strip</h2>
+<p>The strip of tabs along the bottom of the screen has various indicators.</p>
+<p>The parens bracketing the name tell you what kind of tab it is:</p>
+<dl>
+<dt>()</dt><dd>status</dd>
+<dt>{}</dt><dd>server</dd>
+<dt>[]</dt><dd>channel</dd>
+</dl>
+<p>The background colour is green for the current tab, and blue for the current tab&apos;s parent server (if applicable).</p>
+<p>The foreground colour of tabs other than the current tab will turn red to indicate that there are new messages on that tab.</p>
+</div><!--#tabstrip-->
+</body>
+</html>

@@ -1,0 +1,229 @@
+@charset "utf-8";
+
+/* Rules from JTTLOV 'main.css' */
+
+/* overall colour */
+body
+{
+	color:#4f67e3;
+	background-color:#001;
+}
+
+/* basic rules */
+em em
+{
+	font-style: normal;
+	font-weight: bold;
+}
+
+h1,h1 *
+{
+	color:#6f8fff;
+	text-decoration: underline;
+}
+
+ul
+{
+	list-style-type:disc;
+}
+
+img
+{
+	border:0;
+	vertical-align:top;
+}
+
+/* tag-based colours and things */
+
+acronym
+{
+	color:#675fe7;
+}
+
+em
+{
+	color:#6f57eb;
+	font-style:italic;
+}
+
+a[href]
+{
+	color:#672ff7;
+	text-decoration:underline;
+}
+
+
+a[href]:hover
+{
+	background-color:#1f1b2f;
+}
+
+/* named things (classes, ids) */
+
+a.ext
+{
+	color:#6f17ff;
+}
+
+.disclaimer,.disclaimer *
+{
+	color:#9f5f3f;
+	font-family:monospace;
+}
+
+.date
+{
+	font-variant:small-caps;
+}
+
+#title h1
+{
+	font-size:xx-large;
+	font-weight:bold;
+	font-family:serif;
+	font-variant:small-caps;
+}
+
+#title h5
+{
+	font-size:normal;
+	font-weight:bold;
+	font-style:italic;
+	font-family:serif;
+	font-variant:small-caps;
+}
+
+#title h5 em
+{
+	font-style:normal;
+}
+
+#navbar table
+{
+	border:solid;
+	border-width:1px;
+	border-color:#0f0f17;
+}
+
+#navbar td
+{
+	border:solid;
+	border-width:1px;
+	border-color:#0f1f2f;
+	padding-left:2em;
+	padding-right:2em;
+}
+
+#navbar td:first-child
+{
+	border:none;
+}
+
+#news .date
+{
+	color:#5f87ff;
+	font-style:italic;
+}
+
+#news .item
+{
+	color:#5f87ff;
+	font-weight:bold;
+	letter-spacing:1px;
+}
+
+#pieces td
+{
+	text-align:right;
+	padding-right:1em;
+}
+
+#pieces td.group
+{
+	text-align:left;
+	padding-top:1ex;
+	padding-right:1em;
+}
+
+.fractals h4
+{
+	padding-left:1.5em;
+}
+
+.math .eqn
+{
+	padding-left:2em;
+}
+
+.math .var
+{
+	font-style:italic;
+}
+
+/* header and footer rules */
+
+#header
+{
+	color:#7f7f9f;
+	font-family:monospace;
+	font-size:small;
+}
+
+#header a[href]
+{
+	color:#5f6fbf;
+	font-size:large;
+}
+
+#footer
+{
+	color:#7f7f9f;
+	font-family:monospace;
+}
+
+#footer a[href]
+{
+	color:#7f8faf;
+	font-weight:bold;
+}
+
+#footer .now, #footer .version, #footer .aboutpico, #footer a.stats, #footer .uptime, #footer .poweredby, #footer .valid
+{
+	color:#8f8f9f;
+	font-weight:bold;
+}
+
+#footer .httpicon
+{
+	padding-bottom:4px;
+}
+
+/* Rules from JTTLOV 'projects.css' */
+
+.prog
+{
+	color:#ffe;
+	background-color:#000;
+	font-family:monospace;
+	white-space:pre;
+}
+
+.gallery *
+{
+	text-align:center;
+	margin-left:auto;
+	margin-right:auto;
+}
+
+.gallery table,.gallery tr,.gallery td
+{
+	border:solid;
+	border-width:1px;
+	padding-left:1em;
+	padding-right:1em;
+}
+
+.gallery .images *
+{
+	border:none;
+}
