@@ -11,3 +11,11 @@ Interface separation.  The main event loop is currently chock-full of implementa
 Input editing.  Should use something based on Emacs line editing keys (C-a will mean 'go to start of line', unlike now when it means 'backspace to start of line'!).  May be provided by curses - investigate.
 
 word_buf_print().  Wrapper function combining wordline() and buf_print(), as this functionality is duplicated all over the code.
+
+Top status bar.  Carry the info in the xterm title and maybe more info besides.  Here's an idea for a layout that nicely fits things in.
+|                           0               16 0               16 0           12
+1      8         18         29                 48                 67           80
+-quIRC-ve.rs.ion-ghashgit---server...foo.bar---#thechannel_name---my_nick_name-
+If any string (server, channel, nick) is too long to fit its slot, it will be crushed according to the usual crushing rules.
+
+crush().  Refactored version of the nick-crushing code, that can be applied to any string and max-length.
