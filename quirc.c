@@ -188,44 +188,15 @@ int main(int argc, char *argv[])
 										}
 										else if(strcmp(cmd, "PING")==0)
 										{
-											char *sender=strtok(NULL, " ");
-											char pong[8+strlen(username)+strlen(sender)];
-											sprintf(pong, "PONG %s %s", username, sender+1);
-											irc_tx(fd, pong);
+											rx_ping(fd);
 										}
 										else if(strcmp(cmd, "MODE")==0)
 										{
-											if(chan && !join)
-											{
-												char joinmsg[8+strlen(chan)];
-												sprintf(joinmsg, "JOIN %s", chan);
-												irc_tx(fd, joinmsg);
-												char jmsg[16+strlen(chan)];
-												sprintf(jmsg, "auto-Joining %s", chan);
-												buf_print(b, c_join[0], jmsg, true);
-												join=true;
-											}
-											// apart from using it as a trigger, we don't look at modes just yet
+											rx_mode(fd, &join, b);
 										}
 										else if(strcmp(cmd, "KILL")==0)
 										{
-											char *dest=strtok(NULL, " \t"); // user to be killed
-											if(strcmp(dest, bufs[b].nick)==0) // if it's us
-											{
-												close(fd);
-												FD_CLR(fd, &master);
-												int b2;
-												for(b2=1;b2<nbufs;b2++)
-												{
-													while((b2<nbufs) && ((bufs[b2].server==b) || (bufs[b2].server==0)))
-													{
-														free_buffer(b2);
-														if(b2==cbuf)
-															cbuf=0;
-													}
-												}
-												redraw_buffer();
-											}
+											rx_kill(fd, b, &master);
 										}
 										else if(strcmp(cmd, "ERROR")==0) // assume it's fatal
 										{

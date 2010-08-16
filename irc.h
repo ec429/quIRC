@@ -29,4 +29,9 @@ int irc_connect(char *server, char *portno, char *nick, char *username, char *fu
 int autoconnect(fd_set *master, int *fdmax);
 int irc_tx(int fd, char * packet);
 int irc_rx(int fd, char ** data);
-int irc_numeric(char *cmd, int b); // strtok() state leaks across the boundaries of this function, beware!
+
+// Received-IRC message handlers.  strtok() state leaks across the boundaries of these functions, beware!
+int irc_numeric(char *cmd, int b);
+int rx_ping(int fd);
+int rx_mode(int fd, bool *join, int b); // the first MODE triggers auto-join.  Apart from using it as a trigger, we don't look at modes just yet
+int rx_kill(int fd, int b, fd_set *master);

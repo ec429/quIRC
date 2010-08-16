@@ -267,3 +267,64 @@ int irc_numeric(char *cmd, int b) // TODO check the strtok()s for NULLs
 	}
 	return(num);
 }
+
+int rx_ping(int fd)
+{
+	char *sender=strtok(NULL, " ");
+	char pong[8+strlen(username)+strlen(sender)];
+	sprintf(pong, "PONG %s %s", username, sender+1);
+	return(irc_tx(fd, pong));
+}
+
+int rx_mode(int fd, bool *join, int b)
+{
+	if(chan && !*join)
+	{
+		char joinmsg[8+strlen(chan)];
+		sprintf(joinmsg, "JOIN %s", chan);
+		irc_tx(fd, joinmsg);
+		char jmsg[16+strlen(chan)];
+		sprintf(jmsg, "auto-Joining %s", chan);
+		buf_print(b, c_join[0], jmsg, true);
+		*join=true;
+	}
+	return(0);
+}
+
+int rx_kill(int fd, int b, fd_set *master)
+{
+	char *dest=strtok(NULL, " \t"); // user to be killed
+	if(strcmp(dest, bufs[b].nick)==0) // if it's us, we disconnect from the server
+	{
+		close(fd);
+		FD_CLR(fd, master);
+		int b2;
+		for(b2=1;b2<nbufs;b2++)
+		{
+			while((b2<nbufs) && ((bufs[b2].server==b) || (bufs[b2].server==0)))
+			{
+				free_buffer(b2);
+				if(b2==cbuf)
+					cbuf=0;
+			}
+		}
+		redraw_buffer();
+	}
+	else // if it's not us, generate quit messages into the relevant channel tabs
+	{
+		int b2;
+		for(b2=1;b2<nbufs;b2++)
+		{
+			while((b2<nbufs) && ((bufs[b2].server==b) || (bufs[b2].server==0)))
+			{
+				if(n_cull(&bufs[b2].nlist, dest))
+				{
+					char kmsg[24+strlen(dest)+strlen(bufs[b].bname)];
+					sprintf(kmsg, "=%s= has left %s (killed)", dest, bufs[b].bname);
+					buf_print(b2, c_quit[1], kmsg, true);
+				}
+			}
+		}
+	}
+	return(0);
+}
