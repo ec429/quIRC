@@ -225,33 +225,15 @@ void in_update(char *inp)
 		setcolour(c);
 		putchar(brack[0]);
 		char *tab=strdup(bufs[b].bname);
-		if(strlen(tab)>mbw-3)
+		if(bufs[b].type==SERVER)
 		{
-			if(bufs[b].type==SERVER)
-			{
-				if(strlen(tab)>mbw+5)
-				{
-					char *ttb=(char *)malloc(strlen(tab));
-					sprintf(ttb, "%.*s", strlen(tab)-8, tab+4);
-					crush(&ttb, mbw-3);
-					printf("%s", ttb);
-					free(ttb);
-				}
-				else
-				{
-					printf("%.*s", strlen(tab)-8, tab+4);
-				}
-			}
-			else
-			{
-				crush(&tab, mbw-3);
-				printf("%s", tab);
-			}
+			scrush(&tab, mbw-3);
 		}
 		else
 		{
-			printf("%s", tab);
+			crush(&tab, mbw-3);
 		}
+		printf("%s", tab);
 		free(tab);
 		putchar(brack[1]);
 		resetcol();

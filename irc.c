@@ -187,11 +187,11 @@ int irc_numeric(char *cmd, int b) // TODO check the strtok()s for NULLs
 			if(!skip) skip=3;
 			char *motdline=strtok(NULL, "");
 			if(strlen(motdline)>=skip) motdline+=skip;
-			w_buf_print(b, c_notice[1], motdline, true, ": ");
+			w_buf_print(b, c_notice[1], motdline, true, "");
 		break;
 		case ERR_NOMOTD: // 422 <dest> :MOTD File is missing
 			rest=strtok(NULL, "");
-			w_buf_print(b, c_notice[1], rest+1, true, ": ");
+			w_buf_print(b, c_notice[1], rest+1, true, "");
 		break;
 		case RPL_TOPIC: // 332 dest <channel> :<topic>
 			ch=strtok(NULL, " "); // channel
@@ -416,7 +416,7 @@ int rx_notice(int b, char *packet)
 	if(bang)
 		*bang=0;
 	char *from=strdup(src);
-	crush(&from, maxnlen);
+	scrush(&from, maxnlen);
 	char tag[maxnlen+9];
 	memset(tag, ' ', maxnlen+8);
 	sprintf(tag+maxnlen-strlen(from), "(from %s) ", from);

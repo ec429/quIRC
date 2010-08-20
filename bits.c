@@ -138,11 +138,48 @@ void crush(char **buf, int len)
 {
 	if(strlen(*buf)>len)
 	{
-		int right=(len-1)/2;
-		int left=(len-1)-right;
+		char *b=*buf;
+		if(*b=='~') b++;
 		char *rv=(char *)malloc(len+1);
-		sprintf(rv, "%.*s~%s", left, *buf, (*buf)+strlen(*buf)-right);
+		if(strlen(b)>len)
+		{
+			int right=(len-1)/2;
+			int left=(len-1)-right;
+			sprintf(rv, "%.*s~%s", left, b, b+strlen(b)-right);
+		}
+		else
+		{
+			strcpy(rv, b);
+		}
 		free(*buf);
 		*buf=rv;
+	}
+}
+
+void scrush(char **buf, int len)
+{
+	if(strlen(*buf)>len)
+	{
+		if(strncmp(*buf, "irc.", 4)==0)
+		{
+			char *nb=(char *)malloc(strlen(*buf));
+			nb[0]='~';
+			strcpy(nb+1, (*buf)+4);
+			free(*buf);
+			scrush(&nb, len);
+			*buf=nb;
+		}
+		else
+		{
+			char *dot=strchr(*buf, '.');
+			char *n=dot;
+			while(n)
+			{
+				dot=n;
+				n=strchr(n+1, '.');
+			}
+			*dot=0;
+			crush(buf, len);
+		}
 	}
 }
