@@ -208,42 +208,7 @@ int main(int argc, char *argv[])
 										}
 										else if(strcmp(cmd, "NOTICE")==0)
 										{
-											char *dest=strtok(NULL, " ");
-											char *msg=dest+strlen(dest)+2; // prefixed with :
-											char *src=packet+1;
-											char *bang=strchr(src, '!');
-											if(bang)
-												*bang=0;
-											if(shli)
-											{
-												if(strcmp(src, shsrc)==0)
-												{
-													if((!shtext)||strcmp(msg, shtext))
-													{
-														shlp++;
-														shsrc=NULL;
-														if(shlp>=shli) // end reached, wipe it out
-														{
-															for(shlp=0;shlp<shli;shlp++)
-																free(shad[shlp]);
-															shli=0;
-														}
-													}
-												}
-											}
-											if(strlen(src)>maxnlen)
-											{
-												src[maxnlen-4]=src[maxnlen-3]=src[maxnlen-2]='.';
-												src[maxnlen-1]=src[strlen(src)-1];
-												src[maxnlen]=0;
-											}
-											char *out=(char *)malloc(16+max(maxnlen, strlen(src)));
-											memset(out, ' ', max(maxnlen-strlen(src), 0));
-											out[max(maxnlen-strlen(src), 0)]=0;
-											sprintf(out+strlen(out), "(from %s) ", src);
-											wordline(msg, 9+max(maxnlen, strlen(src)), &out);
-											buf_print(b, c_notice[1], out, true);
-											free(out);
+											rx_notice(b, packet);
 										}
 										else if(strcmp(cmd, "JOIN")==0)
 										{

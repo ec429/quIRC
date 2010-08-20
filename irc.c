@@ -407,6 +407,22 @@ int rx_privmsg(int b, char *packet, char *pdata)
 	return(0);
 }
 
+int rx_notice(int b, char *packet)
+{
+	char *dest=strtok(NULL, " ");
+	char *msg=dest+strlen(dest)+2; // prefixed with :
+	char *src=packet+1;
+	char *bang=strchr(src, '!');
+	if(bang)
+		*bang=0;
+	char *from=strdup(src);
+	crush(&from, maxnlen);
+	char tag[maxnlen+9];
+	memset(tag, ' ', maxnlen+8);
+	sprintf(tag+maxnlen-strlen(from), "(from %s) ", from);
+	return(w_buf_print(b, c_notice[1], msg, true, tag));
+}
+
 int ctcp(char *msg, char *from, char *src, int b2)
 {
 	int fd=bufs[bufs[b2].server].handle;
