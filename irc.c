@@ -175,7 +175,7 @@ int irc_numeric(char *cmd, int b) // TODO check the strtok()s for NULLs
 					bufs[b2].namreply=false;
 					char lmsg[32+strlen(ch)];
 					sprintf(lmsg, "NAMES list received for %s", ch);
-					buf_print(b2, c_status, lmsg, true);
+					w_buf_print(b2, c_status, lmsg, true, "");
 				}
 			}
 		break;
@@ -187,11 +187,11 @@ int irc_numeric(char *cmd, int b) // TODO check the strtok()s for NULLs
 			if(!skip) skip=3;
 			char *motdline=strtok(NULL, "");
 			if(strlen(motdline)>=skip) motdline+=skip;
-			buf_print(b, c_notice[1], motdline, true);
+			w_buf_print(b, c_notice[1], motdline, true, ": ");
 		break;
 		case ERR_NOMOTD: // 422 <dest> :MOTD File is missing
 			rest=strtok(NULL, "");
-			buf_print(b, c_notice[1], rest+1, true);
+			w_buf_print(b, c_notice[1], rest+1, true, ": ");
 		break;
 		case RPL_TOPIC: // 332 dest <channel> :<topic>
 			ch=strtok(NULL, " "); // channel
@@ -202,7 +202,7 @@ int irc_numeric(char *cmd, int b) // TODO check the strtok()s for NULLs
 				{
 					char tmsg[32+strlen(ch)+strlen(topic)];
 					sprintf(tmsg, "Topic for %s is %s", ch, topic);
-					buf_print(b2, c_notice[1], tmsg, true);
+					w_buf_print(b2, c_notice[1], tmsg, true, "");
 				}
 			}
 		break;
@@ -214,7 +214,7 @@ int irc_numeric(char *cmd, int b) // TODO check the strtok()s for NULLs
 				{
 					char tmsg[32+strlen(ch)];
 					sprintf(tmsg, "No topic is set for %s", ch);
-					buf_print(b2, c_notice[1], tmsg, true);
+					w_buf_print(b2, c_notice[1], tmsg, true, "");
 				}
 			}
 		break;
@@ -233,14 +233,14 @@ int irc_numeric(char *cmd, int b) // TODO check the strtok()s for NULLs
 					size_t tslen = strftime(ts, sizeof(ts), "%H:%M:%S GMT on %a, %d %b %Y", tm); // TODO options controlling date format (eg. ISO 8601)
 					char tmsg[32+strlen(nick)+tslen];
 					sprintf(tmsg, "Topic was set by %s at %s", nick, ts);
-					buf_print(b2, c_status, tmsg, true);
+					w_buf_print(b2, c_status, tmsg, true, "");
 				}
 			}
 		break;
 		case RPL_LUSERCLIENT: // 251 <dest> :There are <integer> users and <integer> invisible on <integer> servers"
 		case RPL_LUSERME: // 255 <dest> ":I have <integer> clients and <integer> servers
 			rest=strtok(NULL, "");
-			buf_print(b, c_status, rest+1, true);
+			w_buf_print(b, c_status, rest+1, true, ": ");
 		break;
 		case RPL_LUSEROP: // 252 <dest> <integer> :operator(s) online
 		case RPL_LUSERUNKNOWN: // 253 <dest> "<integer> :unknown connection(s)
@@ -250,19 +250,19 @@ int irc_numeric(char *cmd, int b) // TODO check the strtok()s for NULLs
 				rest=strtok(NULL, "");
 				char lmsg[2+strlen(count)+strlen(rest)];
 				sprintf(lmsg, "%s %s", count, rest+1);
-				buf_print(b, c_status, lmsg, true);
+				w_buf_print(b, c_status, lmsg, true, ": ");
 			}
 		break;
 		case RPL_X_LOCALUSERS: // 265 <dest> :Current Local Users: <integer>\tMax: <integer>
 		case RPL_X_GLOBALUSERS: // 266 <dest> :Current Global Users: <integer>\tMax: <integer>
 			rest=strtok(NULL, "");
-			buf_print(b, c_status, rest+1, true);
+			w_buf_print(b, c_status, rest+1, true, ": ");
 		break;
 		default:
 			rest=strtok(NULL, "");
 			char umsg[16+strlen(dest)+strlen(rest)];
 			sprintf(umsg, "<<%d? %s %s", num, dest, rest);
-			buf_print(b, c_unn, umsg, true);
+			w_buf_print(b, c_unn, umsg, true, "");
 		break;
 	}
 	return(num);
@@ -276,8 +276,9 @@ int rx_ping(int fd)
 	return(irc_tx(fd, pong));
 }
 
-int rx_mode(int fd, bool *join, int b)
+int rx_mode(bool *join, int b)
 {
+	int fd=bufs[b].handle;
 	if(chan && !*join)
 	{
 		char joinmsg[8+strlen(chan)];
@@ -285,7 +286,7 @@ int rx_mode(int fd, bool *join, int b)
 		irc_tx(fd, joinmsg);
 		char jmsg[16+strlen(chan)];
 		sprintf(jmsg, "auto-Joining %s", chan);
-		buf_print(b, c_join[0], jmsg, true);
+		w_buf_print(b, c_join[0], jmsg, true, "");
 		*join=true;
 	}
 	return(0);
@@ -322,7 +323,7 @@ int rx_kill(int b, fd_set *master)
 				{
 					char kmsg[24+strlen(dest)+strlen(bufs[b].bname)];
 					sprintf(kmsg, "=%s= has left %s (killed)", dest, bufs[b].bname);
-					buf_print(b2, c_quit[1], kmsg, true);
+					w_buf_print(b2, c_quit[1], kmsg, true, "");
 				}
 			}
 		}
@@ -372,7 +373,7 @@ int rx_privmsg(int b, char *packet, char *pdata)
 			}
 			else
 			{
-				char tag[maxnlen+4];
+				char tag[maxnlen+4]; // TODO this tag-making bit ought to be refactored really
 				memset(tag, ' ', maxnlen+3);
 				sprintf(tag+maxnlen-strlen(from), "<%s> ", from);
 				w_buf_print(b2, c_msg[1], msg, true, tag);

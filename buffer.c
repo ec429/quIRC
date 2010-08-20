@@ -93,13 +93,6 @@ int add_to_buffer(int buf, colour lc, char *lt)
 		free(ln);
 		lt=nl+1;
 	}
-	while(strlen(lt)>width) // should be prevented by wordline() usage; occasionally isn't
-	{
-		char *ln=strndup(lt, width);
-		add_to_buffer(buf, lc, ln);
-		free(ln);
-		lt+=width;
-	}
 	bufs[buf].lc[bufs[buf].ptr]=lc;
 	if(bufs[buf].filled) free(bufs[buf].lt[bufs[buf].ptr]);
 	bufs[buf].lt[bufs[buf].ptr]=strdup(lt);
@@ -185,6 +178,8 @@ int buf_print(int buf, colour lc, char *lt, bool nl)
 
 void in_update(char *inp)
 {
+	height=max(height, 5); // anything less than this is /silly/
+	width=max(width, 30); // widths less than 30 break things, and are /also silly/
 	resetcol();
 	printf(LOCATE, height-1, 1);
 	// tab strip
@@ -229,29 +224,35 @@ void in_update(char *inp)
 		}
 		setcolour(c);
 		putchar(brack[0]);
-		if(strlen(bufs[b].bname)>mbw-3)
+		char *tab=strdup(bufs[b].bname);
+		if(strlen(tab)>mbw-3)
 		{
-			int r=mbw/2;
 			if(bufs[b].type==SERVER)
 			{
-				if(strlen(bufs[b].bname)>mbw+5)
+				if(strlen(tab)>mbw+5)
 				{
-					printf("%.*s...%.*s", mbw-(r+3), bufs[b].bname+4, r-3, bufs[b].bname+strlen(bufs[b].bname)-(r+1));
+					char *ttb=(char *)malloc(strlen(tab));
+					sprintf(ttb, "%.*s", strlen(tab)-8, tab+4);
+					crush(&ttb, mbw-3);
+					printf("%s", ttb);
+					free(ttb);
 				}
 				else
 				{
-					printf("%.*s", strlen(bufs[b].bname)-8, bufs[b].bname+4);
+					printf("%.*s", strlen(tab)-8, tab+4);
 				}
 			}
 			else
 			{
-				printf("%.*s...%s", mbw-(r+3), bufs[b].bname, bufs[b].bname+strlen(bufs[b].bname)-(r-3));
+				crush(&tab, mbw-3);
+				printf("%s", tab);
 			}
 		}
 		else
 		{
-			printf("%s", bufs[b].bname);
+			printf("%s", tab);
 		}
+		free(tab);
 		putchar(brack[1]);
 		resetcol();
 	}

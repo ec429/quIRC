@@ -213,7 +213,15 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					{
 						width=80;
 					}
-					buf_print(cbuf, c_status, "width set", false);
+					if(width<30)
+					{
+						buf_print(cbuf, c_status, "width set to minimum 30", false);
+						width=30;
+					}
+					else
+					{
+						buf_print(cbuf, c_status, "width set", false);
+					}
 					if(force_redraw<3)
 					{
 						redraw_buffer();
@@ -229,7 +237,15 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					{
 						height=24;
 					}
-					buf_print(cbuf, c_status, "height set", false);
+					if(height<5)
+					{
+						buf_print(cbuf, c_status, "height set to minimum 5", false);
+						height=5;
+					}
+					else
+					{
+						buf_print(cbuf, c_status, "height set", false);
+					}
 					if(force_redraw<3)
 					{
 						redraw_buffer();
@@ -249,7 +265,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					{
 						char fmsg[36];
 						sprintf(fmsg, "force-redraw level %u enabled", force_redraw);
-						buf_print(cbuf, c_status, fmsg, false);
+						w_buf_print(cbuf, c_status, fmsg, false, "");
 						redraw_buffer();
 					}
 					else
@@ -351,7 +367,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 				bufs[cbuf].handle=serverhandle;
 				bufs[cbuf].nick=strdup(nick);
 				bufs[cbuf].server=cbuf;
-				add_to_buffer(cbuf, c_status, dstr);
+				w_buf_print(cbuf, c_status, dstr, false, "");
 				sprintf(cstr, "quIRC - connected to %s", server);
 				settitle(cstr);
 			}
@@ -394,7 +410,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 	{
 		if(!bufs[cbuf].handle)
 		{
-			buf_print(cbuf, c_err, "/join: must be run in the context of a server!", false);
+			w_buf_print(cbuf, c_err, "/join: must be run in the context of a server!", false, "");
 		}
 		else if(args)
 		{
@@ -420,7 +436,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 	{
 		if(bufs[cbuf].type!=CHANNEL)
 		{
-			buf_print(cbuf, c_err, "/part: This view is not a channel!", false);
+			w_buf_print(cbuf, c_err, "/part: This view is not a channel!", false, "");
 		}
 		else
 		{
@@ -460,7 +476,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 	{
 		if(!bufs[cbuf].handle)
 		{
-			buf_print(cbuf, c_err, "/msg: must be run in the context of a server!", false);
+			w_buf_print(cbuf, c_err, "/msg: must be run in the context of a server!", false, "");
 		}
 		else if(args)
 		{
@@ -483,12 +499,12 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 			}
 			else
 			{
-				buf_print(cbuf, c_err, "/msg: must specify a message!", false);
+				w_buf_print(cbuf, c_err, "/msg: must specify a message!", false, "");
 			}
 		}
 		else
 		{
-				buf_print(cbuf, c_err, "/msg: must specify a recipient!", false);
+				w_buf_print(cbuf, c_err, "/msg: must specify a recipient!", false, "");
 		}
 		return(0);
 	}
@@ -496,7 +512,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 	{
 		if(bufs[cbuf].type!=CHANNEL) // TODO add PRIVATE
 		{
-			buf_print(cbuf, c_err, "/me: this view is not a channel!", false);
+			w_buf_print(cbuf, c_err, "/me: this view is not a channel!", false, "");
 		}
 		else if(args)
 		{
@@ -515,7 +531,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		}
 		else
 		{
-			buf_print(cbuf, c_err, "/me: must specify an action!", false);
+			w_buf_print(cbuf, c_err, "/me: must specify an action!", false, "");
 		}
 		return(0);
 	}
@@ -523,7 +539,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 	{
 		if(!bufs[cbuf].handle)
 		{
-			buf_print(cbuf, c_err, "/cmd: must be run in the context of a server!", false);
+			w_buf_print(cbuf, c_err, "/cmd: must be run in the context of a server!", false, "");
 		}
 		else
 		{
@@ -536,7 +552,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		if(!cmd) cmd="";
 		char dstr[30+strlen(cmd)];
 		sprintf(dstr, "%s: Unrecognised command!", cmd);
-		buf_print(cbuf, c_err, dstr, false);
+		w_buf_print(cbuf, c_err, dstr, false, "");
 		return(0);
 	}
 }

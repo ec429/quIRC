@@ -192,7 +192,7 @@ int main(int argc, char *argv[])
 										}
 										else if(strcmp(cmd, "MODE")==0)
 										{
-											rx_mode(fd, &join, b);
+											rx_mode(&join, b);
 										}
 										else if(strcmp(cmd, "KILL")==0)
 										{

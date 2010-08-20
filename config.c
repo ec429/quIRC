@@ -18,6 +18,16 @@ int def_config(void)
 	if(rows) sscanf(rows, "%u", &height);
 	if(!width) width=80;
 	if(!height) height=24;
+	if(width<30)
+	{
+		width=30;
+		printf("width set to minimum 30\n");
+	}
+	if(height<5)
+	{
+		height=5;
+		printf("height set to minimum 5\n");
+	}
 	maxnlen=16;
 	server=NULL;
 	portno="6667";
@@ -163,10 +173,20 @@ signed int pargs(int argc, char *argv[])
 		else if(strncmp(argv[arg], "--width=", 8)==0) // just in case you need to force them
 		{
 			sscanf(argv[arg]+8, "%u", &width);
+			if(width<30)
+			{
+				width=30;
+				printf("width set to minimum 30\n");
+			}
 		}
 		else if(strncmp(argv[arg], "--height=", 9)==0)
 		{
 			sscanf(argv[arg]+9, "%u", &height);
+			if(height<5)
+			{
+				height=5;
+				printf("height set to minimum 5\n");
+			}
 		}
 		else if(strncmp(argv[arg], "--maxnicklen=", 13)==0)
 		{

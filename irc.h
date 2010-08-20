@@ -33,7 +33,7 @@ int irc_rx(int fd, char ** data);
 // Received-IRC message handlers.  strtok() state leaks across the boundaries of these functions, beware!
 int irc_numeric(char *cmd, int b);
 int rx_ping(int fd);
-int rx_mode(int fd, bool *join, int b); // the first MODE triggers auto-join.  Apart from using it as a trigger, we don't look at modes just yet
+int rx_mode(bool *join, int b); // the first MODE triggers auto-join.  Apart from using it as a trigger, we don't look at modes just yet
 int rx_kill(int b, fd_set *master);
 int rx_error(int b, fd_set *master);
 int rx_privmsg(int b, char *packet, char *pdata);
