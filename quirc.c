@@ -269,17 +269,14 @@ int main(int argc, char *argv[])
 						irc_tx(bufs[cbuf].handle, pmsg);
 						while(inp[strlen(inp)-1]=='\n')
 							inp[strlen(inp)-1]=0; // stomp out trailing newlines, they break things
-						char *out=(char *)malloc(3+max(maxnlen, strlen(bufs[bufs[cbuf].server].nick)));
-						memset(out, ' ', max(maxnlen-strlen(bufs[bufs[cbuf].server].nick), 0));
-						out[max(maxnlen-strlen(bufs[bufs[cbuf].server].nick), 0)]=0;
-						sprintf(out+strlen(out), "<%s> ", bufs[bufs[cbuf].server].nick);
-						wordline(inp, 3+max(maxnlen, strlen(bufs[bufs[cbuf].server].nick)), &out);
-						buf_print(cbuf, c_msg[0], out, false);
-						free(out);
+						char tag[maxnlen+4];
+						memset(tag, ' ', maxnlen+3);
+						sprintf(tag+maxnlen-strlen(bufs[bufs[cbuf].server].nick), "<%s> ", bufs[bufs[cbuf].server].nick);
+						w_buf_print(cbuf, c_msg[0], inp, true, tag);
 					}
 					else
 					{
-						buf_print(cbuf, c_err, "Can't talk - view is not a channel!", false);
+						w_buf_print(cbuf, c_err, "Can't talk - view is not a channel!", false, "");
 					}
 					free(inp);inp=NULL;
 					state=0;
