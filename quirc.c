@@ -34,7 +34,6 @@ int main(int argc, char *argv[])
 	resetcol();
 	char *qmsg=fname;
 	char *rcfile=".quirc";
-	char *rcshad=".quirc-shadow";
 	char *home=getenv("HOME");
 	if(home) chdir(home);
 	bool join=false;
@@ -44,19 +43,6 @@ int main(int argc, char *argv[])
 		rcread(rcfp);
 		fclose(rcfp);
 	}
-	FILE *rcsfp=fopen(rcshad, "r"); // this is the shadow file, which will be replaced by proper qu-script later
-	int shli=0;
-	char **shad=NULL;
-	if(rcsfp)
-	{
-		while(!feof(rcsfp))
-		{
-			shad=(char **)realloc(shad, ++shli*sizeof(char *));
-			shad[shli-1]=fgetl(rcsfp);
-		}
-		fclose(rcsfp);
-	}
-	int shlp=0;
 	
 	signed int e=pargs(argc, argv);
 	if(e>=0)
@@ -99,39 +85,11 @@ int main(int argc, char *argv[])
 	in_update("");
 	struct timeval timeout;
 	char *inp=NULL;
-	char *shsrc=NULL;char *shtext=NULL;
 	int state=0; // odd-numbered states are fatal
 	while(!(state%2))
 	{
 		timeout.tv_sec=0;
 		timeout.tv_usec=250000;
-		if(shli && !shsrc) // TODO: proper scripting capability with regex-match on the << (expectation) lines and attachment to a buffer
-		{
-			shread:
-			if(strncmp(shad[shlp], ">>", 2)==0)
-			{
-				irc_tx(bufs[1].handle, shad[shlp]+3); // because of how auto-ident works, this should always be on buffer 1 (the first server)
-			}
-			if(strncmp(shad[shlp], "<<", 2)==0) // read
-			{
-				shsrc=strtok(shad[shlp]+3, " \n");
-				shtext=strtok(NULL, " \n");
-				if(strcmp(shtext, "*")==0)
-					shtext=NULL;
-			}
-			else
-			{
-				shlp++;
-				if(shlp>=shli) // end reached, wipe it out
-				{
-					for(shlp=0;shlp<shli;shlp++)
-						free(shad[shlp]);
-					shli=0;
-				}
-				else
-					goto shread;
-			}
-		}
 		
 		fflush(stdin);
 		readfds=master;
