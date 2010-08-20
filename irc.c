@@ -359,7 +359,7 @@ int rx_privmsg(int b, char *packet, char *pdata)
 	if(bang)
 		*bang=0;
 	char *from=strdup(src);
-	src=crush(src, maxnlen);
+	crush(&src, maxnlen);
 	int b2;
 	bool match=false;
 	for(b2=0;b2<nbufs;b2++)
