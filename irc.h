@@ -37,3 +37,5 @@ int rx_mode(int fd, bool *join, int b); // the first MODE triggers auto-join.  A
 int rx_kill(int b, fd_set *master);
 int rx_error(int b, fd_set *master);
 int rx_privmsg(int b, char *packet, char *pdata);
+
+int ctcp(char *msg, char *from, char *src, int b2); // Handle CTCP (Client-To-Client Protocol) messages (from is crushed-src)

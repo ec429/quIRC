@@ -351,7 +351,6 @@ int rx_error(int b, fd_set *master)
 
 int rx_privmsg(int b, char *packet, char *pdata)
 {
-	int fd=bufs[b].handle;
 	char *dest=strtok(NULL, " \t");
 	char *msg=dest+strlen(dest)+2; // prefixed with :
 	char *src=packet+1;
@@ -367,32 +366,9 @@ int rx_privmsg(int b, char *packet, char *pdata)
 		if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (strcasecmp(dest, bufs[b2].bname)==0))
 		{
 			match=true;
-			if(*msg==1) // CTCP (TODO: show message for unrecognised CTCP cmds)
+			if(*msg==1) // CTCP
 			{
-				if(strncmp(msg, "\001ACTION ", 8)==0)
-				{
-					msg[strlen(msg)-1]=0; // remove trailing \001
-					char *out=(char *)malloc(5+max(maxnlen, strlen(from)));
-					memset(out, ' ', 2+max(maxnlen-strlen(from), 0));
-					out[2+max(maxnlen-strlen(from), 0)]=0;
-					strcat(out, from);
-					strcat(out, " ");
-					wordline(msg+8, 3+max(maxnlen, strlen(from)), &out);
-					buf_print(b2, c_actn[1], out, true);
-					free(out);
-				}
-				else if(strncmp(msg, "\001FINGER", 7)==0)
-				{
-					char resp[32+strlen(src)+strlen(fname)];
-					sprintf(resp, "NOTICE %s \001FINGER :%s\001", src, fname);
-					irc_tx(fd, resp);
-				}
-				else if(strncmp(msg, "\001VERSION", 8)==0)
-				{
-					char resp[32+strlen(src)+strlen(version)];
-					sprintf(resp, "NOTICE %s \001VERSION %s:%s:%s\001", src, "quIRC", version, CC_VERSION);
-					irc_tx(fd, resp);
-				}
+				ctcp(msg, from, src, b2);
 			}
 			else
 			{
@@ -406,36 +382,13 @@ int rx_privmsg(int b, char *packet, char *pdata)
 			}
 		}
 	}
-	if(!match) // TODO try matching dest to nick; if that fails print ?? followed by the pdata
+	if(!match)
 	{
 		if(strcasecmp(dest, bufs[b].nick)==0)
 		{
 			if(*msg==1) // CTCP
 			{
-				if(strncmp(msg, "\001ACTION ", 8)==0)
-				{
-					msg[strlen(msg)-1]=0; // remove trailing \001
-					char *out=(char *)malloc(5+max(maxnlen, strlen(from)));
-					memset(out, ' ', 2+max(maxnlen-strlen(from), 0));
-					out[2+max(maxnlen-strlen(from), 0)]=0;
-					strcat(out, from);
-					strcat(out, " ");
-					wordline(msg+8, 3+max(maxnlen, strlen(from)), &out);
-					buf_print(b, c_actn[1], out, true);
-					free(out);
-				}
-				else if(strncmp(msg, "\001FINGER", 7)==0)
-				{
-					char resp[32+strlen(src)+strlen(fname)];
-					sprintf(resp, "NOTICE %s \001FINGER :%s\001", src, fname);
-					irc_tx(fd, resp);
-				}
-				else if(strncmp(msg, "\001VERSION", 8)==0)
-				{
-					char resp[32+strlen(src)+strlen(version)];
-					sprintf(resp, "NOTICE %s \001VERSION %s:%s:%s\001", src, "quIRC", version, CC_VERSION);
-					irc_tx(fd, resp);
-				}
+				ctcp(msg, from, src, b);
 			}
 			else
 			{
@@ -456,5 +409,36 @@ int rx_privmsg(int b, char *packet, char *pdata)
 		}
 	}
 	free(from);
+	return(0);
+}
+
+int ctcp(char *msg, char *from, char *src, int b2)
+{
+	// TODO: show message for unrecognised CTCP cmds
+	int fd=bufs[bufs[b2].server].handle;
+	if(strncmp(msg, "\001ACTION ", 8)==0)
+	{
+		msg[strlen(msg)-1]=0; // remove trailing \001
+		char *out=(char *)malloc(5+max(maxnlen, strlen(from)));
+		memset(out, ' ', 2+max(maxnlen-strlen(from), 0));
+		out[2+max(maxnlen-strlen(from), 0)]=0;
+		strcat(out, from);
+		strcat(out, " ");
+		wordline(msg+8, 3+max(maxnlen, strlen(from)), &out);
+		buf_print(b2, c_actn[1], out, true);
+		free(out);
+	}
+	else if(strncmp(msg, "\001FINGER", 7)==0)
+	{
+		char resp[32+strlen(src)+strlen(fname)];
+		sprintf(resp, "NOTICE %s \001FINGER :%s\001", src, fname);
+		irc_tx(fd, resp);
+	}
+	else if(strncmp(msg, "\001VERSION", 8)==0)
+	{
+		char resp[32+strlen(src)+strlen(version)+strlen(CC_VERSION)];
+		sprintf(resp, "NOTICE %s \001VERSION %s:%s:%s\001", src, "quIRC", version, CC_VERSION);
+		irc_tx(fd, resp);
+	}
 	return(0);
 }
