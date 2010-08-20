@@ -220,90 +220,11 @@ int main(int argc, char *argv[])
 										}
 										else if(strcmp(cmd, "QUIT")==0)
 										{
-											char *dest=strtok(NULL, "");
-											char *src=packet+1;
-											char *bang=strchr(src, '!');
-											if(bang)
-												*bang=0;
-											setcolour(c_quit[1]);
-											if(strcmp(src, bufs[b].nick)==0) // this shouldn't happen???
-											{
-												int b2;
-												for(b2=0;b2<nbufs;b2++)
-												{
-													if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL))
-													{
-														char dstr[24+strlen(src)+strlen(bufs[b].bname)+strlen(dest+1)];
-														sprintf(dstr, "You (%s) have left %s (%s)", src, bufs[b].bname, dest+1);
-														buf_print(b2, c_quit[1], dstr, true);
-													}
-												}
-											}
-											else
-											{
-												int b2;
-												for(b2=0;b2<nbufs;b2++)
-												{
-													if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL))
-													{
-														if(n_cull(&bufs[b2].nlist, src))
-														{
-															char dstr[24+strlen(src)+strlen(bufs[b].bname)+strlen(dest+1)];
-															sprintf(dstr, "=%s= has left %s (%s)", src, bufs[b].bname, dest+1);
-															buf_print(b2, c_quit[1], dstr, true);
-														}
-													}
-												}
-											}
+											rx_quit(b, packet, pdata);
 										}
 										else if(strcmp(cmd, "NICK")==0)
 										{
-											char *dest=strtok(NULL, " \t");
-											char *src=packet+1;
-											char *bang=strchr(src, '!');
-											if(bang)
-												*bang=0;
-											setcolour(c_nick[1]);
-											if(strcmp(dest+1, bufs[b].nick)==0)
-											{
-												char dstr[30+strlen(src)+strlen(dest+1)];
-												sprintf(dstr, "You (%s) are now known as %s", src, dest+1);
-												int b2;
-												for(b2=0;b2<nbufs;b2++)
-												{
-													if(bufs[b2].server==b)
-													{
-														buf_print(b2, c_nick[1], dstr, true);
-														n_cull(&bufs[b2].nlist, src);
-														n_add(&bufs[b2].nlist, dest+1);
-													}
-												}
-											}
-											else
-											{
-												int b2;
-												bool match=false;
-												for(b2=0;b2<nbufs;b2++)
-												{
-													if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL))
-													{
-														match=true;
-														if(n_cull(&bufs[b2].nlist, src))
-														{
-															n_add(&bufs[b2].nlist, dest+1);
-															char dstr[30+strlen(src)+strlen(dest+1)];
-															sprintf(dstr, "=%s= is now known as %s", src, dest+1);
-															buf_print(b2, c_nick[1], dstr, true);
-														}
-													}
-												}
-												if(!match)
-												{
-													char dstr[4+strlen(pdata)];
-													sprintf(dstr, "?? %s", pdata);
-													buf_print(b, c_err, dstr, true);
-												}
-											}
+											rx_nick(b, packet, pdata);
 										}
 										else
 										{

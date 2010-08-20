@@ -40,5 +40,7 @@ int rx_privmsg(int b, char *packet, char *pdata);
 int rx_notice(int b, char *packet);
 int rx_join(int b, char *packet, char *pdata, bool *join);
 int rx_part(int b, char *packet, char *pdata);
+int rx_quit(int b, char *packet, char *pdata);
+int rx_nick(int b, char *packet, char *pdata);
 
 int ctcp(char *msg, char *from, char *src, int b2); // Handle CTCP (Client-To-Client Protocol) messages (from is crushed-src)
