@@ -156,7 +156,7 @@ int main(int argc, char *argv[])
 						int b;
 						for(b=0;b<nbufs;b++)
 						{
-							if(fd==bufs[b].handle)
+							if((fd==bufs[b].handle) && (bufs[b].type==SERVER))
 							{
 								char *packet;
 								int e;
@@ -228,9 +228,7 @@ int main(int argc, char *argv[])
 										}
 										else
 										{
-											char dstr[5+strlen(pdata)];
-											sprintf(dstr, "<? %s", pdata);
-											buf_print(b, c_unk, dstr, true);
+											w_buf_print(b, c_unk, pdata, true, "<? ");
 										}
 									}
 									free(pdata);
