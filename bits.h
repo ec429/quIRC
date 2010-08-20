@@ -22,3 +22,4 @@
 char * fgetl(FILE *); // gets a line of string data; returns a malloc-like pointer (preserves trailing \n)
 int wordline(char *, int x, char **); // prepares a string for printing, breaking lines in between words
 void crush(char **buf, int len);
+void scrush(char **buf, int len);

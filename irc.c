@@ -398,9 +398,7 @@ int rx_privmsg(int b, char *packet, char *pdata)
 		}
 		else
 		{
-			char dstr[4+strlen(pdata)];
-			sprintf(dstr, "?? %s", pdata);
-			buf_print(b, c_err, dstr, true);
+			w_buf_print(b, c_err, pdata, true, "?? ");
 		}
 	}
 	free(from);

@@ -94,7 +94,7 @@ int main(int argc, char *argv[])
 	}
 	if(!serverhandle)
 	{
-		buf_print(0, c_status, "Not connected - use /server to connect", true);
+		w_buf_print(0, c_status, "Not connected - use /server to connect", true, "");
 	}
 	in_update("");
 	struct timeval timeout;
@@ -166,7 +166,7 @@ int main(int argc, char *argv[])
 									sprintf(emsg, "error: irc_rx(%d, &%p): %d", fd, packet, e);
 									cbuf=0;
 									redraw_buffer();
-									buf_print(0, c_err, emsg, true);
+									w_buf_print(0, c_err, emsg, true, "");
 									state=5;
 									qmsg="client crashed";
 								}
