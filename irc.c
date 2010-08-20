@@ -291,8 +291,9 @@ int rx_mode(int fd, bool *join, int b)
 	return(0);
 }
 
-int rx_kill(int fd, int b, fd_set *master)
+int rx_kill(int b, fd_set *master)
 {
+	int fd=bufs[b].handle;
 	char *dest=strtok(NULL, " \t"); // user to be killed
 	if(strcmp(dest, bufs[b].nick)==0) // if it's us, we disconnect from the server
 	{
@@ -326,5 +327,134 @@ int rx_kill(int fd, int b, fd_set *master)
 			}
 		}
 	}
+	return(0);
+}
+
+int rx_error(int b, fd_set *master)
+{
+	// assume it's fatal
+	int fd=bufs[b].handle;
+	close(fd);
+	FD_CLR(fd, master);
+	int b2;
+	for(b2=1;b2<nbufs;b2++)
+	{
+		while((b2<nbufs) && ((bufs[b2].server==b) || (bufs[b2].server==0)))
+		{
+			free_buffer(b2);
+			if(b2==cbuf)
+				cbuf=0;
+		}
+	}
+	return(redraw_buffer());
+}
+
+int rx_privmsg(int b, char *packet, char *pdata)
+{
+	int fd=bufs[b].handle;
+	char *dest=strtok(NULL, " \t");
+	char *msg=dest+strlen(dest)+2; // prefixed with :
+	char *src=packet+1;
+	char *bang=strchr(src, '!');
+	if(bang)
+		*bang=0;
+	char *from=strdup(src);
+	src=crush(src, maxnlen);
+	int b2;
+	bool match=false;
+	for(b2=0;b2<nbufs;b2++)
+	{
+		if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (strcasecmp(dest, bufs[b2].bname)==0))
+		{
+			match=true;
+			if(*msg==1) // CTCP (TODO: show message for unrecognised CTCP cmds)
+			{
+				if(strncmp(msg, "\001ACTION ", 8)==0)
+				{
+					msg[strlen(msg)-1]=0; // remove trailing \001
+					char *out=(char *)malloc(5+max(maxnlen, strlen(src)));
+					memset(out, ' ', 2+max(maxnlen-strlen(src), 0));
+					out[2+max(maxnlen-strlen(src), 0)]=0;
+					strcat(out, src);
+					strcat(out, " ");
+					wordline(msg+8, 3+max(maxnlen, strlen(src)), &out);
+					buf_print(b2, c_actn[1], out, true);
+					free(out);
+				}
+				else if(strncmp(msg, "\001FINGER", 7)==0)
+				{
+					char resp[32+strlen(from)+strlen(fname)];
+					sprintf(resp, "NOTICE %s \001FINGER :%s\001", from, fname);
+					irc_tx(fd, resp);
+				}
+				else if(strncmp(msg, "\001VERSION", 8)==0)
+				{
+					char resp[32+strlen(from)+strlen(version)];
+					sprintf(resp, "NOTICE %s \001VERSION %s:%s:%s\001", from, "quIRC", version, CC_VERSION);
+					irc_tx(fd, resp);
+				}
+			}
+			else
+			{
+				char *out=(char *)malloc(5+max(maxnlen, strlen(src)));
+				memset(out, ' ', max(maxnlen-strlen(src), 0));
+				out[max(maxnlen-strlen(src), 0)]=0;
+				sprintf(out+strlen(out), "<%s> ", src);
+				wordline(msg, 3+max(maxnlen, strlen(src)), &out);
+				buf_print(b2, c_msg[1], out, true);
+				free(out);
+			}
+		}
+	}
+	if(!match) // TODO try matching dest to nick; if that fails print ?? followed by the pdata
+	{
+		if(strcasecmp(dest, bufs[b].nick)==0)
+		{
+			if(*msg==1) // CTCP
+			{
+				if(strncmp(msg, "\001ACTION ", 8)==0)
+				{
+					msg[strlen(msg)-1]=0; // remove trailing \001
+					char *out=(char *)malloc(5+max(maxnlen, strlen(src)));
+					memset(out, ' ', 2+max(maxnlen-strlen(src), 0));
+					out[2+max(maxnlen-strlen(src), 0)]=0;
+					strcat(out, src);
+					strcat(out, " ");
+					wordline(msg+8, 3+max(maxnlen, strlen(src)), &out);
+					buf_print(b, c_actn[1], out, true);
+					free(out);
+				}
+				else if(strncmp(msg, "\001FINGER", 7)==0)
+				{
+					char resp[32+strlen(from)+strlen(fname)];
+					sprintf(resp, "NOTICE %s \001FINGER :%s\001", from, fname);
+					irc_tx(fd, resp);
+				}
+				else if(strncmp(msg, "\001VERSION", 8)==0)
+				{
+					char resp[32+strlen(from)+strlen(version)];
+					sprintf(resp, "NOTICE %s \001VERSION %s:%s:%s\001", from, "quIRC", version, CC_VERSION);
+					irc_tx(fd, resp);
+				}
+			}
+			else
+			{
+				char *out=(char *)malloc(16+max(maxnlen, strlen(src)));
+				memset(out, ' ', max(maxnlen-strlen(src), 0));
+				out[max(maxnlen-strlen(src), 0)]=0;
+				sprintf(out+strlen(out), "(from %s) ", src);
+				wordline(msg, 9+max(maxnlen, strlen(src)), &out);
+				buf_print(b, c_msg[1], out, true);
+				free(out);
+			}
+		}
+		else
+		{
+			char dstr[4+strlen(pdata)];
+			sprintf(dstr, "?? %s", pdata);
+			buf_print(b, c_err, dstr, true);
+		}
+	}
+	free(from);
 	return(0);
 }

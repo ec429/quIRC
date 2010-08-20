@@ -133,3 +133,14 @@ int wordline(char *msg, int x, char **out)
 	}
 	return(x);
 }
+
+char *crush(char *buf, int len)
+{
+	if(strlen(buf)>len)
+	{
+		buf[len-4]=buf[len-3]=buf[len-2]='.';
+		buf[len-1]=buf[strlen(buf)-1];
+		buf[len]=0;
+	}
+	return(buf);
+}

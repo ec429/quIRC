@@ -34,4 +34,6 @@ int irc_rx(int fd, char ** data);
 int irc_numeric(char *cmd, int b);
 int rx_ping(int fd);
 int rx_mode(int fd, bool *join, int b); // the first MODE triggers auto-join.  Apart from using it as a trigger, we don't look at modes just yet
-int rx_kill(int fd, int b, fd_set *master);
+int rx_kill(int b, fd_set *master);
+int rx_error(int b, fd_set *master);
+int rx_privmsg(int b, char *packet, char *pdata);

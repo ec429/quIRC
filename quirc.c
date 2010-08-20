@@ -196,135 +196,15 @@ int main(int argc, char *argv[])
 										}
 										else if(strcmp(cmd, "KILL")==0)
 										{
-											rx_kill(fd, b, &master);
+											rx_kill(b, &master);
 										}
-										else if(strcmp(cmd, "ERROR")==0) // assume it's fatal
+										else if(strcmp(cmd, "ERROR")==0)
 										{
-											close(fd);
-											FD_CLR(fd, &master);
-											int b2;
-											for(b2=1;b2<nbufs;b2++)
-											{
-												while((b2<nbufs) && ((bufs[b2].server==b) || (bufs[b2].server==0)))
-												{
-													free_buffer(b2);
-													if(b2==cbuf)
-														cbuf=0;
-												}
-											}
-											redraw_buffer();
+											rx_error(b, &master);
 										}
 										else if(strcmp(cmd, "PRIVMSG")==0)
 										{
-											char *dest=strtok(NULL, " \t");
-											char *msg=dest+strlen(dest)+2; // prefixed with :
-											char *src=packet+1;
-											char *bang=strchr(src, '!');
-											if(bang)
-												*bang=0;
-											char *from=strdup(src);
-											if(strlen(src)>maxnlen)
-											{
-												src[maxnlen-4]=src[maxnlen-3]=src[maxnlen-2]='.';
-												src[maxnlen-1]=src[strlen(src)-1];
-												src[maxnlen]=0;
-											}
-											int b2;
-											bool match=false;
-											for(b2=0;b2<nbufs;b2++)
-											{
-												if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (strcasecmp(dest, bufs[b2].bname)==0))
-												{
-													match=true;
-													if(*msg==1) // CTCP (TODO: show message for unrecognised CTCP cmds)
-													{
-														if(strncmp(msg, "\001ACTION ", 8)==0)
-														{
-															msg[strlen(msg)-1]=0; // remove trailing \001
-															char *out=(char *)malloc(5+max(maxnlen, strlen(src)));
-															memset(out, ' ', 2+max(maxnlen-strlen(src), 0));
-															out[2+max(maxnlen-strlen(src), 0)]=0;
-															strcat(out, src);
-															strcat(out, " ");
-															wordline(msg+8, 3+max(maxnlen, strlen(src)), &out);
-															buf_print(b2, c_actn[1], out, true);
-															free(out);
-														}
-														else if(strncmp(msg, "\001FINGER", 7)==0)
-														{
-															char resp[32+strlen(from)+strlen(fname)];
-															sprintf(resp, "NOTICE %s \001FINGER :%s\001", from, fname);
-															irc_tx(fd, resp);
-														}
-														else if(strncmp(msg, "\001VERSION", 8)==0)
-														{
-															char resp[32+strlen(from)+strlen(version)];
-															sprintf(resp, "NOTICE %s \001VERSION %s:%s:%s\001", from, "quIRC", version, CC_VERSION);
-															irc_tx(fd, resp);
-														}
-													}
-													else
-													{
-														char *out=(char *)malloc(5+max(maxnlen, strlen(src)));
-														memset(out, ' ', max(maxnlen-strlen(src), 0));
-														out[max(maxnlen-strlen(src), 0)]=0;
-														sprintf(out+strlen(out), "<%s> ", src);
-														wordline(msg, 3+max(maxnlen, strlen(src)), &out);
-														buf_print(b2, c_msg[1], out, true);
-														free(out);
-													}
-												}
-											}
-											if(!match) // TODO try matching dest to nick; if that fails print ?? followed by the pdata
-											{
-												if(strcasecmp(dest, bufs[b].nick)==0)
-												{
-													if(*msg==1) // CTCP
-													{
-														if(strncmp(msg, "\001ACTION ", 8)==0)
-														{
-															msg[strlen(msg)-1]=0; // remove trailing \001
-															char *out=(char *)malloc(5+max(maxnlen, strlen(src)));
-															memset(out, ' ', 2+max(maxnlen-strlen(src), 0));
-															out[2+max(maxnlen-strlen(src), 0)]=0;
-															strcat(out, src);
-															strcat(out, " ");
-															wordline(msg+8, 3+max(maxnlen, strlen(src)), &out);
-															buf_print(b, c_actn[1], out, true);
-															free(out);
-														}
-														else if(strncmp(msg, "\001FINGER", 7)==0)
-														{
-															char resp[32+strlen(from)+strlen(fname)];
-															sprintf(resp, "NOTICE %s \001FINGER :%s\001", from, fname);
-															irc_tx(fd, resp);
-														}
-														else if(strncmp(msg, "\001VERSION", 8)==0)
-														{
-															char resp[32+strlen(from)+strlen(version)];
-															sprintf(resp, "NOTICE %s \001VERSION %s:%s:%s\001", from, "quIRC", version, CC_VERSION);
-															irc_tx(fd, resp);
-														}
-													}
-													else
-													{
-														char *out=(char *)malloc(16+max(maxnlen, strlen(src)));
-														memset(out, ' ', max(maxnlen-strlen(src), 0));
-														out[max(maxnlen-strlen(src), 0)]=0;
-														sprintf(out+strlen(out), "(from %s) ", src);
-														wordline(msg, 9+max(maxnlen, strlen(src)), &out);
-														buf_print(b, c_msg[1], out, true);
-														free(out);
-													}
-												}
-												else
-												{
-													char dstr[4+strlen(pdata)];
-													sprintf(dstr, "?? %s", pdata);
-													buf_print(b, c_err, dstr, true);
-												}
-											}
-											free(from);
+											rx_privmsg(b, packet, pdata);
 										}
 										else if(strcmp(cmd, "NOTICE")==0)
 										{
