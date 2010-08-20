@@ -372,7 +372,7 @@ int rx_privmsg(int b, char *packet, char *pdata)
 			}
 			else
 			{
-				char *out=(char *)malloc(5+max(maxnlen, strlen(from)));
+				char *out=(char *)malloc(5+max(maxnlen, strlen(from))); // TODO clean up and generalise this code.  It's far too oft-repeated
 				memset(out, ' ', max(maxnlen-strlen(from), 0));
 				out[max(maxnlen-strlen(from), 0)]=0;
 				sprintf(out+strlen(out), "<%s> ", from);

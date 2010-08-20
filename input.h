@@ -15,5 +15,7 @@
 #include "ttyesc.h"
 #include "names.h"
 #include "buffer.h"
+#include "irc.h"
 
 int inputchar(char **inp, int *state);
+int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax);
