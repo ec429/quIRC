@@ -212,98 +212,11 @@ int main(int argc, char *argv[])
 										}
 										else if(strcmp(cmd, "JOIN")==0)
 										{
-											char *dest=strtok(NULL, " \t");
-											char *src=packet+1;
-											char *bang=strchr(src, '!');
-											if(bang)
-												*bang=0;
-											if(strcmp(src, bufs[b].nick)==0)
-											{
-												char dstr[20+strlen(src)+strlen(dest+1)];
-												sprintf(dstr, "You (%s) have joined %s", src, dest+1);
-												chan=strdup(dest+1);
-												join=true;
-												char cstr[16+strlen(src)+strlen(bufs[b].bname)];
-												sprintf(cstr, "quIRC - %s on %s", src, bufs[b].bname);
-												settitle(cstr);
-												bufs=(buffer *)realloc(bufs, ++nbufs*sizeof(buffer));
-												init_buffer(nbufs-1, CHANNEL, chan, buflines);
-												bufs[nbufs-1].server=bufs[b].server;
-												cbuf=nbufs-1;
-												buf_print(cbuf, c_join[1], dstr, true);
-												bufs[cbuf].handle=bufs[bufs[cbuf].server].handle;
-											}
-											else
-											{
-												int b2;
-												bool match=false;
-												for(b2=0;b2<nbufs;b2++)
-												{
-													if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (strcasecmp(dest+1, bufs[b2].bname)==0))
-													{
-														match=true;
-														char dstr[16+strlen(src)+strlen(dest+1)];
-														sprintf(dstr, "=%s= has joined %s", src, dest+1);
-														buf_print(b2, c_join[1], dstr, true);
-														n_add(&bufs[b2].nlist, src);
-													}
-												}
-												if(!match)
-												{
-													char dstr[4+strlen(pdata)];
-													sprintf(dstr, "?? %s", pdata);
-													buf_print(b, c_err, dstr, true);
-												}
-											}
+											rx_join(b, packet, pdata, &join);
 										}
 										else if(strcmp(cmd, "PART")==0)
 										{
-											char *dest=strtok(NULL, " \t");
-											char *src=packet+1;
-											char *bang=strchr(src, '!');
-											if(bang)
-												*bang=0;
-											if(strcmp(src, bufs[b].nick)==0)
-											{
-												chan=NULL;
-												int b2;
-												for(b2=0;b2<nbufs;b2++)
-												{
-													if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (strcasecmp(dest, bufs[b2].bname)==0))
-													{
-														if(b2==cbuf)
-														{
-															cbuf=b;
-															char cstr[24+strlen(bufs[b].bname)];
-															sprintf(cstr, "quIRC - connected to %s", bufs[b].bname);
-															settitle(cstr);
-														}
-														free_buffer(b2);
-													}
-												}
-											}
-											else
-											{
-												int b2;
-												bool match=false;
-												for(b2=0;b2<nbufs;b2++)
-												{
-													if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (strcasecmp(dest, bufs[b2].bname)==0))
-													{
-														match=true;
-														char dstr[16+strlen(src)+strlen(dest)];
-														sprintf(dstr, "=%s= has left %s", src, dest);
-														buf_print(b2, c_part[1], dstr, true);
-														n_cull(&bufs[b2].nlist, src);
-													}
-												}
-												if(!match)
-												{
-													char dstr[4+strlen(pdata)];
-													sprintf(dstr, "?? %s", pdata);
-													buf_print(b, c_err, dstr, true);
-												}
-											}
+											rx_part(b, packet, pdata);
 										}
 										else if(strcmp(cmd, "QUIT")==0)
 										{

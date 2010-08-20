@@ -423,9 +423,103 @@ int rx_notice(int b, char *packet)
 	return(w_buf_print(b, c_notice[1], msg, true, tag));
 }
 
+int rx_join(int b, char *packet, char *pdata, bool *join)
+{
+	char *dest=strtok(NULL, " \t");
+	char *src=packet+1;
+	char *bang=strchr(src, '!');
+	if(bang)
+		*bang=0;
+	if(strcmp(src, bufs[b].nick)==0)
+	{
+		char dstr[20+strlen(src)+strlen(dest+1)];
+		sprintf(dstr, "You (%s) have joined %s", src, dest+1);
+		chan=strdup(dest+1);
+		*join=true;
+		char cstr[16+strlen(src)+strlen(bufs[b].bname)];
+		sprintf(cstr, "quIRC - %s on %s", src, bufs[b].bname);
+		settitle(cstr);
+		bufs=(buffer *)realloc(bufs, ++nbufs*sizeof(buffer));
+		init_buffer(nbufs-1, CHANNEL, chan, buflines);
+		bufs[nbufs-1].server=bufs[b].server;
+		cbuf=nbufs-1;
+		w_buf_print(cbuf, c_join[1], dstr, true, "");
+		bufs[cbuf].handle=bufs[bufs[cbuf].server].handle;
+	}
+	else
+	{
+		int b2;
+		bool match=false;
+		for(b2=0;b2<nbufs;b2++)
+		{
+			if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (strcasecmp(dest+1, bufs[b2].bname)==0))
+			{
+				match=true;
+				char dstr[16+strlen(src)+strlen(dest+1)];
+				sprintf(dstr, "=%s= has joined %s", src, dest+1);
+				w_buf_print(b2, c_join[1], dstr, true, "");
+				n_add(&bufs[b2].nlist, src);
+			}
+		}
+		if(!match)
+		{
+			w_buf_print(b, c_err, pdata, true, "?? ");
+		}
+	}
+	return(0);
+}
+
+int rx_part(int b, char *packet, char *pdata)
+{
+	char *dest=strtok(NULL, " \t");
+	char *src=packet+1;
+	char *bang=strchr(src, '!');
+	if(bang)
+		*bang=0;
+	if(strcmp(src, bufs[b].nick)==0)
+	{
+		int b2;
+		for(b2=0;b2<nbufs;b2++)
+		{
+			if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (strcasecmp(dest, bufs[b2].bname)==0))
+			{
+				if(b2==cbuf)
+				{
+					cbuf=b;
+					char cstr[24+strlen(bufs[b].bname)];
+					sprintf(cstr, "quIRC - connected to %s", bufs[b].bname);
+					settitle(cstr);
+				}
+				free_buffer(b2);
+			}
+		}
+	}
+	else
+	{
+		int b2;
+		bool match=false;
+		for(b2=0;b2<nbufs;b2++)
+		{
+			if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (strcasecmp(dest, bufs[b2].bname)==0))
+			{
+				match=true;
+				char dstr[16+strlen(src)+strlen(dest)];
+				sprintf(dstr, "=%s= has left %s", src, dest);
+				w_buf_print(b2, c_part[1], dstr, true, "");
+				n_cull(&bufs[b2].nlist, src);
+			}
+		}
+		if(!match)
+		{
+			w_buf_print(b, c_err, pdata, true, "??");
+		}
+	}
+	return(0);
+}
+
 int ctcp(char *msg, char *from, char *src, int b2)
 {
-	int fd=bufs[bufs[b2].server].handle;
+	int fd=bufs[b2].handle;
 	if(strncmp(msg, "\001ACTION ", 8)==0)
 	{
 		msg[strlen(msg)-1]=0; // remove trailing \001
