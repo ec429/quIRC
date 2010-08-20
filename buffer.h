@@ -59,6 +59,6 @@ int init_buffer(int buf, btype type, char *bname, int nlines);
 int free_buffer(int buf);
 int add_to_buffer(int buf, colour lc, char *lt);
 int redraw_buffer(void);
-int buf_print(int buf, colour lc, char *lt, bool nl); // don't include trailing \n, because buf_print appends CLR \n
-int w_buf_print(int buf, colour lc, char *lt, bool nl, char *lead);
+int buf_print(int buf, colour lc, char *lt); // don't include trailing \n, because buf_print appends CLR \n
+int w_buf_print(int buf, colour lc, char *lt, char *lead);
 void in_update(char *inp);

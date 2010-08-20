@@ -175,7 +175,7 @@ int irc_numeric(char *cmd, int b) // TODO check the strtok()s for NULLs
 					bufs[b2].namreply=false;
 					char lmsg[32+strlen(ch)];
 					sprintf(lmsg, "NAMES list received for %s", ch);
-					w_buf_print(b2, c_status, lmsg, true, "");
+					w_buf_print(b2, c_status, lmsg, "");
 				}
 			}
 		break;
@@ -187,11 +187,11 @@ int irc_numeric(char *cmd, int b) // TODO check the strtok()s for NULLs
 			if(!skip) skip=3;
 			char *motdline=strtok(NULL, "");
 			if(strlen(motdline)>=skip) motdline+=skip;
-			w_buf_print(b, c_notice[1], motdline, true, "");
+			w_buf_print(b, c_notice[1], motdline, "");
 		break;
 		case ERR_NOMOTD: // 422 <dest> :MOTD File is missing
 			rest=strtok(NULL, "");
-			w_buf_print(b, c_notice[1], rest+1, true, "");
+			w_buf_print(b, c_notice[1], rest+1, "");
 		break;
 		case RPL_TOPIC: // 332 dest <channel> :<topic>
 			ch=strtok(NULL, " "); // channel
@@ -202,7 +202,7 @@ int irc_numeric(char *cmd, int b) // TODO check the strtok()s for NULLs
 				{
 					char tmsg[32+strlen(ch)+strlen(topic)];
 					sprintf(tmsg, "Topic for %s is %s", ch, topic);
-					w_buf_print(b2, c_notice[1], tmsg, true, "");
+					w_buf_print(b2, c_notice[1], tmsg, "");
 				}
 			}
 		break;
@@ -214,7 +214,7 @@ int irc_numeric(char *cmd, int b) // TODO check the strtok()s for NULLs
 				{
 					char tmsg[32+strlen(ch)];
 					sprintf(tmsg, "No topic is set for %s", ch);
-					w_buf_print(b2, c_notice[1], tmsg, true, "");
+					w_buf_print(b2, c_notice[1], tmsg, "");
 				}
 			}
 		break;
@@ -233,14 +233,14 @@ int irc_numeric(char *cmd, int b) // TODO check the strtok()s for NULLs
 					size_t tslen = strftime(ts, sizeof(ts), "%H:%M:%S GMT on %a, %d %b %Y", tm); // TODO options controlling date format (eg. ISO 8601)
 					char tmsg[32+strlen(nick)+tslen];
 					sprintf(tmsg, "Topic was set by %s at %s", nick, ts);
-					w_buf_print(b2, c_status, tmsg, true, "");
+					w_buf_print(b2, c_status, tmsg, "");
 				}
 			}
 		break;
 		case RPL_LUSERCLIENT: // 251 <dest> :There are <integer> users and <integer> invisible on <integer> servers"
 		case RPL_LUSERME: // 255 <dest> ":I have <integer> clients and <integer> servers
 			rest=strtok(NULL, "");
-			w_buf_print(b, c_status, rest+1, true, ": ");
+			w_buf_print(b, c_status, rest+1, ": ");
 		break;
 		case RPL_LUSEROP: // 252 <dest> <integer> :operator(s) online
 		case RPL_LUSERUNKNOWN: // 253 <dest> "<integer> :unknown connection(s)
@@ -250,19 +250,19 @@ int irc_numeric(char *cmd, int b) // TODO check the strtok()s for NULLs
 				rest=strtok(NULL, "");
 				char lmsg[2+strlen(count)+strlen(rest)];
 				sprintf(lmsg, "%s %s", count, rest+1);
-				w_buf_print(b, c_status, lmsg, true, ": ");
+				w_buf_print(b, c_status, lmsg, ": ");
 			}
 		break;
 		case RPL_X_LOCALUSERS: // 265 <dest> :Current Local Users: <integer>\tMax: <integer>
 		case RPL_X_GLOBALUSERS: // 266 <dest> :Current Global Users: <integer>\tMax: <integer>
 			rest=strtok(NULL, "");
-			w_buf_print(b, c_status, rest+1, true, ": ");
+			w_buf_print(b, c_status, rest+1, ": ");
 		break;
 		default:
 			rest=strtok(NULL, "");
 			char umsg[16+strlen(dest)+strlen(rest)];
 			sprintf(umsg, "<<%d? %s %s", num, dest, rest);
-			w_buf_print(b, c_unn, umsg, true, "");
+			w_buf_print(b, c_unn, umsg, "");
 		break;
 	}
 	return(num);
@@ -286,7 +286,7 @@ int rx_mode(bool *join, int b)
 		irc_tx(fd, joinmsg);
 		char jmsg[16+strlen(chan)];
 		sprintf(jmsg, "auto-Joining %s", chan);
-		w_buf_print(b, c_join[0], jmsg, true, "");
+		w_buf_print(b, c_join[0], jmsg, "");
 		*join=true;
 	}
 	return(0);
@@ -323,7 +323,7 @@ int rx_kill(int b, fd_set *master)
 				{
 					char kmsg[24+strlen(dest)+strlen(bufs[b].bname)];
 					sprintf(kmsg, "=%s= has left %s (killed)", dest, bufs[b].bname);
-					w_buf_print(b2, c_quit[1], kmsg, true, "");
+					w_buf_print(b2, c_quit[1], kmsg, "");
 				}
 			}
 		}
@@ -376,7 +376,7 @@ int rx_privmsg(int b, char *packet, char *pdata)
 				char tag[maxnlen+4]; // TODO this tag-making bit ought to be refactored really
 				memset(tag, ' ', maxnlen+3);
 				sprintf(tag+maxnlen-strlen(from), "<%s> ", from);
-				w_buf_print(b2, c_msg[1], msg, true, tag);
+				w_buf_print(b2, c_msg[1], msg, tag);
 			}
 		}
 	}
@@ -393,12 +393,12 @@ int rx_privmsg(int b, char *packet, char *pdata)
 				char tag[maxnlen+9];
 				memset(tag, ' ', maxnlen+8);
 				sprintf(tag+maxnlen-strlen(from), "(from %s) ", from);
-				w_buf_print(b2, c_msg[1], msg, true, tag);
+				w_buf_print(b2, c_msg[1], msg, tag);
 			}
 		}
 		else
 		{
-			w_buf_print(b, c_err, pdata, true, "?? ");
+			w_buf_print(b, c_err, pdata, "?? ");
 		}
 	}
 	free(from);
@@ -418,7 +418,7 @@ int rx_notice(int b, char *packet)
 	char tag[maxnlen+9];
 	memset(tag, ' ', maxnlen+8);
 	sprintf(tag+maxnlen-strlen(from), "(from %s) ", from);
-	return(w_buf_print(b, c_notice[1], msg, true, tag));
+	return(w_buf_print(b, c_notice[1], msg, tag));
 }
 
 int rx_join(int b, char *packet, char *pdata, bool *join)
@@ -441,7 +441,7 @@ int rx_join(int b, char *packet, char *pdata, bool *join)
 		init_buffer(nbufs-1, CHANNEL, chan, buflines);
 		bufs[nbufs-1].server=bufs[b].server;
 		cbuf=nbufs-1;
-		w_buf_print(cbuf, c_join[1], dstr, true, "");
+		w_buf_print(cbuf, c_join[1], dstr, "");
 		bufs[cbuf].handle=bufs[bufs[cbuf].server].handle;
 	}
 	else
@@ -455,13 +455,13 @@ int rx_join(int b, char *packet, char *pdata, bool *join)
 				match=true;
 				char dstr[16+strlen(src)+strlen(dest+1)];
 				sprintf(dstr, "=%s= has joined %s", src, dest+1);
-				w_buf_print(b2, c_join[1], dstr, true, "");
+				w_buf_print(b2, c_join[1], dstr, "");
 				n_add(&bufs[b2].nlist, src);
 			}
 		}
 		if(!match)
 		{
-			w_buf_print(b, c_err, pdata, true, "?? ");
+			w_buf_print(b, c_err, pdata, "?? ");
 		}
 	}
 	return(0);
@@ -503,13 +503,13 @@ int rx_part(int b, char *packet, char *pdata)
 				match=true;
 				char dstr[16+strlen(src)+strlen(dest)];
 				sprintf(dstr, "=%s= has left %s", src, dest);
-				w_buf_print(b2, c_part[1], dstr, true, "");
+				w_buf_print(b2, c_part[1], dstr, "");
 				n_cull(&bufs[b2].nlist, src);
 			}
 		}
 		if(!match)
 		{
-			w_buf_print(b, c_err, pdata, true, "?? ");
+			w_buf_print(b, c_err, pdata, "?? ");
 		}
 	}
 	return(0);
@@ -524,7 +524,7 @@ int rx_quit(int b, char *packet, char *pdata)
 		*bang=0;
 	if(strcmp(src, bufs[b].nick)==0) // this shouldn't happen
 	{
-		w_buf_print(b, c_err, pdata, true, "?? ");
+		w_buf_print(b, c_err, pdata, "?? ");
 	}
 	else
 	{
@@ -537,7 +537,7 @@ int rx_quit(int b, char *packet, char *pdata)
 				{
 					char dstr[24+strlen(src)+strlen(bufs[b].bname)+strlen(dest+1)];
 					sprintf(dstr, "=%s= has left %s (%s)", src, bufs[b].bname, dest+1);
-					w_buf_print(b2, c_quit[1], dstr, true, "");
+					w_buf_print(b2, c_quit[1], dstr, "");
 				}
 			}
 		}
@@ -561,7 +561,7 @@ int rx_nick(int b, char *packet, char *pdata)
 		{
 			if(bufs[b2].server==b)
 			{
-				w_buf_print(b2, c_nick[1], dstr, true, "");
+				w_buf_print(b2, c_nick[1], dstr, "");
 				n_cull(&bufs[b2].nlist, src);
 				n_add(&bufs[b2].nlist, dest+1);
 			}
@@ -581,13 +581,13 @@ int rx_nick(int b, char *packet, char *pdata)
 					n_add(&bufs[b2].nlist, dest+1);
 					char dstr[30+strlen(src)+strlen(dest+1)];
 					sprintf(dstr, "=%s= is now known as %s", src, dest+1);
-					w_buf_print(b2, c_nick[1], dstr, true, "");
+					w_buf_print(b2, c_nick[1], dstr, "");
 				}
 			}
 		}
 		if(!match)
 		{
-			w_buf_print(b, c_err, pdata, true, "?? ");
+			w_buf_print(b, c_err, pdata, "?? ");
 		}
 	}
 	return(0);
@@ -602,7 +602,7 @@ int ctcp(char *msg, char *from, char *src, int b2)
 		char tag[maxnlen+4];
 		memset(tag, ' ', maxnlen+3);
 		sprintf(tag+maxnlen+2-strlen(from), "%s ", from);
-		w_buf_print(b2, c_actn[1], msg+8, true, tag);
+		w_buf_print(b2, c_actn[1], msg+8, tag);
 	}
 	else if(strncmp(msg, "\001FINGER", 7)==0)
 	{
@@ -627,7 +627,7 @@ int ctcp(char *msg, char *from, char *src, int b2)
 			*space=0;
 		char cmsg[32+strlen(cmd)];
 		sprintf(cmsg, "Unrecognised CTCP %s (ignoring)", cmd);
-		w_buf_print(b2, c_unk, cmsg, true, tag);
+		w_buf_print(b2, c_unk, cmsg, tag);
 	}
 	return(0);
 }

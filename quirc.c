@@ -80,7 +80,7 @@ int main(int argc, char *argv[])
 	}
 	if(!serverhandle)
 	{
-		w_buf_print(0, c_status, "Not connected - use /server to connect", true, "");
+		w_buf_print(0, c_status, "Not connected - use /server to connect", "");
 	}
 	in_update("");
 	struct timeval timeout;
@@ -124,7 +124,7 @@ int main(int argc, char *argv[])
 									sprintf(emsg, "error: irc_rx(%d, &%p): %d", fd, packet, e);
 									cbuf=0;
 									redraw_buffer();
-									w_buf_print(0, c_err, emsg, true, "");
+									w_buf_print(0, c_err, emsg, "");
 									state=5;
 									qmsg="client crashed";
 								}
@@ -186,7 +186,7 @@ int main(int argc, char *argv[])
 										}
 										else
 										{
-											w_buf_print(b, c_unk, pdata, true, "<? ");
+											w_buf_print(b, c_unk, pdata, "<? ");
 										}
 									}
 									free(pdata);
@@ -213,30 +213,39 @@ int main(int argc, char *argv[])
 					fprintf(stderr, "\nInternal error - state==3 and inp is NULL!\n");
 					break;
 				}
-				if(*inp=='/')
+				if(*inp)
 				{
-					state=cmd_handle(inp, &qmsg, &master, &fdmax);
-					free(inp);inp=NULL;
-				}
-				else
-				{
-					if(bufs[cbuf].type==CHANNEL) // TODO add PRIVATE
+					printf(SCROLLDOWN);
+					fflush(stdout);
+					if(*inp=='/')
 					{
-						char pmsg[12+strlen(bufs[cbuf].bname)+strlen(inp)];
-						sprintf(pmsg, "PRIVMSG %s :%s", bufs[cbuf].bname, inp);
-						irc_tx(bufs[cbuf].handle, pmsg);
-						while(inp[strlen(inp)-1]=='\n')
-							inp[strlen(inp)-1]=0; // stomp out trailing newlines, they break things
-						char tag[maxnlen+4];
-						memset(tag, ' ', maxnlen+3);
-						sprintf(tag+maxnlen-strlen(bufs[bufs[cbuf].server].nick), "<%s> ", bufs[bufs[cbuf].server].nick);
-						w_buf_print(cbuf, c_msg[0], inp, true, tag);
+						state=cmd_handle(inp, &qmsg, &master, &fdmax);
+						free(inp);inp=NULL;
 					}
 					else
 					{
-						w_buf_print(cbuf, c_err, "Can't talk - view is not a channel!", false, "");
+						if(bufs[cbuf].type==CHANNEL) // TODO add PRIVATE
+						{
+							char pmsg[12+strlen(bufs[cbuf].bname)+strlen(inp)];
+							sprintf(pmsg, "PRIVMSG %s :%s", bufs[cbuf].bname, inp);
+							irc_tx(bufs[cbuf].handle, pmsg);
+							while(inp[strlen(inp)-1]=='\n')
+								inp[strlen(inp)-1]=0; // stomp out trailing newlines, they break things
+							char tag[maxnlen+4];
+							memset(tag, ' ', maxnlen+3);
+							sprintf(tag+maxnlen-strlen(bufs[bufs[cbuf].server].nick), "<%s> ", bufs[bufs[cbuf].server].nick);
+							w_buf_print(cbuf, c_msg[0], inp, tag);
+						}
+						else
+						{
+							w_buf_print(cbuf, c_err, "Can't talk - view is not a channel!", "");
+						}
+						free(inp);inp=NULL;
+						state=0;
 					}
-					free(inp);inp=NULL;
+				}
+				else
+				{
 					state=0;
 				}
 				if(force_redraw==2) // 'slight paranoia' mode

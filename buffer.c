@@ -19,7 +19,7 @@ int initialise_buffers(int buflines, char *nick)
 	bufs[0].nick=strdup(nick);
 	if(!bufs[0].nick)
 		return(1);
-	buf_print(0, c_status, GPL_MSG, false);
+	buf_print(0, c_status, GPL_MSG); // can't w_buf_print() it because it has embedded newlines
 	return(0);
 }
 
@@ -151,7 +151,7 @@ int redraw_buffer(void)
 	return(0);
 }
 
-int buf_print(int buf, colour lc, char *lt, bool nl)
+int buf_print(int buf, colour lc, char *lt)
 {
 	if(force_redraw)
 	{
@@ -162,16 +162,12 @@ int buf_print(int buf, colour lc, char *lt, bool nl)
 	if((buf==cbuf) && (bufs[buf].scroll==0))
 	{
 		setcolour(lc);
-		if(nl) printf(CLA "\n");
+		printf(CLA "\n");
 		printf(LOCATE CLA, height-1, 1);
 		printf(LOCATE, height-2, 1);
 		printf(CLA "%s", lt);
 		resetcol();
 		printf(CLR "\n" CLA "\n");
-	}
-	else if(!nl)
-	{
-		redraw_buffer();
 	}
 	return(add_to_buffer(buf, lc, lt));
 }
@@ -253,11 +249,11 @@ void in_update(char *inp)
 	fflush(stdout);
 }
 
-int w_buf_print(int buf, colour lc, char *lt, bool nl, char *lead)
+int w_buf_print(int buf, colour lc, char *lt, char *lead)
 {
 	char *out=strdup(lead);
 	wordline(lt, strlen(out), &out);
-	int e=buf_print(buf, lc, out, nl);
+	int e=buf_print(buf, lc, out);
 	free(out);
 	return(e);
 }
