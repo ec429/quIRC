@@ -45,13 +45,13 @@ int inputchar(char **inp, int *state)
 					{
 						if(tmany)
 						{
-							buf_print(cbuf, c_err, curr->data, true);
+							w_buf_print(cbuf, c_err, curr->data, true, "[tab] ");
 						}
 						else if(found)
 						{
-							buf_print(cbuf, c_err, "[tab] Multiple nicks match", true);
-							buf_print(cbuf, c_err, found->data, true);
-							buf_print(cbuf, c_err, curr->data, true);
+							w_buf_print(cbuf, c_err, "Multiple nicks match", true, "[tab] ");
+							w_buf_print(cbuf, c_err, found->data, true, "[tab] ");
+							w_buf_print(cbuf, c_err, curr->data, true, "[tab] ");
 							found=NULL;tmany=true;
 						}
 						else
@@ -70,7 +70,7 @@ int inputchar(char **inp, int *state)
 				}
 				else if(!tmany)
 				{
-					buf_print(cbuf, c_err, "[tab] No nicks match", true);
+					w_buf_print(cbuf, c_err, "No nicks match", true, "[tab] ");
 				}
 			}
 		}
@@ -489,13 +489,10 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 				irc_tx(bufs[cbuf].handle, privmsg);
 				while(text[strlen(text)-1]=='\n')
 					text[strlen(text)-1]=0; // stomp out trailing newlines, they break things
-				char *out=(char *)malloc(16+max(maxnlen, strlen(dest)));
-				memset(out, ' ', 2+max(maxnlen-strlen(dest), 0));
-				out[2+max(maxnlen-strlen(dest), 0)]=0;
-				sprintf(out+strlen(out), "(to %s) ", dest);
-				wordline(text, 9+max(maxnlen, strlen(dest)), &out);
-				buf_print(cbuf, c_msg[0], out, false);
-				free(out);
+				char tag[maxnlen+9];
+				memset(tag, ' ', maxnlen+8);
+				sprintf(tag+maxnlen+2-strlen(dest), "(to %s) ", dest);
+				w_buf_print(cbuf, c_msg[0], text, false, tag);
 			}
 			else
 			{
@@ -521,13 +518,10 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 			irc_tx(bufs[cbuf].handle, privmsg);
 			while(args[strlen(args)-1]=='\n')
 				args[strlen(args)-1]=0; // stomp out trailing newlines, they break things
-			char *out=(char *)malloc(8+max(maxnlen, strlen(bufs[bufs[cbuf].server].nick)));
-			memset(out, ' ', 2+max(maxnlen-strlen(bufs[bufs[cbuf].server].nick), 0));
-			out[2+max(maxnlen-strlen(bufs[bufs[cbuf].server].nick), 0)]=0;
-			sprintf(out+strlen(out), "%s ", bufs[bufs[cbuf].server].nick);
-			wordline(args, 3+max(maxnlen, strlen(bufs[bufs[cbuf].server].nick)), &out);
-			buf_print(cbuf, c_actn[0], out, false);
-			free(out);
+			char tag[maxnlen+4];
+			memset(tag, ' ', maxnlen+3);
+			sprintf(tag+maxnlen+2-strlen(bufs[bufs[cbuf].server].nick), "%s ", bufs[bufs[cbuf].server].nick);
+			w_buf_print(cbuf, c_actn[0], args, false, tag);
 		}
 		else
 		{
@@ -544,6 +538,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		else
 		{
 			irc_tx(bufs[cbuf].handle, args);
+			w_buf_print(cbuf, c_status, args, false, "/cmd ");
 		}
 		return(0);
 	}
