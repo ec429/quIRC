@@ -413,11 +413,10 @@ int ctcp(char *msg, char *from, char *src, int b2)
 	if(strncmp(msg, "\001ACTION ", 8)==0)
 	{
 		msg[strlen(msg)-1]=0; // remove trailing \001
-		
 		char tag[maxnlen+4];
 		memset(tag, ' ', maxnlen+3);
 		sprintf(tag+maxnlen+2-strlen(from), "%s ", from);
-		w_buf_print(b2, c_actn[1], msg, true, tag);
+		w_buf_print(b2, c_actn[1], msg+8, true, tag);
 	}
 	else if(strncmp(msg, "\001FINGER", 7)==0)
 	{
