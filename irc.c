@@ -409,7 +409,6 @@ int rx_privmsg(int b, char *packet, char *pdata)
 
 int ctcp(char *msg, char *from, char *src, int b2)
 {
-	// TODO: show message for unrecognised CTCP cmds
 	int fd=bufs[bufs[b2].server].handle;
 	if(strncmp(msg, "\001ACTION ", 8)==0)
 	{
