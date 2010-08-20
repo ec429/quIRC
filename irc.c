@@ -372,13 +372,10 @@ int rx_privmsg(int b, char *packet, char *pdata)
 			}
 			else
 			{
-				char *out=(char *)malloc(5+max(maxnlen, strlen(from))); // TODO clean up and generalise this code.  It's far too oft-repeated
-				memset(out, ' ', max(maxnlen-strlen(from), 0));
-				out[max(maxnlen-strlen(from), 0)]=0;
-				sprintf(out+strlen(out), "<%s> ", from);
-				wordline(msg, 3+max(maxnlen, strlen(from)), &out);
-				buf_print(b2, c_msg[1], out, true);
-				free(out);
+				char tag[maxnlen+4];
+				memset(tag, ' ', maxnlen+3);
+				sprintf(tag+maxnlen-strlen(from), "<%s> ", from);
+				w_buf_print(b2, c_msg[1], msg, true, tag);
 			}
 		}
 	}
@@ -392,13 +389,10 @@ int rx_privmsg(int b, char *packet, char *pdata)
 			}
 			else
 			{
-				char *out=(char *)malloc(16+max(maxnlen, strlen(from)));
-				memset(out, ' ', max(maxnlen-strlen(from), 0));
-				out[max(maxnlen-strlen(from), 0)]=0;
-				sprintf(out+strlen(out), "(from %s) ", from);
-				wordline(msg, 9+max(maxnlen, strlen(from)), &out);
-				buf_print(b, c_msg[1], out, true);
-				free(out);
+				char tag[maxnlen+9];
+				memset(tag, ' ', maxnlen+8);
+				sprintf(tag+maxnlen-strlen(from), "(from %s) ", from);
+				w_buf_print(b2, c_msg[1], msg, true, tag);
 			}
 		}
 		else
@@ -419,14 +413,11 @@ int ctcp(char *msg, char *from, char *src, int b2)
 	if(strncmp(msg, "\001ACTION ", 8)==0)
 	{
 		msg[strlen(msg)-1]=0; // remove trailing \001
-		char *out=(char *)malloc(5+max(maxnlen, strlen(from)));
-		memset(out, ' ', 2+max(maxnlen-strlen(from), 0));
-		out[2+max(maxnlen-strlen(from), 0)]=0;
-		strcat(out, from);
-		strcat(out, " ");
-		wordline(msg+8, 3+max(maxnlen, strlen(from)), &out);
-		buf_print(b2, c_actn[1], out, true);
-		free(out);
+		
+		char tag[maxnlen+4];
+		memset(tag, ' ', maxnlen+3);
+		sprintf(tag+maxnlen+2-strlen(from), "%s ", from);
+		w_buf_print(b2, c_actn[1], msg, true, tag);
 	}
 	else if(strncmp(msg, "\001FINGER", 7)==0)
 	{
@@ -442,13 +433,16 @@ int ctcp(char *msg, char *from, char *src, int b2)
 	}
 	else
 	{
+		char tag[maxnlen+9];
+		memset(tag, ' ', maxnlen+8);
+		sprintf(tag+maxnlen-strlen(from), "(from %s) ", from);
 		char *cmd=msg+1;
 		char *space=strchr(cmd, ' ');
 		if(space)
 			*space=0;
 		char cmsg[32+strlen(cmd)];
 		sprintf(cmsg, "Unrecognised CTCP %s (ignoring)", cmd);
-		buf_print(b2, c_unk, cmsg, true);
+		w_buf_print(b2, c_unk, cmsg, true, tag);
 	}
 	return(0);
 }

@@ -269,3 +269,12 @@ void in_update(char *inp)
 	}	
 	fflush(stdout);
 }
+
+int w_buf_print(int buf, colour lc, char *lt, bool nl, char *lead)
+{
+	char *out=strdup(lead);
+	wordline(lt, strlen(out), &out);
+	int e=buf_print(buf, lc, out, nl);
+	free(out);
+	return(e);
+}
