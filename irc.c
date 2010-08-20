@@ -440,5 +440,15 @@ int ctcp(char *msg, char *from, char *src, int b2)
 		sprintf(resp, "NOTICE %s \001VERSION %s:%s:%s\001", src, "quIRC", version, CC_VERSION);
 		irc_tx(fd, resp);
 	}
+	else
+	{
+		char *cmd=msg+1;
+		char *space=strchr(cmd, ' ');
+		if(space)
+			*space=0;
+		char cmsg[32+strlen(cmd)];
+		sprintf(cmsg, "Unrecognised CTCP %s (ignoring)", cmd);
+		buf_print(b2, c_unk, cmsg, true);
+	}
 	return(0);
 }
