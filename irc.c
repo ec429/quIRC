@@ -359,7 +359,7 @@ int rx_privmsg(int b, char *packet, char *pdata)
 	if(bang)
 		*bang=0;
 	char *from=strdup(src);
-	crush(&src, maxnlen);
+	crush(&from, maxnlen);
 	int b2;
 	bool match=false;
 	for(b2=0;b2<nbufs;b2++)
@@ -372,35 +372,35 @@ int rx_privmsg(int b, char *packet, char *pdata)
 				if(strncmp(msg, "\001ACTION ", 8)==0)
 				{
 					msg[strlen(msg)-1]=0; // remove trailing \001
-					char *out=(char *)malloc(5+max(maxnlen, strlen(src)));
-					memset(out, ' ', 2+max(maxnlen-strlen(src), 0));
-					out[2+max(maxnlen-strlen(src), 0)]=0;
-					strcat(out, src);
+					char *out=(char *)malloc(5+max(maxnlen, strlen(from)));
+					memset(out, ' ', 2+max(maxnlen-strlen(from), 0));
+					out[2+max(maxnlen-strlen(from), 0)]=0;
+					strcat(out, from);
 					strcat(out, " ");
-					wordline(msg+8, 3+max(maxnlen, strlen(src)), &out);
+					wordline(msg+8, 3+max(maxnlen, strlen(from)), &out);
 					buf_print(b2, c_actn[1], out, true);
 					free(out);
 				}
 				else if(strncmp(msg, "\001FINGER", 7)==0)
 				{
-					char resp[32+strlen(from)+strlen(fname)];
-					sprintf(resp, "NOTICE %s \001FINGER :%s\001", from, fname);
+					char resp[32+strlen(src)+strlen(fname)];
+					sprintf(resp, "NOTICE %s \001FINGER :%s\001", src, fname);
 					irc_tx(fd, resp);
 				}
 				else if(strncmp(msg, "\001VERSION", 8)==0)
 				{
-					char resp[32+strlen(from)+strlen(version)];
-					sprintf(resp, "NOTICE %s \001VERSION %s:%s:%s\001", from, "quIRC", version, CC_VERSION);
+					char resp[32+strlen(src)+strlen(version)];
+					sprintf(resp, "NOTICE %s \001VERSION %s:%s:%s\001", src, "quIRC", version, CC_VERSION);
 					irc_tx(fd, resp);
 				}
 			}
 			else
 			{
-				char *out=(char *)malloc(5+max(maxnlen, strlen(src)));
-				memset(out, ' ', max(maxnlen-strlen(src), 0));
-				out[max(maxnlen-strlen(src), 0)]=0;
-				sprintf(out+strlen(out), "<%s> ", src);
-				wordline(msg, 3+max(maxnlen, strlen(src)), &out);
+				char *out=(char *)malloc(5+max(maxnlen, strlen(from)));
+				memset(out, ' ', max(maxnlen-strlen(from), 0));
+				out[max(maxnlen-strlen(from), 0)]=0;
+				sprintf(out+strlen(out), "<%s> ", from);
+				wordline(msg, 3+max(maxnlen, strlen(from)), &out);
 				buf_print(b2, c_msg[1], out, true);
 				free(out);
 			}
@@ -415,35 +415,35 @@ int rx_privmsg(int b, char *packet, char *pdata)
 				if(strncmp(msg, "\001ACTION ", 8)==0)
 				{
 					msg[strlen(msg)-1]=0; // remove trailing \001
-					char *out=(char *)malloc(5+max(maxnlen, strlen(src)));
-					memset(out, ' ', 2+max(maxnlen-strlen(src), 0));
-					out[2+max(maxnlen-strlen(src), 0)]=0;
-					strcat(out, src);
+					char *out=(char *)malloc(5+max(maxnlen, strlen(from)));
+					memset(out, ' ', 2+max(maxnlen-strlen(from), 0));
+					out[2+max(maxnlen-strlen(from), 0)]=0;
+					strcat(out, from);
 					strcat(out, " ");
-					wordline(msg+8, 3+max(maxnlen, strlen(src)), &out);
+					wordline(msg+8, 3+max(maxnlen, strlen(from)), &out);
 					buf_print(b, c_actn[1], out, true);
 					free(out);
 				}
 				else if(strncmp(msg, "\001FINGER", 7)==0)
 				{
-					char resp[32+strlen(from)+strlen(fname)];
-					sprintf(resp, "NOTICE %s \001FINGER :%s\001", from, fname);
+					char resp[32+strlen(src)+strlen(fname)];
+					sprintf(resp, "NOTICE %s \001FINGER :%s\001", src, fname);
 					irc_tx(fd, resp);
 				}
 				else if(strncmp(msg, "\001VERSION", 8)==0)
 				{
-					char resp[32+strlen(from)+strlen(version)];
-					sprintf(resp, "NOTICE %s \001VERSION %s:%s:%s\001", from, "quIRC", version, CC_VERSION);
+					char resp[32+strlen(src)+strlen(version)];
+					sprintf(resp, "NOTICE %s \001VERSION %s:%s:%s\001", src, "quIRC", version, CC_VERSION);
 					irc_tx(fd, resp);
 				}
 			}
 			else
 			{
-				char *out=(char *)malloc(16+max(maxnlen, strlen(src)));
-				memset(out, ' ', max(maxnlen-strlen(src), 0));
-				out[max(maxnlen-strlen(src), 0)]=0;
-				sprintf(out+strlen(out), "(from %s) ", src);
-				wordline(msg, 9+max(maxnlen, strlen(src)), &out);
+				char *out=(char *)malloc(16+max(maxnlen, strlen(from)));
+				memset(out, ' ', max(maxnlen-strlen(from), 0));
+				out[max(maxnlen-strlen(from), 0)]=0;
+				sprintf(out+strlen(out), "(from %s) ", from);
+				wordline(msg, 9+max(maxnlen, strlen(from)), &out);
 				buf_print(b, c_msg[1], out, true);
 				free(out);
 			}
