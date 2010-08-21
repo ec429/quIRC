@@ -56,7 +56,7 @@ c_init.c: colour.d c_init.awk
 version.h: version
 	./gitversion
 
-dist: all
+dist: all doc
 	-mkdir quirc_$(VERSION)
 	for p in $$(ls); do cp $$p quirc_$(VERSION)/$$p; done;
 	rm quirc_$(VERSION)/*.tar.gz
