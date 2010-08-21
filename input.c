@@ -196,13 +196,13 @@ char * slash_dequote(char *inp)
 			switch(c)
 			{
 				case 'n':
-					rv[o++]='\n';
+					rv[o++]='\n';inp++;
 				break;
 				case 'r':
-					rv[o++]='\r';
+					rv[o++]='\r';inp++;
 				break;
 				case '\\':
-					rv[o++]='\\';
+					rv[o++]='\\';inp++;
 				break;
 				case '0': // \000 to \377 are octal escapes
 				case '1':
@@ -226,6 +226,7 @@ char * slash_dequote(char *inp)
 						if(o<=l)
 							rv[o++]='0';
 					}
+					inp++;
 				}
 				break;
 				default:
