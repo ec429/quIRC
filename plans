@@ -20,6 +20,8 @@ append_char().  This should be used for all string appension (eg. fgetl())
 
 quoting/escaping tables.  Instead of duplicative hard-baked logic, we should have a data-driven system with a single point of truth.
 
+http links.  Command /http <n>, opens the nth previous link in web browser.  Links considered to be any word starting "http://"; words are delimited by whitespace.  The actual command run is set with $BROWSER,--browser=,/set browser; %s is replaced with the URL.  If no browser is registered, return an error.  The count <n> is local to each buffer; the most recent link is number 0.  If <n> not specified, defaults to 0.  Also /http <url> opens <url> in web browser, and /http <n><TAB> replaces <n> with the corresponding <url> (so you can check it's the right link, and ^A it if not).
+
 Top status bar.  Carry the info in the xterm title and maybe more info besides.  Here's an idea for a layout that nicely fits things in.
 |                             0               160               160           12
 1      8           20         31                49                67           80
