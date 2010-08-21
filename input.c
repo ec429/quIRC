@@ -532,6 +532,34 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		}
 		return(0);
 	}
+	else if(strcmp(cmd, "topic")==0)
+	{
+		if(args)
+		{
+			if(bufs[cbuf].type==CHANNEL)
+			{
+				if(bufs[cbuf].handle)
+				{
+					char tmsg[10+strlen(bufs[cbuf].bname)+strlen(args)];
+					sprintf(tmsg, "TOPIC %s :%s", bufs[cbuf].bname, args);
+					irc_tx(bufs[cbuf].handle, tmsg);
+				}
+				else
+				{
+					w_buf_print(cbuf, c_err, "Can't send to channel - not connected!", "/topic: ");
+				}
+			}
+			else
+			{
+				w_buf_print(cbuf, c_err, "Can't set topic - view is not a channel!", "/topic: ");
+			}
+		}
+		else
+		{
+			w_buf_print(cbuf, c_err, "Must specify a topic!", "/topic: ");
+		}
+		return(0);
+	}
 	else if(strcmp(cmd, "msg")==0)
 	{
 		if(!bufs[cbuf].handle)
