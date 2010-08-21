@@ -21,7 +21,7 @@ int inputchar(char **inp, int *state)
 			(*inp)[ino-1]=0;
 		(*inp)[ino]=0;
 	}
-	else if((c<32)||(c>127)) // this also stomps on the newline 
+	else if(c<32) // this also stomps on the newline
 	{
 		(*inp)[ino]=0;
 		if(c==1)

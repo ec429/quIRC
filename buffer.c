@@ -251,9 +251,11 @@ void in_update(char *inp)
 
 int w_buf_print(int buf, colour lc, char *lt, char *lead)
 {
+	char *ltd=strdup(lt);
 	char *out=strdup(lead);
-	wordline(lt, strlen(out), &out);
+	wordline(ltd, strlen(out), &out);
 	int e=buf_print(buf, lc, out);
+	free(ltd);
 	free(out);
 	return(e);
 }
