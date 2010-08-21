@@ -275,12 +275,12 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					}
 					if(width<30)
 					{
-						buf_print(cbuf, c_status, "width set to minimum 30");
+						w_buf_print(cbuf, c_status, "width set to minimum 30", "/set: ");
 						width=30;
 					}
 					else
 					{
-						buf_print(cbuf, c_status, "width set");
+						w_buf_print(cbuf, c_status, "width set", "/set: ");
 					}
 					if(force_redraw<3)
 					{
@@ -299,12 +299,12 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					}
 					if(height<5)
 					{
-						buf_print(cbuf, c_status, "height set to minimum 5");
+						w_buf_print(cbuf, c_status, "height set to minimum 5", "/set: ");
 						height=5;
 					}
 					else
 					{
-						buf_print(cbuf, c_status, "height set");
+						w_buf_print(cbuf, c_status, "height set", "/set: ");
 					}
 					if(force_redraw<3)
 					{
@@ -325,12 +325,12 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					{
 						char fmsg[36];
 						sprintf(fmsg, "force-redraw level %u enabled", force_redraw);
-						w_buf_print(cbuf, c_status, fmsg, "");
+						w_buf_print(cbuf, c_status, fmsg, "/set: ");
 						redraw_buffer();
 					}
 					else
 					{
-						buf_print(cbuf, c_status, "force-redraw disabled");
+						w_buf_print(cbuf, c_status, "force-redraw disabled", "/set: ");
 					}
 				}
 				else if(strcmp(opt, "mnln")==0)
@@ -343,10 +343,14 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					{
 						maxnlen=16;
 					}
-					buf_print(cbuf, c_status, "maxnicklen set");
-					if(force_redraw<3)
+					if(maxnlen<4)
 					{
-						redraw_buffer();
+						maxnlen=4;
+						w_buf_print(cbuf, c_status, "maxnicklen set to minimum 4", "/set: ");
+					}
+					else
+					{
+						w_buf_print(cbuf, c_status, "maxnicklen set", "/set: ");
 					}
 				}
 				else if(strcmp(opt, "mcc")==0)
@@ -359,10 +363,15 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					{
 						mirc_colour_compat=1;
 					}
-					buf_print(cbuf, c_status, "mcc set");
-					if(force_redraw<3)
+					if(mirc_colour_compat)
 					{
-						redraw_buffer();
+						char mmsg[26];
+						sprintf(mmsg, "mcc level %u enabled", mirc_colour_compat);
+						w_buf_print(cbuf, c_status, mmsg, "/set: ");
+					}
+					else
+					{
+						w_buf_print(cbuf, c_status, "mcc disabled", "/set: ");
 					}
 				}
 				else if(strcmp(opt, "buf")==0)
@@ -375,25 +384,21 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					{
 						buflines=256;
 					}
-					buf_print(cbuf, c_status, "buf set");
-					if(force_redraw<3)
-					{
-						redraw_buffer();
-					}
+					w_buf_print(0, c_status, "Default buf set", "/set: ");
 				}
 				else
 				{
-					buf_print(cbuf, c_err, "set: No such option!");
+					w_buf_print(cbuf, c_err, "No such option!", "/set: ");
 				}
 			}
 			else
 			{
-				buf_print(cbuf, c_err, "set what?");
+				w_buf_print(cbuf, c_err, "but what do you want to set?", "/set: ");
 			}
 		}
 		else
 		{
-			buf_print(cbuf, c_err, "set what?");
+			w_buf_print(cbuf, c_err, "but what do you want to set?", "/set: ");
 		}
 		return(0);
 	}
@@ -427,14 +432,14 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 				bufs[cbuf].handle=serverhandle;
 				bufs[cbuf].nick=strdup(nick);
 				bufs[cbuf].server=cbuf;
-				w_buf_print(cbuf, c_status, dstr, "");
+				w_buf_print(cbuf, c_status, dstr, "/server: ");
 				sprintf(cstr, "quIRC - connected to %s", server);
 				settitle(cstr);
 			}
 		}
 		else
 		{
-			buf_print(cbuf, c_err, "Must specify a server!");
+			w_buf_print(cbuf, c_err, "Must specify a server!", "/server: ");
 		}
 		return(0);
 	}
@@ -443,7 +448,6 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		int b=bufs[cbuf].server;
 		if(b>0)
 		{
-			buf_print(cbuf, c_status, "Disconnecting...");
 			close(bufs[b].handle);
 			FD_CLR(bufs[b].handle, master);
 			int b2;
@@ -462,7 +466,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		}
 		else
 		{
-			buf_print(cbuf, c_err, "Can't disconnect (status)!");
+			w_buf_print(cbuf, c_err, "Can't disconnect (status)!", "/disconnect: ");
 		}
 		return(0);
 	}
@@ -470,7 +474,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 	{
 		if(!bufs[cbuf].handle)
 		{
-			w_buf_print(cbuf, c_err, "/join: must be run in the context of a server!", "");
+			w_buf_print(cbuf, c_err, "must be run in the context of a server!", "/join: ");
 		}
 		else if(args)
 		{
@@ -488,7 +492,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		}
 		else
 		{
-			buf_print(cbuf, c_err, "Must specify a channel!");
+			w_buf_print(cbuf, c_err, "Must specify a channel!", "/join: ");
 		}
 		return(0);
 	}
@@ -496,14 +500,14 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 	{
 		if(bufs[cbuf].type!=CHANNEL)
 		{
-			w_buf_print(cbuf, c_err, "/part: This view is not a channel!", "");
+			w_buf_print(cbuf, c_err, "This view is not a channel!", "/part: ");
 		}
 		else
 		{
 			char partmsg[8+strlen(bufs[cbuf].bname)];
 			sprintf(partmsg, "PART %s", bufs[cbuf].bname);
 			irc_tx(bufs[cbuf].handle, partmsg);
-			buf_print(cbuf, c_part[0], "Leaving");
+			w_buf_print(cbuf, c_part[0], "Leaving", "/part: ");
 		}
 		return(0);
 	}
@@ -518,17 +522,17 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 				char nmsg[8+strlen(bufs[bufs[cbuf].server].nick)];
 				sprintf(nmsg, "NICK %s", bufs[bufs[cbuf].server].nick);
 				irc_tx(bufs[cbuf].handle, nmsg);
-				buf_print(cbuf, c_status, "Changing nick");
+				w_buf_print(cbuf, c_status, "Changing nick", "/nick: ");
 			}
 			else
 			{
 				nick=strdup(nn);
-				buf_print(cbuf, c_status, "Default nick changed");
+				w_buf_print(cbuf, c_status, "Default nick changed", "/nick ");
 			}
 		}
 		else
 		{
-			buf_print(cbuf, c_err, "Must specify a nickname!");
+			w_buf_print(cbuf, c_err, "Must specify a nickname!", "/nick: ");
 		}
 		return(0);
 	}
@@ -564,7 +568,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 	{
 		if(!bufs[cbuf].handle)
 		{
-			w_buf_print(cbuf, c_err, "/msg: must be run in the context of a server!", "");
+			w_buf_print(cbuf, c_err, "must be run in the context of a server!", "/msg: ");
 		}
 		else if(args)
 		{
@@ -584,12 +588,12 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 			}
 			else
 			{
-				w_buf_print(cbuf, c_err, "/msg: must specify a message!", "");
+				w_buf_print(cbuf, c_err, "must specify a message!", "/msg: ");
 			}
 		}
 		else
 		{
-				w_buf_print(cbuf, c_err, "/msg: must specify a recipient!", "");
+			w_buf_print(cbuf, c_err, "must specify a recipient!", "/msg: ");
 		}
 		return(0);
 	}
@@ -597,7 +601,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 	{
 		if(bufs[cbuf].type!=CHANNEL) // TODO add PRIVATE
 		{
-			w_buf_print(cbuf, c_err, "/me: this view is not a channel!", "");
+			w_buf_print(cbuf, c_err, "this view is not a channel!", "/me: ");
 		}
 		else if(args)
 		{
@@ -613,7 +617,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		}
 		else
 		{
-			w_buf_print(cbuf, c_err, "/me: must specify an action!", "");
+			w_buf_print(cbuf, c_err, "must specify an action!", "/me: ");
 		}
 		return(0);
 	}
@@ -621,7 +625,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 	{
 		if(!bufs[cbuf].handle)
 		{
-			w_buf_print(cbuf, c_err, "/cmd: must be run in the context of a server!", "");
+			w_buf_print(cbuf, c_err, "must be run in the context of a server!", "/cmd: ");
 		}
 		else
 		{
@@ -633,9 +637,9 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 	else
 	{
 		if(!cmd) cmd="";
-		char dstr[30+strlen(cmd)];
-		sprintf(dstr, "%s: Unrecognised command!", cmd);
-		w_buf_print(cbuf, c_err, dstr, "");
+		char dstr[8+strlen(cmd)];
+		sprintf(dstr, "/%s: ", cmd);
+		w_buf_print(cbuf, c_err, "Unrecognised command!", dstr);
 		return(0);
 	}
 }
