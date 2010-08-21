@@ -505,6 +505,32 @@ int rx_notice(int b, char *packet)
 	return(w_buf_print(b, c_notice[1], msg, tag));
 }
 
+int rx_topic(int b, char *packet)
+{
+	// <dest> :<topic>
+	char *dest=strtok(NULL, " ");
+	char *msg=dest+strlen(dest)+2; // prefixed with :
+	char *src=packet+1;
+	char *bang=strchr(src, '!');
+	if(bang)
+		*bang=0;
+	char *from=strdup(src);
+	scrush(&from, maxnlen);
+	char tag[maxnlen+20];
+	sprintf(tag, "%s set the Topic to ", from);
+	int b2;
+	bool match=false;
+	for(b2=0;b2<nbufs;b2++)
+	{
+		if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (strcasecmp(dest, bufs[b2].bname)==0))
+		{
+			w_buf_print(b2, c_notice[1], msg, tag);
+			match=true;
+		}
+	}
+	return(match?0:1);
+}
+
 int rx_join(int b, char *packet, char *pdata, bool *join)
 {
 	char *dest=strtok(NULL, " \t");

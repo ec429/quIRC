@@ -42,6 +42,7 @@ int rx_kill(int b, fd_set *master);
 int rx_error(int b, fd_set *master);
 int rx_privmsg(int b, char *packet, char *pdata);
 int rx_notice(int b, char *packet);
+int rx_topic(int b, char *packet);
 int rx_join(int b, char *packet, char *pdata, bool *join);
 int rx_part(int b, char *packet, char *pdata);
 int rx_quit(int b, char *packet, char *pdata);

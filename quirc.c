@@ -168,6 +168,10 @@ int main(int argc, char *argv[])
 										{
 											rx_notice(b, packet);
 										}
+										else if(strcmp(cmd, "TOPIC")==0)
+										{
+											rx_topic(b, packet);
+										}
 										else if(strcmp(cmd, "JOIN")==0)
 										{
 											rx_join(b, packet, pdata, &join);
