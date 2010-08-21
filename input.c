@@ -231,8 +231,6 @@ char * slash_dequote(char *inp)
 				break;
 				default:
 					rv[o++]='\\';
-					if(o<l)
-						rv[o++]=c;
 				break;
 			}
 		}

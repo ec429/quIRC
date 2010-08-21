@@ -288,6 +288,11 @@ char *highlight(char *src)
 					s_setcol(7, 0, 0, 0, &rv, &l, &i);
 					src++;
 				break;
+				case 0:
+					s_setcol(4, 0, 1, 0, &rv, &l, &i);
+					append_char(&rv, &l, &i, '\\');
+					s_setcol(7, 0, 0, 0, &rv, &l, &i);
+				break;
 				case '0':
 				case '1':
 				case '2':
