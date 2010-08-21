@@ -97,7 +97,7 @@ int irc_tx(int fd, char * packet)
 	//printf(">> %s\n\n", packet); // for debugging purposes
 	char pq[512];
 	low_quote(packet, pq);
-	unsigned long l=max(strlen(packet)+1, 511);
+	unsigned long l=min(strlen(packet), 511);
 	unsigned long p=0;
 	while(p<l)
 	{

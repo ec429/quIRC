@@ -185,10 +185,10 @@ int inputchar(char **inp, int *state)
 
 char * slash_dequote(char *inp)
 {
-	size_t l=strlen(inp);
+	size_t l=strlen(inp)+1;
 	char *rv=(char *)malloc(l+1); // we only get shorter, so this will be enough
 	int o=0;
-	while((*inp) && (o<=l)) // o>l should never happen, but it's covered just in case
+	while((*inp) && (o<l)) // o>=l should never happen, but it's covered just in case
 	{
 		if(*inp=='\\') // \n, \r, \\, \ooo (\0 remains escaped)
 		{
@@ -223,7 +223,7 @@ char * slash_dequote(char *inp)
 					else // \0 is a special case (it remains escaped)
 					{
 						rv[o++]='\\';
-						if(o<=l)
+						if(o<l)
 							rv[o++]='0';
 					}
 					inp++;
@@ -231,7 +231,7 @@ char * slash_dequote(char *inp)
 				break;
 				default:
 					rv[o++]='\\';
-					if(o<=l)
+					if(o<l)
 						rv[o++]=c;
 				break;
 			}
