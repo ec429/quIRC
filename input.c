@@ -250,7 +250,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 	if(args) *args++=0;
 	if((strcmp(cmd, "quit")==0)||(strcmp(cmd, "exit")==0))
 	{
-		if(args) *qmsg=args;
+		if(args) *qmsg=strdup(args);
 		printf(LOCATE, height-2, 1);
 		printf(CLA "Exited quirc\n" CLA "\n");
 		return(-1);
