@@ -35,6 +35,8 @@ README: readme.htm
 %.o: %.c %.h
 	$(CC) -c $(CFLAGS) $(CPPFLAGS) $< -o $@
 
+ttyesc.o: bits.h
+
 irc.o: irc.c irc.h bits.h buffer.h colour.h config.h numeric.h
 
 bits.o: bits.c bits.h ttyesc.h colour.h config.h

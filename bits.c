@@ -134,6 +134,17 @@ int wordline(char *msg, int x, char **out)
 	return(x);
 }
 
+void append_char(char **buf, int *l, int *i, char c)
+{
+	(*buf)[(*i)++]=c;
+	if((*i)>=(*l))
+	{
+		*l=*l*2;
+		*buf=(char *)realloc(*buf, *l);
+	}
+	(*buf)[*i]=0;
+}
+
 void crush(char **buf, int len)
 {
 	if(strlen(*buf)>len)

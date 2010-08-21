@@ -28,6 +28,25 @@ int setcol(int fore, int back, bool hi, bool ul)
 	return(0);
 }
 
+int s_setcol(int fore, int back, bool hi, bool ul, char **rv, int *l, int *i)
+{
+	if((fore<0)||(fore>7))
+		return(1);
+	if((back<0)||(back>7))
+		return(2);
+	append_char(rv, l, i, '\033');
+	append_char(rv, l, i, '[');
+	append_char(rv, l, i, '0'+(hi?1:0)+(ul?4:0));
+	append_char(rv, l, i, ';');
+	append_char(rv, l, i, '3');
+	append_char(rv, l, i, '0'+fore);
+	append_char(rv, l, i, ';');
+	append_char(rv, l, i, '4');
+	append_char(rv, l, i, '0'+back);
+	append_char(rv, l, i, 'm');
+	return(0);
+}
+
 int resetcol(void)
 {
 	return(setcol(7, 0, false, false));

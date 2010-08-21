@@ -240,13 +240,83 @@ void in_update(char *inp)
 	if(ino>width-2)
 	{
 		int off=20*max((ino+27-width)/20, 0);
-		printf("%.10s ... %s" CLR, inp, inp+off+10);
+		char l[11];
+		sprintf(l, "%.10s", inp);
+		char *lh=highlight(lh);
+		char *rh=highlight(inp+off+10);
+		printf("%s ... %s" CLR, lh, rh);
+		free(lh);
+		free(rh);
 	}
 	else
 	{
-		printf("%s" CLR, inp?inp:"");
+		char *h=highlight(inp?inp:"");
+		printf("%s" CLR, h);
+		free(h);
 	}	
 	fflush(stdout);
+}
+
+char *highlight(char *src)
+{
+	int l=80;
+	char *rv=(char *)malloc(l);
+	int i=0;
+	while(*src)
+	{
+		if(*src=='\\')
+		{
+			switch(src[1])
+			{
+				case 'n':
+					s_setcol(7, 0, 1, 0, &rv, &l, &i);
+					append_char(&rv, &l, &i, '\\');
+					append_char(&rv, &l, &i, 'n');
+					s_setcol(7, 0, 0, 0, &rv, &l, &i);
+					src++;
+				break;
+				case 'r':
+					s_setcol(7, 0, 1, 0, &rv, &l, &i);
+					append_char(&rv, &l, &i, '\\');
+					append_char(&rv, &l, &i, 'r');
+					s_setcol(7, 0, 0, 0, &rv, &l, &i);
+					src++;
+				break;
+				case '\\':
+					s_setcol(3, 0, 1, 0, &rv, &l, &i);
+					append_char(&rv, &l, &i, '\\');
+					append_char(&rv, &l, &i, '\\');
+					s_setcol(7, 0, 0, 0, &rv, &l, &i);
+					src++;
+				break;
+				case '0':
+				case '1':
+				case '2':
+				case '3':
+					s_setcol(6, 0, 1, 0, &rv, &l, &i);
+					append_char(&rv, &l, &i, '\\');
+					append_char(&rv, &l, &i, *++src);
+					int digits=0;
+					while(isdigit(src[1])&&(src[1]<'8')&&(++digits<3))
+					{
+						append_char(&rv, &l, &i, *++src);
+					}
+					s_setcol(7, 0, 0, 0, &rv, &l, &i);
+				break;
+				default:
+					s_setcol(1, 0, 1, 0, &rv, &l, &i);
+					append_char(&rv, &l, &i, '\\');
+					s_setcol(7, 0, 0, 0, &rv, &l, &i);
+				break;
+			}
+		}
+		else
+		{
+			append_char(&rv, &l, &i, *src);
+		}
+		src++;
+	}
+	return(rv);
 }
 
 int w_buf_print(int buf, colour lc, char *lt, char *lead)

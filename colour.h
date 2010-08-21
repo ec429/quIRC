@@ -1,3 +1,4 @@
+#pragma once
 /*
 	quIRC - simple terminal-based IRC client
 	Copyright (C) 2010 Edward Cree
@@ -9,7 +10,6 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include "ttyesc.h"
-#pragma once
 
 typedef struct
 {

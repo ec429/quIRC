@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <ctype.h>
 #include "ttyesc.h"
 #include "colour.h"
 #include "bits.h"
@@ -62,3 +63,4 @@ int redraw_buffer(void);
 int buf_print(int buf, colour lc, char *lt); // don't include trailing \n, because buf_print appends CLR \n
 int w_buf_print(int buf, colour lc, char *lt, char *lead);
 void in_update(char *inp);
+char *highlight(char *src); // use ANSI-colours to highlight \escapes.  Returns a malloc-like pointer
