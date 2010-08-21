@@ -25,10 +25,14 @@
 #include "config.h"
 #include "numeric.h"
 
+#define MQUOTE	'\020'
+
 int irc_connect(char *server, char *portno, char *nick, char *username, char *fullname, fd_set *master, int *fdmax);
 int autoconnect(fd_set *master, int *fdmax);
 int irc_tx(int fd, char * packet);
 int irc_rx(int fd, char ** data);
+void low_quote(char *from, char to[512]);
+char * low_dequote(char *buf);
 
 // Received-IRC message handlers.  strtok() state leaks across the boundaries of these functions, beware!
 int irc_numeric(char *cmd, int b);

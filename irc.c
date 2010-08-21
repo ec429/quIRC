@@ -95,7 +95,9 @@ int autoconnect(fd_set *master, int *fdmax)
 int irc_tx(int fd, char * packet)
 {
 	//printf(">> %s\n\n", packet); // for debugging purposes
-	unsigned long l=strlen(packet)+1;
+	char pq[512];
+	low_quote(packet, pq);
+	unsigned long l=max(strlen(packet)+1, 511);
 	unsigned long p=0;
 	while(p<l)
 	{
@@ -110,26 +112,97 @@ int irc_tx(int fd, char * packet)
 
 int irc_rx(int fd, char ** data)
 {
-	*data=(char *)malloc(512);
-	if(!*data)
-		return(1);
+	char buf[512];
 	int l=0;
 	bool cr=false;
 	while(!cr)
 	{
-		long bytes=recv(fd, (*data)+l, 1, MSG_WAITALL);
+		long bytes=recv(fd, buf+l, 1, MSG_WAITALL);
 		if(bytes>0)
 		{
-			char c=(*data)[l];
+			char c=buf[l];
 			if((strchr("\n\r", c)!=NULL) || (l>510))
 			{
 				cr=true;
-				(*data)[l]=0;
+				buf[l]=0;
 			}
 			l++;
 		}
 	}
+	*data=low_dequote(buf);
+	if(!*data)
+		return(1);
 	return(0);
+}
+
+void low_quote(char *from, char to[512])
+{
+	int o=0;
+	while((*from) && (o<510))
+	{
+		char c=*from++;
+		switch(c)
+		{
+			case '\n':
+				to[o++]=MQUOTE;
+				to[o++]='n';
+			break;
+			case '\r':
+				to[o++]=MQUOTE;
+				to[o++]='r';
+			break;
+			case MQUOTE:
+				to[o++]=MQUOTE;
+				to[o++]=MQUOTE;
+			break;
+			case 0: // can't happen right now
+				to[o++]=MQUOTE;
+				to[o++]='0';
+			break;
+			default:
+				to[o++]=c;
+			break;
+		}
+	}
+	to[o]=0;
+}
+
+char * low_dequote(char *buf)
+{
+	char *rv=(char *)malloc(512);
+	if(!rv) return(NULL);
+	char *p=buf;
+	int o=0;
+	while(*p)
+	{
+		if(*p==MQUOTE)
+		{
+			char c=*++p;
+			switch(c)
+			{
+				case '0':
+					rv[o]=0; // Warning: this may break things using strlen() etc.  TODO: replace char * everywhere with a string datatype that can handle embedded \0s
+				break;
+				case 'n':
+					rv[o]='\n';
+				break;
+				case 'r':
+					rv[o]='\r';
+				break;
+				case MQUOTE: // MQUOTE MQUOTE => MQUOTE, so fall through
+				default:
+					rv[o]=c;
+				break;
+			}
+		}
+		else
+		{
+			rv[o]=*p;
+		}
+		p++;o++;
+	}
+	rv[o]=0;
+	return(rv);
 }
 
 int irc_numeric(char *cmd, int b) // TODO check the strtok()s for NULLs
