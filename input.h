@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 #include "ttyesc.h"
 #include "names.h"
@@ -18,4 +19,5 @@
 #include "irc.h"
 
 int inputchar(char **inp, int *state);
+char * slash_dequote(char *inp);
 int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax);

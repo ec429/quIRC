@@ -183,6 +183,67 @@ int inputchar(char **inp, int *state)
 	return(0);
 }
 
+char * slash_dequote(char *inp)
+{
+	size_t l=strlen(inp);
+	char *rv=(char *)malloc(l+1); // we only get shorter, so this will be enough
+	int o=0;
+	while((*inp) && (o<=l)) // o>l should never happen, but it's covered just in case
+	{
+		if(*inp=='\\') // \n, \r, \\, \ooo (\0 remains escaped)
+		{
+			char c=*++inp;
+			switch(c)
+			{
+				case 'n':
+					rv[o++]='\n';
+				break;
+				case 'r':
+					rv[o++]='\r';
+				break;
+				case '\\':
+					rv[o++]='\\';
+				break;
+				case '0': // \000 to \377 are octal escapes
+				case '1':
+				case '2':
+				case '3':
+				{
+					int digits=0;
+					int oval=c-'0'; // Octal VALue
+					while(isdigit(inp[1]) && (inp[1]<'8') && (++digits<3))
+					{
+						oval*=8;
+						oval+=(*++inp)-'0';
+					}
+					if(oval)
+					{
+						rv[o++]=oval;
+					}
+					else // \0 is a special case (it remains escaped)
+					{
+						rv[o++]='\\';
+						if(o<=l)
+							rv[o++]='0';
+					}
+				}
+				break;
+				default:
+					rv[o++]='\\';
+					if(o<=l)
+						rv[o++]=c;
+				break;
+			}
+		}
+		else
+		{
+			rv[o++]=*inp++;
+		}
+	}
+	rv[o]=0;
+	return(rv);
+}
+
 int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=3; return new state
 {
 	char *cmd=inp+1;
