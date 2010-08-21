@@ -236,7 +236,10 @@ int main(int argc, char *argv[])
 								inp[strlen(inp)-1]=0; // stomp out trailing newlines, they break things
 							char tag[maxnlen+4];
 							memset(tag, ' ', maxnlen+3);
-							sprintf(tag+maxnlen-strlen(bufs[bufs[cbuf].server].nick), "<%s> ", bufs[bufs[cbuf].server].nick);
+							char *cnick=strdup(bufs[bufs[cbuf].server].nick);
+							crush(&cnick, maxnlen);
+							sprintf(tag+maxnlen-strlen(cnick), "<%s> ", cnick);
+							free(cnick);
 							w_buf_print(cbuf, c_msg[0], inp, tag);
 						}
 						else
