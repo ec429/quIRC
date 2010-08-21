@@ -6,9 +6,9 @@ Debug mode.  /Every/ message send to or from a server to be displayed in that se
 
 Quiet mode.  Don't emit diagnostics for eg. unrecognised IRC traffic (such as numerics).
 
-curses.  The current hardwired ANSI-escapes code for painting the screen is clumsy.
+curses.  The current hardwired ANSI-escapes code for painting the screen is clumsy.  However, it's tailored to my needs, and now that it's neatly packaged away, it should be easier to cope with.  So, I may just stick with it.
 
-Interface separation.  The main event loop is currently chock-full of implementation details; it should just be a command parser and marshal.  Some work has been done in this direction (0.4.8 changes) but there's a lot left to do.
+Interface separation.  It should be possible to write decoupled interface modules which may access the buffers at a variety of depths (eg. pre-formatting) and through a variety of methods (such as mmap(2), a serialised textual IPC format, etc.).
 
 Input editing.  Should use something based on Emacs line editing keys (C-a will mean 'go to start of line', unlike now when it means 'backspace to start of line'!).  May be provided by curses - investigate.
 
@@ -19,9 +19,10 @@ append_char().  This should be used for all string appension (eg. fgetl())
 quoting/escaping tables.  Instead of duplicative hard-baked logic, we should have a data-driven system with a single point of truth.
 
 Top status bar.  Carry the info in the xterm title and maybe more info besides.  Here's an idea for a layout that nicely fits things in.
-|                           0               16 0               16 0           12
-1      8         18         29                 48                 67           80
--quIRC-ve.rs.ion-ghashgit---server...foo.bar---#thechannel_name---my_nick_name-
+|                             0               160               160           12
+1      8           20         31                49                67           80
+-quIRC-ve.rs.io-rev-ghashgit--server...foo.bar--#thechannel_name--my_nick_name-
 If any string (server, channel, nick) is too long to fit its slot, it will be crushed according to the usual crushing rules.
+Option to turn this bar on/off (on a tty, vertical space is precious!)
 
 Pidfiles and attaching.  When you run quirc, if there is an existing quirc process running, your new instance should simply signal that process to open the requested server/channel in a new tab, and the new instance should then close (after emitting a suitable diagnostic).
