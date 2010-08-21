@@ -217,6 +217,9 @@ int main(int argc, char *argv[])
 				{
 					printf(SCROLLDOWN);
 					fflush(stdout);
+					char *deq=slash_dequote(inp); // dequote
+					free(inp);
+					inp=deq;
 					if(*inp=='/')
 					{
 						state=cmd_handle(inp, &qmsg, &master, &fdmax);
