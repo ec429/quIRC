@@ -155,6 +155,16 @@ void low_quote(char *from, char to[512])
 				to[o++]=MQUOTE;
 				to[o++]=MQUOTE;
 			break;
+			case '\\':
+				if(*from=='0') // "\\0", is an encoded '\0'
+				{
+					to[o++]=MQUOTE; // because this will produce ^P 0, the proper representation
+				}
+				else
+				{
+					to[o++]=c;
+				}
+			break;
 			case 0: // can't happen right now
 				to[o++]=MQUOTE;
 				to[o++]='0';
@@ -173,7 +183,7 @@ char * low_dequote(char *buf)
 	if(!rv) return(NULL);
 	char *p=buf;
 	int o=0;
-	while(*p)
+	while((*p) && (o<510))
 	{
 		if(*p==MQUOTE)
 		{
@@ -181,7 +191,8 @@ char * low_dequote(char *buf)
 			switch(c)
 			{
 				case '0':
-					rv[o]=0; // Warning: this may break things using strlen() etc.  TODO: replace char * everywhere with a string datatype that can handle embedded \0s
+					rv[o++]='\\';
+					rv[o]='0'; // We will have to defer '\0' handling as we can't stick '\0's in char *s (NUL terminated strings)
 				break;
 				case 'n':
 					rv[o]='\n';
