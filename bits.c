@@ -145,6 +145,14 @@ void append_char(char **buf, int *l, int *i, char c)
 	(*buf)[*i]=0;
 }
 
+void init_char(char **buf, int *l, int *i)
+{
+	*l=80;
+	*buf=(char *)malloc(*l);
+	(*buf)[0]=0;
+	*i=0;
+}
+
 void crush(char **buf, int len)
 {
 	if(strlen(*buf)>len)

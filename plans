@@ -14,6 +14,10 @@ Input editing.  Should use something based on Emacs line editing keys (C-a will 
 
 wordline() spaces.  Currently, wordline() replaces /[ \t]+/ with a single space.  This messes up ASCII art (like TFnet's MOTD)
 
+append_char().  This should be used for all string appension (eg. fgetl())
+
+quoting/escaping tables.  Instead of duplicative hard-baked logic, we should have a data-driven system with a single point of truth.
+
 Top status bar.  Carry the info in the xterm title and maybe more info besides.  Here's an idea for a layout that nicely fits things in.
 |                           0               16 0               16 0           12
 1      8         18         29                 48                 67           80

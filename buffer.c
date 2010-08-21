@@ -259,9 +259,8 @@ void in_update(char *inp)
 
 char *highlight(char *src)
 {
-	int l=80;
-	char *rv=(char *)malloc(l);
-	int i=0;
+	int l,i;char *rv;
+	init_char(&rv, &l, &i);
 	while(*src)
 	{
 		if(*src=='\\')
