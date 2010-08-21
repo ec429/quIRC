@@ -242,7 +242,7 @@ void in_update(char *inp)
 		int off=20*max((ino+27-width)/20, 0);
 		char l[11];
 		sprintf(l, "%.10s", inp);
-		char *lh=highlight(lh);
+		char *lh=highlight(l);
 		char *rh=highlight(inp+off+10);
 		printf("%s ... %s" CLR, lh, rh);
 		free(lh);
