@@ -244,6 +244,8 @@ int irc_numeric(char *cmd, int b) // TODO check the strtok()s for NULLs
 					char *nn;
 					while((nn=strtok(NULL, ":@ ")))
 					{
+						if(!isalpha(*nn))
+							nn++;
 						n_add(&bufs[b2].nlist, nn);
 					}
 				}
