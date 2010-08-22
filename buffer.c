@@ -36,6 +36,11 @@ int init_buffer(int buf, btype type, char *bname, int nlines)
 	bufs[buf].scroll=0;
 	bufs[buf].lc=(colour *)malloc(sizeof(colour[nlines]));
 	bufs[buf].lt=(char **)malloc(sizeof(char *[nlines]));
+	int i;
+	for(i=0;i<bufs[buf].nlines;i++)
+	{
+		bufs[buf].lt[i]=malloc(1); // free() safe
+	}
 	bufs[buf].ts=(time_t *)malloc(sizeof(time_t[nlines]));
 	bufs[buf].filled=false;
 	bufs[buf].alert=false;
@@ -57,7 +62,7 @@ int free_buffer(int buf)
 	bufs[buf].nlist=NULL;
 	free(bufs[buf].lc);
 	int l;
-	for(l=0;l<(bufs[buf].filled?bufs[buf].nlines:bufs[buf].ptr);l++)
+	for(l=0;l<bufs[buf].nlines;l++)
 		free(bufs[buf].lt[l]);
 	free(bufs[buf].lt);
 	free(bufs[buf].ts);
@@ -94,7 +99,7 @@ int add_to_buffer(int buf, colour lc, char *lt)
 		lt=nl+1;
 	}
 	bufs[buf].lc[bufs[buf].ptr]=lc;
-	if(bufs[buf].filled) free(bufs[buf].lt[bufs[buf].ptr]);
+	free(bufs[buf].lt[bufs[buf].ptr]);
 	bufs[buf].lt[bufs[buf].ptr]=strdup(lt);
 	bufs[buf].ts[bufs[buf].ptr]=time(NULL);
 	bufs[buf].ptr=(bufs[buf].ptr+1)%bufs[buf].nlines;
