@@ -476,7 +476,7 @@ int rx_privmsg(int b, char *packet, char *pdata)
 			}
 			else
 			{
-				char tag[maxnlen+9];
+				char tag[maxnlen+12];
 				memset(tag, ' ', maxnlen+8);
 				sprintf(tag+maxnlen-strlen(from), "(from %s) ", from);
 				w_buf_print(b2, c_msg[1], msg, tag);
