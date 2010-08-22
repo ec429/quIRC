@@ -90,6 +90,12 @@ int free_buffer(int buf)
 
 int add_to_buffer(int buf, colour lc, char *lt)
 {
+	if(buf>=nbufs)
+	{
+		w_buf_print(0, c_err, "Line was written to bad buffer!  Contents below.", "add_to_buffer()");
+		w_buf_print(0, lc, lt, "");
+		return(1);
+	}
 	char *nl;
 	while((nl=strchr(lt, '\n'))!=NULL)
 	{
