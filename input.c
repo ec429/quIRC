@@ -847,7 +847,38 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		}
 		else
 		{
-			w_buf_print(cbuf, c_err, "must specify an action!", "/me: ");
+			w_buf_print(cbuf, c_err, "Must specify an action!", "/me: ");
+		}
+		return(0);
+	}
+	if(strcmp(cmd, "tab")==0)
+	{
+		if(!args)
+		{
+			w_buf_print(cbuf, c_err, "Must specify a tab!", "/tab: ");
+		}
+		else
+		{
+			int bufn;
+			if(sscanf(args, "%d", &bufn)==1)
+			{
+				if((bufn>=0) && (bufn<nbufs))
+				{
+					cbuf=bufn;
+					if(force_redraw<3)
+					{
+						redraw_buffer();
+					}
+				}
+				else
+				{
+					w_buf_print(cbuf, c_err, "No such tab!", "/tab: ");
+				}
+			}
+			else
+			{
+				w_buf_print(cbuf, c_err, "Must specify a tab!", "/tab: ");
+			}
 		}
 		return(0);
 	}
@@ -855,7 +886,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 	{
 		if(!bufs[cbuf].handle)
 		{
-			w_buf_print(cbuf, c_err, "must be run in the context of a server!", "/cmd: ");
+			w_buf_print(cbuf, c_err, "Must be run in the context of a server!", "/cmd: ");
 		}
 		else
 		{
