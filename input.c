@@ -452,6 +452,27 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 						w_buf_print(cbuf, c_status, "hts disabled", "/set: ");
 					}
 				}
+				else if(strcmp(opt, "tsb")==0)
+				{
+					if(val)
+					{
+						int ntsb;
+						sscanf(val, "%u", &ntsb);
+						tsb=ntsb;
+					}
+					else
+					{
+						tsb=true;
+					}
+					if(tsb)
+					{
+						w_buf_print(cbuf, c_status, "tsb enabled", "/set: ");
+					}
+					else
+					{
+						w_buf_print(cbuf, c_status, "tsb disabled", "/set: ");
+					}
+				}
 				else if(strcmp(opt, "buf")==0)
 				{
 					if(val)

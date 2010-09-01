@@ -15,6 +15,7 @@ int def_config(void)
 	force_redraw=2;
 	full_width_colour=false;
 	hilite_tabstrip=false;
+	tsb=true; // show top status bar
 	char *cols=getenv("COLUMNS"), *rows=getenv("LINES");
 	if(cols) sscanf(cols, "%u", &width);
 	if(rows) sscanf(rows, "%u", &height);
@@ -154,6 +155,12 @@ int rcread(FILE *rcfp)
 				sscanf(rest, "%u", &hts);
 				hilite_tabstrip=hts;
 			}
+			else if(strcmp(cmd, "tsb")==0)
+			{
+				int ntsb;
+				sscanf(rest, "%u", &ntsb);
+				tsb=ntsb;
+			}
 			else if(strcmp(cmd, "fred")==0)
 				sscanf(rest, "%u", &force_redraw);
 			else if(strcmp(cmd, "buf")==0)
@@ -225,6 +232,14 @@ signed int pargs(int argc, char *argv[])
 		else if(strcmp(argv[arg], "--no-hts")==0)
 		{
 			hilite_tabstrip=false;
+		}
+		else if(strcmp(argv[arg], "--tsb")==0)
+		{
+			tsb=true;
+		}
+		else if(strcmp(argv[arg], "--no-tsb")==0)
+		{
+			tsb=false;
 		}
 		else if(strncmp(argv[arg], "--force-redraw=", 15)==0)
 		{

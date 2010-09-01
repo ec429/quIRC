@@ -17,6 +17,7 @@ int initialise_buffers(int buflines, char *nick)
 	nbufs=1;
 	cbuf=0;
 	bufs[0].live=true; // STATUS is never dead
+	bufs[0].nick=nick;
 	buf_print(0, c_status, GPL_MSG); // can't w_buf_print() it because it has embedded newlines
 	return(0);
 }
@@ -170,6 +171,8 @@ int redraw_buffer(void)
 			settitle("quIRC");
 		break;
 	}
+	if(tsb)
+		titlebar();
 	bufs[cbuf].alert=false;
 	return(0);
 }
@@ -200,6 +203,8 @@ int buf_print(int buf, colour lc, char *lt)
 			resetcol();
 			printf(CLR "\n" CLA "\n");
 		}
+		if(tsb)
+			titlebar();
 	}
 	return(add_to_buffer(buf, lc, lt));
 }
@@ -376,4 +381,40 @@ int w_buf_print(int buf, colour lc, char *lt, char *lead)
 	free(ltd);
 	free(out);
 	return(e);
+}
+
+void titlebar(void)
+{
+	printf(LOCATE CLA, 1, 1);
+	setcol(0, 7, true, false);
+	int gits;
+	sscanf(VERSION_TXT, "%u", &gits);
+	char *p=strchr(VERSION_TXT, ' ');
+	if(p)
+		p++;
+	else
+		p="";
+	char *cserv=strdup(bufs[bufs[cbuf].server].bname?bufs[bufs[cbuf].server].bname:"");
+	char *cnick=strdup(bufs[bufs[cbuf].server].nick?bufs[bufs[cbuf].server].nick:"");
+	char *cchan=(bufs[cbuf].type==CHANNEL)?strdup(bufs[cbuf].bname?bufs[cbuf].bname:""):strdup("");
+	scrush(&cserv, 16);
+	crush(&cnick, 16);
+	crush(&cchan, 16);
+	char tbar[width];
+	sprintf(tbar, "-quIRC-%hhu.%hhu.%hhu-%hhu-%s", VERSION_MAJ%100, VERSION_MIN%100, VERSION_REV%100, gits%1000, p);
+	int u=strlen(tbar);
+	int i;
+	for(i=u;i<width;i++)
+		tbar[i]='-';
+	tbar[width]=0;
+	printf("%s", tbar);
+	printf(LOCATE "%s", 1, 31, cserv);
+	printf(LOCATE "%s", 1, 49, cchan);
+	printf(LOCATE "%s", 1, 67, cnick);
+	free(cserv);
+	free(cchan);
+	free(cnick);
+	resetcol();
+	printf("\n");
+	printf(LOCATE, height-1, 1);
 }

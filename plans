@@ -10,6 +10,8 @@ curses.  The current hardwired ANSI-escapes code for painting the screen is clum
 
 Simplify RX parsing.  A command consists of [:<prefix>] +<command>[ +[<arguments>]]; we should pass those three items to each rx_*().
 
+Automate config handling.  Generated code?
+
 Interface separation.  It should be possible to write decoupled interface modules which may access the buffers at a variety of depths (eg. pre-formatting) and through a variety of methods (such as mmap(2), a serialised textual IPC format, etc.).
 
 Input editing.  Should use something based on Emacs line editing keys (C-a will mean 'go to start of line', unlike now when it means 'backspace to start of line'!).  May be provided by curses - investigate.
@@ -21,12 +23,5 @@ append_char().  This should be used for all string appension (eg. fgetl())
 quoting/escaping tables.  Instead of duplicative hard-baked logic, we should have a data-driven system with a single point of truth.
 
 http links.  Command /http <n>, opens the nth previous link in web browser.  Links considered to be any word starting "http://"; words are delimited by whitespace.  The actual command run is set with $BROWSER,--browser=,/set browser; %s is replaced with the URL.  If no browser is registered, return an error.  The count <n> is local to each buffer; the most recent link is number 0.  If <n> not specified, defaults to 0.  Also /http <url> opens <url> in web browser, and /http <n><TAB> replaces <n> with the corresponding <url> (so you can check it's the right link, and ^A it if not).
-
-Top status bar.  Carry the info in the xterm title and maybe more info besides.  Here's an idea for a layout that nicely fits things in.
-|                             0               160               160           12
-1      8           20         31                49                67           80
--quIRC-ve.rs.io-rev-ghashgit--server...foo.bar--#thechannel_name--my_nick_name-
-If any string (server, channel, nick) is too long to fit its slot, it will be crushed according to the usual crushing rules.
-Option to turn this bar on/off (on a tty, vertical space is precious!)
 
 Pidfiles and attaching.  When you run quirc, if there is an existing quirc process running, your new instance should simply signal that process to open the requested server/channel in a new tab, and the new instance should then close (after emitting a suitable diagnostic).
