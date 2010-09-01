@@ -36,6 +36,24 @@ the channel.
             and $COLUMNS, using defaults of 80x24 if these env vars are not
             found), but you can override those guesses here or on the command
             line.
+  /ignore [-ipd] user[@host]
+  /ignore [-ipd] -r regex
+  /ignore -l
+      Adds a user to your "ignore list", thus preventing messages from that
+      user from appearing.
+        -i
+            Match will be case-insensitive
+        -p
+            Will also ignore matching private messages
+        -d
+            Instead of adding a rule, remove all rules matching the given
+            user@host
+        -r
+            Supply a regular expression match. The usual form (without -r)
+            generates the regular expression ^user[_~]*@host$; if user or host
+            are not given (or begin with *), they are replaced with [^@]*
+        -l
+            Instead of adding a rule, list rules which apply to this tab
   /cmd command
       Allows you to send a raw command to the server; not recommended.
   /part channel
