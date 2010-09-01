@@ -10,10 +10,6 @@ curses.  The current hardwired ANSI-escapes code for painting the screen is clum
 
 Simplify RX parsing.  A command consists of [:<prefix>] +<command>[ +[<arguments>]]; we should pass those three items to each rx_*().
 
-/ignore.  Format "/ignore [-i][--] <user>@<host>", where either of <user> and <host> may be * (wildcard), and trailing _ and ~ are considered not to affect equality.
-/ignore [-i] -r [--] <regex>.  Regex is matched against user@host
-	-i sets case-insensitive.  -- signals end of options (and is also needed if following argument contains spaces)
-
 /amsg.  Sends message to all joined channels on this server.
 
 Interface separation.  It should be possible to write decoupled interface modules which may access the buffers at a variety of depths (eg. pre-formatting) and through a variety of methods (such as mmap(2), a serialised textual IPC format, etc.).
