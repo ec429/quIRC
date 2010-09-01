@@ -438,11 +438,11 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		}
 		return(0);
 	}
-	if(strcmp(cmd, "server")==0)
+	if((strcmp(cmd, "server")==0)||(strcmp(cmd, "connect")==0))
 	{
 		if(args)
 		{
-			server=strdup(args);
+			char *server=strdup(args);
 			char *newport=strchr(server, ':');
 			if(newport)
 			{
@@ -453,28 +453,49 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 			{
 				newport=portno;
 			}
-			char cstr[24+strlen(server)];
-			sprintf(cstr, "quIRC - connecting to %s", server);
-			settitle(cstr);
-			char dstr[30+strlen(server)+strlen(newport)];
-			sprintf(dstr, "Connecting to %s on port %s...", server, newport);
-			setcolour(c_status);
-			printf(LOCATE, height-2, 1);
-			printf("%s" CLR "\n", dstr);
-			resetcol();
-			printf(CLA "\n");
-			int serverhandle=irc_connect(server, newport, master, fdmax);
-			if(serverhandle)
+			int b;
+			for(b=1;b<nbufs;b++)
 			{
-				bufs=(buffer *)realloc(bufs, ++nbufs*sizeof(buffer));
-				init_buffer(nbufs-1, SERVER, server, buflines);
-				cbuf=nbufs-1;
-				bufs[cbuf].handle=serverhandle;
-				bufs[cbuf].nick=strdup(nick);
-				bufs[cbuf].server=cbuf;
-				w_buf_print(cbuf, c_status, dstr, "/server: ");
-				sprintf(cstr, "quIRC - connected to %s", server);
+				if((bufs[b].type==SERVER) && (strcasecmp(server, bufs[b].bname)==0))
+				{
+					if(bufs[b].live)
+					{
+						cbuf=b;
+						return(0);
+					}
+					else
+					{
+						cbuf=b;
+						cmd="reconnect";
+						break;
+					}
+				}
+			}
+			if(b>=nbufs)
+			{
+				char cstr[24+strlen(server)];
+				sprintf(cstr, "quIRC - connecting to %s", server);
 				settitle(cstr);
+				char dstr[30+strlen(server)+strlen(newport)];
+				sprintf(dstr, "Connecting to %s on port %s...", server, newport);
+				setcolour(c_status);
+				printf(LOCATE, height-2, 1);
+				printf("%s" CLR "\n", dstr);
+				resetcol();
+				printf(CLA "\n");
+				int serverhandle=irc_connect(server, newport, master, fdmax);
+				if(serverhandle)
+				{
+					bufs=(buffer *)realloc(bufs, ++nbufs*sizeof(buffer));
+					init_buffer(nbufs-1, SERVER, server, buflines);
+					cbuf=nbufs-1;
+					bufs[cbuf].handle=serverhandle;
+					bufs[cbuf].nick=strdup(nick);
+					bufs[cbuf].server=cbuf;
+					w_buf_print(cbuf, c_status, dstr, "/server: ");
+					sprintf(cstr, "quIRC - connected to %s", server);
+					settitle(cstr);
+				}
 			}
 		}
 		else
@@ -527,6 +548,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 			{
 				w_buf_print(cbuf, c_err, "Already connected to server", "/reconnect: ");
 			}
+		}
 		else
 		{
 			w_buf_print(cbuf, c_err, "Must be run in the context of a server!", "/reconnect: ");
