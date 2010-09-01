@@ -242,18 +242,32 @@ int main(int argc, char *argv[])
 					{
 						if(bufs[cbuf].type==CHANNEL) // TODO add PRIVATE
 						{
-							char pmsg[12+strlen(bufs[cbuf].bname)+strlen(inp)];
-							sprintf(pmsg, "PRIVMSG %s :%s", bufs[cbuf].bname, inp);
-							irc_tx(bufs[cbuf].handle, pmsg);
-							while(inp[strlen(inp)-1]=='\n')
-								inp[strlen(inp)-1]=0; // stomp out trailing newlines, they break things
-							char tag[maxnlen+4];
-							memset(tag, ' ', maxnlen+3);
-							char *cnick=strdup(bufs[bufs[cbuf].server].nick);
-							crush(&cnick, maxnlen);
-							sprintf(tag+maxnlen-strlen(cnick), "<%s> ", cnick);
-							free(cnick);
-							w_buf_print(cbuf, c_msg[0], inp, tag);
+							if(bufs[cbuf].handle)
+							{
+								if(bufs[cbuf].live)
+								{
+									char pmsg[12+strlen(bufs[cbuf].bname)+strlen(inp)];
+									sprintf(pmsg, "PRIVMSG %s :%s", bufs[cbuf].bname, inp);
+									irc_tx(bufs[cbuf].handle, pmsg);
+									while(inp[strlen(inp)-1]=='\n')
+										inp[strlen(inp)-1]=0; // stomp out trailing newlines, they break things
+									char tag[maxnlen+4];
+									memset(tag, ' ', maxnlen+3);
+									char *cnick=strdup(bufs[bufs[cbuf].server].nick);
+									crush(&cnick, maxnlen);
+									sprintf(tag+maxnlen-strlen(cnick), "<%s> ", cnick);
+									free(cnick);
+									w_buf_print(cbuf, c_msg[0], inp, tag);
+								}
+								else
+								{
+									w_buf_print(cbuf, c_err, "Can't talk - tab is not live!", "");
+								}
+							}
+							else
+							{
+								w_buf_print(cbuf, c_err, "Can't talk - tab is disconnected!", "");
+							}
 						}
 						else
 						{
