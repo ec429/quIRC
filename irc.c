@@ -409,6 +409,7 @@ int rx_kill(int b, fd_set *master)
 {
 	int fd=bufs[b].handle;
 	char *dest=strtok(NULL, " \t"); // user to be killed
+	char *rest=strtok(NULL, "");
 	if(strcmp(dest, bufs[b].nick)==0) // if it's us, we disconnect from the server
 	{
 		close(fd);
@@ -418,6 +419,7 @@ int rx_kill(int b, fd_set *master)
 		{
 			if((bufs[b2].server==b) || (bufs[b2].server==0))
 			{
+				w_buf_print(b2, c_quit[0], rest, "KILLed:");
 				bufs[b2].live=false;
 			}
 		}
@@ -448,11 +450,13 @@ int rx_error(int b, fd_set *master)
 	int fd=bufs[b].handle;
 	close(fd);
 	FD_CLR(fd, master);
+	char *rest=strtok(NULL, "");
 	int b2;
 	for(b2=1;b2<nbufs;b2++)
 	{
 		if((bufs[b2].server==b) || (bufs[b2].server==0))
 		{
+			w_buf_print(b2, c_quit[0], rest, "Disconnected: ERROR");
 			bufs[b2].live=false;
 		}
 	}
