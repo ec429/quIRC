@@ -24,9 +24,12 @@ typedef struct _name
 }
 name;
 
+#include "buffer.h"
+
 name * n_add(name ** list, char *data); // returns pointer to the added name (which should also be the new value of *list).  Calls n_cull() first
 int n_cull(name ** list, char *data); // returns number of instances culled
 void n_free(name * list);
 
 int i_match(name * list, char *nm, bool pm); // returns number of matches
 int i_cull(name ** list, char *nm); // returns number of instances culled
+void i_list(int b);

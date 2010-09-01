@@ -128,3 +128,48 @@ int i_cull(name ** list, char *nm)
 	}
 	return(rv);
 }
+
+void i_list(int b)
+{
+	int count=0;
+	if(bufs[cbuf].type==CHANNEL)
+	{
+		name *curr=bufs[cbuf].ilist;
+		while(curr)
+		{
+			name *next=curr->next;
+			char tag[20];
+			sprintf(tag, "/ignore -l: C%s%s\t", curr->pms?"p":"", curr->icase?"i":"");
+			w_buf_print(cbuf, c_status, curr->data, tag);
+			count++;
+			curr=next;
+		}
+	}
+	if(bufs[cbuf].server)
+	{
+		name *curr=bufs[bufs[cbuf].server].ilist;
+		while(curr)
+		{
+			name *next=curr->next;
+			char tag[20];
+			sprintf(tag, "/ignore -l: S%s%s\t", curr->pms?"p":"", curr->icase?"i":"");
+			w_buf_print(cbuf, c_status, curr->data, tag);
+			count++;
+			curr=next;
+		}
+	}
+	name *curr=bufs[0].ilist;
+	while(curr)
+	{
+		name *next=curr->next;
+		char tag[20];
+		sprintf(tag, "/ignore -l: *%s%s\t", curr->pms?"p":"", curr->icase?"i":"");
+		w_buf_print(cbuf, c_status, curr->data, tag);
+		count++;
+		curr=next;
+	}
+	if(!count)
+	{
+		w_buf_print(cbuf, c_status, "No active ignores for this view.", "/ignore -l: ");
+	}
+}

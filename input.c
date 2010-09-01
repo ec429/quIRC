@@ -922,6 +922,11 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					{
 						pms=true;
 					}
+					else if(strcmp(arg, "-l")==0)
+					{
+						i_list(cbuf);
+						break;
+					}
 					else if(strcmp(arg, "--")==0)
 					{
 						arg=strtok(NULL, "");
