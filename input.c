@@ -900,6 +900,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 			char *arg=strtok(args, " ");
 			bool regex=false;
 			bool icase=false;
+			bool pms=false;
 			bool del=false;
 			while(arg)
 			{
@@ -917,6 +918,10 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					{
 						del=true;
 					}
+					else if(strcmp(arg, "-p")==0)
+					{
+						pms=true;
+					}
 					else if(strcmp(arg, "--")==0)
 					{
 						arg=strtok(NULL, "");
@@ -933,6 +938,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					{
 						name *new=n_add(&bufs[cbuf].ilist, arg);
 						new->icase=icase;
+						new->pms=pms;
 					}
 					else
 					{
@@ -946,6 +952,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 						sprintf(expr, "^%s[_~]*@%s$", iusr, ihst);
 						name *new=n_add(&bufs[cbuf].ilist, expr);
 						new->icase=icase;
+						new->pms=pms;
 					}
 					break;
 				}

@@ -511,9 +511,22 @@ int rx_privmsg(int b, char *packet, char *pdata)
 	char *dest=strtok(NULL, " \t");
 	char *msg=dest+strlen(dest)+2; // prefixed with :
 	char *src=packet+1;
+	char *host=strchr(src, '@');
+	if(host)
+		host++;
 	char *bang=strchr(src, '!');
 	if(bang)
-		*bang=0;
+		*bang++=0;
+	char nm[strlen(src)+strlen(bang)+strlen(host)+3];
+	sprintf(nm, "%s@%s", src, host);
+	if(i_match(bufs[b].ilist, nm, false))
+		return(0);
+	sprintf(nm, "%s@%s", bang, host);
+	if(i_match(bufs[b].ilist, nm, false))
+		return(0);
+	sprintf(nm, "%s", src);
+	if(i_match(bufs[b].ilist, nm, false))
+		return(0);
 	char *from=strdup(src);
 	crush(&from, maxnlen);
 	int b2;
@@ -523,6 +536,15 @@ int rx_privmsg(int b, char *packet, char *pdata)
 		if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (strcasecmp(dest, bufs[b2].bname)==0))
 		{
 			match=true;
+			sprintf(nm, "%s@%s", src, host);
+			if(i_match(bufs[b2].ilist, nm, false))
+				continue;
+			sprintf(nm, "%s@%s", bang, host);
+			if(i_match(bufs[b2].ilist, nm, false))
+				continue;
+			sprintf(nm, "%s", src);
+			if(i_match(bufs[b2].ilist, nm, false))
+				continue;
 			if(*msg==1) // CTCP
 			{
 				ctcp(msg, from, src, b2);
@@ -538,6 +560,15 @@ int rx_privmsg(int b, char *packet, char *pdata)
 	}
 	if(!match)
 	{
+		sprintf(nm, "%s@%s", src, host);
+		if(i_match(bufs[b].ilist, nm, true))
+			return(0);
+		sprintf(nm, "%s@%s", bang, host);
+		if(i_match(bufs[b].ilist, nm, true))
+			return(0);
+		sprintf(nm, "%s", src);
+		if(i_match(bufs[b].ilist, nm, true))
+			return(0);
 		if(strcasecmp(dest, bufs[b].nick)==0)
 		{
 			if(*msg==1) // CTCP

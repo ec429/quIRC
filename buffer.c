@@ -26,6 +26,7 @@ int init_buffer(int buf, btype type, char *bname, int nlines)
 	bufs[buf].type=type;
 	bufs[buf].bname=strdup(bname);
 	bufs[buf].nlist=NULL;
+	bufs[buf].ilist=NULL;
 	bufs[buf].handle=0;
 	bufs[buf].server=0;
 	bufs[buf].nick=NULL;
@@ -57,15 +58,10 @@ int free_buffer(int buf)
 	else
 	{
 		free(bufs[buf].bname);
-		name *curr=bufs[buf].nlist;
-		while(curr)
-		{
-			name *next=curr->next;
-			free(curr->data);
-			free(curr);
-			curr=next;
-		}
+		n_free(bufs[buf].nlist);
 		bufs[buf].nlist=NULL;
+		n_free(bufs[buf].ilist);
+		bufs[buf].ilist=NULL;
 		free(bufs[buf].lc);
 		int l;
 		for(l=0;l<bufs[buf].nlines;l++)

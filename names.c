@@ -10,9 +10,13 @@
 
 name * n_add(name ** list, char *data)
 {
+	if(!list)
+		return(NULL);
 	n_cull(list, data);
 	name *new=(name *)malloc(sizeof(name));
 	new->data=strdup(data);
+	new->icase=false;
+	new->pms=false;
 	new->prev=NULL;
 	new->next=*list;
 	if(*list)
@@ -23,6 +27,8 @@ name * n_add(name ** list, char *data)
 
 int n_cull(name ** list, char *data)
 {
+	if(!list)
+		return(0);
 	int rv=0;
 	name *curr=*list;
 	while(curr)
@@ -60,20 +66,23 @@ void n_free(name * list)
 	}
 }
 
-int i_match(name ** list, char *nm)
+int i_match(name * list, char *nm, bool pm)
 {
 	int rv=0;
-	name *curr=*list;
+	name *curr=list;
 	while(curr)
 	{
-		regex_t comp;
-		if(regcomp(&comp, curr->data, REG_EXTENDED|REG_NOSUB|(curr->icase?REG_ICASE:0))==0)
+		if((!pm)||(curr->pms))
 		{
-			if(regexec(&comp, nm, 0, NULL, 0)==0)
+			regex_t comp;
+			if(regcomp(&comp, curr->data, REG_EXTENDED|REG_NOSUB|(curr->icase?REG_ICASE:0))==0)
 			{
-				rv++;
+				if(regexec(&comp, nm, 0, NULL, 0)==0)
+				{
+					rv++;
+				}
+				regfree(&comp);
 			}
-			regfree(&comp);
 		}
 		curr=curr->next;
 	}
@@ -82,6 +91,8 @@ int i_match(name ** list, char *nm)
 
 int i_cull(name ** list, char *nm)
 {
+	if(!list)
+		return(0);
 	int rv=0;
 	char rm[strlen(nm)+2];
 	if(strchr(nm, '@'))
