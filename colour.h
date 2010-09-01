@@ -24,7 +24,7 @@ int setcolour(colour);
 colour c_mirc(int, int);
 int c_init(void);
 
-colour * c_list;
+colour c_list[19];
 
 // These should really be generated procedurally
 #define c_msg		c_list

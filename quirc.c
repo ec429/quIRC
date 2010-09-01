@@ -22,7 +22,7 @@ int main(int argc, char *argv[])
 {
 	if(c_init())
 	{
-		fprintf(stderr, "Failed to initialise colours (malloc failure)\n");
+		fprintf(stderr, "Failed to initialise colours\n"); // should be impossible
 		return(1);
 	}
 	if(def_config())
