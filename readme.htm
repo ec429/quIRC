@@ -109,6 +109,10 @@ which will redraw the whole screen when things change; the number controls how o
 <p>The size of each scrollback buffer, in lines, can be set with<br />
 <tt>buf <em>buf-lines</em></tt><br />
 the default being 256.  Larger values will, of course, increase memory consumption.</p>
+<p>You can turn on a couple of display options too;<br />
+<tt>fwc 1<br />
+hts 1</tt><br />
+will turn on Full-Width-Colour (makes coloured backgrounds for lines (eg. /me) run all the way across the terminal) and Highlight-Tab-Strip (gives the tab strip a magenta background, to make it more visible).  To turn them off replace the 1 with a 0.  By default these settings are turned off.</p>
 <p>These settings and others can be overridden at runtime with commandline options.  For details run &quot;quirc --help&quot;.</p>
 <p>You can also customise the colours quIRC uses.  A custom colour line starts with &apos;%&apos;, followed optionally by &apos;S&apos; or &apos;R&apos; (only use this colour when Sending or Receiving respectively), followed by an identifier, then space or tab, then four space-separated numbers.  Like this:<br />
 <tt>%[S|R]<em>ident</em>	<em>fore</em> <em>back</em> <em>hi</em> <em>ul</em></tt></p>
