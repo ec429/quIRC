@@ -236,6 +236,12 @@ void in_update(char *inp)
 			c.hi=true;
 			c.ul=false; // can't have both at once: it's not really a bitmask
 		}
+		if(!LIVE(b))
+		{
+			c.fore=3;
+			c.hi=true;
+			c.ul=false; // can't have both at once: it's not really a bitmask
+		}
 		setcolour(c);
 		putchar(brack[0]);
 		char *tab=strdup(bufs[b].bname);
