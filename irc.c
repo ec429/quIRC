@@ -519,13 +519,13 @@ int rx_privmsg(int b, char *packet, char *pdata)
 		*bang++=0;
 	char nm[strlen(src)+strlen(bang)+strlen(host)+3];
 	sprintf(nm, "%s@%s", src, host);
-	if(i_match(bufs[b].ilist, nm, false))
+	if(i_match(bufs[b].ilist, nm, false)||i_match(bufs[0].ilist, nm, false))
 		return(0);
 	sprintf(nm, "%s@%s", bang, host);
-	if(i_match(bufs[b].ilist, nm, false))
+	if(i_match(bufs[b].ilist, nm, false)||i_match(bufs[0].ilist, nm, false))
 		return(0);
 	sprintf(nm, "%s", src);
-	if(i_match(bufs[b].ilist, nm, false))
+	if(i_match(bufs[b].ilist, nm, false)||i_match(bufs[0].ilist, nm, false))
 		return(0);
 	char *from=strdup(src);
 	crush(&from, maxnlen);
@@ -537,13 +537,13 @@ int rx_privmsg(int b, char *packet, char *pdata)
 		{
 			match=true;
 			sprintf(nm, "%s@%s", src, host);
-			if(i_match(bufs[b2].ilist, nm, false))
+			if(i_match(bufs[b2].ilist, nm, true))
 				continue;
 			sprintf(nm, "%s@%s", bang, host);
-			if(i_match(bufs[b2].ilist, nm, false))
+			if(i_match(bufs[b2].ilist, nm, true))
 				continue;
 			sprintf(nm, "%s", src);
-			if(i_match(bufs[b2].ilist, nm, false))
+			if(i_match(bufs[b2].ilist, nm, true))
 				continue;
 			if(*msg==1) // CTCP
 			{
