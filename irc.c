@@ -416,12 +416,11 @@ int rx_kill(int b, fd_set *master)
 		int b2;
 		for(b2=1;b2<nbufs;b2++)
 		{
-			while((b2<nbufs) && ((bufs[b2].server==b) || (bufs[b2].server==0)))
+			if((bufs[b2].server==b) || (bufs[b2].server==0))
 			{
 				bufs[b2].live=false;
 			}
 		}
-		bufs[b].live=false;
 		redraw_buffer();
 	}
 	else // if it's not us, generate quit messages into the relevant channel tabs
@@ -429,7 +428,7 @@ int rx_kill(int b, fd_set *master)
 		int b2;
 		for(b2=1;b2<nbufs;b2++)
 		{
-			while((b2<nbufs) && ((bufs[b2].server==b) || (bufs[b2].server==0)))
+			if((bufs[b2].server==b) || (bufs[b2].server==0))
 			{
 				if(n_cull(&bufs[b2].nlist, dest))
 				{
@@ -452,12 +451,11 @@ int rx_error(int b, fd_set *master)
 	int b2;
 	for(b2=1;b2<nbufs;b2++)
 	{
-		while((b2<nbufs) && ((bufs[b2].server==b) || (bufs[b2].server==0)))
+		if((bufs[b2].server==b) || (bufs[b2].server==0))
 		{
 			bufs[b2].live=false;
 		}
 	}
-	bufs[b].live=false;
 	return(redraw_buffer());
 }
 
