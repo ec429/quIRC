@@ -932,13 +932,24 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 				{
 					if(del)
 					{
-						i_cull(&bufs[cbuf].ilist, arg);
+						if(i_cull(&bufs[cbuf].ilist, arg))
+						{
+							w_buf_print(cbuf, c_status, "Entries deleted", "/ignore -d: ");
+						}
+						else
+						{
+							w_buf_print(cbuf, c_err, "No entries deleted", "/ignore -d: ");
+						}
 					}
 					else if(regex)
 					{
 						name *new=n_add(&bufs[cbuf].ilist, arg);
-						new->icase=icase;
-						new->pms=pms;
+						if(new)
+						{
+							w_buf_print(cbuf, c_status, "Entry added", "/ignore: ");
+							new->icase=icase;
+							new->pms=pms;
+						}
 					}
 					else
 					{
@@ -951,8 +962,12 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 						char expr[10+strlen(iusr)+strlen(ihst)];
 						sprintf(expr, "^%s[_~]*@%s$", iusr, ihst);
 						name *new=n_add(&bufs[cbuf].ilist, expr);
-						new->icase=icase;
-						new->pms=pms;
+						if(new)
+						{
+							w_buf_print(cbuf, c_status, "Entry added", "/ignore: ");
+							new->icase=icase;
+							new->pms=pms;
+						}
 					}
 					break;
 				}
