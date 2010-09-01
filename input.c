@@ -820,6 +820,54 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		}
 		return(0);
 	}
+	if(strcmp(cmd, "amsg")==0)
+	{
+		if(!bufs[cbuf].server)
+		{
+			w_buf_print(cbuf, c_err, "Must be run in the context of a server!", "/amsg: ");
+		}
+		else if(args)
+		{
+			int b2;
+			for(b2=1;b2<nbufs;b2++)
+			{
+				if((bufs[b2].server==bufs[cbuf].server) && (bufs[b2].type==CHANNEL))
+				{
+					if(bufs[b2].handle)
+					{
+						if(LIVE(b2))
+						{
+							char privmsg[12+strlen(bufs[b2].bname)+strlen(args)];
+							sprintf(privmsg, "PRIVMSG %s :%s", bufs[b2].bname, args);
+							irc_tx(bufs[b2].handle, privmsg);
+							while(args[strlen(args)-1]=='\n')
+								args[strlen(args)-1]=0; // stomp out trailing newlines, they break things
+							char tag[maxnlen+4];
+							memset(tag, ' ', maxnlen+3);
+							char *cnick=strdup(bufs[bufs[b2].server].nick);
+							crush(&cnick, maxnlen);
+							sprintf(tag+maxnlen-strlen(cnick), "<%s> ", cnick);
+							free(cnick);
+							w_buf_print(b2, c_msg[0], args, tag);
+						}
+						else
+						{
+							w_buf_print(b2, c_err, "Tab not live, can't send", "/amsg: ");
+						}
+					}
+					else
+					{
+						w_buf_print(b2, c_err, "Can't send to channel - not connected!", "/amsg: ");
+					}
+				}
+			}
+		}
+		else
+		{
+			w_buf_print(cbuf, c_err, "Must specify a message!", "/amsg: ");
+		}
+		return(0);
+	}
 	if(strcmp(cmd, "me")==0)
 	{
 		if(bufs[cbuf].type!=CHANNEL) // TODO add PRIVATE
