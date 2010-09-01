@@ -577,14 +577,26 @@ int rx_join(int b, char *packet, char *pdata, bool *join)
 		sprintf(dstr, "You (%s) have joined %s", src, dest+1);
 		chan=strdup(dest+1);
 		*join=true;
-		char cstr[16+strlen(src)+strlen(bufs[b].bname)];
-		sprintf(cstr, "quIRC - %s on %s", src, bufs[b].bname);
+		char cstr[16+strlen(src)+strlen(dest+1)];
+		sprintf(cstr, "quIRC - %s on %s", src, dest+1);
 		settitle(cstr);
-		bufs=(buffer *)realloc(bufs, ++nbufs*sizeof(buffer));
-		init_buffer(nbufs-1, CHANNEL, chan, buflines);
-		bufs[nbufs-1].server=bufs[b].server;
-		cbuf=nbufs-1;
-		w_buf_print(cbuf, c_join[1], dstr, "");
+		int b2;
+		for(b2=1;b2<nbufs;b2++)
+		{
+			if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (strcasecmp(dest+1, bufs[b2].bname)==0))
+			{
+				cbuf=b2;
+				break;
+			}
+		}
+		if(b2>=nbufs)
+		{
+			bufs=(buffer *)realloc(bufs, ++nbufs*sizeof(buffer));
+			init_buffer(nbufs-1, CHANNEL, chan, buflines);
+			bufs[nbufs-1].server=bufs[b].server;
+			cbuf=nbufs-1;
+		}
+		w_buf_print(cbuf, c_join[0], dstr, "");
 		bufs[cbuf].handle=bufs[bufs[cbuf].server].handle;
 		bufs[cbuf].live=true;
 	}

@@ -447,19 +447,23 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 			if(newport)
 			{
 				*newport=0;
-				portno=newport+1;
+				newport++;
+			}
+			else
+			{
+				newport=portno;
 			}
 			char cstr[24+strlen(server)];
 			sprintf(cstr, "quIRC - connecting to %s", server);
 			settitle(cstr);
-			char dstr[30+strlen(server)+strlen(portno)];
-			sprintf(dstr, "Connecting to %s on port %s...", server, portno);
+			char dstr[30+strlen(server)+strlen(newport)];
+			sprintf(dstr, "Connecting to %s on port %s...", server, newport);
 			setcolour(c_status);
 			printf(LOCATE, height-2, 1);
 			printf("%s" CLR "\n", dstr);
 			resetcol();
 			printf(CLA "\n");
-			int serverhandle=irc_connect(server, portno, master, fdmax);
+			int serverhandle=irc_connect(server, newport, master, fdmax);
 			if(serverhandle)
 			{
 				bufs=(buffer *)realloc(bufs, ++nbufs*sizeof(buffer));
@@ -476,6 +480,56 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		else
 		{
 			w_buf_print(cbuf, c_err, "Must specify a server!", "/server: ");
+		}
+		return(0);
+	}
+	if(strcmp(cmd, "reconnect")==0)
+	{
+		if(bufs[cbuf].server)
+		{
+			if(bufs[bufs[cbuf].server].live)
+			{
+				char *newport;
+				if(args)
+				{
+					newport=args;
+				}
+				else
+				{
+					newport=portno;
+				}
+				char cstr[24+strlen(server)];
+				sprintf(cstr, "quIRC - connecting to %s", server);
+				settitle(cstr);
+				char dstr[30+strlen(server)+strlen(newport)];
+				sprintf(dstr, "Connecting to %s on port %s...", server, newport);
+				setcolour(c_status);
+				printf(LOCATE, height-2, 1);
+				printf("%s" CLR "\n", dstr);
+				resetcol();
+				printf(CLA "\n");
+				int serverhandle=irc_connect(server, newport, master, fdmax);
+				if(serverhandle)
+				{
+					int b=bufs[cbuf].server;
+					int b2;
+					for(b2=1;b2<nbufs;b2++)
+					{
+						if(bufs[b2].server==b)
+							bufs[b2].handle=serverhandle;
+					}
+					w_buf_print(cbuf, c_status, dstr, "/server: ");
+					sprintf(cstr, "quIRC - connected to %s", server);
+					settitle(cstr);
+				}
+			}
+			else
+			{
+				w_buf_print(cbuf, c_err, "Already connected to server", "/reconnect: ");
+			}
+		else
+		{
+			w_buf_print(cbuf, c_err, "Must be run in the context of a server!", "/reconnect: ");
 		}
 		return(0);
 	}
@@ -534,15 +588,47 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 			char joinmsg[8+strlen(chan)+strlen(pass)];
 			sprintf(joinmsg, "JOIN %s %s", chan, pass);
 			irc_tx(bufs[cbuf].handle, joinmsg);
-			setcolour(c_join[0]);
-			printf(LOCATE, height-2, 1);
-			printf("Joining" CLR "\n");
-			resetcol();
-			printf(CLA "\n");
+			if(force_redraw<3)
+			{
+				redraw_buffer();
+			}
 		}
 		else
 		{
 			w_buf_print(cbuf, c_err, "Must specify a channel!", "/join: ");
+		}
+		return(0);
+	}
+	if(strcmp(cmd, "rejoin")==0)
+	{
+		if(!bufs[cbuf].handle)
+		{
+			w_buf_print(cbuf, c_err, "Must be run in the context of a server!", "/rejoin: ");
+		}
+		else if(!bufs[bufs[cbuf].server].live)
+		{
+			w_buf_print(cbuf, c_err, "Disconnected, can't send", "/rejoin: ");
+		}
+		else if(bufs[cbuf].live)
+		{
+			w_buf_print(cbuf, c_err, "Already in this channel", "/rejoin: ");
+		}
+		else if(bufs[cbuf].type==CHANNEL)
+		{
+			char *chan=strtok(args, " ");
+			char *pass=args;
+			if(!pass) pass="";
+			char joinmsg[8+strlen(chan)+strlen(pass)];
+			sprintf(joinmsg, "JOIN %s %s", chan, pass);
+			irc_tx(bufs[cbuf].handle, joinmsg);
+			if(force_redraw<3)
+			{
+				redraw_buffer();
+			}
+		}
+		else
+		{
+			w_buf_print(cbuf, c_err, "View is not a channel!", "/rejoin: ");
 		}
 		return(0);
 	}
@@ -563,8 +649,12 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 			}
 			// when you try to /part a dead tab, interpret it as a /close
 			int parent=bufs[cbuf].server;
+			bufs[cbuf].live=false;
 			free_buffer(cbuf);
 			cbuf=parent;
+			char cstr[24+strlen(bufs[cbuf].bname)];
+			sprintf(cstr, "quIRC - connected to %s", bufs[cbuf].bname);
+			settitle(cstr);
 		}
 		return(0);
 	}
