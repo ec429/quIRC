@@ -248,6 +248,39 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 	char *cmd=inp+1;
 	char *args=strchr(cmd, ' ');
 	if(args) *args++=0;
+	if(strcmp(cmd, "close")==0)
+	{
+		switch(bufs[cbuf].type)
+		{
+			case STATUS:
+				cmd="quit";
+			break;
+			case SERVER:
+				if(bufs[cbuf].live)
+				{
+					cmd="disconnect";
+				}
+				else
+				{
+					free_buffer(cbuf);
+				}
+			break;
+			case CHANNEL:
+				if(bufs[cbuf].live)
+				{
+					cmd="part";
+				}
+				else
+				{
+					free_buffer(cbuf);
+				}
+			break;
+			default:
+				bufs[cbuf].live=false;
+				free_buffer(cbuf);
+			break;
+		}
+	}
 	if((strcmp(cmd, "quit")==0)||(strcmp(cmd, "exit")==0))
 	{
 		if(args) *qmsg=strdup(args);
@@ -448,8 +481,17 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		int b=bufs[cbuf].server;
 		if(b>0)
 		{
-			close(bufs[b].handle);
-			FD_CLR(bufs[b].handle, master);
+			if(bufs[b].handle)
+			{
+				if(bufs[b].live)
+				{
+					char quit[7+strlen(args?args:(qmsg&&*qmsg)?*qmsg:"quIRC quit")];
+					sprintf(quit, "QUIT %s", args?args:(qmsg&&*qmsg)?*qmsg:"quIRC quit");
+					irc_tx(bufs[b].handle, quit);
+				}
+				close(bufs[b].handle);
+				FD_CLR(bufs[b].handle, master);
+			}
 			int b2;
 			for(b2=1;b2<nbufs;b2++)
 			{
@@ -506,19 +548,19 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		{
 			w_buf_print(cbuf, c_err, "This view is not a channel!", "/part: ");
 		}
-		else if(!LIVE(cbuf))
+		else
 		{
+			if(LIVE(cbuf))
+			{
+				char partmsg[8+strlen(bufs[cbuf].bname)];
+				sprintf(partmsg, "PART %s", bufs[cbuf].bname);
+				irc_tx(bufs[cbuf].handle, partmsg);
+				w_buf_print(cbuf, c_part[0], "Leaving", "/part: ");
+			}
 			// when you try to /part a dead tab, interpret it as a /close
 			int parent=bufs[cbuf].server;
 			free_buffer(cbuf);
 			cbuf=parent;
-		}
-		else
-		{
-			char partmsg[8+strlen(bufs[cbuf].bname)];
-			sprintf(partmsg, "PART %s", bufs[cbuf].bname);
-			irc_tx(bufs[cbuf].handle, partmsg);
-			w_buf_print(cbuf, c_part[0], "Leaving", "/part: ");
 		}
 		return(0);
 	}
