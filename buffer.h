@@ -48,6 +48,7 @@ typedef struct _buf
 	bool filled; // buffer has filled up and looped? (the buffers are circular in nature)
 	bool alert; // tab has new messages?
 	bool namreply; // tab is in the middle of reading a list of NAMES replies (RPL_NAMREPLY)?
+	bool live; // tab is connected?  when checking in a CHANNEL, remember to AND it with the parent's live
 }
 buffer;
 

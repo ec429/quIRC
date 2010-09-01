@@ -16,9 +16,7 @@ int initialise_buffers(int buflines, char *nick)
 	init_buffer(0, STATUS, "status", buflines); // buf 0 is always STATUS
 	nbufs=1;
 	cbuf=0;
-	bufs[0].nick=strdup(nick);
-	if(!bufs[0].nick)
-		return(1);
+	bufs[0].live=true; // STATUS is never dead
 	buf_print(0, c_status, GPL_MSG); // can't w_buf_print() it because it has embedded newlines
 	return(0);
 }
@@ -45,47 +43,56 @@ int init_buffer(int buf, btype type, char *bname, int nlines)
 	bufs[buf].filled=false;
 	bufs[buf].alert=false;
 	bufs[buf].namreply=false;
+	bufs[buf].live=false;
 	return(0);
 }
 
 int free_buffer(int buf)
 {
-	free(bufs[buf].bname);
-	name *curr=bufs[buf].nlist;
-	while(curr)
+	if(bufs[buf].live)
 	{
-		name *next=curr->next;
-		free(curr->data);
-		free(curr);
-		curr=next;
+		w_buf_print(b, c_err, "Buffer is still live!", "free_buffer:");
+		return(1);
 	}
-	bufs[buf].nlist=NULL;
-	free(bufs[buf].lc);
-	int l;
-	for(l=0;l<bufs[buf].nlines;l++)
-		free(bufs[buf].lt[l]);
-	free(bufs[buf].lt);
-	free(bufs[buf].ts);
-	if(cbuf>=buf)
-		cbuf--;
-	nbufs--;
-	int b;
-	for(b=buf;b<nbufs;b++)
+	else
 	{
-		bufs[b]=bufs[b+1];
-	}
-	for(b=0;b<nbufs;b++)
-	{
-		if(bufs[b].server==buf)
+		free(bufs[buf].bname);
+		name *curr=bufs[buf].nlist;
+		while(curr)
 		{
-			bufs[b].server=0; // orphaned; should not happen
+			name *next=curr->next;
+			free(curr->data);
+			free(curr);
+			curr=next;
 		}
-		else if(bufs[b].server>buf)
+		bufs[buf].nlist=NULL;
+		free(bufs[buf].lc);
+		int l;
+		for(l=0;l<bufs[buf].nlines;l++)
+			free(bufs[buf].lt[l]);
+		free(bufs[buf].lt);
+		free(bufs[buf].ts);
+		if(cbuf>=buf)
+			cbuf--;
+		nbufs--;
+		int b;
+		for(b=buf;b<nbufs;b++)
 		{
-			bufs[b].server--;
+			bufs[b]=bufs[b+1];
 		}
+		for(b=0;b<nbufs;b++)
+		{
+			if(bufs[b].server==buf)
+			{
+				bufs[b].server=0; // orphaned; should not happen
+			}
+			else if(bufs[b].server>buf)
+			{
+				bufs[b].server--;
+			}
+		}
+		return(0);
 	}
-	return(0);
 }
 
 int add_to_buffer(int buf, colour lc, char *lt)

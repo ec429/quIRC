@@ -116,85 +116,92 @@ int main(int argc, char *argv[])
 						{
 							if((fd==bufs[b].handle) && (bufs[b].type==SERVER))
 							{
-								char *packet;
-								int e;
-								if((e=irc_rx(fd, &packet))!=0)
+								if(bufs[b].live)
 								{
-									char emsg[64];
-									sprintf(emsg, "error: irc_rx(%d, &%p): %d", fd, packet, e);
-									cbuf=0;
-									redraw_buffer();
-									w_buf_print(0, c_err, emsg, "");
-									state=5;
-									qmsg="client crashed";
-								}
-								else if(packet)
-								{
-									char *pdata=strdup(packet);
-									if(packet[0])
+									char *packet;
+									int e;
+									if((e=irc_rx(fd, &packet))!=0)
 									{
-										char *p=packet;
-										if(*p==':')
-										{
-											p=strchr(p, ' ');
-										}
-										char *cmd=strtok(p, " ");
-										if(*packet==':') *p=0;
-										if(isdigit(*cmd))
-										{
-											irc_numeric(cmd, b);
-										}
-										else if(strcmp(cmd, "PING")==0)
-										{
-											rx_ping(fd);
-										}
-										else if(strcmp(cmd, "MODE")==0)
-										{
-											rx_mode(&join, b);
-										}
-										else if(strcmp(cmd, "KILL")==0)
-										{
-											rx_kill(b, &master);
-										}
-										else if(strcmp(cmd, "ERROR")==0)
-										{
-											rx_error(b, &master);
-										}
-										else if(strcmp(cmd, "PRIVMSG")==0)
-										{
-											rx_privmsg(b, packet, pdata);
-										}
-										else if(strcmp(cmd, "NOTICE")==0)
-										{
-											rx_notice(b, packet);
-										}
-										else if(strcmp(cmd, "TOPIC")==0)
-										{
-											rx_topic(b, packet);
-										}
-										else if(strcmp(cmd, "JOIN")==0)
-										{
-											rx_join(b, packet, pdata, &join);
-										}
-										else if(strcmp(cmd, "PART")==0)
-										{
-											rx_part(b, packet, pdata);
-										}
-										else if(strcmp(cmd, "QUIT")==0)
-										{
-											rx_quit(b, packet, pdata);
-										}
-										else if(strcmp(cmd, "NICK")==0)
-										{
-											rx_nick(b, packet, pdata);
-										}
-										else
-										{
-											w_buf_print(b, c_unk, pdata, "<? ");
-										}
+										char emsg[64];
+										sprintf(emsg, "error: irc_rx(%d, &%p): %d", fd, packet, e);
+										cbuf=0;
+										redraw_buffer();
+										w_buf_print(0, c_err, emsg, "");
+										state=5;
+										qmsg="client crashed";
 									}
-									free(pdata);
-									free(packet);
+									else if(packet)
+									{
+										char *pdata=strdup(packet);
+										if(packet[0])
+										{
+											char *p=packet;
+											if(*p==':')
+											{
+												p=strchr(p, ' ');
+											}
+											char *cmd=strtok(p, " ");
+											if(*packet==':') *p=0;
+											if(isdigit(*cmd))
+											{
+												irc_numeric(cmd, b);
+											}
+											else if(strcmp(cmd, "PING")==0)
+											{
+												rx_ping(fd);
+											}
+											else if(strcmp(cmd, "MODE")==0)
+											{
+												rx_mode(&join, b);
+											}
+											else if(strcmp(cmd, "KILL")==0)
+											{
+												rx_kill(b, &master);
+											}
+											else if(strcmp(cmd, "ERROR")==0)
+											{
+												rx_error(b, &master);
+											}
+											else if(strcmp(cmd, "PRIVMSG")==0)
+											{
+												rx_privmsg(b, packet, pdata);
+											}
+											else if(strcmp(cmd, "NOTICE")==0)
+											{
+												rx_notice(b, packet);
+											}
+											else if(strcmp(cmd, "TOPIC")==0)
+											{
+												rx_topic(b, packet);
+											}
+											else if(strcmp(cmd, "JOIN")==0)
+											{
+												rx_join(b, packet, pdata, &join);
+											}
+											else if(strcmp(cmd, "PART")==0)
+											{
+												rx_part(b, packet, pdata);
+											}
+											else if(strcmp(cmd, "QUIT")==0)
+											{
+												rx_quit(b, packet, pdata);
+											}
+											else if(strcmp(cmd, "NICK")==0)
+											{
+												rx_nick(b, packet, pdata);
+											}
+											else
+											{
+												w_buf_print(b, c_unk, pdata, "<? ");
+											}
+										}
+										free(pdata);
+										free(packet);
+									}
+								}
+								else
+								{
+									irc_conn_rest(b, nick, username, fullname);
 								}
 								in_update(inp);
 								b=nbufs+1;

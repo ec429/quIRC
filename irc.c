@@ -8,7 +8,7 @@
 
 #include "irc.h"
 
-int irc_connect(char *server, char *portno, char *nick, char *username, char *fullname, fd_set *master, int *fdmax)
+int irc_connect(char *server, char *portno, fd_set *master, int *fdmax)
 {
 	int serverhandle;
 	struct addrinfo hints, *servinfo;
@@ -19,7 +19,7 @@ int irc_connect(char *server, char *portno, char *nick, char *username, char *fu
 	int rv;
 	if((rv = getaddrinfo(server, portno, &hints, &servinfo)) != 0)
 	{
-		fprintf(stderr, "getaddrinfo: %s\n\n", gai_strerror(rv));
+		w_buf_print(0, c_err, gai_strerror(rv), "getaddrinfo: ");
 		return(0); // 0 indicates failure as rv is new serverhandle value
 	}
 	char sip[INET_ADDRSTRLEN];
@@ -30,38 +30,50 @@ int irc_connect(char *server, char *portno, char *nick, char *username, char *fu
 		inet_ntop(p->ai_family, &(((struct sockaddr_in*)p->ai_addr)->sin_addr), sip, sizeof(sip));
 		if((serverhandle = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1)
 		{
-			perror("socket");
-			fprintf(stderr, "\n");
+			w_buf_print(0, c_err, strerror(errno), "socket: ");
+			continue;
+		}
+		if(fcntl(serverhandle, F_SETFD, O_NONBLOCK) == -1)
+		{
+			close(serverhandle);
+			w_buf_print(0, c_err, strerror(errno), "fcntl: ");
 			continue;
 		}
 		if(connect(serverhandle, p->ai_addr, p->ai_addrlen) == -1)
 		{
-			close(serverhandle);
-			perror("connect");
-			fprintf(stderr, "\n");
-			continue;
+			if(errno!=EINPROGRESS)
+			{
+				close(serverhandle);
+				w_buf_print(0, c_err, strerror(errno), "connect: ");
+				continue;
+			}
 		}
 		break;
 	}
 	if (p == NULL)
 	{
-		fprintf(stderr, "failed to connect\n\n");
+		w_buf_print(0, c_err, "failed to connect to server", "/connect: ");
 		return(0); // 0 indicates failure as rv is new serverhandle value
 	}
 	freeaddrinfo(servinfo); // don't need this any more
 	
 	FD_SET(serverhandle, master);
 	*fdmax=max(*fdmax, serverhandle);
-	
+	return(serverhandle)
+}
+
+int irc_conn_rest(int b, char *nick, char *username, char *fullname)
+{
+	bufs[b].live==true; // mark it as live
 	char nickmsg[6+strlen(nick)];
 	sprintf(nickmsg, "NICK %s", nick);
-	irc_tx(serverhandle, nickmsg);
+	irc_tx(bufs[b].handle, nickmsg);
 	struct utsname arch;
 	uname(&arch);
 	char usermsg[12+strlen(username)+strlen(arch.nodename)+strlen(fullname)];
 	sprintf(usermsg, "USER %s %s %s :%s", username, arch.nodename, arch.nodename, fullname);
-	irc_tx(serverhandle, usermsg);
-	return(serverhandle);
+	irc_tx(bufs[b].handle, usermsg);
+	return(0);
 }
 
 int autoconnect(fd_set *master, int *fdmax)
@@ -86,7 +98,7 @@ int autoconnect(fd_set *master, int *fdmax)
 		bufs[cbuf].nick=strdup(nick);
 		bufs[cbuf].server=1;
 		add_to_buffer(1, c_status, cstr);
-		sprintf(cstr, "quIRC - connected to %s", server);
+		sprintf(cstr, "quIRC - connecting to %s", server);
 		settitle(cstr);
 	}
 	return(serverhandle);
@@ -127,6 +139,18 @@ int irc_rx(int fd, char ** data)
 				buf[l]=0;
 			}
 			l++;
+		}
+		else if(bytes<0)
+		{
+			int b;
+			for(b=0;b<nbufs;b++)
+			{
+				if((fd==bufs[b].handle) && (bufs[b].type==SERVER))
+				{
+					w_buf_print(b, c_err, strerror(errno), "irc_rx: recv:");
+					bufs[b].live=false;
+				}
+			}
 		}
 	}
 	*data=low_dequote(buf);
