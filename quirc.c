@@ -232,7 +232,6 @@ int main(int argc, char *argv[])
 				}
 				if(*inp)
 				{
-					printf(SCROLLUP);
 					fflush(stdout);
 					char *deq=slash_dequote(inp); // dequote
 					free(inp);

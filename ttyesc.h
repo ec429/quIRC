@@ -11,7 +11,6 @@
 #define LOCATE		"\033[%d;%dH"	// as being very similar to some basic keywords... :p
 #define CLR			"\033[K"		// CLear Line to right
 #define CLA			"\033[2K"		// Clear Line All
-#define SCROLLUP	"\033[M"
 
 #include <stdio.h>
 #include <stdbool.h>
