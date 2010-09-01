@@ -22,6 +22,7 @@
 #include "bits.h"
 #include "names.h"
 #include "text.h"
+#include "version.h"
 
 #define LIVE(buf)	(bufs[buf].live && bufs[bufs[buf].server].live)	// Check liveness
 
