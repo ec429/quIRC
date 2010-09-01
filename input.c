@@ -500,6 +500,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 			{
 				while((b2<nbufs) && ((bufs[b2].server==b) || (bufs[b2].server==0)))
 				{
+					bufs[b2].live=false;
 					free_buffer(b2);
 				}
 			}
