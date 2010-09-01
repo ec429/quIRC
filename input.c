@@ -637,7 +637,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		}
 		else if(bufs[cbuf].type==CHANNEL)
 		{
-			char *chan=strtok(args, " ");
+			char *chan=bufs[cbuf].bname;
 			char *pass=args;
 			if(!pass) pass="";
 			char joinmsg[8+strlen(chan)+strlen(pass)];
