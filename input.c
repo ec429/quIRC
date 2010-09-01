@@ -623,11 +623,11 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 	}
 	if(strcmp(cmd, "rejoin")==0)
 	{
-		if(!bufs[cbuf].handle)
+		if(bufs[cbuf].type!=CHANNEL)
 		{
-			w_buf_print(cbuf, c_err, "Must be run in the context of a server!", "/rejoin: ");
+			w_buf_print(cbuf, c_err, "View is not a channel!", "/rejoin: ");
 		}
-		else if(!bufs[bufs[cbuf].server].live)
+		else if(!(bufs[cbuf].handle && bufs[bufs[cbuf].server].live))
 		{
 			w_buf_print(cbuf, c_err, "Disconnected, can't send", "/rejoin: ");
 		}
@@ -635,7 +635,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		{
 			w_buf_print(cbuf, c_err, "Already in this channel", "/rejoin: ");
 		}
-		else if(bufs[cbuf].type==CHANNEL)
+		else
 		{
 			char *chan=bufs[cbuf].bname;
 			char *pass=args;
@@ -648,10 +648,6 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 				redraw_buffer();
 			}
 		}
-		else
-		{
-			w_buf_print(cbuf, c_err, "View is not a channel!", "/rejoin: ");
-		}
 		return(0);
 	}
 	if((strcmp(cmd, "part")==0)||(strcmp(cmd, "leave")==0))
@@ -662,7 +658,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		}
 		else
 		{
-			if(LIVE(cbuf))
+			if(LIVE(cbuf) && bufs[cbuf].handle)
 			{
 				char partmsg[8+strlen(bufs[cbuf].bname)];
 				sprintf(partmsg, "PART %s", bufs[cbuf].bname);
