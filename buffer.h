@@ -38,6 +38,7 @@ typedef struct _buf
 	btype type;
 	char *bname; // "status" or serverloc or #channel or @nick (resp. types)
 	name *nlist; // only used for channels and private: linked-list of nicks
+	name *ilist; // ignore-list
 	int handle; // used for server: file descriptor
 	int server; // used by channels and private to denote their 'parent' server.  In server, points to self.  Is an offset into 'bufs'
 	char *nick; // used for server: user's nick on this server

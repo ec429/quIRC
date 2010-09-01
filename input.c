@@ -889,6 +889,71 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		}
 		return(0);
 	}
+	if(strcmp(cmd, "ignore")==0)
+	{
+		if(!args)
+		{
+			w_buf_print(cbuf, c_err, "Missing arguments!", "/ignore: ");
+		}
+		else
+		{
+			char *arg=strtok(args, " ");
+			bool regex=false;
+			bool icase=false;
+			bool del=false;
+			while(arg)
+			{
+				if(*arg=='-')
+				{
+					if(strcmp(arg, "-i")==0)
+					{
+						icase=true;
+					}
+					else if(strcmp(arg, "-r")==0)
+					{
+						regex=true;
+					}
+					else if(strcmp(arg, "-d")==0)
+					{
+						del=true;
+					}
+					else if(strcmp(arg, "--")==0)
+					{
+						arg=strtok(NULL, "");
+						continue;
+					}
+				}
+				else
+				{
+					if(del)
+					{
+						i_cull(&bufs[cbuf].ilist, arg);
+					}
+					else if(regex)
+					{
+						name *new=n_add(&bufs[cbuf].ilist, arg);
+						new->icase=icase;
+					}
+					else
+					{
+						char *iusr=strtok(arg, "@");
+						char *ihst=strtok(NULL, "");
+						if((!iusr) || (*iusr==0) || (*iusr=='*'))
+							iusr="[^@]*";
+						if((!ihst) || (*ihst==0) || (*ihst=='*'))
+							ihst="[^@]*";
+						char expr[10+strlen(iusr)+strlen(ihst)];
+						sprintf(expr, "^%s[_~]*@%s$", iusr, ihst);
+						name *new=n_add(&bufs[cbuf].ilist, expr);
+						new->icase=icase;
+					}
+					break;
+				}
+				arg=strtok(NULL, " ");
+			}
+		}
+		return(0);
+	}
 	if(strcmp(cmd, "cmd")==0)
 	{
 		if(!bufs[cbuf].handle)

@@ -59,3 +59,61 @@ void n_free(name * list)
 		free(list);
 	}
 }
+
+int i_match(name ** list, char *nm)
+{
+	int rv=0;
+	name *curr=*list;
+	while(curr)
+	{
+		regex_t comp;
+		if(regcomp(&comp, curr->data, REG_EXTENDED|REG_NOSUB|(curr->icase?REG_ICASE:0))==0)
+		{
+			if(regexec(&comp, nm, 0, NULL, 0)==0)
+			{
+				rv++;
+			}
+			regfree(&comp);
+		}
+		curr=curr->next;
+	}
+	return(rv);
+}
+
+int i_cull(name ** list, char *nm)
+{
+	int rv=0;
+	char rm[strlen(nm)+2];
+	if(strchr(nm, '@'))
+		strcpy(rm, nm);
+	else
+		sprintf(rm, "%s@", nm);
+	name *curr=*list;
+	while(curr)
+	{
+		name *next=curr->next;
+		regex_t comp;
+		if(regcomp(&comp, curr->data, REG_EXTENDED|REG_NOSUB|(curr->icase?REG_ICASE:0))==0)
+		{
+			if(regexec(&comp, rm, 0, NULL, 0)==0)
+			{
+				if(curr->prev)
+				{
+					curr->prev->next=curr->next;
+				}
+				else
+				{
+					*list=curr->next;
+				}
+				if(curr->next)
+					curr->next->prev=curr->prev;
+				free(curr->data);
+				free(curr);
+				rv++;
+			}
+			regfree(&comp);
+		}
+		curr=next;
+	}
+	return(rv);
+}
