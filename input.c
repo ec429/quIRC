@@ -605,14 +605,21 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		else if(args)
 		{
 			char *chan=strtok(args, " ");
-			char *pass=strtok(NULL, ", ");
-			if(!pass) pass="";
-			char joinmsg[8+strlen(chan)+strlen(pass)];
-			sprintf(joinmsg, "JOIN %s %s", chan, pass);
-			irc_tx(bufs[cbuf].handle, joinmsg);
-			if(force_redraw<3)
+			if(!chan)
 			{
-				redraw_buffer();
+				w_buf_print(cbuf, c_err, "Must specify a channel!", "/join: ");
+			}
+			else
+			{
+				char *pass=strtok(NULL, ", ");
+				if(!pass) pass="";
+				char joinmsg[8+strlen(chan)+strlen(pass)];
+				sprintf(joinmsg, "JOIN %s %s", chan, pass);
+				irc_tx(bufs[cbuf].handle, joinmsg);
+				if(force_redraw<3)
+				{
+					redraw_buffer();
+				}
 			}
 		}
 		else
