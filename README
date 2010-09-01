@@ -54,14 +54,31 @@ the channel.
             are not given (or begin with *), they are replaced with [^@]*
         -l
             Instead of adding a rule, list rules which apply to this tab
-  /cmd command
-      Allows you to send a raw command to the server; not recommended.
+  /rejoin
+      Rejoins a channel tab which is dead (eg after losing server connection).
+  /reconnect
+      Reconnects to a server from which you have become disconnected.
   /part channel
   /leave channel
       Leaves (departs) the given channel.
+  /disconnect [message]
+      Disconnects from the server, optionally sending a 'quit message'.
+  /close
+      Closes the current tab. In addition, has an effect which depends on the
+      tab type:
+        (status)
+            Disconnects from all servers and quits quIRC
+        {server}
+            Disconnects from the server and all channels on that server
+        [channel]
+            Leaves the channel
   /quit [message]
   /exit [message]
       Quits quIRC, optionally sending a 'quit message' to the server.
+  /cmd command
+      Allows you to send a raw command to the server; not recommended.
+  /tab n
+      Switches to tab number n; (status) is tab 0.
 ***** Configuration *****
 quIRC can be configured through an "rc file" as follows.
 In your home directory (/home/username), create a file called ".quirc", and
@@ -143,4 +160,5 @@ The parens bracketing the name tell you what kind of tab it is:
 The background colour is green for the current tab, and blue for the current
 tab's parent server (if applicable).
 The foreground colour of tabs other than the current tab will turn red to
-indicate that there are new messages on that tab.
+indicate that there are new messages on that tab. If a tab is 'dead' (eg.
+disconnected from server), it turns yellow.

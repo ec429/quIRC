@@ -25,48 +25,67 @@ Then there&apos;s the github page, <a href="http://github.com/ec429/quIRC">http:
 <p>All commands are prefixed with a &apos;/&apos;.  Anything else is a message to be sent to the channel.</p>
 <dl>
 <dt>/server <em>url</em></dt>
-<dd>Connects to the given server (will open in a new tab).</dd>
+	<dd>Connects to the given server (will open in a new tab).</dd>
 <dt>/nick <em>nickname</em></dt>
-<dd>Sets your nickname.  Scope is server-wide (or, in (status) tab, sets default for new /servers).</dd>
+	<dd>Sets your nickname.  Scope is server-wide (or, in (status) tab, sets default for new /servers).</dd>
 <dt>/join <em>channel</em></dt>
-<dd>Joins the given channel (will open in a new tab).</dd>
+	<dd>Joins the given channel (will open in a new tab).</dd>
 <dt>/me <em>action</em></dt>
-<dd>Sends an &apos;action&apos; to the channel.</dd>
+	<dd>Sends an &apos;action&apos; to the channel.</dd>
 <dt>/msg <em>recipient</em> <em>message</em></dt>
-<dd>Private message; sends the message to the given recipient.</dd>
+	<dd>Private message; sends the message to the given recipient.</dd>
 <dt>/topic [<em>message</em>]</dt>
-<dd>Sets or gets the channel topic.</dd>
+	<dd>Sets or gets the channel topic.</dd>
 <dt>/set <em>option</em> [<em>value</em>]</dt>
-<dd>Sets configuration options; the options are analogous to those in .quirc, with one or two extras.
-<ul>
-<li>The options &apos;height&apos; and &apos;width&apos; are used to tell quIRC how many rows and columns your terminal has (for cursor-positioning).  quIRC will try to deduce these values (from environment variables $LINES and $COLUMNS, using defaults of 80x24 if these env vars are not found), but you can override those guesses here or on the command line.</li>
-</ul>
-</dd>
+	<dd>Sets configuration options; the options are analogous to those in .quirc, with one or two extras.
+	<ul>
+		<li>The options &apos;height&apos; and &apos;width&apos; are used to tell quIRC how many rows and columns your terminal has (for cursor-positioning).  quIRC will try to deduce these values (from environment variables $LINES and $COLUMNS, using defaults of 80x24 if these env vars are not found), but you can override those guesses here or on the command line.</li>
+	</ul>
+	</dd>
 <dt>/ignore [-ipd] <em>user</em>[@<em>host</em>]</dt>
 <dt>/ignore [-ipd] -r <em>regex</em></dt>
 <dt>/ignore -l</dt>
-<dd>Adds a user to your &quot;ignore list&quot;, thus preventing messages from that user from appearing.
-<dl>
-	<dt>-i</dt>
-		<dd>Match will be case-insensitive</dd>
-	<dt>-p</dt>
-		<dd>Will also ignore matching <em>private</em> messages</dd>
-	<dt>-d</dt>
-		<dd>Instead of adding a rule, remove all rules matching the given user@host</dd>
-	<dt>-r</dt>
-		<dd>Supply a regular expression match.  The usual form (without -r) generates the regular expression <small>^<em>user</em>[_~]*@<em>host</em>$</small>; if <em>user</em> or <em>host</em> are not given (or begin with *), they are replaced with <small>[^@]*</small></dd>
-	<dt>-l</dt>
-		<dd>Instead of adding a rule, list rules which apply to this tab</dd>
-</dl>
-</dd>
-<dt>/cmd <em>command</em></dt>
-<dd>Allows you to send a raw command to the server; not recommended.</dd>
+	<dd>Adds a user to your &quot;ignore list&quot;, thus preventing messages from that user from appearing.
+	<dl>
+		<dt>-i</dt>
+			<dd>Match will be case-insensitive</dd>
+		<dt>-p</dt>
+			<dd>Will also ignore matching <em>private</em> messages</dd>
+		<dt>-d</dt>
+			<dd>Instead of adding a rule, remove all rules matching the given user@host</dd>
+		<dt>-r</dt>
+			<dd>Supply a regular expression match.  The usual form (without -r) generates the regular expression <small>^<em>user</em>[_~]*@<em>host</em>$</small>; if <em>user</em> or <em>host</em> are not given (or begin with *), they are replaced with <small>[^@]*</small></dd>
+		<dt>-l</dt>
+			<dd>Instead of adding a rule, list rules which apply to this tab</dd>
+	</dl>
+	</dd>
+<dt>/rejoin</dt>
+	<dd>Rejoins a channel tab which is dead (eg after losing server connection).</dd>
+<dt>/reconnect</dt>
+	<dd>Reconnects to a server from which you have become disconnected.</dd>
 <dt>/part <em>channel</em></dt>
 <dt>/leave <em>channel</em></dt>
-<dd>Leaves (departs) the given channel.</dd>
+	<dd>Leaves (departs) the given channel.</dd>
+<dt>/disconnect [<em>message</em>]</dt>
+	<dd>Disconnects from the server, optionally sending a &apos;quit message&apos;.</dd>
+<dt>/close</dt>
+	<dd>Closes the current tab.  In addition, has an effect which depends on the tab type:
+	<dl>
+		<dt>(status)</dt>
+			<dd>Disconnects from all servers and quits quIRC</dd>
+		<dt>{server}</dt>
+			<dd>Disconnects from the server and all channels on that server</dd>
+		<dt>[channel]</dt>
+			<dd>Leaves the channel</dd>
+	</dl>
+	</dd>
 <dt>/quit [<em>message</em>]</dt>
 <dt>/exit [<em>message</em>]</dt>
-<dd>Quits quIRC, optionally sending a &apos;quit message&apos; to the server.</dd>
+	<dd>Quits quIRC, optionally sending a &apos;quit message&apos; to the server.</dd>
+<dt>/cmd <em>command</em></dt>
+	<dd>Allows you to send a raw command to the server; not recommended.</dd>
+<dt>/tab <em>n</em></dt>
+	<dd>Switches to tab number <em>n</em>; (status) is tab 0.</dd>
 </dl>
 </div><!--#commands-->
 <div id="configuration">
@@ -141,7 +160,7 @@ You can also use Ctrl-Home/End to jump to the top/bottom of the buffer.</p>
 <dt>[]</dt><dd>channel</dd>
 </dl>
 <p>The background colour is green for the current tab, and blue for the current tab&apos;s parent server (if applicable).</p>
-<p>The foreground colour of tabs other than the current tab will turn red to indicate that there are new messages on that tab.</p>
+<p>The foreground colour of tabs other than the current tab will turn red to indicate that there are new messages on that tab.  If a tab is 'dead' (eg. disconnected from server), it turns yellow.</p>
 </div><!--#tabstrip-->
 </body>
 </html>
