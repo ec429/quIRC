@@ -124,11 +124,11 @@ int main(int argc, char *argv[])
 									{
 										char emsg[64];
 										sprintf(emsg, "error: irc_rx(%d, &%p): %d", fd, packet, e);
-										cbuf=0;
-										redraw_buffer();
+										close(fd);
+										FD_CLR(fd, &master);
+										bufs[b].live=false;
 										w_buf_print(0, c_err, emsg, "");
-										state=5;
-										qmsg="client crashed";
+										redraw_buffer();
 									}
 									else if(packet)
 									{
@@ -209,8 +209,10 @@ int main(int argc, char *argv[])
 						}
 						if(b==nbufs)
 						{
-							fprintf(stderr, "\nselect() returned data on unknown fd %d!\n", fd);
-							state=1;
+							char fmsg[48];
+							sprintf(fmsg, "select() returned data on unknown fd %d!", fd);
+							w_buf_print(0, c_err, fmsg, "main loop:");
+							FD_CLR(fd, &master); // prevent it from happening again
 						}
 					}
 				}

@@ -22,6 +22,8 @@
 #include "names.h"
 #include "text.h"
 
+#define LIVE(buf)	(bufs[buf].live && bufs[bufs[buf].server].live)	// Check liveness
+
 typedef enum
 {
 	STATUS,
@@ -48,7 +50,7 @@ typedef struct _buf
 	bool filled; // buffer has filled up and looped? (the buffers are circular in nature)
 	bool alert; // tab has new messages?
 	bool namreply; // tab is in the middle of reading a list of NAMES replies (RPL_NAMREPLY)?
-	bool live; // tab is connected?  when checking in a CHANNEL, remember to AND it with the parent's live
+	bool live; // tab is connected?  when checking in a CHANNEL, remember to AND it with the parent's live (use LIVE(buf), defined further up this file)
 }
 buffer;
 

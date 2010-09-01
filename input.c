@@ -393,12 +393,12 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 			}
 			else
 			{
-				w_buf_print(cbuf, c_err, "but what do you want to set?", "/set: ");
+				w_buf_print(cbuf, c_err, "But what do you want to set?", "/set: ");
 			}
 		}
 		else
 		{
-			w_buf_print(cbuf, c_err, "but what do you want to set?", "/set: ");
+			w_buf_print(cbuf, c_err, "But what do you want to set?", "/set: ");
 		}
 		return(0);
 	}
@@ -474,7 +474,11 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 	{
 		if(!bufs[cbuf].handle)
 		{
-			w_buf_print(cbuf, c_err, "must be run in the context of a server!", "/join: ");
+			w_buf_print(cbuf, c_err, "Must be run in the context of a server!", "/join: ");
+		}
+		else if(!bufs[bufs[cbuf].server].live)
+		{
+			w_buf_print(cbuf, c_err, "Disconnected, can't send", "/join: ");
 		}
 		else if(args)
 		{
@@ -502,6 +506,13 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		{
 			w_buf_print(cbuf, c_err, "This view is not a channel!", "/part: ");
 		}
+		else if(!LIVE(cbuf))
+		{
+			// when you try to /part a dead tab, interpret it as a /close
+			int parent=bufs[cbuf].server;
+			free_buffer(cbuf);
+			cbuf=parent;
+		}
 		else
 		{
 			char partmsg[8+strlen(bufs[cbuf].bname)];
@@ -518,11 +529,18 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 			char *nn=strtok(args, " ");
 			if(bufs[cbuf].handle)
 			{
-				bufs[bufs[cbuf].server].nick=strdup(nn);
-				char nmsg[8+strlen(bufs[bufs[cbuf].server].nick)];
-				sprintf(nmsg, "NICK %s", bufs[bufs[cbuf].server].nick);
-				irc_tx(bufs[cbuf].handle, nmsg);
-				w_buf_print(cbuf, c_status, "Changing nick", "/nick: ");
+				if(LIVE(cbuf))
+				{
+					bufs[bufs[cbuf].server].nick=strdup(nn);
+					char nmsg[8+strlen(bufs[bufs[cbuf].server].nick)];
+					sprintf(nmsg, "NICK %s", bufs[bufs[cbuf].server].nick);
+					irc_tx(bufs[cbuf].handle, nmsg);
+					w_buf_print(cbuf, c_status, "Changing nick", "/nick: ");
+				}
+				else
+				{
+					w_buf_print(cbuf, c_err, "Tab not live, can't send", "/nick: ");
+				}
 			}
 			else
 			{
@@ -544,9 +562,16 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 			{
 				if(bufs[cbuf].handle)
 				{
-					char tmsg[10+strlen(bufs[cbuf].bname)+strlen(args)];
-					sprintf(tmsg, "TOPIC %s :%s", bufs[cbuf].bname, args);
-					irc_tx(bufs[cbuf].handle, tmsg);
+					if(LIVE(cbuf))
+					{
+						char tmsg[10+strlen(bufs[cbuf].bname)+strlen(args)];
+						sprintf(tmsg, "TOPIC %s :%s", bufs[cbuf].bname, args);
+						irc_tx(bufs[cbuf].handle, tmsg);
+					}
+					else
+					{
+						w_buf_print(cbuf, c_err, "Tab not live, can't send", "/topic: ");
+					}
 				}
 				else
 				{
@@ -564,9 +589,16 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 			{
 				if(bufs[cbuf].handle)
 				{
-					char tmsg[8+strlen(bufs[cbuf].bname)];
-					sprintf(tmsg, "TOPIC %s", bufs[cbuf].bname);
-					irc_tx(bufs[cbuf].handle, tmsg);
+					if(LIVE(cbuf)
+					{
+						char tmsg[8+strlen(bufs[cbuf].bname)];
+						sprintf(tmsg, "TOPIC %s", bufs[cbuf].bname);
+						irc_tx(bufs[cbuf].handle, tmsg);
+					}
+					else
+					{
+						w_buf_print(cbuf, c_err, "Tab not live, can't send", "/topic: ");
+					}
 				}
 				else
 				{
@@ -584,7 +616,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 	{
 		if(!bufs[cbuf].handle)
 		{
-			w_buf_print(cbuf, c_err, "must be run in the context of a server!", "/msg: ");
+			w_buf_print(cbuf, c_err, "Must be run in the context of a server!", "/msg: ");
 		}
 		else if(args)
 		{
@@ -592,24 +624,38 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 			char *text=strtok(NULL, "");
 			if(text)
 			{
-				char privmsg[12+strlen(dest)+strlen(text)];
-				sprintf(privmsg, "PRIVMSG %s :%s", dest, text);
-				irc_tx(bufs[cbuf].handle, privmsg);
-				while(text[strlen(text)-1]=='\n')
-					text[strlen(text)-1]=0; // stomp out trailing newlines, they break things
-				char tag[maxnlen+9];
-				memset(tag, ' ', maxnlen+8);
-				sprintf(tag+maxnlen+2-strlen(dest), "(to %s) ", dest);
-				w_buf_print(cbuf, c_msg[0], text, tag);
+				if(bufs[cbuf].handle)
+				{
+					if(LIVE(cbuf)
+					{
+						char privmsg[12+strlen(dest)+strlen(text)];
+						sprintf(privmsg, "PRIVMSG %s :%s", dest, text);
+						irc_tx(bufs[cbuf].handle, privmsg);
+						while(text[strlen(text)-1]=='\n')
+							text[strlen(text)-1]=0; // stomp out trailing newlines, they break things
+						char tag[maxnlen+9];
+						memset(tag, ' ', maxnlen+8);
+						sprintf(tag+maxnlen+2-strlen(dest), "(to %s) ", dest);
+						w_buf_print(cbuf, c_msg[0], text, tag);
+					}
+					else
+					{
+						w_buf_print(cbuf, c_err, "Tab not live, can't send", "/msg: ");
+					}
+				}
+				else
+				{
+					w_buf_print(cbuf, c_err, "Can't send to channel - not connected!", "/msg: ");
+				}
 			}
 			else
 			{
-				w_buf_print(cbuf, c_err, "must specify a message!", "/msg: ");
+				w_buf_print(cbuf, c_err, "Must specify a message!", "/msg: ");
 			}
 		}
 		else
 		{
-			w_buf_print(cbuf, c_err, "must specify a recipient!", "/msg: ");
+			w_buf_print(cbuf, c_err, "Must specify a recipient!", "/msg: ");
 		}
 		return(0);
 	}
@@ -617,19 +663,33 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 	{
 		if(bufs[cbuf].type!=CHANNEL) // TODO add PRIVATE
 		{
-			w_buf_print(cbuf, c_err, "this view is not a channel!", "/me: ");
+			w_buf_print(cbuf, c_err, "This view is not a channel!", "/me: ");
 		}
 		else if(args)
 		{
-			char privmsg[32+strlen(bufs[cbuf].bname)+strlen(args)];
-			sprintf(privmsg, "PRIVMSG %s :\001ACTION %s\001", bufs[cbuf].bname, args);
-			irc_tx(bufs[cbuf].handle, privmsg);
-			while(args[strlen(args)-1]=='\n')
-				args[strlen(args)-1]=0; // stomp out trailing newlines, they break things
-			char tag[maxnlen+4];
-			memset(tag, ' ', maxnlen+3);
-			sprintf(tag+maxnlen+2-strlen(bufs[bufs[cbuf].server].nick), "%s ", bufs[bufs[cbuf].server].nick);
-			w_buf_print(cbuf, c_actn[0], args, tag);
+			if(bufs[cbuf].handle)
+			{
+				if(LIVE(cbuf)
+				{
+					char privmsg[32+strlen(bufs[cbuf].bname)+strlen(args)];
+					sprintf(privmsg, "PRIVMSG %s :\001ACTION %s\001", bufs[cbuf].bname, args);
+					irc_tx(bufs[cbuf].handle, privmsg);
+					while(args[strlen(args)-1]=='\n')
+						args[strlen(args)-1]=0; // stomp out trailing newlines, they break things
+					char tag[maxnlen+4];
+					memset(tag, ' ', maxnlen+3);
+					sprintf(tag+maxnlen+2-strlen(bufs[bufs[cbuf].server].nick), "%s ", bufs[bufs[cbuf].server].nick);
+					w_buf_print(cbuf, c_actn[0], args, tag);
+				}
+				else
+				{
+					w_buf_print(cbuf, c_err, "Tab not live, can't send", "/me: ");
+				}
+			}
+			else
+			{
+				w_buf_print(cbuf, c_err, "Can't send to channel - not connected!", "/msg: ");
+			}
 		}
 		else
 		{
@@ -645,8 +705,15 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		}
 		else
 		{
-			irc_tx(bufs[cbuf].handle, args);
-			w_buf_print(cbuf, c_status, args, "/cmd ");
+			if(LIVE(cbuf))
+			{
+				irc_tx(bufs[cbuf].handle, args);
+				w_buf_print(cbuf, c_status, args, "/cmd: ");
+			}
+			else
+			{
+				w_buf_print(cbuf, c_err, "Tab not live, can't send", "/cmd: ");
+			}
 		}
 		return(0);
 	}

@@ -151,6 +151,8 @@ int irc_rx(int fd, char ** data)
 					bufs[b].live=false;
 				}
 			}
+			cr=true; // just crash out with a partial message
+			buf[l]=0;
 		}
 	}
 	*data=low_dequote(buf);
@@ -415,11 +417,10 @@ int rx_kill(int b, fd_set *master)
 		{
 			while((b2<nbufs) && ((bufs[b2].server==b) || (bufs[b2].server==0)))
 			{
-				free_buffer(b2);
-				if(b2==cbuf)
-					cbuf=0;
+				bufs[b2].live=false;
 			}
 		}
+		bufs[b].live=false;
 		redraw_buffer();
 	}
 	else // if it's not us, generate quit messages into the relevant channel tabs
@@ -452,11 +453,10 @@ int rx_error(int b, fd_set *master)
 	{
 		while((b2<nbufs) && ((bufs[b2].server==b) || (bufs[b2].server==0)))
 		{
-			free_buffer(b2);
-			if(b2==cbuf)
-				cbuf=0;
+			bufs[b2].live=false;
 		}
 	}
+	bufs[b].live=false;
 	return(redraw_buffer());
 }
 
@@ -579,6 +579,7 @@ int rx_join(int b, char *packet, char *pdata, bool *join)
 		cbuf=nbufs-1;
 		w_buf_print(cbuf, c_join[1], dstr, "");
 		bufs[cbuf].handle=bufs[bufs[cbuf].server].handle;
+		bufs[cbuf].live=true;
 	}
 	else
 	{
