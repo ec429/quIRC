@@ -401,7 +401,10 @@ void titlebar(void)
 	crush(&cnick, 16);
 	crush(&cchan, 16);
 	char tbar[width];
-	sprintf(tbar, "-quIRC-%hhu.%hhu.%hhu-%hhu-%s", VERSION_MAJ%100, VERSION_MIN%100, VERSION_REV%100, gits%1000, p);
+	if(VERSION_TXT[0])
+		sprintf(tbar, "-quIRC-%hhu.%hhu.%hhu-%hhu-%s", VERSION_MAJ%100, VERSION_MIN%100, VERSION_REV%100, gits%1000, p);
+	else
+		sprintf(tbar, "-quIRC-%hhu.%hhu.%hhu", VERSION_MAJ%100, VERSION_MIN%100, VERSION_REV%100);
 	int u=strlen(tbar);
 	int i;
 	for(i=u;i<width;i++)
