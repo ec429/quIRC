@@ -12,7 +12,7 @@ int def_config(void)
 {
 	buflines=256;
 	mirc_colour_compat=1; // silently strip
-	force_redraw=1; // redraw the whole screen whenever anything happens
+	force_redraw=2;
 	char *cols=getenv("COLUMNS"), *rows=getenv("LINES");
 	if(cols) sscanf(cols, "%u", &width);
 	if(rows) sscanf(rows, "%u", &height);
