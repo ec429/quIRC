@@ -423,7 +423,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 			printf("%s" CLR "\n", dstr);
 			resetcol();
 			printf(CLA "\n");
-			int serverhandle=irc_connect(server, portno, nick, username, fname, master, fdmax);
+			int serverhandle=irc_connect(server, portno, master, fdmax);
 			if(serverhandle)
 			{
 				bufs=(buffer *)realloc(bufs, ++nbufs*sizeof(buffer));
@@ -589,7 +589,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 			{
 				if(bufs[cbuf].handle)
 				{
-					if(LIVE(cbuf)
+					if(LIVE(cbuf))
 					{
 						char tmsg[8+strlen(bufs[cbuf].bname)];
 						sprintf(tmsg, "TOPIC %s", bufs[cbuf].bname);
@@ -626,7 +626,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 			{
 				if(bufs[cbuf].handle)
 				{
-					if(LIVE(cbuf)
+					if(LIVE(cbuf))
 					{
 						char privmsg[12+strlen(dest)+strlen(text)];
 						sprintf(privmsg, "PRIVMSG %s :%s", dest, text);
@@ -669,7 +669,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		{
 			if(bufs[cbuf].handle)
 			{
-				if(LIVE(cbuf)
+				if(LIVE(cbuf))
 				{
 					char privmsg[32+strlen(bufs[cbuf].bname)+strlen(args)];
 					sprintf(privmsg, "PRIVMSG %s :\001ACTION %s\001", bufs[cbuf].bname, args);

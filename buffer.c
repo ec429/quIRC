@@ -51,7 +51,7 @@ int free_buffer(int buf)
 {
 	if(bufs[buf].live)
 	{
-		w_buf_print(b, c_err, "Buffer is still live!", "free_buffer:");
+		w_buf_print(buf, c_err, "Buffer is still live!", "free_buffer:");
 		return(1);
 	}
 	else

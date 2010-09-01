@@ -201,7 +201,7 @@ int main(int argc, char *argv[])
 								}
 								else
 								{
-									irc_conn_rest(b, nick, username, fullname);
+									irc_conn_rest(b, nick, username, fname);
 								}
 								in_update(inp);
 								b=nbufs+1;

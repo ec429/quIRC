@@ -19,7 +19,8 @@ int irc_connect(char *server, char *portno, fd_set *master, int *fdmax)
 	int rv;
 	if((rv = getaddrinfo(server, portno, &hints, &servinfo)) != 0)
 	{
-		w_buf_print(0, c_err, gai_strerror(rv), "getaddrinfo: ");
+		char *err=(char *)gai_strerror(rv);
+		w_buf_print(0, c_err, err, "getaddrinfo: ");
 		return(0); // 0 indicates failure as rv is new serverhandle value
 	}
 	char sip[INET_ADDRSTRLEN];
@@ -59,12 +60,12 @@ int irc_connect(char *server, char *portno, fd_set *master, int *fdmax)
 	
 	FD_SET(serverhandle, master);
 	*fdmax=max(*fdmax, serverhandle);
-	return(serverhandle)
+	return(serverhandle);
 }
 
 int irc_conn_rest(int b, char *nick, char *username, char *fullname)
 {
-	bufs[b].live==true; // mark it as live
+	bufs[b].live=true; // mark it as live
 	char nickmsg[6+strlen(nick)];
 	sprintf(nickmsg, "NICK %s", nick);
 	irc_tx(bufs[b].handle, nickmsg);
@@ -88,7 +89,7 @@ int autoconnect(fd_set *master, int *fdmax)
 	printf("%s" CLR "\n", cstr);
 	resetcol();
 	printf(CLA "\n");
-	int serverhandle=irc_connect(server, portno, nick, username, fname, master, fdmax);
+	int serverhandle=irc_connect(server, portno, master, fdmax);
 	if(serverhandle)
 	{
 		bufs=(buffer *)realloc(bufs, ++nbufs*sizeof(buffer));
