@@ -124,7 +124,7 @@ int add_to_buffer(int buf, colour lc, char *lt)
 
 int redraw_buffer(void)
 {
-	int sl = ( bufs[cbuf].filled ? (bufs[cbuf].ptr+max(bufs[cbuf].nlines-(bufs[cbuf].scroll+height-2), 1))%bufs[cbuf].nlines : max(bufs[cbuf].ptr-(bufs[cbuf].scroll+height-2), 0) );
+	int sl = ( bufs[cbuf].filled ? (bufs[cbuf].ptr+max(bufs[cbuf].nlines-(bufs[cbuf].scroll+height-3), 1))%bufs[cbuf].nlines : max(bufs[cbuf].ptr-(bufs[cbuf].scroll+height-3), 0) );
 	int el = ( bufs[cbuf].filled ? (bufs[cbuf].ptr+bufs[cbuf].nlines-bufs[cbuf].scroll)%bufs[cbuf].nlines : max(bufs[cbuf].ptr-bufs[cbuf].scroll, 0) );
 	int dl=el-sl;
 	if(dl<0) dl+=bufs[cbuf].nlines;
@@ -389,7 +389,7 @@ void titlebar(void)
 	setcol(0, 7, true, false);
 	int gits;
 	sscanf(VERSION_TXT, "%u", &gits);
-	char *p=strchr(VERSION_TXT, ' ');
+	const char *p=strchr(VERSION_TXT, ' ');
 	if(p)
 		p++;
 	else
