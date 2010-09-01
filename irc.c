@@ -518,15 +518,7 @@ int rx_privmsg(int b, char *packet, char *pdata)
 	if(bang)
 		*bang++=0;
 	char nm[strlen(src)+strlen(bang)+strlen(host)+3];
-	sprintf(nm, "%s@%s", src, host);
-	if(i_match(bufs[b].ilist, nm, false)||i_match(bufs[0].ilist, nm, false))
-		return(0);
-	sprintf(nm, "%s@%s", bang, host);
-	if(i_match(bufs[b].ilist, nm, false)||i_match(bufs[0].ilist, nm, false))
-		return(0);
-	sprintf(nm, "%s", src);
-	if(i_match(bufs[b].ilist, nm, false)||i_match(bufs[0].ilist, nm, false))
-		return(0);
+	
 	char *from=strdup(src);
 	crush(&from, maxnlen);
 	int b2;
@@ -537,13 +529,19 @@ int rx_privmsg(int b, char *packet, char *pdata)
 		{
 			match=true;
 			sprintf(nm, "%s@%s", src, host);
-			if(i_match(bufs[b2].ilist, nm, true))
+			if(i_match(bufs[b].ilist, nm, false)||i_match(bufs[0].ilist, nm, false))
+				break;
+			if(i_match(bufs[b2].ilist, nm, false))
 				continue;
 			sprintf(nm, "%s@%s", bang, host);
-			if(i_match(bufs[b2].ilist, nm, true))
+			if(i_match(bufs[b].ilist, nm, false)||i_match(bufs[0].ilist, nm, false))
+				break;
+			if(i_match(bufs[b2].ilist, nm, false))
 				continue;
 			sprintf(nm, "%s", src);
-			if(i_match(bufs[b2].ilist, nm, true))
+			if(i_match(bufs[b].ilist, nm, false)||i_match(bufs[0].ilist, nm, false))
+				break;
+			if(i_match(bufs[b2].ilist, nm, false))
 				continue;
 			if(*msg==1) // CTCP
 			{
@@ -561,13 +559,13 @@ int rx_privmsg(int b, char *packet, char *pdata)
 	if(!match)
 	{
 		sprintf(nm, "%s@%s", src, host);
-		if(i_match(bufs[b].ilist, nm, true))
+		if(i_match(bufs[b].ilist, nm, true)||i_match(bufs[0].ilist, nm, true))
 			return(0);
 		sprintf(nm, "%s@%s", bang, host);
-		if(i_match(bufs[b].ilist, nm, true))
+		if(i_match(bufs[b].ilist, nm, true)||i_match(bufs[0].ilist, nm, true))
 			return(0);
 		sprintf(nm, "%s", src);
-		if(i_match(bufs[b].ilist, nm, true))
+		if(i_match(bufs[b].ilist, nm, true)||i_match(bufs[0].ilist, nm, true))
 			return(0);
 		if(strcasecmp(dest, bufs[b].nick)==0)
 		{
@@ -597,9 +595,26 @@ int rx_notice(int b, char *packet)
 	char *dest=strtok(NULL, " ");
 	char *msg=dest+strlen(dest)+2; // prefixed with :
 	char *src=packet+1;
+	char *host=strchr(src, '@');
+	if(host)
+		host++;
+	else
+		host="";
 	char *bang=strchr(src, '!');
 	if(bang)
-		*bang=0;
+		*bang++=0;
+	else
+		bang="";
+	char nm[strlen(src)+strlen(bang)+strlen(host)+3];
+	sprintf(nm, "%s@%s", src, host);
+	if(i_match(bufs[b].ilist, nm, true)||i_match(bufs[0].ilist, nm, true))
+		return(0);
+	sprintf(nm, "%s@%s", bang, host);
+	if(i_match(bufs[b].ilist, nm, true)||i_match(bufs[0].ilist, nm, true))
+		return(0);
+	sprintf(nm, "%s", src);
+	if(i_match(bufs[b].ilist, nm, true)||i_match(bufs[0].ilist, nm, true))
+		return(0);
 	char *from=strdup(src);
 	scrush(&from, maxnlen);
 	char tag[maxnlen+9];

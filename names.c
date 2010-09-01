@@ -72,7 +72,7 @@ int i_match(name * list, char *nm, bool pm)
 	name *curr=list;
 	while(curr)
 	{
-		if(pm||(!curr->pms))
+		if((!pm)||(curr->pms))
 		{
 			regex_t comp;
 			if(regcomp(&comp, curr->data, REG_EXTENDED|REG_NOSUB|(curr->icase?REG_ICASE:0))==0)
