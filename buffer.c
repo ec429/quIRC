@@ -215,6 +215,8 @@ void in_update(char *inp)
 	int b;
 	for(b=0;b<nbufs;b++)
 	{
+		colour c={7, hilite_tabstrip?5:0, false, false};
+		setcolour(c);
 		putchar(' ');
 		// (status) {server} [channel] <user>
 		char brack[2]={'!', '!'};
@@ -233,7 +235,6 @@ void in_update(char *inp)
 				brack[0]='<';brack[1]='>';
 			break;
 		}
-		colour c={7, 0, false, false};
 		if(b==cbuf)
 		{
 			c.back=2;
@@ -270,9 +271,14 @@ void in_update(char *inp)
 		printf("%s", tab);
 		free(tab);
 		putchar(brack[1]);
-		resetcol();
+		c.fore=7;
+		c.back=hilite_tabstrip?5:0;
+		c.hi=c.ul=false;
+		setcolour(c);
 	}
-	printf(CLR "\n");
+	printf(CLR);
+	resetcol();
+	printf("\n");
 	// input
 	int ino=inp?strlen(inp):0;
 	if(ino>width-2)

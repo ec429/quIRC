@@ -14,6 +14,7 @@ int def_config(void)
 	mirc_colour_compat=1; // silently strip
 	force_redraw=2;
 	full_width_colour=false;
+	hilite_tabstrip=false;
 	char *cols=getenv("COLUMNS"), *rows=getenv("LINES");
 	if(cols) sscanf(cols, "%u", &width);
 	if(rows) sscanf(rows, "%u", &height);
@@ -147,6 +148,12 @@ int rcread(FILE *rcfp)
 				sscanf(rest, "%u", &fwc);
 				full_width_colour=fwc;
 			}
+			else if(strcmp(cmd, "hts")==0)
+			{
+				int hts;
+				sscanf(rest, "%u", &hts);
+				hilite_tabstrip=hts;
+			}
 			else if(strcmp(cmd, "fred")==0)
 				sscanf(rest, "%u", &force_redraw);
 			else if(strcmp(cmd, "buf")==0)
@@ -210,6 +217,14 @@ signed int pargs(int argc, char *argv[])
 		else if(strcmp(argv[arg], "--no-fwc")==0)
 		{
 			full_width_colour=false;
+		}
+		else if(strcmp(argv[arg], "--hts")==0)
+		{
+			hilite_tabstrip=true;
+		}
+		else if(strcmp(argv[arg], "--no-hts")==0)
+		{
+			hilite_tabstrip=false;
 		}
 		else if(strncmp(argv[arg], "--force-redraw=", 15)==0)
 		{
