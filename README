@@ -25,6 +25,8 @@ the channel.
       Sends an 'action' to the channel.
   /msg recipient message
       Private message; sends the message to the given recipient.
+  /amsg message
+      Send message to all attached channels on this server.
   /topic [message]
       Sets or gets the channel topic.
   /set option [value]

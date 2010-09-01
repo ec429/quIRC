@@ -10,8 +10,6 @@ curses.  The current hardwired ANSI-escapes code for painting the screen is clum
 
 Simplify RX parsing.  A command consists of [:<prefix>] +<command>[ +[<arguments>]]; we should pass those three items to each rx_*().
 
-/amsg.  Sends message to all joined channels on this server.
-
 Interface separation.  It should be possible to write decoupled interface modules which may access the buffers at a variety of depths (eg. pre-formatting) and through a variety of methods (such as mmap(2), a serialised textual IPC format, etc.).
 
 Input editing.  Should use something based on Emacs line editing keys (C-a will mean 'go to start of line', unlike now when it means 'backspace to start of line'!).  May be provided by curses - investigate.
