@@ -64,7 +64,8 @@ Then there&apos;s the github page, <a href="http://github.com/ec429/quIRC">http:
 where 0 doesn&apos;t scan for mirc-colours, 1 silently strips them out, and 2 displays the appropriate colour.  The default is mcc 1.</p>
 <p>Another setting here is force-redraw, with<br />
 <tt>fred <em>force-redraw</em></tt><br />
-which is &quot;1 to force redraw, 0 to not&quot;.</p>
+which will redraw the whole screen when things change; the number controls how often.<br>
+0 won't redraw at all, while 3 will redraw every 0.25 seconds.  The default is 2, which redraws whenever any buffer is written to or input is entered.</p>
 <p>The size of each scrollback buffer, in lines, can be set with<br />
 <tt>buf <em>buf-lines</em></tt><br />
 the default being 256.  Larger values will, of course, increase memory consumption.</p>
