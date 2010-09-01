@@ -263,6 +263,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 				else
 				{
 					free_buffer(cbuf);
+					return(0);
 				}
 			break;
 			case CHANNEL:
@@ -273,11 +274,13 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 				else
 				{
 					free_buffer(cbuf);
+					return(0);
 				}
 			break;
 			default:
 				bufs[cbuf].live=false;
 				free_buffer(cbuf);
+				return(0);
 			break;
 		}
 	}
@@ -288,7 +291,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		printf(CLA "Exited quirc\n" CLA "\n");
 		return(-1);
 	}
-	else if(strcmp(cmd, "set")==0) // set options
+	if(strcmp(cmd, "set")==0) // set options
 	{
 		if(args)
 		{
@@ -435,7 +438,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		}
 		return(0);
 	}
-	else if(strcmp(cmd, "server")==0)
+	if(strcmp(cmd, "server")==0)
 	{
 		if(args)
 		{
@@ -476,7 +479,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		}
 		return(0);
 	}
-	else if(strcmp(cmd, "disconnect")==0)
+	if(strcmp(cmd, "disconnect")==0)
 	{
 		int b=bufs[cbuf].server;
 		if(b>0)
@@ -512,7 +515,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		}
 		return(0);
 	}
-	else if(strcmp(cmd, "join")==0)
+	if(strcmp(cmd, "join")==0)
 	{
 		if(!bufs[cbuf].handle)
 		{
@@ -542,7 +545,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		}
 		return(0);
 	}
-	else if((strcmp(cmd, "part")==0)||(strcmp(cmd, "leave")==0))
+	if((strcmp(cmd, "part")==0)||(strcmp(cmd, "leave")==0))
 	{
 		if(bufs[cbuf].type!=CHANNEL)
 		{
@@ -564,7 +567,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		}
 		return(0);
 	}
-	else if(strcmp(cmd, "nick")==0)
+	if(strcmp(cmd, "nick")==0)
 	{
 		if(args)
 		{
@@ -596,7 +599,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		}
 		return(0);
 	}
-	else if(strcmp(cmd, "topic")==0)
+	if(strcmp(cmd, "topic")==0)
 	{
 		if(args)
 		{
@@ -654,7 +657,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		}
 		return(0);
 	}
-	else if(strcmp(cmd, "msg")==0)
+	if(strcmp(cmd, "msg")==0)
 	{
 		if(!bufs[cbuf].handle)
 		{
@@ -701,7 +704,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		}
 		return(0);
 	}
-	else if(strcmp(cmd, "me")==0)
+	if(strcmp(cmd, "me")==0)
 	{
 		if(bufs[cbuf].type!=CHANNEL) // TODO add PRIVATE
 		{
@@ -739,7 +742,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		}
 		return(0);
 	}
-	else if(strcmp(cmd, "cmd")==0)
+	if(strcmp(cmd, "cmd")==0)
 	{
 		if(!bufs[cbuf].handle)
 		{
@@ -759,12 +762,9 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		}
 		return(0);
 	}
-	else
-	{
-		if(!cmd) cmd="";
-		char dstr[8+strlen(cmd)];
-		sprintf(dstr, "/%s: ", cmd);
-		w_buf_print(cbuf, c_err, "Unrecognised command!", dstr);
-		return(0);
-	}
+	if(!cmd) cmd="";
+	char dstr[8+strlen(cmd)];
+	sprintf(dstr, "/%s: ", cmd);
+	w_buf_print(cbuf, c_err, "Unrecognised command!", dstr);
+	return(0);
 }
