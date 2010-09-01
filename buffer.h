@@ -18,6 +18,7 @@
 #include <ctype.h>
 #include "ttyesc.h"
 #include "colour.h"
+#include "config.h"
 #include "bits.h"
 #include "names.h"
 #include "text.h"

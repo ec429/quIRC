@@ -410,6 +410,27 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 						w_buf_print(cbuf, c_status, "mcc disabled", "/set: ");
 					}
 				}
+				else if(strcmp(opt, "fwc")==0)
+				{
+					if(val)
+					{
+						int fwc;
+						sscanf(val, "%u", &fwc);
+						full_width_colour=fwc;
+					}
+					else
+					{
+						full_width_colour=true;
+					}
+					if(full_width_colour)
+					{
+						w_buf_print(cbuf, c_status, "fwc enabled", "/set: ");
+					}
+					else
+					{
+						w_buf_print(cbuf, c_status, "fwc disabled", "/set: ");
+					}
+				}
 				else if(strcmp(opt, "buf")==0)
 				{
 					if(val)

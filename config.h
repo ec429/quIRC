@@ -22,6 +22,7 @@ int mirc_colour_compat;
 int force_redraw;
 int buflines;
 int maxnlen;
+bool full_width_colour;
 char *server, *portno, *username, *fname, *nick, *chan;
 char version[16+strlen(VERSION_TXT)];
 

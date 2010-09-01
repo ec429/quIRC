@@ -133,9 +133,18 @@ int redraw_buffer(void)
 	for(l=sl;l!=el;l=(l+1)%bufs[cbuf].nlines)
 	{
 		setcolour(bufs[cbuf].lc[l]);
-		printf("%s", bufs[cbuf].lt[l]);
-		resetcol();
-		printf(CLR "\n");
+		if(full_width_colour)
+		{
+			printf("%s" CLR, bufs[cbuf].lt[l]);
+			resetcol();
+			printf("\n");
+		}
+		else
+		{
+			printf("%s", bufs[cbuf].lt[l]);
+			resetcol();
+			printf(CLR "\n");
+		}
 	}
 	printf(CLA "\n");
 	switch(bufs[cbuf].type)
@@ -179,9 +188,18 @@ int buf_print(int buf, colour lc, char *lt)
 		printf(CLA "\n");
 		printf(LOCATE CLA, height-1, 1);
 		printf(LOCATE, height-2, 1);
-		printf(CLA "%s", lt);
-		resetcol();
-		printf(CLR "\n" CLA "\n");
+		if(full_width_colour)
+		{
+			printf(CLA "%s" CLR, lt);
+			resetcol();
+			printf("\n" CLA "\n");
+		}
+		else
+		{
+			printf(CLA "%s", lt);
+			resetcol();
+			printf(CLR "\n" CLA "\n");
+		}
 	}
 	return(add_to_buffer(buf, lc, lt));
 }

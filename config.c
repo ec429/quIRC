@@ -13,6 +13,7 @@ int def_config(void)
 	buflines=256;
 	mirc_colour_compat=1; // silently strip
 	force_redraw=2;
+	full_width_colour=false;
 	char *cols=getenv("COLUMNS"), *rows=getenv("LINES");
 	if(cols) sscanf(cols, "%u", &width);
 	if(rows) sscanf(rows, "%u", &height);
@@ -140,6 +141,12 @@ int rcread(FILE *rcfp)
 				sscanf(rest, "%u", &maxnlen);
 			else if(strcmp(cmd, "mcc")==0)
 				sscanf(rest, "%u", &mirc_colour_compat);
+			else if(strcmp(cmd, "fwc")==0)
+			{
+				int fwc;
+				sscanf(rest, "%u", &fwc);
+				full_width_colour=fwc;
+			}
 			else if(strcmp(cmd, "fred")==0)
 				sscanf(rest, "%u", &force_redraw);
 			else if(strcmp(cmd, "buf")==0)
@@ -195,6 +202,14 @@ signed int pargs(int argc, char *argv[])
 		else if(strncmp(argv[arg], "--mcc=", 6)==0)
 		{
 			sscanf(argv[arg]+6, "%u", &mirc_colour_compat);
+		}
+		else if(strcmp(argv[arg], "--fwc")==0)
+		{
+			full_width_colour=true;
+		}
+		else if(strcmp(argv[arg], "--no-fwc")==0)
+		{
+			full_width_colour=false;
 		}
 		else if(strncmp(argv[arg], "--force-redraw=", 15)==0)
 		{
