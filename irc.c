@@ -446,6 +446,45 @@ int rx_kill(int b, fd_set *master)
 	return(0);
 }
 
+int rx_kick(int b)
+{
+	char *chn=strtok(NULL, " \t"); // channel to kick from
+	char *dest=strtok(NULL, " \t"); // user to be kicked
+	char *rest=strtok(NULL, ""); // reason
+	if(*rest==':')
+		rest++;
+	if(strcasecmp(dest, bufs[b].nick)==0) // if it's us, generate a message and de-live the channel
+	{
+		int b2;
+		for(b2=1;b2<nbufs;b2++)
+		{
+			if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (strcasecmp(chn, bufs[b2].bname)==0))
+			{
+				w_buf_print(b2, c_quit[0], rest, "Kicked: ");
+				bufs[b2].live=false;
+			}
+		}
+		redraw_buffer();
+	}
+	else // if it's not us, just generate kick message
+	{
+		int b2;
+		for(b2=1;b2<nbufs;b2++)
+		{
+			if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (strcasecmp(chn, bufs[b2].bname)==0))
+			{
+				if(n_cull(&bufs[b2].nlist, dest))
+				{
+					char kmsg[32+strlen(dest)+strlen(rest)];
+					sprintf(kmsg, "=%s= was kicked.  Reason: %s", dest, rest);
+					w_buf_print(b2, c_quit[1], kmsg, "");
+				}
+			}
+		}
+	}
+	return(0);
+}
+
 int rx_error(int b, fd_set *master)
 {
 	// assume it's fatal

@@ -158,6 +158,10 @@ int main(int argc, char *argv[])
 											{
 												rx_kill(b, &master);
 											}
+											else if(strcmp(cmd, "KICK")==0)
+											{
+												rx_kick(b);
+											}
 											else if(strcmp(cmd, "ERROR")==0)
 											{
 												rx_error(b, &master);
