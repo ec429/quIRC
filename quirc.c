@@ -290,7 +290,7 @@ int main(int argc, char *argv[])
 	{
 		if(bufs[b].handle!=0)
 		{
-			if(!qmsg) qmsg="Quirc Quit.";
+			if(!qmsg) qmsg="quIRC Quit";
 			char quit[7+strlen(qmsg)];
 			sprintf(quit, "QUIT %s", qmsg);
 			irc_tx(bufs[b].handle, quit);
