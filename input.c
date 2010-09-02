@@ -14,6 +14,8 @@ int inputchar(char **inp, int *state)
 	int ino=(*inp)?strlen(*inp):0;
 	*inp=(char *)realloc(*inp, ino+2);
 	unsigned char c=(*inp)[ino]=getchar();
+	if(c!='\t')
+		ttab=false;
 	(*inp)[ino+1]=0;
 	if(strchr("\010\177", c)) // various backspace-type characters
 	{
@@ -32,17 +34,32 @@ int inputchar(char **inp, int *state)
 		}
 		if(c=='\t') // tab completion of nicks
 		{
-			int sp=ino-1;
+			int sp=max(ino-1, 0);
 			while(sp>0 && !strchr(" \t", (*inp)[sp-1]))
 				sp--;
 			name *curr=bufs[cbuf].nlist;
 			name *found=NULL;
 			int count=0;
+			int mlen;
 			while(curr)
 			{
-				if(((*inp)[sp]==0) || (strncasecmp((*inp)+sp, curr->data, ino-sp)==0))
+				if((ino==sp) || (strncasecmp((*inp)+sp, curr->data, ino-sp)==0))
 				{
 					n_add(&found, curr->data);
+					if((found->next)&&(found->next->data))
+					{
+						int i;
+						for(i=0;i<mlen;i++)
+						{
+							if(found->data[i]!=found->next->data[i])
+								break;
+						}
+						mlen=i;
+					}
+					else
+					{
+						mlen=strlen(curr->data);
+					}
 					count++;
 				}
 				if(curr)
@@ -50,7 +67,18 @@ int inputchar(char **inp, int *state)
 			}
 			if(found)
 			{
-				if(found->next||(count>1))
+				if((mlen>ino-sp)&&(count>1))
+				{
+					*inp=(char *)realloc(*inp, sp+mlen+4);
+					snprintf((*inp)+sp, mlen+1, "%s", found->data);
+					ttab=false;
+				}
+				else if((count>16)&&!ttab)
+				{
+					w_buf_print(cbuf, c_status, "Multiple matches (over 16; tab again to list)", "[tab] ");
+					ttab=true;
+				}
+				else if(found->next||(count>1))
 				{
 					char *fmsg;
 					int i,l;
@@ -61,11 +89,14 @@ int inputchar(char **inp, int *state)
 						found=found->next;
 						count--;
 						if(count)
-							append_char(&fmsg, &i, &l, ',');
+						{
+							append_str(&fmsg, &i, &l, ", ");
+						}
 					}
 					w_buf_print(cbuf, c_status, "Multiple matches", "[tab] ");
 					w_buf_print(cbuf, c_status, fmsg, "[tab] ");
 					free(fmsg);
+					ttab=false;
 				}
 				else
 				{
@@ -74,6 +105,7 @@ int inputchar(char **inp, int *state)
 						sprintf((*inp)+sp, "%s", found->data);
 					else
 						sprintf((*inp)+sp, "%s: ", found->data);
+					ttab=false;
 				}
 			}
 			else

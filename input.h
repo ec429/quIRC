@@ -10,6 +10,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <string.h>
 #include <ctype.h>
 
@@ -17,6 +18,8 @@
 #include "names.h"
 #include "buffer.h"
 #include "irc.h"
+
+bool ttab;
 
 int inputchar(char **inp, int *state);
 char * slash_dequote(char *inp);
