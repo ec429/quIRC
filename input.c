@@ -30,37 +30,44 @@ int inputchar(char **inp, int *state)
 			*inp=NULL;
 			ino=0;
 		}
-		if(ino>0)
+		if(c=='\t') // tab completion of nicks
 		{
-			if(c=='\t') // tab completion of nicks
+			int sp=ino-1;
+			while(sp>0 && !strchr(" \t", (*inp)[sp-1]))
+				sp--;
+			name *curr=bufs[cbuf].nlist;
+			name *found=NULL;
+			int count=0;
+			while(curr)
 			{
-				int sp=ino-1;
-				while(sp>0 && !strchr(" \t", (*inp)[sp-1]))
-					sp--;
-				name *curr=bufs[cbuf].nlist;
-				name *found=NULL;bool tmany=false;
-				while(curr)
+				if(((*inp)[sp]==0) || (strncasecmp((*inp)+sp, curr->data, ino-sp)==0))
 				{
-					if(strncasecmp((*inp)+sp, curr->data, ino-sp)==0)
-					{
-						if(tmany)
-						{
-							w_buf_print(cbuf, c_err, curr->data, "[tab] ");
-						}
-						else if(found)
-						{
-							w_buf_print(cbuf, c_err, "Multiple nicks match", "[tab] ");
-							w_buf_print(cbuf, c_err, found->data, "[tab] ");
-							w_buf_print(cbuf, c_err, curr->data, "[tab] ");
-							found=NULL;tmany=true;
-						}
-						else
-							found=curr;
-					}
-					if(curr)
-						curr=curr->next;
+					n_add(&found, curr->data);
+					count++;
 				}
-				if(found)
+				if(curr)
+					curr=curr->next;
+			}
+			if(found)
+			{
+				if(found->next||(count>1))
+				{
+					char *fmsg;
+					int i,l;
+					init_char(&fmsg, &i, &l);
+					while(found)
+					{
+						append_str(&fmsg, &i, &l, found->data);
+						found=found->next;
+						count--;
+						if(count)
+							append_char(&fmsg, &i, &l, ',');
+					}
+					w_buf_print(cbuf, c_status, "Multiple matches", "[tab] ");
+					w_buf_print(cbuf, c_status, fmsg, "[tab] ");
+					free(fmsg);
+				}
+				else
 				{
 					*inp=(char *)realloc(*inp, sp+strlen(found->data)+4);
 					if(sp)
@@ -68,11 +75,12 @@ int inputchar(char **inp, int *state)
 					else
 						sprintf((*inp)+sp, "%s: ", found->data);
 				}
-				else if(!tmany)
-				{
-					w_buf_print(cbuf, c_err, "No nicks match", "[tab] ");
-				}
 			}
+			else
+			{
+				w_buf_print(cbuf, c_status, "No nicks match", "[tab] ");
+			}
+			n_free(found);
 		}
 	}
 	if(c=='\033') // escape sequence

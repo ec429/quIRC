@@ -145,6 +145,14 @@ void append_char(char **buf, int *l, int *i, char c)
 	(*buf)[*i]=0;
 }
 
+void append_str(char **buf, int *l, int *i, char *str)
+{
+	while(*str) // not the most tremendously efficient implementation, but conceptually simple at least
+	{
+		append_char(buf, l, i, *str++);
+	}
+}
+
 void init_char(char **buf, int *l, int *i)
 {
 	*l=80;
