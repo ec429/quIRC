@@ -51,7 +51,7 @@ int inputchar(char **inp, int *state)
 						int i;
 						for(i=0;i<mlen;i++)
 						{
-							if(found->data[i]!=found->next->data[i])
+							if(toupper(found->data[i])!=toupper(found->next->data[i]))
 								break;
 						}
 						mlen=i;
