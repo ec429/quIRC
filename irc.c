@@ -857,6 +857,18 @@ int ctcp(char *msg, char *from, char *src, int b2)
 		sprintf(resp, "NOTICE %s \001FINGER :%s\001", src, fname);
 		irc_tx(fd, resp);
 	}
+	else if(strncmp(msg, "\001PING", 5)==0)
+	{
+		char resp[16+strlen(src)+strlen(msg)];
+		sprintf(resp, "NOTICE %s %s", src, msg);
+		irc_tx(fd, resp);
+	}
+	else if(strncmp(msg, "\001CLIENTINFO", 11)==0)
+	{
+		char resp[64+strlen(src)];
+		sprintf(resp, "NOTICE %s \001CLIENTINFO ACTION FINGER PING CLIENTINFO VERSION\001", src);
+		irc_tx(fd, resp);
+	}
 	else if(strncmp(msg, "\001VERSION", 8)==0)
 	{
 		char resp[32+strlen(src)+strlen(version)+strlen(CC_VERSION)];
@@ -875,6 +887,9 @@ int ctcp(char *msg, char *from, char *src, int b2)
 		char cmsg[32+strlen(cmd)];
 		sprintf(cmsg, "Unrecognised CTCP %s (ignoring)", cmd);
 		w_buf_print(b2, c_unk, cmsg, tag);
+		char resp[32+strlen(src)+strlen(cmd)];
+		sprintf(resp, "NOTICE %s \001ERRMSG %s\001", src, cmd);
+		irc_tx(fd, resp);
 	}
 	return(0);
 }
