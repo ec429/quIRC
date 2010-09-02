@@ -39,7 +39,8 @@ int wordline(char *msg, int x, char **out, colour lc)
 {
 	int tabx=x;
 	int l,i,l2,i2;
-	init_char(out, &l, &i);
+	i=strlen(*out);
+	l=i+1;
 	char *word;
 	char *ptr=msg;
 	while(*ptr)
