@@ -35,114 +35,134 @@ char * fgetl(FILE *fp)
 	return(nlout);
 }
 
-int wordline(char *msg, int x, char **out)
+int wordline(char *msg, int x, char **out, colour lc)
 {
-	off_t ol=(out&&*out)?strlen(*out)+1:0;
-	char *ptr=strtok(msg, " ");
-	while(ptr)
+	int tabx=x;
+	int l,i,l2,i2;
+	init_char(out, &l, &i);
+	char *word;
+	char *ptr=msg;
+	while(*ptr)
 	{
-		off_t pl=strlen(ptr);
-		*out=(char *)realloc(*out, ol+pl+8+strlen(CLR));
-		x+=pl+1;
-		if((x>=width) && (pl<width))
+		switch(*ptr)
 		{
-			strcat(*out, "\n" CLR);
-			ol+=(1+strlen(CLR));
-			x=pl;
-		}
-		else if(ptr!=msg)
-		{
-			strcat(*out, " ");
-			ol++;
-		}
-		int optr=strlen(*out);
-		while(*ptr)
-		{
-			if((*ptr==3) && mirc_colour_compat)
-			{
-				int fore=0, back=0;
-				ssize_t bytes=0;
-				if(sscanf(ptr, "\003%u,%u%zn", &fore, &back, &bytes)==2)
+			case ' ':
+				if(++x<width)
 				{
-					ptr+=bytes;
-					if(mirc_colour_compat==2)
-					{
-						ol+=12;
-						*out=(char *)realloc(*out, ol+pl+8+strlen(CLR));
-						colour mcc=c_mirc(fore, back);
-						(*out)[optr++]='\033';
-						(*out)[optr++]='[';
-						(*out)[optr++]='0';
-						(*out)[optr++]=';';
-						(*out)[optr++]='3';
-						(*out)[optr++]='0'+mcc.fore;
-						(*out)[optr++]=';';
-						(*out)[optr++]='4';
-						(*out)[optr++]='0'+mcc.back;
-						(*out)[optr++]='m';
-					}
-				}
-				else if(sscanf(ptr, "\003%u%zn", &fore, &bytes)==1)
-				{
-					ptr+=bytes;
-					if(mirc_colour_compat==2)
-					{
-						ol+=12;
-						*out=(char *)realloc(*out, ol+pl+8+strlen(CLR));
-						colour mcc=c_mirc(fore, 1);
-						(*out)[optr++]='\033';
-						(*out)[optr++]='[';
-						(*out)[optr++]='0';
-						(*out)[optr++]=';';
-						(*out)[optr++]='3';
-						(*out)[optr++]='0'+mcc.fore;
-						(*out)[optr++]=';';
-						(*out)[optr++]='4';
-						(*out)[optr++]='0'+mcc.back;
-						(*out)[optr++]='m';
-					}
+					append_char(out, &l, &i, ' ');
 				}
 				else
 				{
-					ptr++;
-					if(mirc_colour_compat==2)
+					append_char(out, &l, &i, '\n');
+					for(x=0;x<tabx;x++)
+						append_char(out, &l, &i, ' ');
+				}
+				ptr++;
+			break;
+			case '\t':
+				while(x%8)
+				{
+					if(++x<width)
 					{
-						ol+=12;
-						*out=(char *)realloc(*out, ol+pl+8+strlen(CLR));
-						(*out)[optr++]='\033';
-						(*out)[optr++]='[';
-						(*out)[optr++]='0';
-						(*out)[optr++]=';';
-						(*out)[optr++]='3';
-						(*out)[optr++]='7';
-						(*out)[optr++]=';';
-						(*out)[optr++]='4';
-						(*out)[optr++]='0';
-						(*out)[optr++]='m';
+						append_char(out, &l, &i, ' ');
+					}
+					else
+					{
+						append_char(out, &l, &i, '\n');
+						for(x=0;x<tabx;x++)
+							append_char(out, &l, &i, ' ');
+						break;
 					}
 				}
-			}
-			else
-			{
-				(*out)[optr++]=*ptr++;
-			}
+				ptr++;
+			break;
+			default:
+				init_char(&word, &l2, &i2);
+				int wdlen=0;
+				while(!strchr(" \t", *ptr))
+				{
+					if((*ptr==3) && mirc_colour_compat)
+					{
+						int fore=0, back=0;
+						ssize_t bytes=0;
+						if(sscanf(ptr, "\003%u,%u%zn", &fore, &back, &bytes)==2)
+						{
+							ptr+=bytes;
+							if(mirc_colour_compat==2)
+							{
+								colour mcc=c_mirc(fore, back);
+								s_setcol(mcc.fore, mcc.back, mcc.hi, mcc.ul, &word, &l2, &i2);
+							}
+						}
+						else if(sscanf(ptr, "\003%u%zn", &fore, &bytes)==1)
+						{
+							ptr+=bytes;
+							if(mirc_colour_compat==2)
+							{
+								colour mcc=c_mirc(fore, 1);
+								s_setcol(mcc.fore, mcc.back, mcc.hi, mcc.ul, &word, &l2, &i2);
+							}
+						}
+						else
+						{
+							ptr++;
+							if(mirc_colour_compat==2)
+							{
+								s_setcol(lc.fore, lc.back, lc.hi, lc.ul, &word, &l2, &i2);
+							}
+						}
+					}
+					else
+					{
+						append_char(&word, &l2, &i2, *ptr++);
+						wdlen++;
+					}
+				}
+				if(wdlen+x<width)
+				{
+					append_str(out, &l, &i, word);
+					x+=wdlen;
+				}
+				else
+				{
+					append_char(out, &l, &i, '\n');
+					for(x=0;x<tabx;x++)
+						append_char(out, &l, &i, ' ');
+					append_str(out, &l, &i, word);
+					x+=wdlen;
+				}
+			break;
 		}
-		(*out)[optr]=0;
-		ol+=pl;
-		ptr=strtok(NULL, " ");
 	}
 	return(x);
 }
 
 void append_char(char **buf, int *l, int *i, char c)
 {
-	(*buf)[(*i)++]=c;
+	if(*buf)
+	{
+		(*buf)[(*i)++]=c;
+	}
+	else
+	{
+		init_char(buf, l, i);
+	}
+	char *nbuf=*buf;
 	if((*i)>=(*l))
 	{
 		*l=*l*2;
-		*buf=(char *)realloc(*buf, *l);
+		nbuf=(char *)realloc(*buf, *l);
 	}
-	(*buf)[*i]=0;
+	if(nbuf)
+	{
+		*buf=nbuf;
+		(*buf)[*i]=0;
+	}
+	else
+	{
+		free(*buf);
+		init_char(buf, l, i);
+	}
 }
 
 void append_str(char **buf, int *l, int *i, char *str)
