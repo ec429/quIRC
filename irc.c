@@ -116,7 +116,11 @@ int irc_tx(int fd, char * packet)
 	{
 		signed long j=send(fd, pq+p, l-p, 0);
 		if(j<1)
+		{
+			if(errno==EINTR)
+				continue;
 			return(p); // Something went wrong with send()!
+		}
 		p+=j;
 	}
 	send(fd, "\n", 1, 0);
@@ -143,6 +147,8 @@ int irc_rx(int fd, char ** data)
 		}
 		else if(bytes<0)
 		{
+			if(errno==EINTR)
+				continue;
 			int b;
 			for(b=0;b<nbufs;b++)
 			{
