@@ -93,7 +93,8 @@ int inputchar(char **inp, int *state)
 							append_str(&fmsg, &i, &l, ", ");
 						}
 					}
-					w_buf_print(cbuf, c_status, "Multiple matches", "[tab] ");
+					if(!ttab)
+						w_buf_print(cbuf, c_status, "Multiple matches", "[tab] ");
 					w_buf_print(cbuf, c_status, fmsg, "[tab] ");
 					free(fmsg);
 					ttab=false;
