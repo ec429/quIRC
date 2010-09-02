@@ -319,9 +319,9 @@ int irc_numeric(char *cmd, int b) // TODO check the strtok()s for NULLs
 			{
 				if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (strcasecmp(ch, bufs[b2].bname)==0))
 				{
-					char tmsg[32+strlen(ch)+strlen(topic)];
-					sprintf(tmsg, "Topic for %s is %s", ch, topic);
-					w_buf_print(b2, c_notice[1], tmsg, "");
+					char tmsg[32+strlen(ch)];
+					sprintf(tmsg, "Topic for %s is ", ch);
+					w_buf_print(b2, c_notice[1], topic, tmsg);
 				}
 			}
 		break;
