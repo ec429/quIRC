@@ -301,7 +301,7 @@ void in_update(char *inp)
 		sprintf(l, "%.*s", shw, inp);
 		char *lh=highlight(l);
 		char *rh=highlight(inp+off+shw);
-		printf("%s ... %s" CLR, lh, rh);
+		printf("%s...%s" CLR, lh, rh);
 		free(lh);
 		free(rh);
 	}
