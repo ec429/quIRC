@@ -18,7 +18,7 @@ int initialise_buffers(int buflines, char *nick)
 	cbuf=0;
 	bufs[0].live=true; // STATUS is never dead
 	bufs[0].nick=nick;
-	buf_print(0, c_status, GPL_MSG); // can't w_buf_print() it because it has embedded newlines
+	w_buf_print(0, c_status, GPL_MSG, "quirc -- ");
 	return(0);
 }
 

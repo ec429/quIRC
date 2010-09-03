@@ -62,6 +62,14 @@ int wordline(char *msg, int x, char **out, colour lc)
 				}
 				ptr++;
 			break;
+			case '\n':
+				if(*++ptr)
+				{
+					append_char(out, &l, &i, '\n');
+					for(x=0;x<tabx;x++)
+						append_char(out, &l, &i, ' ');
+				}
+			break;
 			case '\t':
 				while(x%8)
 				{
@@ -82,7 +90,7 @@ int wordline(char *msg, int x, char **out, colour lc)
 			default:
 				init_char(&word, &l2, &i2);
 				int wdlen=0;
-				while(!strchr(" \t", *ptr))
+				while(!strchr(" \t\n", *ptr))
 				{
 					if((*ptr==3) && mirc_colour_compat)
 					{

@@ -252,8 +252,6 @@ int main(int argc, char *argv[])
 									char pmsg[12+strlen(bufs[cbuf].bname)+strlen(inp)];
 									sprintf(pmsg, "PRIVMSG %s :%s", bufs[cbuf].bname, inp);
 									irc_tx(bufs[cbuf].handle, pmsg);
-									while(inp[strlen(inp)-1]=='\n')
-										inp[strlen(inp)-1]=0; // stomp out trailing newlines, they break things
 									char tag[maxnlen+4];
 									memset(tag, ' ', maxnlen+3);
 									char *cnick=strdup(bufs[bufs[cbuf].server].nick);

@@ -7,7 +7,7 @@
 */
 
 // interface text
-#define GPL_MSG "quirc -- Copyright (C) 2010 Edward Cree\n\tThis program comes with ABSOLUTELY NO WARRANTY.\n\tThis is free software, and you are welcome to redistribute it\n\tunder certain conditions.  (GNU GPL v3+)\n\tFor further details, see the file 'COPYING' in the quirc directory."
+#define GPL_MSG "Copyright (C) 2010 Edward Cree\nThis program comes with ABSOLUTELY NO WARRANTY.\nThis is free software, and you are welcome to redistribute it\nunder certain conditions.  (GNU GPL v3+)\nFor further details, see the file 'COPYING' in the quirc directory."
 
 #define VERSION_MSG " %s %hhu.%hhu.%hhu%s%s\n\
  Copyright (C) 2010 Edward Cree.\n\
