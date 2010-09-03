@@ -249,6 +249,28 @@ char * low_dequote(char *buf)
 	return(rv);
 }
 
+char irc_to_upper(char c)
+{
+	// 97 to 126 -> 65 to 94 (CASEMAPPING=rfc1459; non-strict)
+	if((97<=c)&&(c<=126))
+		return(c-32);
+	return(c);
+}
+
+int irc_strcasecmp(char *c1, char *c2)
+{
+	char t1,t2;
+	while(*c1||*c2)
+	{
+		t1=irc_to_upper(*c1);
+		t2=irc_to_upper(*c2);
+		if(t2!=t1)
+			return(t2>t1?-1:1);
+		c1++;c2++;
+	}
+	return(0);
+}
+
 int irc_numeric(char *cmd, int b) // TODO check the strtok()s for NULLs
 {
 	int num=0;

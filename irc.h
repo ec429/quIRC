@@ -14,6 +14,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <ctype.h>
 #include <sys/socket.h>
 #include <sys/utsname.h>
 #include <netdb.h>
@@ -36,6 +37,9 @@ int irc_tx(int fd, char * packet);
 int irc_rx(int fd, char ** data);
 void low_quote(char *from, char to[512]);
 char * low_dequote(char *buf);
+
+char irc_to_upper(char c);
+int irc_strcasecmp(char *c1, char *c2);
 
 // Received-IRC message handlers.  strtok() state leaks across the boundaries of these functions, beware!
 int irc_numeric(char *cmd, int b);
