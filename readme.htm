@@ -94,10 +94,15 @@ Then there&apos;s the github page, <a href="http://github.com/ec429/quIRC">http:
 <h2>Configuration</h2>
 <p>quIRC can be configured through an &quot;rc file&quot; as follows.</p>
 <p>In your home directory (/home/username), create a file called &quot;.quirc&quot;, and open it in your editor.</p>
-<p>In this file you can set a server, nick and channel to automatically use, and the maximum length of nick that will be displayed, with lines<br />
+<p>In this file you can set servers, nick and channels to automatically use:<br />
+<tt>nick <em>global-nickname</em></tt><br />
+<tt>ignore -<em>options</em> <em>global-ignore</em></tt><br />
 <tt>server <em>url</em></tt><br />
-<tt>nick <em>nickname</em></tt><br />
-<tt>chan <em>channel</em></tt><br />
+<tt>*chan <em>channel-on-that-server</em></tt><br />
+<tt>*nick <em>nick-on-that-server</em></tt><br />
+<tt>*ignore -<em>options</em> <em>ignore-on-that-server</em></tt><br />
+where the <em>options</em> to [*]ignore are those for the /ignore command (except for l and d), and must not be separated by whitespace.  You can however combine options, like <small>-ipr</small>.</p>
+<p>Set the maximum length of nick that will be displayed, with lines<br />
 <tt>mnln <em>maxnicklen</em></tt></p>
 <p>You can also set mirc-colour-compatibility, with<br />
 <tt>mcc <em>mcc-level</em></tt><br />

@@ -85,11 +85,17 @@ the channel.
 quIRC can be configured through an "rc file" as follows.
 In your home directory (/home/username), create a file called ".quirc", and
 open it in your editor.
-In this file you can set a server, nick and channel to automatically use, and
-the maximum length of nick that will be displayed, with lines
+In this file you can set servers, nick and channels to automatically use:
+nick global-nickname
+ignore -options global-ignore
 server url
-nick nickname
-chan channel
+*chan channel-on-that-server
+*nick nick-on-that-server
+*ignore -options ignore-on-that-server
+where the options to [*]ignore are those for the /ignore command (except for l
+and d), and must not be separated by whitespace. You can however combine
+options, like -ipr.
+Set the maximum length of nick that will be displayed, with lines
 mnln maxnicklen
 You can also set mirc-colour-compatibility, with
 mcc mcc-level
