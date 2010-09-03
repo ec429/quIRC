@@ -38,6 +38,8 @@ char * fgetl(FILE *fp)
 int wordline(char *msg, int x, char **out, colour lc)
 {
 	int tabx=x;
+	if(tabx*2>width)
+		tabx=8;
 	int l,i,l2,i2;
 	i=strlen(*out);
 	l=i+1;
