@@ -292,11 +292,15 @@ void in_update(char *inp)
 	int ino=inp?strlen(inp):0;
 	if(ino>width-2)
 	{
-		int off=20*max((ino+27-width)/20, 0);
+		int shw=max(min(10, width-27), 0);
+		int skip=(width>=40)?20:10;
+		int off=0;
+		while(strlen(inp+off+shw)>width-(6+shw))
+			off+=skip;
 		char l[11];
-		sprintf(l, "%.10s", inp);
+		sprintf(l, "%.*s", shw, inp);
 		char *lh=highlight(l);
-		char *rh=highlight(inp+off+10);
+		char *rh=highlight(inp+off+shw);
 		printf("%s ... %s" CLR, lh, rh);
 		free(lh);
 		free(rh);
