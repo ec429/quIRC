@@ -81,6 +81,10 @@ the channel.
       Allows you to send a raw command to the server; not recommended.
   /tab n
       Switches to tab number n; (status) is tab 0.
+  /left
+  /right
+      Swaps the current tab with the tab on its left (or right); tab 0 (status)
+      cannot be moved.
 ***** Configuration *****
 quIRC can be configured through an "rc file" as follows.
 In your home directory (/home/username), create a file called ".quirc", and
