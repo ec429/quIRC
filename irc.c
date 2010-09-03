@@ -386,6 +386,12 @@ int irc_numeric(char *cmd, int b) // TODO check the strtok()s for NULLs
 							bufs[b].casemapping=RFC1459;
 						}
 					}
+					else
+					{
+						char isup[strlen(rest)+(value?strlen(value):0)+3];
+						sprintf(isup, "%s%s%s%s", min?"-":"", rest, value?"=":"", value?value:"");
+						w_buf_print(b, c_unn, isup, "RPL_ISUPPORT: ");
+					}
 				}
 				rest=strtok(NULL, " ");
 			}
