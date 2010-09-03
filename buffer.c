@@ -411,12 +411,12 @@ void titlebar(void)
 	char vgits[8];
 	sprintf(vgits, "%hhu", gits);
 	memset(use, 0, sizeof(bool[8]));
-	if(wleft>=strlen(cchan)+1)
+	if(*cchan && (wleft>=strlen(cchan)+1))
 	{
 		use[0]=true;
 		wleft-=strlen(cchan)+1;
 	}
-	if(wleft>=strlen(cnick)+1)
+	if(*cnick && (wleft>=strlen(cnick)+1))
 	{
 		use[1]=true;
 		wleft-=strlen(cnick)+1;
@@ -441,9 +441,15 @@ void titlebar(void)
 		use[5]=true;
 		wleft-=strlen(hashgit)+1;
 	}
-	if(wleft>=strlen(cserv)+1)
+	if(*cserv && (wleft>=strlen(cserv)+1))
 	{
 		use[6]=true;
+		wleft-=strlen(cserv)+1;
+	}
+	else if(*cserv && wleft>1)
+	{
+		use[6]=true;
+		scrush(&cserv, wleft-1);
 		wleft-=strlen(cserv)+1;
 	}
 	if(topic && (wleft>1))
