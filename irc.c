@@ -257,6 +257,14 @@ char irc_to_upper(char c)
 	return(c);
 }
 
+char irc_to_lower(char c)
+{
+	// 65 to 94 -> 97 to 126 -> (CASEMAPPING=rfc1459; non-strict)
+	if((65<=c)&&(c<=94))
+		return(c+32);
+	return(c);
+}
+
 int irc_strcasecmp(char *c1, char *c2)
 {
 	char t1,t2;

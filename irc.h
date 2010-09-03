@@ -39,6 +39,7 @@ void low_quote(char *from, char to[512]);
 char * low_dequote(char *buf);
 
 char irc_to_upper(char c);
+char irc_to_lower(char c);
 int irc_strcasecmp(char *c1, char *c2);
 int irc_strncasecmp(char *c1, char *c2, int n);
 

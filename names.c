@@ -74,8 +74,36 @@ int i_match(name * list, char *nm, bool pm)
 	{
 		if((!pm)||(curr->pms))
 		{
+			char *data;
+			if(curr->icase)
+			{
+				int l,i;
+				init_char(&data, &l, &i);
+				char *p=curr->data;
+				while(*p)
+				{
+					append_char(&data, &l, &i, '[');
+					if(irc_to_lower(*p)=='^')
+						append_char(&data, &l, &i, '\\');
+					if(irc_to_lower(*p)==']')
+						append_char(&data, &l, &i, '\\');
+					if(irc_to_lower(*p)=='\\')
+						append_char(&data, &l, &i, '\\');
+					append_char(&data, &l, &i, irc_to_lower(*p)); // because of irc casemapping weirdness, we have to do our REG_ICASE by hand
+					if(irc_to_upper(*p)==']')
+						append_char(&data, &l, &i, '\\');
+					if(irc_to_upper(*p)=='\\')
+						append_char(&data, &l, &i, '\\');
+					append_char(&data, &l, &i, irc_to_upper(*p));
+					append_char(&data, &l, &i, ']');
+				}
+			}
+			else
+			{
+				data=strdup(curr->data);
+			}
 			regex_t comp;
-			if(regcomp(&comp, curr->data, REG_EXTENDED|REG_NOSUB|(curr->icase?REG_ICASE:0))==0)
+			if(regcomp(&comp, data, REG_EXTENDED|REG_NOSUB|0)==0)
 			{
 				if(regexec(&comp, nm, 0, NULL, 0)==0)
 				{
@@ -83,6 +111,7 @@ int i_match(name * list, char *nm, bool pm)
 				}
 				regfree(&comp);
 			}
+			free(data);
 		}
 		curr=curr->next;
 	}
