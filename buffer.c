@@ -18,7 +18,10 @@ int initialise_buffers(int buflines, char *nick)
 	cbuf=0;
 	bufs[0].live=true; // STATUS is never dead
 	bufs[0].nick=nick;
-	w_buf_print(0, c_status, GPL_MSG, "quirc -- ");
+	w_buf_print(0, c_status, "Copyright (C) 2010 Edward Cree", "quirc -- ");
+	w_buf_print(0, c_status, "This program comes with ABSOLUTELY NO WARRANTY.", "");
+	w_buf_print(0, c_status, "This is free software, and you are welcome to redistribute it under certain conditions.  (GNU GPL v3+)", "");
+	w_buf_print(0, c_status, "For further details, see the file 'COPYING' in the quirc directory.", "");
 	return(0);
 }
 
