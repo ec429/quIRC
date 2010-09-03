@@ -361,8 +361,8 @@ int irc_numeric(char *cmd, int b) // TODO check the strtok()s for NULLs
 						if(eq)
 						{
 							value=eq+1;
+							*eq=0;
 						}
-						*eq=0;
 					}
 					if(strcmp(rest, "CASEMAPPING")==0)
 					{
