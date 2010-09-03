@@ -271,6 +271,21 @@ int irc_strcasecmp(char *c1, char *c2)
 	return(0);
 }
 
+int irc_strncasecmp(char *c1, char *c2, int n)
+{
+	int i=0;
+	char t1,t2;
+	while((i<n)&&(c1[i]||c2[i]))
+	{
+		t1=irc_to_upper(c1[i]);
+		t2=irc_to_upper(c2[i]);
+		if(t2!=t1)
+			return(t2>t1?-1:1);
+		i++;
+	}
+	return(0);
+}
+
 int irc_numeric(char *cmd, int b) // TODO check the strtok()s for NULLs
 {
 	int num=0;
@@ -288,7 +303,7 @@ int irc_numeric(char *cmd, int b) // TODO check the strtok()s for NULLs
 			ch=strtok(NULL, " "); // channel
 			for(b2=0;b2<nbufs;b2++)
 			{
-				if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (strcasecmp(ch, bufs[b2].bname)==0))
+				if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(ch, bufs[b2].bname)==0))
 				{
 					if(!bufs[b2].namreply)
 					{
@@ -311,7 +326,7 @@ int irc_numeric(char *cmd, int b) // TODO check the strtok()s for NULLs
 			ch=strtok(NULL, " "); // channel
 			for(b2=0;b2<nbufs;b2++)
 			{
-				if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (strcasecmp(ch, bufs[b2].bname)==0))
+				if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(ch, bufs[b2].bname)==0))
 				{
 					bufs[b2].namreply=false;
 					char lmsg[32+strlen(ch)];
@@ -339,7 +354,7 @@ int irc_numeric(char *cmd, int b) // TODO check the strtok()s for NULLs
 			char *topic=strtok(NULL, "")+1;
 			for(b2=0;b2<nbufs;b2++)
 			{
-				if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (strcasecmp(ch, bufs[b2].bname)==0))
+				if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(ch, bufs[b2].bname)==0))
 				{
 					char tmsg[32+strlen(ch)];
 					sprintf(tmsg, "Topic for %s is ", ch);
@@ -351,7 +366,7 @@ int irc_numeric(char *cmd, int b) // TODO check the strtok()s for NULLs
 			ch=strtok(NULL, " "); // channel
 			for(b2=0;b2<nbufs;b2++)
 			{
-				if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (strcasecmp(ch, bufs[b2].bname)==0))
+				if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(ch, bufs[b2].bname)==0))
 				{
 					char tmsg[32+strlen(ch)];
 					sprintf(tmsg, "No topic is set for %s", ch);
@@ -365,7 +380,7 @@ int irc_numeric(char *cmd, int b) // TODO check the strtok()s for NULLs
 			char *time=strtok(NULL, ""); // when?
 			for(b2=0;b2<nbufs;b2++)
 			{
-				if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (strcasecmp(ch, bufs[b2].bname)==0))
+				if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(ch, bufs[b2].bname)==0))
 				{
 					time_t when;
 					sscanf(time, "%u", (unsigned int *)&when);
@@ -481,12 +496,12 @@ int rx_kick(int b)
 	char *rest=strtok(NULL, ""); // reason
 	if(*rest==':')
 		rest++;
-	if(strcasecmp(dest, bufs[b].nick)==0) // if it's us, generate a message and de-live the channel
+	if(irc_strcasecmp(dest, bufs[b].nick)==0) // if it's us, generate a message and de-live the channel
 	{
 		int b2;
 		for(b2=1;b2<nbufs;b2++)
 		{
-			if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (strcasecmp(chn, bufs[b2].bname)==0))
+			if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(chn, bufs[b2].bname)==0))
 			{
 				w_buf_print(b2, c_quit[0], rest, "Kicked: ");
 				bufs[b2].live=false;
@@ -499,7 +514,7 @@ int rx_kick(int b)
 		int b2;
 		for(b2=1;b2<nbufs;b2++)
 		{
-			if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (strcasecmp(chn, bufs[b2].bname)==0))
+			if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(chn, bufs[b2].bname)==0))
 			{
 				if(n_cull(&bufs[b2].nlist, dest))
 				{
@@ -553,7 +568,7 @@ int rx_privmsg(int b, char *packet, char *pdata)
 	bool match=false;
 	for(b2=0;b2<nbufs;b2++)
 	{
-		if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (strcasecmp(dest, bufs[b2].bname)==0))
+		if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(dest, bufs[b2].bname)==0))
 		{
 			match=true;
 			sprintf(nm, "%s@%s", src, host);
@@ -595,7 +610,7 @@ int rx_privmsg(int b, char *packet, char *pdata)
 		sprintf(nm, "%s", src);
 		if(i_match(bufs[b].ilist, nm, true)||i_match(bufs[0].ilist, nm, true))
 			return(0);
-		if(strcasecmp(dest, bufs[b].nick)==0)
+		if(irc_strcasecmp(dest, bufs[b].nick)==0)
 		{
 			if(*msg==1) // CTCP
 			{
@@ -668,7 +683,7 @@ int rx_topic(int b, char *packet)
 	bool match=false;
 	for(b2=0;b2<nbufs;b2++)
 	{
-		if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (strcasecmp(dest, bufs[b2].bname)==0))
+		if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(dest, bufs[b2].bname)==0))
 		{
 			w_buf_print(b2, c_notice[1], msg, tag);
 			match=true;
@@ -696,7 +711,7 @@ int rx_join(int b, char *packet, char *pdata, bool *join)
 		int b2;
 		for(b2=1;b2<nbufs;b2++)
 		{
-			if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (strcasecmp(dest+1, bufs[b2].bname)==0))
+			if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(dest+1, bufs[b2].bname)==0))
 			{
 				cbuf=b2;
 				break;
@@ -719,7 +734,7 @@ int rx_join(int b, char *packet, char *pdata, bool *join)
 		bool match=false;
 		for(b2=0;b2<nbufs;b2++)
 		{
-			if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (strcasecmp(dest+1, bufs[b2].bname)==0))
+			if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(dest+1, bufs[b2].bname)==0))
 			{
 				match=true;
 				char dstr[16+strlen(src)+strlen(dest+1)];
@@ -748,7 +763,7 @@ int rx_part(int b, char *packet, char *pdata)
 		int b2;
 		for(b2=0;b2<nbufs;b2++)
 		{
-			if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (strcasecmp(dest, bufs[b2].bname)==0))
+			if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(dest, bufs[b2].bname)==0))
 			{
 				if(b2==cbuf)
 				{
@@ -767,7 +782,7 @@ int rx_part(int b, char *packet, char *pdata)
 		bool match=false;
 		for(b2=0;b2<nbufs;b2++)
 		{
-			if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (strcasecmp(dest, bufs[b2].bname)==0))
+			if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(dest, bufs[b2].bname)==0))
 			{
 				match=true;
 				char dstr[16+strlen(src)+strlen(dest)];

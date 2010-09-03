@@ -40,6 +40,7 @@ char * low_dequote(char *buf);
 
 char irc_to_upper(char c);
 int irc_strcasecmp(char *c1, char *c2);
+int irc_strncasecmp(char *c1, char *c2, int n);
 
 // Received-IRC message handlers.  strtok() state leaks across the boundaries of these functions, beware!
 int irc_numeric(char *cmd, int b);

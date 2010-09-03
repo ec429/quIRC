@@ -43,7 +43,7 @@ int inputchar(char **inp, int *state)
 			int mlen;
 			while(curr)
 			{
-				if((ino==sp) || (strncasecmp((*inp)+sp, curr->data, ino-sp)==0))
+				if((ino==sp) || (irc_strncasecmp((*inp)+sp, curr->data, ino-sp)==0))
 				{
 					n_add(&found, curr->data);
 					if((found->next)&&(found->next->data))
@@ -51,7 +51,7 @@ int inputchar(char **inp, int *state)
 						int i;
 						for(i=0;i<mlen;i++)
 						{
-							if(toupper(found->data[i])!=toupper(found->next->data[i]))
+							if(irc_to_upper(found->data[i])!=irc_to_upper(found->next->data[i]))
 								break;
 						}
 						mlen=i;
@@ -560,7 +560,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 			int b;
 			for(b=1;b<nbufs;b++)
 			{
-				if((bufs[b].type==SERVER) && (strcasecmp(server, bufs[b].bname)==0))
+				if((bufs[b].type==SERVER) && (irc_strcasecmp(server, bufs[b].bname)==0))
 				{
 					if(bufs[b].live)
 					{
