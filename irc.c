@@ -653,8 +653,9 @@ int rx_privmsg(int b, char *packet, char *pdata)
 	char *bang=strchr(src, '!');
 	if(bang)
 		*bang++=0;
+	if(!isalpha(*src))
+		src++;
 	char nm[strlen(src)+strlen(bang)+strlen(host)+3];
-	
 	char *from=strdup(src);
 	crush(&from, maxnlen);
 	int b2;
@@ -741,6 +742,8 @@ int rx_notice(int b, char *packet)
 		*bang++=0;
 	else
 		bang="";
+	if(!isalpha(*src))
+		src++;
 	char nm[strlen(src)+strlen(bang)+strlen(host)+3];
 	sprintf(nm, "%s@%s", src, host);
 	if(i_match(bufs[b].ilist, nm, true, bufs[b].casemapping)||i_match(bufs[0].ilist, nm, true, bufs[b].casemapping))
