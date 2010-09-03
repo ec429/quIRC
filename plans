@@ -14,6 +14,8 @@ Automate config handling.  Generated code?
 
 Interface separation.  It should be possible to write decoupled interface modules which may access the buffers at a variety of depths (eg. pre-formatting) and through a variety of methods (such as mmap(2), a serialised textual IPC format, etc.).
 
+Private messaging tabs.
+
 Input editing.  Should use something based on Emacs line editing keys (C-a will mean 'go to start of line', unlike now when it means 'backspace to start of line'!).  May be provided by curses - investigate.
 
 append_char().  This should be used for all string appension (eg. fgetl())

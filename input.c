@@ -1041,6 +1041,33 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		}
 		return(0);
 	}
+	if(strcmp(cmd, "left")==0)
+	{
+		if(cbuf<2)
+		{
+			w_buf_print(cbuf, c_err, "Can't move (status) tab!", "/left: ");
+		}
+		else
+		{
+			buffer tmp=bufs[cbuf];
+			bufs[cbuf]=bufs[cbuf-1];
+			bufs[cbuf-1]=tmp;
+			cbuf--;
+			int i;
+			for(i=0;i<nbufs;i++)
+			{
+				if(bufs[i].server==cbuf)
+				{
+					bufs[i].server++;
+				}
+				else if(bufs[i].server==cbuf+1)
+				{
+					bufs[i].server--;
+				}
+			}
+		}
+		return(0);
+	}
 	if(strcmp(cmd, "ignore")==0)
 	{
 		if(!args)
