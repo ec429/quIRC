@@ -66,6 +66,8 @@ int irc_connect(char *server, char *portno, fd_set *master, int *fdmax)
 int irc_conn_rest(int b, char *nick, char *username, char *fullname)
 {
 	bufs[b].live=true; // mark it as live
+	if(bufs[b].autoent && bufs[b].autoent->nick)
+		nick=bufs[b].autoent->nick;
 	char nickmsg[6+strlen(nick)];
 	sprintf(nickmsg, "NICK %s", nick);
 	irc_tx(bufs[b].handle, nickmsg);
@@ -98,7 +100,7 @@ int autoconnect(fd_set *master, int *fdmax, servlist *serv)
 		bufs[cbuf].handle=serverhandle;
 		bufs[cbuf].nick=strdup(serv->nick);
 		bufs[cbuf].autoent=serv;
-		bufs[cbuf].server=1;
+		bufs[cbuf].server=cbuf;
 		add_to_buffer(cbuf, c_status, cstr);
 		sprintf(cstr, "quIRC - connecting to %s", serv->name);
 		settitle(cstr);
@@ -544,7 +546,7 @@ int rx_mode(servlist * serv, int b)
 		while(curr)
 		{
 			char joinmsg[8+strlen(curr->name)];
-			sprintf(joinmsg, "JOIN %s", curr->name);
+			sprintf(joinmsg, "JOIN %s %s", curr->name, curr->key?curr->key:"");
 			irc_tx(fd, joinmsg);
 			char jmsg[16+strlen(curr->name)];
 			sprintf(jmsg, "auto-Joining %s", curr->name);
