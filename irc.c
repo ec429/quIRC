@@ -337,6 +337,59 @@ int irc_numeric(char *cmd, int b) // TODO check the strtok()s for NULLs
 	int skip=0;
 	switch(num)
 	{
+		case RPL_X_ISUPPORT:
+			// 005 dest {[-]parameter|parameter=value}+ :are supported by this server
+			rest=strtok(NULL, " ");
+			while(rest)
+			{
+				if(*rest==':') // end of parameter list
+				{
+					break;
+				}
+				else
+				{
+					bool min=false;
+					char *value=NULL;
+					if(*rest=='-')
+					{
+						min=true;
+						rest++;
+					}
+					else
+					{
+						char *eq=strchr(rest, '=');
+						if(eq)
+						{
+							value=eq+1;
+						}
+						*eq=0;
+					}
+					if(strcmp(rest, "CASEMAPPING")==0)
+					{
+						if(value)
+						{
+							if(strcmp(value, "ascii")==0)
+							{
+								bufs[b].casemapping=ASCII;
+							}
+							else if(strcmp(value, "strict-rfc1459")==0)
+							{
+								bufs[b].casemapping=STRICT_RFC1459;
+							}
+							else
+							{
+								bufs[b].casemapping=RFC1459;
+							}
+						}
+						else
+						{
+							bufs[b].casemapping=RFC1459;
+						}
+					}
+				}
+				rest=strtok(NULL, " ");
+			}
+		break;
 		case RPL_NAMREPLY:
 			// 353 dest {@|+} #chan :name [name [...]]
 			strtok(NULL, " "); // @ or +, dunno what for
