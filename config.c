@@ -34,6 +34,7 @@ int def_config(void)
 	}
 	maxnlen=16;
 	servs=NULL;
+	igns=NULL;
 	portno="6667";
 	username="quirc";
 	fname=(char *)malloc(64+strlen(VERSION_TXT));
@@ -136,6 +137,7 @@ int rcread(FILE *rcfp)
 				new->portno=strdup(portno);
 				new->join=false;
 				new->chans=NULL;
+				new->igns=NULL;
 				servs=new;
 			}
 			else if(servs && (strcmp(cmd, "*port")==0))
@@ -156,6 +158,74 @@ int rcread(FILE *rcfp)
 			}
 			else if(strcmp(cmd, "nick")==0)
 				nick=strdup(rest);
+			else if(strcmp(cmd, "ignore")==0)
+			{
+				char *sw=strtok(rest, " \t");
+				rest=strtok(NULL, "");
+				bool icase=strchr(sw, 'i');
+				bool pms=strchr(sw, 'p');
+				bool regex=strchr(sw, 'r');
+				if(regex)
+				{
+					name *new=n_add(&igns, rest);
+					if(new)
+					{
+						new->icase=icase;
+						new->pms=pms;
+					}
+				}
+				else
+				{
+					char *iusr=strtok(rest, "@");
+					char *ihst=strtok(NULL, "");
+					if((!iusr) || (*iusr==0) || (*iusr=='*'))
+						iusr="[^@]*";
+					if((!ihst) || (*ihst==0) || (*ihst=='*'))
+						ihst="[^@]*";
+					char expr[10+strlen(iusr)+strlen(ihst)];
+					sprintf(expr, "^%s[_~]*@%s$", iusr, ihst);
+					name *new=n_add(&igns, expr);
+					if(new)
+					{
+						new->icase=icase;
+						new->pms=pms;
+					}
+				}
+			}
+			else if(servs && (strcmp(cmd, "*ignore")==0))
+			{
+				char *sw=strtok(rest, " \t");
+				rest=strtok(NULL, "");
+				bool icase=strchr(sw, 'i');
+				bool pms=strchr(sw, 'p');
+				bool regex=strchr(sw, 'r');
+				if(regex)
+				{
+					name *new=n_add(&servs->igns, rest);
+					if(new)
+					{
+						new->icase=icase;
+						new->pms=pms;
+					}
+				}
+				else
+				{
+					char *iusr=strtok(rest, "@");
+					char *ihst=strtok(NULL, "");
+					if((!iusr) || (*iusr==0) || (*iusr=='*'))
+						iusr="[^@]*";
+					if((!ihst) || (*ihst==0) || (*ihst=='*'))
+						ihst="[^@]*";
+					char expr[10+strlen(iusr)+strlen(ihst)];
+					sprintf(expr, "^%s[_~]*@%s$", iusr, ihst);
+					name *new=n_add(&servs->igns, expr);
+					if(new)
+					{
+						new->icase=icase;
+						new->pms=pms;
+					}
+				}
+			}
 			else if(servs && (strcmp(cmd, "*chan")==0))
 			{
 				chanlist * new=(chanlist *)malloc(sizeof(chanlist));
@@ -165,6 +235,7 @@ int rcread(FILE *rcfp)
 				{
 					*new->key++=0;
 				}
+				new->igns=NULL;
 				servs->chans=new;
 			}
 			else if(strcmp(cmd, "mnln")==0)
@@ -299,6 +370,7 @@ signed int pargs(int argc, char *argv[])
 			servs->portno=strdup(portno);
 			servs->join=false;
 			servs->chans=NULL;
+			servs->igns=NULL;
 		}
 		else if(strncmp(argv[arg], "--port=", 7)==0)
 			portno=argv[arg]+7;
@@ -317,6 +389,7 @@ signed int pargs(int argc, char *argv[])
 			{
 				*new->key++=0;
 			}
+			new->igns=NULL;
 			servs->chans=new;
 		}
 		else

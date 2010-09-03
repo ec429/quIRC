@@ -100,6 +100,7 @@ int autoconnect(fd_set *master, int *fdmax, servlist *serv)
 		bufs[cbuf].handle=serverhandle;
 		bufs[cbuf].nick=strdup(serv->nick);
 		bufs[cbuf].autoent=serv;
+		if(serv) bufs[cbuf].ilist=serv->igns;
 		bufs[cbuf].server=cbuf;
 		add_to_buffer(cbuf, c_status, cstr);
 		sprintf(cstr, "quIRC - connecting to %s", serv->name);
@@ -834,8 +835,8 @@ int rx_join(int b, char *packet, char *pdata)
 		{
 			bufs=(buffer *)realloc(bufs, ++nbufs*sizeof(buffer));
 			init_buffer(nbufs-1, CHANNEL, dest+1, buflines);
-			bufs[nbufs-1].server=bufs[b].server;
 			cbuf=nbufs-1;
+			bufs[cbuf].server=bufs[b].server;
 		}
 		w_buf_print(cbuf, c_join[0], dstr, "");
 		bufs[cbuf].handle=bufs[bufs[cbuf].server].handle;

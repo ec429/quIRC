@@ -17,6 +17,7 @@ typedef struct _chanlist
 	char *name;
 	char *key;
 	struct _chanlist *next;
+	struct _name *igns;
 }
 chanlist;
 
@@ -28,9 +29,11 @@ typedef struct _servlist
 	bool join;
 	chanlist *chans;
 	struct _servlist *next;
+	struct _name *igns;
 }
 servlist;
 
+#include "names.h"
 #include "bits.h"
 #include "colour.h"
 #include "text.h"
@@ -48,6 +51,7 @@ bool tsb; // top status bar
 bool autojoin;
 char *username, *fname, *nick, *portno;
 servlist *servs;
+name *igns;
 char version[16+strlen(VERSION_TXT)];
 
 int def_config(void); // set these to their defaults
