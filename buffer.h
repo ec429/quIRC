@@ -40,11 +40,12 @@ typedef struct _buf
 {
 	btype type;
 	char *bname; // "status" or serverloc or #channel or @nick (resp. types)
-	name *nlist; // only used for channels and private: linked-list of nicks
+	name *nlist; // only used for CHANNELs and PRIVATE: linked-list of nicks
 	name *ilist; // ignore-list
-	int handle; // used for server: file descriptor
-	int server; // used by channels and private to denote their 'parent' server.  In server, points to self.  Is an offset into 'bufs'
-	char *nick; // used for server: user's nick on this server
+	int handle; // used for SERVER: file descriptor
+	int server; // used by CHANNELs and PRIVATE to denote their 'parent' server.  In SERVER||STATUS, points to self.  Is an offset into 'bufs'
+	char *nick; // used for SERVER: user's nick on this server
+	char *topic; // used for CHANNELs
 	int nlines; // number of lines allocated
 	int ptr; // pointer to current line
 	int scroll; // current scroll position (distance up from ptr)

@@ -31,6 +31,7 @@ int init_buffer(int buf, btype type, char *bname, int nlines)
 	bufs[buf].handle=0;
 	bufs[buf].server=0;
 	bufs[buf].nick=NULL;
+	bufs[buf].topic=NULL;
 	bufs[buf].nlines=nlines;
 	bufs[buf].ptr=0;
 	bufs[buf].scroll=0;
@@ -65,6 +66,7 @@ int free_buffer(int buf)
 		n_free(bufs[buf].ilist);
 		bufs[buf].ilist=NULL;
 		free(bufs[buf].lc);
+		if(bufs[buf].topic) free(bufs[buf].topic);
 		int l;
 		for(l=0;l<bufs[buf].nlines;l++)
 			free(bufs[buf].lt[l]);
@@ -83,6 +85,7 @@ int free_buffer(int buf)
 			if(bufs[b].server==buf)
 			{
 				bufs[b].server=0; // orphaned; should not happen
+				bufs[b].live=false;
 			}
 			else if(bufs[b].server>buf)
 			{
@@ -390,31 +393,110 @@ void titlebar(void)
 	setcol(0, 7, true, false);
 	int gits;
 	sscanf(VERSION_TXT, "%u", &gits);
-	const char *p=strchr(VERSION_TXT, ' ');
-	if(p)
-		p++;
-	else
-		p="";
+	const char *hashgit=strchr(VERSION_TXT, ' ');
+	if(hashgit)
+		hashgit++;
 	char *cserv=strdup(bufs[bufs[cbuf].server].bname?bufs[bufs[cbuf].server].bname:"");
 	char *cnick=strdup(bufs[bufs[cbuf].server].nick?bufs[bufs[cbuf].server].nick:"");
 	char *cchan=(bufs[cbuf].type==CHANNEL)?strdup(bufs[cbuf].bname?bufs[cbuf].bname:""):strdup("");
+	char *topic=(bufs[cbuf].type==CHANNEL)?bufs[cbuf].topic:NULL;
 	scrush(&cserv, 16);
 	crush(&cnick, 16);
 	crush(&cchan, 16);
 	char tbar[width];
-	if(VERSION_TXT[0])
-		sprintf(tbar, "-quIRC-%hhu.%hhu.%hhu-%hhu-%s", VERSION_MAJ%100, VERSION_MIN%100, VERSION_REV%100, gits%1000, p);
-	else
-		sprintf(tbar, "-quIRC-%hhu.%hhu.%hhu", VERSION_MAJ%100, VERSION_MIN%100, VERSION_REV%100);
-	int u=strlen(tbar);
+	int wleft=width-1;
+	bool use[8]; // #chan	nick	quIRC	version	gits	ghashgit	server	topic...
+	char version[32];
+	sprintf(version, "%hhu.%hhu.%hhu", VERSION_MAJ, VERSION_MIN, VERSION_REV);
+	char vgits[8];
+	sprintf(vgits, "%hhu", gits);
+	memset(use, 0, sizeof(bool[8]));
+	if(wleft>=strlen(cchan)+1)
+	{
+		use[0]=true;
+		wleft-=strlen(cchan)+1;
+	}
+	if(wleft>=strlen(cnick)+1)
+	{
+		use[1]=true;
+		wleft-=strlen(cnick)+1;
+	}
+	if(wleft>=6)
+	{
+		use[2]=true;
+		wleft-=6;
+	}
+	if(wleft>=strlen(version)+1)
+	{
+		use[3]=true;
+		wleft-=strlen(version)+1;
+	}
+	if(VERSION_TXT[0] && gits && (wleft>=strlen(vgits)+1))
+	{
+		use[4]=true;
+		wleft-=strlen(vgits)+1;
+	}
+	if(hashgit && (wleft>=strlen(hashgit)+1))
+	{
+		use[5]=true;
+		wleft-=strlen(hashgit)+1;
+	}
+	if(wleft>=strlen(cserv)+1)
+	{
+		use[6]=true;
+		wleft-=strlen(cserv)+1;
+	}
+	if(topic && (wleft>1))
+	{
+		use[7]=true;
+	}
 	int i;
-	for(i=u;i<width;i++)
+	for(i=0;i<width;i++)
 		tbar[i]='-';
 	tbar[width]=0;
+	int p=1;
+	// 2quIRC 3version 4gits 5ghashgit 6server 0chan 1nick 7topic
+	// 0#chan	1nick	2quIRC	3version	4gits	5ghashgit	6server	7topic...
+	if(use[2])
+	{
+		memcpy(tbar+p, "quIRC", 5);
+		p+=6;
+	}
+	if(use[3])
+	{
+		memcpy(tbar+p, version, strlen(version));
+		p+=strlen(version)+1;
+	}
+	if(use[4])
+	{
+		memcpy(tbar+p, vgits, strlen(vgits));
+		p+=strlen(vgits)+1;
+	}
+	if(use[5])
+	{
+		memcpy(tbar+p, hashgit, strlen(hashgit));
+		p+=strlen(hashgit)+1;
+	}
+	if(use[6])
+	{
+		memcpy(tbar+p, cserv, strlen(cserv));
+		p+=strlen(cserv)+1;
+	}
+	if(use[0])
+	{
+		memcpy(tbar+p, cchan, strlen(cchan));
+		p+=strlen(cchan)+1;
+	}
+	if(use[1])
+	{
+		memcpy(tbar+p, cnick, strlen(cnick));
+		p+=strlen(cnick)+1;
+	}
+	if(use[7])
+	{
+		memcpy(tbar+p, topic, min(wleft-1, strlen(topic)));
+	}
 	printf("%s", tbar);
-	printf(LOCATE "%s", 1, 31, cserv);
-	printf(LOCATE "%s", 1, 49, cchan);
-	printf(LOCATE "%s", 1, 67, cnick);
 	free(cserv);
 	free(cchan);
 	free(cnick);

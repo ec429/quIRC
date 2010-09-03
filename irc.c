@@ -458,6 +458,8 @@ int irc_numeric(char *cmd, int b) // TODO check the strtok()s for NULLs
 					char tmsg[32+strlen(ch)];
 					sprintf(tmsg, "Topic for %s is ", ch);
 					w_buf_print(b2, c_notice[1], topic, tmsg);
+					if(bufs[b2].topic) free(bufs[b2].topic);
+					bufs[b2].topic=strdup(topic);
 				}
 			}
 		break;
@@ -470,6 +472,7 @@ int irc_numeric(char *cmd, int b) // TODO check the strtok()s for NULLs
 					char tmsg[32+strlen(ch)];
 					sprintf(tmsg, "No topic is set for %s", ch);
 					w_buf_print(b2, c_notice[1], tmsg, "");
+					if(bufs[b2].topic) free(bufs[b2].topic);
 				}
 			}
 		break;
@@ -789,6 +792,8 @@ int rx_topic(int b, char *packet)
 		{
 			w_buf_print(b2, c_notice[1], msg, tag);
 			match=true;
+			if(bufs[b2].topic) free(bufs[b2].topic);
+			bufs[b2].topic=strdup(msg);
 		}
 	}
 	return(match?0:1);
