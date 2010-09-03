@@ -120,6 +120,11 @@ int wordline(char *msg, int x, char **out, colour lc)
 						append_char(&word, &l2, &i2, *ptr++);
 						wdlen++;
 					}
+					if(wdlen+tabx>=width)
+					{
+						ptr--;
+						break;
+					}
 				}
 				if(wdlen+x<width)
 				{
