@@ -22,11 +22,20 @@
 #include <netinet/in.h>
 #include <errno.h>
 
+typedef enum
+{
+	RFC1459,
+	STRICT_RFC1459,
+	ASCII
+}
+cmap;
+
 #include "bits.h"
 #include "buffer.h"
 #include "colour.h"
 #include "config.h"
 #include "numeric.h"
+#include "names.h"
 
 #define MQUOTE	'\020'
 
@@ -38,10 +47,10 @@ int irc_rx(int fd, char ** data);
 void low_quote(char *from, char to[512]);
 char * low_dequote(char *buf);
 
-char irc_to_upper(char c);
-char irc_to_lower(char c);
-int irc_strcasecmp(char *c1, char *c2);
-int irc_strncasecmp(char *c1, char *c2, int n);
+char irc_to_upper(char c, cmap casemapping);
+char irc_to_lower(char c, cmap casemapping);
+int irc_strcasecmp(char *c1, char *c2, cmap casemapping);
+int irc_strncasecmp(char *c1, char *c2, int n, cmap casemapping);
 
 // Received-IRC message handlers.  strtok() state leaks across the boundaries of these functions, beware!
 int irc_numeric(char *cmd, int b);

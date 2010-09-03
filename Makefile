@@ -37,13 +37,13 @@ README: readme.htm
 
 ttyesc.o: bits.h
 
-irc.o: irc.c irc.h bits.h buffer.h colour.h config.h numeric.h
+irc.o: irc.c irc.h bits.h buffer.h colour.h config.h names.h numeric.h
 
 bits.o: bits.c bits.h ttyesc.h colour.h config.h
 
 colour.o: colour.c colour.h c_init.c ttyesc.h
 
-buffer.o: buffer.c buffer.h ttyesc.h colour.h bits.h names.h text.h config.h version.h
+buffer.o: buffer.c buffer.h ttyesc.h colour.h bits.h names.h text.h irc.h config.h version.h
 
 config.o: config.c config.h bits.h colour.h text.h version.h
 

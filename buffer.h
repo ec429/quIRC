@@ -20,6 +20,7 @@
 #include "colour.h"
 #include "config.h"
 #include "bits.h"
+#include "irc.h"
 #include "names.h"
 #include "text.h"
 #include "version.h"
@@ -54,6 +55,7 @@ typedef struct _buf
 	bool alert; // tab has new messages?
 	bool namreply; // tab is in the middle of reading a list of NAMES replies (RPL_NAMREPLY)?
 	bool live; // tab is connected?  when checking in a CHANNEL, remember to AND it with the parent's live (use LIVE(buf), defined further up this file)
+	cmap casemapping;
 }
 buffer;
 

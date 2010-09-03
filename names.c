@@ -66,7 +66,7 @@ void n_free(name * list)
 	}
 }
 
-int i_match(name * list, char *nm, bool pm)
+int i_match(name * list, char *nm, bool pm, cmap casemapping)
 {
 	int rv=0;
 	name *curr=list;
@@ -83,18 +83,18 @@ int i_match(name * list, char *nm, bool pm)
 				while(*p)
 				{
 					append_char(&data, &l, &i, '[');
-					if(irc_to_lower(*p)=='^')
+					if(irc_to_lower(*p, casemapping)=='^')
 						append_char(&data, &l, &i, '\\');
-					if(irc_to_lower(*p)==']')
+					if(irc_to_lower(*p, casemapping)==']')
 						append_char(&data, &l, &i, '\\');
-					if(irc_to_lower(*p)=='\\')
+					if(irc_to_lower(*p, casemapping)=='\\')
 						append_char(&data, &l, &i, '\\');
-					append_char(&data, &l, &i, irc_to_lower(*p)); // because of irc casemapping weirdness, we have to do our REG_ICASE by hand
-					if(irc_to_upper(*p)==']')
+					append_char(&data, &l, &i, irc_to_lower(*p, casemapping)); // because of irc casemapping weirdness, we have to do our REG_ICASE by hand
+					if(irc_to_upper(*p, casemapping)==']')
 						append_char(&data, &l, &i, '\\');
-					if(irc_to_upper(*p)=='\\')
+					if(irc_to_upper(*p, casemapping)=='\\')
 						append_char(&data, &l, &i, '\\');
-					append_char(&data, &l, &i, irc_to_upper(*p));
+					append_char(&data, &l, &i, irc_to_upper(*p, casemapping));
 					append_char(&data, &l, &i, ']');
 				}
 			}
