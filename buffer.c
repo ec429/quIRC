@@ -431,12 +431,12 @@ void titlebar(void)
 		use[3]=true;
 		wleft-=strlen(version)+1;
 	}
-	if(VERSION_TXT[0] && gits && (wleft>=strlen(vgits)+1))
+	if(VERSION_TXT[0] && gits && use[3] && (wleft>=strlen(vgits)+1))
 	{
 		use[4]=true;
 		wleft-=strlen(vgits)+1;
 	}
-	if(hashgit && (wleft>=strlen(hashgit)+1))
+	if(hashgit && use[4] && (wleft>=strlen(hashgit)+1))
 	{
 		use[5]=true;
 		wleft-=strlen(hashgit)+1;
