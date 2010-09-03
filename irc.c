@@ -77,29 +77,30 @@ int irc_conn_rest(int b, char *nick, char *username, char *fullname)
 	return(0);
 }
 
-int autoconnect(fd_set *master, int *fdmax)
+int autoconnect(fd_set *master, int *fdmax, servlist *serv)
 {
-	char cstr[36+strlen(server)+strlen(portno)];
-	sprintf(cstr, "quIRC - connecting to %s", server);
+	char cstr[36+strlen(serv->name)+strlen(serv->portno)];
+	sprintf(cstr, "quIRC - connecting to %s", serv->name);
 	settitle(cstr);
-	sprintf(cstr, "Connecting to %s on port %s...", server, portno);
+	sprintf(cstr, "Connecting to %s on port %s...", serv->name, serv->portno);
 	setcolour(c_status);
 	printf(CLA "\n");
 	printf(LOCATE, height-2, 1);
 	printf("%s" CLR "\n", cstr);
 	resetcol();
 	printf(CLA "\n");
-	int serverhandle=irc_connect(server, portno, master, fdmax);
+	int serverhandle=irc_connect(serv->name, serv->portno, master, fdmax);
 	if(serverhandle)
 	{
 		bufs=(buffer *)realloc(bufs, ++nbufs*sizeof(buffer));
-		init_buffer(1, SERVER, server, buflines);
-		cbuf=1;
+		cbuf=nbufs-1;
+		init_buffer(cbuf, SERVER, serv->name, buflines);
 		bufs[cbuf].handle=serverhandle;
-		bufs[cbuf].nick=strdup(nick);
+		bufs[cbuf].nick=strdup(serv->nick);
+		bufs[cbuf].autoent=serv;
 		bufs[cbuf].server=1;
-		add_to_buffer(1, c_status, cstr);
-		sprintf(cstr, "quIRC - connecting to %s", server);
+		add_to_buffer(cbuf, c_status, cstr);
+		sprintf(cstr, "quIRC - connecting to %s", serv->name);
 		settitle(cstr);
 	}
 	return(serverhandle);
@@ -534,18 +535,23 @@ int rx_ping(int fd)
 	return(irc_tx(fd, pong));
 }
 
-int rx_mode(bool *join, int b)
+int rx_mode(servlist * serv, int b)
 {
 	int fd=bufs[b].handle;
-	if(chan && !*join)
+	if(autojoin && serv->chans && !serv->join)
 	{
-		char joinmsg[8+strlen(chan)];
-		sprintf(joinmsg, "JOIN %s", chan);
-		irc_tx(fd, joinmsg);
-		char jmsg[16+strlen(chan)];
-		sprintf(jmsg, "auto-Joining %s", chan);
-		w_buf_print(b, c_join[0], jmsg, "");
-		*join=true;
+		chanlist * curr=serv->chans;
+		while(curr)
+		{
+			char joinmsg[8+strlen(curr->name)];
+			sprintf(joinmsg, "JOIN %s", curr->name);
+			irc_tx(fd, joinmsg);
+			char jmsg[16+strlen(curr->name)];
+			sprintf(jmsg, "auto-Joining %s", curr->name);
+			w_buf_print(b, c_join[0], jmsg, "");
+			curr=curr->next;
+		}
+		serv->join=true;
 	}
 	return(0);
 }
@@ -799,7 +805,7 @@ int rx_topic(int b, char *packet)
 	return(match?0:1);
 }
 
-int rx_join(int b, char *packet, char *pdata, bool *join)
+int rx_join(int b, char *packet, char *pdata)
 {
 	char *dest=strtok(NULL, " \t");
 	char *src=packet+1;
@@ -810,8 +816,6 @@ int rx_join(int b, char *packet, char *pdata, bool *join)
 	{
 		char dstr[20+strlen(src)+strlen(dest+1)];
 		sprintf(dstr, "You (%s) have joined %s", src, dest+1);
-		chan=strdup(dest+1);
-		*join=true;
 		char cstr[16+strlen(src)+strlen(dest+1)];
 		sprintf(cstr, "quIRC - %s on %s", src, dest+1);
 		settitle(cstr);
@@ -827,7 +831,7 @@ int rx_join(int b, char *packet, char *pdata, bool *join)
 		if(b2>=nbufs)
 		{
 			bufs=(buffer *)realloc(bufs, ++nbufs*sizeof(buffer));
-			init_buffer(nbufs-1, CHANNEL, chan, buflines);
+			init_buffer(nbufs-1, CHANNEL, dest+1, buflines);
 			bufs[nbufs-1].server=bufs[b].server;
 			cbuf=nbufs-1;
 		}

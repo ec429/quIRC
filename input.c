@@ -619,21 +619,25 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 				{
 					newport=args;
 				}
+				else if(bufs[bufs[cbuf].server].autoent && bufs[bufs[cbuf].server].autoent->portno)
+				{
+					newport=bufs[bufs[cbuf].server].autoent->portno;
+				}
 				else
 				{
 					newport=portno;
 				}
-				char cstr[24+strlen(server)];
-				sprintf(cstr, "quIRC - connecting to %s", server);
+				char cstr[24+strlen(bufs[bufs[cbuf].server].bname)];
+				sprintf(cstr, "quIRC - connecting to %s", bufs[bufs[cbuf].server].bname);
 				settitle(cstr);
-				char dstr[30+strlen(server)+strlen(newport)];
-				sprintf(dstr, "Connecting to %s on port %s...", server, newport);
+				char dstr[30+strlen(bufs[bufs[cbuf].server].bname)+strlen(newport)];
+				sprintf(dstr, "Connecting to %s on port %s...", bufs[bufs[cbuf].server].bname, newport);
 				setcolour(c_status);
 				printf(LOCATE, height-2, 1);
 				printf("%s" CLR "\n", dstr);
 				resetcol();
 				printf(CLA "\n");
-				int serverhandle=irc_connect(server, newport, master, fdmax);
+				int serverhandle=irc_connect(bufs[bufs[cbuf].server].bname, newport, master, fdmax);
 				if(serverhandle)
 				{
 					int b=bufs[cbuf].server;
@@ -644,7 +648,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 							bufs[b2].handle=serverhandle;
 					}
 					w_buf_print(cbuf, c_status, dstr, "/server: ");
-					sprintf(cstr, "quIRC - connected to %s", server);
+					sprintf(cstr, "quIRC - connected to %s", bufs[bufs[cbuf].server].bname);
 					settitle(cstr);
 				}
 			}

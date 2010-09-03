@@ -36,7 +36,6 @@ int main(int argc, char *argv[])
 	char *rcfile=".quirc";
 	char *home=getenv("HOME");
 	if(home) chdir(home);
-	bool join=false;
 	FILE *rcfp=fopen(rcfile, "r");
 	if(rcfp)
 	{
@@ -73,12 +72,14 @@ int main(int argc, char *argv[])
 	FD_ZERO(&master);
 	FD_SET(STDIN_FILENO, &master);
 	int fdmax=STDIN_FILENO;
-	int serverhandle=0;
-	if(server)
+	int servers=0;
+	servlist *curr=servs;
+	while(curr)
 	{
-		serverhandle = autoconnect(&master, &fdmax);
+		servers |= autoconnect(&master, &fdmax, curr);
+		curr=curr->next;
 	}
-	if(!serverhandle)
+	if(!servers)
 	{
 		w_buf_print(0, c_status, "Not connected - use /server to connect", "");
 	}
@@ -152,7 +153,7 @@ int main(int argc, char *argv[])
 											}
 											else if(strcmp(cmd, "MODE")==0)
 											{
-												rx_mode(&join, b);
+												rx_mode(bufs[b].autoent, b);
 											}
 											else if(strcmp(cmd, "KILL")==0)
 											{
@@ -180,7 +181,7 @@ int main(int argc, char *argv[])
 											}
 											else if(strcmp(cmd, "JOIN")==0)
 											{
-												rx_join(b, packet, pdata, &join);
+												rx_join(b, packet, pdata);
 											}
 											else if(strcmp(cmd, "PART")==0)
 											{

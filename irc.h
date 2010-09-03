@@ -41,7 +41,7 @@ cmap;
 
 int irc_connect(char *server, char *portno, fd_set *master, int *fdmax); // non-blocking
 int irc_conn_rest(int b, char *nick, char *username, char *fullname); // call this when the non-blocking connect() has finished
-int autoconnect(fd_set *master, int *fdmax);
+int autoconnect(fd_set *master, int *fdmax, servlist *serv);
 int irc_tx(int fd, char * packet);
 int irc_rx(int fd, char ** data);
 void low_quote(char *from, char to[512]);
@@ -55,14 +55,14 @@ int irc_strncasecmp(char *c1, char *c2, int n, cmap casemapping);
 // Received-IRC message handlers.  strtok() state leaks across the boundaries of these functions, beware!
 int irc_numeric(char *cmd, int b);
 int rx_ping(int fd);
-int rx_mode(bool *join, int b); // the first MODE triggers auto-join.  Apart from using it as a trigger, we don't look at modes just yet
+int rx_mode(servlist * serv, int b); // the first MODE triggers auto-join.  Apart from using it as a trigger, we don't look at modes just yet
 int rx_kill(int b, fd_set *master);
 int rx_kick(int b);
 int rx_error(int b, fd_set *master);
 int rx_privmsg(int b, char *packet, char *pdata);
 int rx_notice(int b, char *packet);
 int rx_topic(int b, char *packet);
-int rx_join(int b, char *packet, char *pdata, bool *join);
+int rx_join(int b, char *packet, char *pdata);
 int rx_part(int b, char *packet, char *pdata);
 int rx_quit(int b, char *packet, char *pdata);
 int rx_nick(int b, char *packet, char *pdata);

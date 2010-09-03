@@ -16,6 +16,7 @@ int def_config(void)
 	full_width_colour=false;
 	hilite_tabstrip=false;
 	tsb=true; // show top status bar
+	autojoin=true;
 	char *cols=getenv("COLUMNS"), *rows=getenv("LINES");
 	if(cols) sscanf(cols, "%u", &width);
 	if(rows) sscanf(rows, "%u", &height);
@@ -32,12 +33,11 @@ int def_config(void)
 		printf("height set to minimum 5\n");
 	}
 	maxnlen=16;
-	server=NULL;
+	servs=NULL;
 	portno="6667";
 	username="quirc";
 	fname=(char *)malloc(64+strlen(VERSION_TXT));
 	nick=strdup("ac");
-	chan=NULL;
 	sprintf(fname, "quIRC %hhu.%hhu.%hhu%s%s : http://github.com/ec429/quIRC", VERSION_MAJ, VERSION_MIN, VERSION_REV, VERSION_TXT[0]?"-":"", VERSION_TXT);
 	sprintf(version, "%hhu.%hhu.%hhu%s%s", VERSION_MAJ, VERSION_MIN, VERSION_REV, VERSION_TXT[0]?"-":"", VERSION_TXT);
 	return(0);
@@ -128,17 +128,45 @@ int rcread(FILE *rcfp)
 		{
 			char *rest=strtok(NULL, "\n");
 			if(strcmp(cmd, "server")==0)
-				server=strdup(rest);
+			{
+				servlist * new=(servlist *)malloc(sizeof(servlist));
+				new->next=servs;
+				new->name=strdup(rest);
+				new->nick=strdup(nick);
+				new->portno=strdup(portno);
+				new->join=false;
+				new->chans=NULL;
+				servs=new;
+			}
+			else if(servs && (strcmp(cmd, "*port")==0))
+			{
+				if(servs->portno) free(servs->portno);
+				servs->portno=strdup(rest);
+			}
 			else if(strcmp(cmd, "port")==0)
 				portno=strdup(rest);
 			else if(strcmp(cmd, "uname")==0)
 				username=strdup(rest);
 			else if(strcmp(cmd, "fname")==0)
 				fname=strdup(rest);
+			else if(servs && (strcmp(cmd, "*nick")==0))
+			{
+				if(servs->nick) free(servs->nick);
+				servs->nick=strdup(rest);
+			}
 			else if(strcmp(cmd, "nick")==0)
 				nick=strdup(rest);
-			else if(strcmp(cmd, "chan")==0)
-				chan=strdup(rest);
+			else if(servs && (strcmp(cmd, "*chan")==0))
+			{
+				chanlist * new=(chanlist *)malloc(sizeof(chanlist));
+				new->next=servs->chans;
+				new->name=strdup(rest);
+				if((new->key=strpbrk(new->name, " \t")))
+				{
+					*new->key++=0;
+				}
+				servs->chans=new;
+			}
 			else if(strcmp(cmd, "mnln")==0)
 				sscanf(rest, "%u", &maxnlen);
 			else if(strcmp(cmd, "mcc")==0)
@@ -251,18 +279,27 @@ signed int pargs(int argc, char *argv[])
 		}
 		else if((strcmp(argv[arg], "--no-server")==0)||(strcmp(argv[arg], "--no-auto-connect")==0)) // the "-auto" forms are from older versions; depr
 		{
-			server=NULL;
+			freeservlist(servs);
+			servs=NULL;
 		}
-		else if((strcmp(argv[arg], "--no-chan")==0)||(strcmp(argv[arg], "--no-auto-join")==0))
+		else if(servs && ((strcmp(argv[arg], "--no-chan")==0)||(strcmp(argv[arg], "--no-auto-join")==0)))
 		{
-			chan=NULL;
+			autojoin=false;
 		}
 		else if((strcmp(argv[arg], "--check")==0)||(strcmp(argv[arg], "--lint")==0))
 		{
 			check=true;
 		}
 		else if(strncmp(argv[arg], "--server=", 9)==0)
-			server=argv[arg]+9;
+		{
+			servs=(servlist *)malloc(sizeof(servlist));
+			servs->next=NULL;
+			servs->name=strdup(argv[arg]+9);
+			servs->nick=strdup(nick);
+			servs->portno=strdup(portno);
+			servs->join=false;
+			servs->chans=NULL;
+		}
 		else if(strncmp(argv[arg], "--port=", 7)==0)
 			portno=argv[arg]+7;
 		else if(strncmp(argv[arg], "--uname=", 8)==0)
@@ -272,7 +309,16 @@ signed int pargs(int argc, char *argv[])
 		else if(strncmp(argv[arg], "--nick=", 7)==0)
 			nick=strdup(argv[arg]+7);
 		else if(strncmp(argv[arg], "--chan=", 7)==0)
-			chan=argv[arg]+7;
+		{
+			chanlist * new=(chanlist *)malloc(sizeof(chanlist));
+			new->next=servs->chans;
+			new->name=strdup(argv[arg]+7);
+			if((new->key=strpbrk(new->name, " \t")))
+			{
+				*new->key++=0;
+			}
+			servs->chans=new;
+		}
 		else
 		{
 			fprintf(stderr, "Unrecognised argument '%s'\n", argv[arg]);
@@ -280,4 +326,26 @@ signed int pargs(int argc, char *argv[])
 	}
 	if(check) return(0);
 	return(-1);
+}
+
+void freeservlist(servlist * serv)
+{
+	if(serv)
+	{
+		if(serv->name) free(serv->name);
+		if(serv->nick) free(serv->nick);
+		if(serv->portno) free(serv->portno);
+		freechanlist(serv->chans);
+		freeservlist(serv->next);
+	}
+}
+
+void freechanlist(chanlist * chan)
+{
+	if(chan)
+	{
+		if(chan->name) free(chan->name);
+		if(chan->key) free(chan->key);
+		freechanlist(chan->next);
+	}
 }

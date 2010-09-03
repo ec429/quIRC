@@ -51,6 +51,7 @@ int init_buffer(int buf, btype type, char *bname, int nlines)
 	bufs[buf].namreply=false;
 	bufs[buf].live=false;
 	bufs[buf].casemapping=RFC1459;
+	bufs[buf].autoent=NULL;
 	return(0);
 }
 
