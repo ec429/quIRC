@@ -128,7 +128,11 @@ int rcread(FILE *rcfp)
 		else
 		{
 			char *rest=strtok(NULL, "\n");
-			if(strcmp(cmd, "server")==0)
+			if(!rest)
+			{
+				fprintf(stderr, "Command (%s) without argument!\n", cmd);
+			}
+			else if(strcmp(cmd, "server")==0)
 			{
 				servlist * new=(servlist *)malloc(sizeof(servlist));
 				new->next=servs;
@@ -161,7 +165,15 @@ int rcread(FILE *rcfp)
 			else if(strcmp(cmd, "ignore")==0)
 			{
 				char *sw=strtok(rest, " \t");
+				if(*sw!='-')
+				{
+					fprintf(stderr, "ignore: need options (use '-' for no options)\n");
+				}
 				rest=strtok(NULL, "");
+				if(!rest)
+				{
+					fprintf(stderr, "ignore: need options (use '-' for no options)\n");
+				}
 				bool icase=strchr(sw, 'i');
 				bool pms=strchr(sw, 'p');
 				bool regex=strchr(sw, 'r');
@@ -195,7 +207,15 @@ int rcread(FILE *rcfp)
 			else if(servs && (strcmp(cmd, "*ignore")==0))
 			{
 				char *sw=strtok(rest, " \t");
+				if(*sw!='-')
+				{
+					fprintf(stderr, "*ignore: need options (use '-' for no options)\n");
+				}
 				rest=strtok(NULL, "");
+				if(!rest)
+				{
+					fprintf(stderr, "*ignore: need options (use '-' for no options)\n");
+				}
 				bool icase=strchr(sw, 'i');
 				bool pms=strchr(sw, 'p');
 				bool regex=strchr(sw, 'r');
