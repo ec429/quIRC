@@ -777,6 +777,7 @@ int rx_notice(int b, char *packet)
 	char tag[maxnlen+9];
 	memset(tag, ' ', maxnlen+8);
 	sprintf(tag+maxnlen-strlen(from), "(from %s) ", from);
+	free(from);
 	return(w_buf_print(b, c_notice[1], msg, tag));
 }
 
@@ -793,6 +794,7 @@ int rx_topic(int b, char *packet)
 	scrush(&from, maxnlen);
 	char tag[maxnlen+20];
 	sprintf(tag, "%s set the Topic to ", from);
+	free(from);
 	int b2;
 	bool match=false;
 	for(b2=0;b2<nbufs;b2++)
