@@ -401,7 +401,7 @@ signed int pargs(int argc, char *argv[])
 			fname=argv[arg]+8;
 		else if(strncmp(argv[arg], "--nick=", 7)==0)
 			nick=strdup(argv[arg]+7);
-		else if(strncmp(argv[arg], "--chan=", 7)==0)
+		else if(servs && (strncmp(argv[arg], "--chan=", 7)==0))
 		{
 			chanlist * new=(chanlist *)malloc(sizeof(chanlist));
 			new->next=servs->chans;
