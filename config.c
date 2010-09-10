@@ -254,6 +254,7 @@ int rcread(FILE *rcfp)
 				if((new->key=strpbrk(new->name, " \t")))
 				{
 					*new->key++=0;
+					new->key=strdup(new->key);
 				}
 				new->igns=NULL;
 				servs->chans=new;
