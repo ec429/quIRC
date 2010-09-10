@@ -14,6 +14,9 @@
 #include <sys/time.h>
 #include <ctype.h>
 #include <errno.h>
+#ifdef	USE_MTRACE
+	#include <mcheck.h>
+#endif // USE_MTRACE
 
 #include "ttyraw.h"
 #include "ttyesc.h"

@@ -20,6 +20,9 @@
 
 int main(int argc, char *argv[])
 {
+	#ifdef	USE_MTRACE
+		mtrace();
+	#endif	// USE_MTRACE
 	if(c_init())
 	{
 		fprintf(stderr, "Failed to initialise colours\n"); // should be impossible
@@ -313,5 +316,8 @@ int main(int argc, char *argv[])
 		}
 	}
 	ttyreset(STDOUT_FILENO);
+	#ifdef	USE_MTRACE
+		muntrace();
+	#endif	// USE_MTRACE
 	return(state>0?state:0);
 }

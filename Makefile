@@ -19,6 +19,11 @@ uninstall:
 quirc: quirc.c $(LIBS) $(INCLUDE)
 	$(CC) $(CFLAGS) -o quirc quirc.c $(LIBS)
 
+mtrace: quirc-mtrace
+
+quirc-mtrace: quirc.c $(LIBS) $(INCLUDE)
+	$(CC) $(CFLAGS) -o quirc-mtrace quirc.c $(LIBS) -DUSE_MTRACE
+
 clean:
 	rm *.o quirc
 
