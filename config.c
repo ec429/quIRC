@@ -440,6 +440,7 @@ void freechanlist(chanlist * chan)
 	{
 		if(chan->name) free(chan->name);
 		if(chan->key) free(chan->key);
+		if(chan->igns) n_free(chan->igns);
 		freechanlist(chan->next);
 	}
 }
