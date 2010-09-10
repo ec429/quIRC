@@ -314,6 +314,9 @@ int main(int argc, char *argv[])
 			sprintf(quit, "QUIT %s", qmsg);
 			irc_tx(bufs[b].handle, quit);
 		}
+		bufs[b].live=false;
+		free_buffer(b);
+		b--;
 	}
 	ttyreset(STDOUT_FILENO);
 	#ifdef	USE_MTRACE

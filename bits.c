@@ -137,6 +137,7 @@ int wordline(char *msg, int x, char **out, colour lc)
 				if(wdlen+x<width)
 				{
 					append_str(out, &l, &i, word);
+					free(word);
 					x+=wdlen;
 				}
 				else
@@ -145,6 +146,7 @@ int wordline(char *msg, int x, char **out, colour lc)
 					for(x=0;x<tabx;x++)
 						append_char(out, &l, &i, ' ');
 					append_str(out, &l, &i, word);
+					free(word);
 					x+=wdlen;
 				}
 			break;
