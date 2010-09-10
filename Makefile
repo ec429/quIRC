@@ -22,7 +22,7 @@ quirc: quirc.c $(LIBS) $(INCLUDE)
 mtrace: quirc-mtrace
 
 quirc-mtrace: quirc.c $(LIBS) $(INCLUDE)
-	$(CC) $(CFLAGS) -o quirc-mtrace quirc.c $(LIBS) -DUSE_MTRACE
+	$(CC) $(CFLAGS) -o quirc-mtrace quirc.c $(LIBS) -g -DUSE_MTRACE
 
 clean:
 	rm *.o quirc
