@@ -8,7 +8,8 @@ Quiet mode.  Don't emit diagnostics for eg. unrecognised IRC traffic (such as nu
 
 curses.  The current hardwired ANSI-escapes code for painting the screen is clumsy.  However, it's tailored to my needs, and now that it's neatly packaged away, it should be easier to cope with.  So, I may just stick with it.
 
-Simplify RX parsing.  A command consists of [:<prefix>] +<command>[ +[<arguments>]]; we should pass those three items to each rx_*().
+Simplify RX parsing.  A command consists of [:<prefix>] +<command>[ +[<arguments>]]; we should pass those three items to each rx_*().  Under development in branch 'parsing'.
+Also, the grammar for nicknames was changed in RFC2812, and quIRC needs to be modified to reflect this change.
 
 Automate config handling.  Generated code?
 
