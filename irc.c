@@ -563,6 +563,8 @@ int rx_kill(int b, fd_set *master)
 {
 	int fd=bufs[b].handle;
 	char *dest=strtok(NULL, " \t"); // user to be killed
+	if(!isalpha(*dest))
+		dest++;
 	char *rest=strtok(NULL, "");
 	if(*rest==':')
 		rest++;
@@ -604,6 +606,8 @@ int rx_kick(int b)
 {
 	char *chn=strtok(NULL, " \t"); // channel to kick from
 	char *dest=strtok(NULL, " \t"); // user to be kicked
+	if(!isalpha(*dest))
+		dest++;
 	char *rest=strtok(NULL, ""); // reason
 	if(*rest==':')
 		rest++;
@@ -817,6 +821,8 @@ int rx_join(int b, char *packet, char *pdata)
 	char *bang=strchr(src, '!');
 	if(bang)
 		*bang=0;
+	if(!isalpha(*src))
+		src++;
 	if(strcmp(src, bufs[b].nick)==0)
 	{
 		char dstr[20+strlen(src)+strlen(dest+1)];
@@ -874,6 +880,8 @@ int rx_part(int b, char *packet, char *pdata)
 	char *bang=strchr(src, '!');
 	if(bang)
 		*bang=0;
+	if(!isalpha(*src))
+		src++;
 	if(strcmp(src, bufs[b].nick)==0)
 	{
 		int b2;
@@ -922,6 +930,8 @@ int rx_quit(int b, char *packet, char *pdata)
 	char *bang=strchr(src, '!');
 	if(bang)
 		*bang=0;
+	if(!isalpha(*src))
+		src++;
 	if(strcmp(src, bufs[b].nick)==0) // this shouldn't happen
 	{
 		w_buf_print(b, c_err, pdata, "?? ");
@@ -952,6 +962,8 @@ int rx_nick(int b, char *packet, char *pdata)
 	char *bang=strchr(src, '!');
 	if(bang)
 		*bang=0;
+	if(!isalpha(*src))
+		src++;
 	if(strcmp(dest+1, bufs[b].nick)==0)
 	{
 		char dstr[30+strlen(src)+strlen(dest+1)];
