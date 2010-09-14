@@ -166,7 +166,7 @@ int irc_rx(int fd, char ** data)
 			buf[l]=0;
 		}
 	}
-	*data=low_dequote(buf);
+	*data=strdup(buf);
 	if(!*data)
 		return(1);
 	return(0);
@@ -174,6 +174,7 @@ int irc_rx(int fd, char ** data)
 
 message irc_breakdown(char *packet)
 {
+	char *pp=packet;
 	message rv;
 	if(*packet==':')
 	{
@@ -187,9 +188,12 @@ message irc_breakdown(char *packet)
 		rv->cmd=strtok(packet, " ");
 		packet=strtok(NULL, "");
 	}
+	if(rv->prefix) rv->prefix=low_dequote(rv->prefix);
+	if(rv->cmd) rv->cmd=low_dequote(rv->cmd);
 	if(!(rv->cmd&&packet))
 	{
 		rv->nargs=0;
+		free(pp);
 		return(rv);
 	}
 	int arg=0;
@@ -201,7 +205,7 @@ message irc_breakdown(char *packet)
 		if((*p==':')||(arg=14))
 		{
 			p++;
-			rv->args[arg]=p;
+			rv->args[arg]=low_dequote(p);
 			rv->nargs=15;
 			break;
 		}
@@ -209,10 +213,11 @@ message irc_breakdown(char *packet)
 		{
 			p++;
 		}
-		rv->args[arg]=packet;
+		rv->args[arg]=low_dequote(packet);
 		packet=p+(*p?1:0);
 		*p=0;
 	}
+	free(pp);
 	return(rv);
 }
 
