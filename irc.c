@@ -172,6 +172,50 @@ int irc_rx(int fd, char ** data)
 	return(0);
 }
 
+message irc_breakdown(char *packet)
+{
+	message rv;
+	if(*packet==':')
+	{
+		rv->prefix=strtok(packet, " ");
+		rv->cmd=strtok(NULL, " ");
+		packet=strtok(NULL, "");
+	}
+	else
+	{
+		rv->prefix=NULL;
+		rv->cmd=strtok(packet, " ");
+		packet=strtok(NULL, "");
+	}
+	if(!(rv->cmd&&packet))
+	{
+		rv->nargs=0;
+		return(rv);
+	}
+	int arg=0;
+	char *p;
+	bool trail=false;
+	while(*packet)
+	{
+		p=packet;
+		if((*p==':')||(arg=14))
+		{
+			p++;
+			rv->args[arg]=p;
+			rv->nargs=15;
+			break;
+		}
+		while(*p&&(*p!=' '))
+		{
+			p++;
+		}
+		rv->args[arg]=packet;
+		packet=p+(*p?1:0);
+		*p=0;
+	}
+	return(rv);
+}
+
 void low_quote(char *from, char to[512])
 {
 	int o=0;

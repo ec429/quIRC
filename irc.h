@@ -30,6 +30,15 @@ typedef enum
 }
 cmap;
 
+typedef struct
+{
+	char *prefix;
+	char *cmd;
+	int nargs;
+	char *args[15]; // RFC specifies maximum of 15 args
+}
+message;
+
 #include "bits.h"
 #include "buffer.h"
 #include "colour.h"
@@ -44,6 +53,8 @@ int irc_conn_rest(int b, char *nick, char *username, char *fullname); // call th
 int autoconnect(fd_set *master, int *fdmax, servlist *serv);
 int irc_tx(int fd, char * packet);
 int irc_rx(int fd, char ** data);
+
+message irc_breakdown(char *packet);
 void low_quote(char *from, char to[512]);
 char * low_dequote(char *buf);
 

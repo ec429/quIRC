@@ -136,16 +136,9 @@ int main(int argc, char *argv[])
 									}
 									else if(packet)
 									{
-										char *pdata=strdup(packet);
-										if(packet[0])
+										if(*packet)
 										{
-											char *p=packet;
-											if(*p==':')
-											{
-												p=strchr(p, ' ');
-											}
-											char *cmd=strtok(p, " ");
-											if(*packet==':') *p=0;
+											message pkt=irc_breakdown(packet);
 											if(isdigit(*cmd))
 											{
 												irc_numeric(cmd, b);
