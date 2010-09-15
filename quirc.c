@@ -197,7 +197,10 @@ int main(int argc, char *argv[])
 											}
 											message_free(pkt);
 										}
-										free(packet);
+										else // if we called irc_breakdown, then that already free()d packet
+										{
+											free(packet);
+										}
 									}
 								}
 								else
