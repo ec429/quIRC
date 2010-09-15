@@ -68,13 +68,14 @@ int irc_conn_rest(int b, char *nick, char *username, char *fullname)
 	bufs[b].live=true; // mark it as live
 	if(bufs[b].autoent && bufs[b].autoent->nick)
 		nick=bufs[b].autoent->nick;
+	// TODO: Optionally send a PASS message before the NICK/USER
 	char nickmsg[6+strlen(nick)];
-	sprintf(nickmsg, "NICK %s", nick);
+	sprintf(nickmsg, "NICK %s", nick); // NICK <nickname>
 	irc_tx(bufs[b].handle, nickmsg);
 	struct utsname arch;
 	uname(&arch);
-	char usermsg[12+strlen(username)+strlen(arch.nodename)+strlen(fullname)];
-	sprintf(usermsg, "USER %s %s %s :%s", username, arch.nodename, arch.nodename, fullname);
+	char usermsg[16+strlen(username)+strlen(arch.nodename)+strlen(fullname)];
+	sprintf(usermsg, "USER %s 0 %s :%s", username, arch.nodename, fullname); // USER <user> <mode> <unused> <realname>
 	irc_tx(bufs[b].handle, usermsg);
 	return(0);
 }
@@ -219,6 +220,15 @@ message irc_breakdown(char *packet)
 	rv.nargs=arg;
 	free(pp);
 	return(rv);
+}
+
+void message_free(message pkt)
+{
+	if(pkt.prefix) free(pkt.prefix);
+	if(pkt.cmd) free(pkt.cmd);
+	int arg;
+	for(arg=0;arg<pkt.nargs;arg++)
+		if(pkt.args[arg]) free(pkt.args[arg]);
 }
 
 void low_quote(char *from, char to[512])
@@ -602,16 +612,22 @@ int irc_numeric(message pkt, int b)
 	return(num);
 }
 
-int rx_ping(int fd)
+int rx_ping(message pkt, int fd)
 {
-	char *sender=strtok(NULL, " ");
-	char pong[8+strlen(username)+strlen(sender)];
-	sprintf(pong, "PONG %s %s", username, sender+1);
+	// PING <sender>
+	if(pkt.nargs<1)
+	{
+		w_buf_print(b, c_err, "Not enough arguments", "PING: ");
+		return(0);
+	}
+	char pong[8+strlen(username)+strlen(pkt.args[0])];
+	sprintf(pong, "PONG %s %s", username, pkt.args[0]); // PONG <user> <sender>
 	return(irc_tx(fd, pong));
 }
 
 int rx_mode(servlist * serv, int b)
 {
+	// 
 	int fd=bufs[b].handle;
 	if(autojoin && serv->chans && !serv->join)
 	{

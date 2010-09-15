@@ -55,6 +55,7 @@ int irc_tx(int fd, char * packet);
 int irc_rx(int fd, char ** data);
 
 message irc_breakdown(char *packet);
+void message_free(message pkt);
 void low_quote(char *from, char to[512]);
 char * low_dequote(char *buf);
 
@@ -65,7 +66,7 @@ int irc_strncasecmp(char *c1, char *c2, int n, cmap casemapping);
 
 // Received-IRC message handlers
 int irc_numeric(message pkt, int b);
-int rx_ping(int fd);
+int rx_ping(message pkt, int fd);
 int rx_mode(servlist * serv, int b); // the first MODE triggers auto-join.  Apart from using it as a trigger, we don't look at modes just yet
 int rx_kill(int b, fd_set *master);
 int rx_kick(int b);

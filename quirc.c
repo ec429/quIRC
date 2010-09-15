@@ -139,64 +139,64 @@ int main(int argc, char *argv[])
 										if(*packet)
 										{
 											message pkt=irc_breakdown(packet);
-											if(isdigit(*cmd))
+											if(isdigit(*pkt.cmd))
 											{
-												irc_numeric(cmd, b);
+												irc_numeric(pkt, b);
 											}
-											else if(strcmp(cmd, "PING")==0)
+											else if(strcmp(pkt.cmd, "PING")==0)
 											{
-												rx_ping(fd);
+												rx_ping(pkt, fd);
 											}
-											else if(strcmp(cmd, "MODE")==0)
+											else if(strcmp(pkt.cmd, "MODE")==0)
 											{
 												rx_mode(bufs[b].autoent, b);
 											}
-											else if(strcmp(cmd, "KILL")==0)
+											else if(strcmp(pkt.cmd, "KILL")==0)
 											{
 												rx_kill(b, &master);
 											}
-											else if(strcmp(cmd, "KICK")==0)
+											else if(strcmp(pkt.cmd, "KICK")==0)
 											{
 												rx_kick(b);
 											}
-											else if(strcmp(cmd, "ERROR")==0)
+											else if(strcmp(pkt.cmd, "ERROR")==0)
 											{
 												rx_error(b, &master);
 											}
-											else if(strcmp(cmd, "PRIVMSG")==0)
+											else if(strcmp(pkt.cmd, "PRIVMSG")==0)
 											{
 												rx_privmsg(b, packet, pdata);
 											}
-											else if(strcmp(cmd, "NOTICE")==0)
+											else if(strcmp(pkt.cmd, "NOTICE")==0)
 											{
 												rx_notice(b, packet);
 											}
-											else if(strcmp(cmd, "TOPIC")==0)
+											else if(strcmp(pkt.cmd, "TOPIC")==0)
 											{
 												rx_topic(b, packet);
 											}
-											else if(strcmp(cmd, "JOIN")==0)
+											else if(strcmp(pkt.cmd, "JOIN")==0)
 											{
 												rx_join(b, packet, pdata);
 											}
-											else if(strcmp(cmd, "PART")==0)
+											else if(strcmp(pkt.cmd, "PART")==0)
 											{
 												rx_part(b, packet, pdata);
 											}
-											else if(strcmp(cmd, "QUIT")==0)
+											else if(strcmp(pkt.cmd, "QUIT")==0)
 											{
 												rx_quit(b, packet, pdata);
 											}
-											else if(strcmp(cmd, "NICK")==0)
+											else if(strcmp(pkt.cmd, "NICK")==0)
 											{
 												rx_nick(b, packet, pdata);
 											}
 											else
 											{
-												w_buf_print(b, c_unk, pdata, "<? ");
+												e_buf_print(b, c_unk, pkt, "Unrecognised command: ");
 											}
 										}
-										free(pdata);
+										message_free(pkt);
 										free(packet);
 									}
 								}

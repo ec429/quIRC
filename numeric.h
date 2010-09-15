@@ -8,7 +8,7 @@
 
 /*
 	A symbolic name defined here does not necessarily imply recognition or decoding of that numeric reply.
-	Some numeric replies are non-normative; that is, they are not defined in the original RFC1459, but instead are either defined in later RFCs (1459 is still the standard at time of writing) or are entirely experimental.  These are denoted with an X before the name (of the form RPL_X_BOGOSITY); where a numeric is being identified purely on the basis of usage "in the wild", the symbolic name will be completely arbitrary and may not align with usage elsewhere.
+	Some numeric replies are non-normative; that is, they are not defined in the original RFC1459 or its superseding RFC2812, but instead are either defined in other, non-normative documents, or are entirely experimental.  These are denoted with an X before the name (of the form RPL_X_BOGOSITY); where a numeric is being identified purely on the basis of usage "in the wild", the symbolic name will be completely arbitrary and may not align with usage elsewhere.
 */
 
 /* Error replies */
