@@ -233,14 +233,16 @@ int rcread(FILE *rcfp)
 				}
 				else
 				{
-					char *iusr=strtok(rest, "@");
-					char *ihst=strtok(NULL, "");
+					char *isrc,*iusr,*ihst;
+					prefix_split(rest, &isrc, &iusr, &ihst);
+					if((!isrc) || (*isrc==0) || (*isrc=='*'))
+						isrc="[^!@]*";
 					if((!iusr) || (*iusr==0) || (*iusr=='*'))
-						iusr="[^@]*";
+						iusr="[^!@]*";
 					if((!ihst) || (*ihst==0) || (*ihst=='*'))
 						ihst="[^@]*";
-					char expr[10+strlen(iusr)+strlen(ihst)];
-					sprintf(expr, "^%s[_~]*@%s$", iusr, ihst);
+					char expr[16+strlen(isrc)+strlen(iusr)+strlen(ihst)];
+						sprintf(expr, "^%s[_~]*!%s@%s$", isrc, iusr, ihst);
 					name *new=n_add(&servs->igns, expr);
 					if(new)
 					{
