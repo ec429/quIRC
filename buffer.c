@@ -396,6 +396,11 @@ int w_buf_print(int buf, colour lc, char *lt, char *lead)
 	return(e);
 }
 
+int e_buf_print(int buf, colour lc, message pkt, char *lead)
+{
+	
+}
+
 void titlebar(void)
 {
 	printf(LOCATE CLA, 1, 1);

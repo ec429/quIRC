@@ -178,21 +178,21 @@ message irc_breakdown(char *packet)
 	message rv;
 	if(*packet==':')
 	{
-		rv->prefix=strtok(packet, " ");
-		rv->cmd=strtok(NULL, " ");
+		rv.prefix=strtok(packet, " ");
+		rv.cmd=strtok(NULL, " ");
 		packet=strtok(NULL, "");
 	}
 	else
 	{
-		rv->prefix=NULL;
-		rv->cmd=strtok(packet, " ");
+		rv.prefix=NULL;
+		rv.cmd=strtok(packet, " ");
 		packet=strtok(NULL, "");
 	}
-	if(rv->prefix) rv->prefix=low_dequote(rv->prefix);
-	if(rv->cmd) rv->cmd=low_dequote(rv->cmd);
-	if(!(rv->cmd&&packet))
+	if(rv.prefix) rv.prefix=low_dequote(rv.prefix);
+	if(rv.cmd) rv.cmd=low_dequote(rv.cmd);
+	if(!(rv.cmd&&packet))
 	{
-		rv->nargs=0;
+		rv.nargs=0;
 		free(pp);
 		return(rv);
 	}
@@ -202,21 +202,22 @@ message irc_breakdown(char *packet)
 	while(*packet)
 	{
 		p=packet;
-		if((*p==':')||(arg=14))
+		if((*p==':')||(arg==15))
 		{
 			p++;
-			rv->args[arg]=low_dequote(p);
-			rv->nargs=15;
+			rv.args[arg]=low_dequote(p);
+			rv.nargs=15;
 			break;
 		}
 		while(*p&&(*p!=' '))
 		{
 			p++;
 		}
-		rv->args[arg]=low_dequote(packet);
+		rv.args[arg++]=low_dequote(packet);
 		packet=p+(*p?1:0);
 		*p=0;
 	}
+	rv.nargs=arg;
 	free(pp);
 	return(rv);
 }
@@ -379,60 +380,47 @@ int irc_strncasecmp(char *c1, char *c2, int n, cmap casemapping)
 	return(0);
 }
 
-int irc_numeric(char *cmd, int b) // TODO check the strtok()s for NULLs
+int irc_numeric(message pkt, int b)
 {
 	int num=0;
-	char *ch;
 	int b2;
-	sscanf(cmd, "%d", &num);
-	char *dest=strtok(NULL, " "); // TODO: check it's for us
-	char *rest;
-	int skip=0;
+	sscanf(pkt.cmd, "%d", &num);
+	// arg[0] is invariably dest, with numeric replies; TODO check dest is us (not vital)
+	int arg;
 	switch(num)
 	{
 		case RPL_X_ISUPPORT:
 			// 005 dest {[-]parameter|parameter=value}+ :are supported by this server
-			rest=strtok(NULL, " ");
-			while(rest)
+			for(arg=1;arg<pkt.nargs-1;arg++) // last argument is always the :postfix descriptive text
 			{
-				if(*rest==':') // end of parameter list
+				char *rest=pkt.args[arg];
+				bool min=false;
+				char *value=NULL;
+				if(*rest=='-')
 				{
-					break;
+					min=true;
+					rest++;
 				}
 				else
 				{
-					bool min=false;
-					char *value=NULL;
-					if(*rest=='-')
+					char *eq=strchr(rest, '=');
+					if(eq)
 					{
-						min=true;
-						rest++;
+						value=eq+1;
+						*eq=0;
 					}
-					else
+				}
+				if(strcmp(rest, "CASEMAPPING")==0)
+				{
+					if(value)
 					{
-						char *eq=strchr(rest, '=');
-						if(eq)
+						if(strcmp(value, "ascii")==0)
 						{
-							value=eq+1;
-							*eq=0;
+							bufs[b].casemapping=ASCII;
 						}
-					}
-					if(strcmp(rest, "CASEMAPPING")==0)
-					{
-						if(value)
+						else if(strcmp(value, "strict-rfc1459")==0)
 						{
-							if(strcmp(value, "ascii")==0)
-							{
-								bufs[b].casemapping=ASCII;
-							}
-							else if(strcmp(value, "strict-rfc1459")==0)
-							{
-								bufs[b].casemapping=STRICT_RFC1459;
-							}
-							else
-							{
-								bufs[b].casemapping=RFC1459;
-							}
+							bufs[b].casemapping=STRICT_RFC1459;
 						}
 						else
 						{
@@ -441,21 +429,27 @@ int irc_numeric(char *cmd, int b) // TODO check the strtok()s for NULLs
 					}
 					else
 					{
-						char isup[strlen(rest)+(value?strlen(value):0)+3];
-						sprintf(isup, "%s%s%s%s", min?"-":"", rest, value?"=":"", value?value:"");
-						w_buf_print(b, c_unn, isup, "RPL_ISUPPORT: ");
+						bufs[b].casemapping=RFC1459;
 					}
 				}
-				rest=strtok(NULL, " ");
+				else
+				{
+					char isup[strlen(rest)+(value?strlen(value):0)+3];
+					sprintf(isup, "%s%s%s%s", min?"-":"", rest, value?"=":"", value?value:"");
+					w_buf_print(b, c_unn, isup, "RPL_ISUPPORT: ");
+				}
 			}
 		break;
 		case RPL_NAMREPLY:
-			// 353 dest {@|+} #chan :name [name [...]]
-			strtok(NULL, " "); // @ or +, dunno what for
-			ch=strtok(NULL, " "); // channel
+			// 353 dest {=|/|\*|@} #chan :([@|\+]nick)+
+			if(pkt.nargs<3)
+			{
+				w_buf_print(b, c_err, "Not enough arguments", "RPL_NAMREPLY: ");
+				break;
+			}
 			for(b2=0;b2<nbufs;b2++)
 			{
-				if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(ch, bufs[b2].bname, bufs[b].casemapping)==0))
+				if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(pkt.args[2], bufs[b2].bname, bufs[b].casemapping)==0))
 				{
 					if(!bufs[b2].namreply)
 					{
@@ -463,117 +457,144 @@ int irc_numeric(char *cmd, int b) // TODO check the strtok()s for NULLs
 						n_free(bufs[b2].nlist);
 						bufs[b2].nlist=NULL;
 					}
-					char *nn;
-					while((nn=strtok(NULL, ":@ ")))
+					int arg;
+					for(arg=3;arg<nargs;arg++)
 					{
-						if(!isalpha(*nn))
-							nn++;
-						n_add(&bufs[b2].nlist, nn);
+						char *nn;
+						while((nn=strtok(NULL, " ")))
+						{
+							if((*nn=='@')||(*nn=='+'))
+								nn++;
+							n_add(&bufs[b2].nlist, nn);
+						}
 					}
 				}
 			}
 		break;
 		case RPL_ENDOFNAMES:
 			// 366 dest #chan :End of /NAMES list
-			ch=strtok(NULL, " "); // channel
+			if(pkt.nargs<1)
+			{
+				w_buf_print(b, c_err, "Not enough arguments", "RPL_ENDOFNAMES: ");
+				break;
+			}
 			for(b2=0;b2<nbufs;b2++)
 			{
-				if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(ch, bufs[b2].bname, bufs[b].casemapping)==0))
+				if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(pkt.args[1], bufs[b2].bname, bufs[b].casemapping)==0))
 				{
 					bufs[b2].namreply=false;
-					char lmsg[32+strlen(ch)];
-					sprintf(lmsg, "NAMES list received for %s", ch);
+					char lmsg[32+strlen(pkt.args[1])];
+					sprintf(lmsg, "NAMES list received for %s", pkt.args[1]);
 					w_buf_print(b2, c_status, lmsg, "");
 				}
 			}
 		break;
 		case RPL_ENDOFMOTD: // 376 dest :End of MOTD command
 		case RPL_MOTDSTART: // 375 dest :- <server> Message of the day -
-			skip=1;
-			/* fallthrough */
 		case RPL_MOTD: // 372 dest :- <text>
-			if(!skip) skip=3;
-			char *motdline=strtok(NULL, "");
-			if(strlen(motdline)>=skip) motdline+=skip;
-			w_buf_print(b, c_notice[1], motdline, "");
+			if(pkt.nargs<2)
+			{
+				w_buf_print(b, c_err, "Not enough arguments", num==RPL_MOTD?"RPL_MOTD: ":num==RPL_MOTDSTART?"RPL_MOTDSTART: ":num==RPL_ENDOFMOTD?"RPL_ENDOFMOTD: ":"RPL_MOTD???: ");
+				break;
+			}
+			w_buf_print(b, c_notice[1], pkt.args[1], "");
 		break;
 		case ERR_NOMOTD: // 422 <dest> :MOTD File is missing
-			rest=strtok(NULL, "");
-			w_buf_print(b, c_notice[1], rest+1, "");
+			if(pkt.nargs<2)
+			{
+				w_buf_print(b, c_err, "Not enough arguments", "ERR_NOMOTD: ");
+				break;
+			}
+			w_buf_print(b, c_notice[1], pkt.args[1], "");
 		break;
 		case RPL_TOPIC: // 332 dest <channel> :<topic>
-			ch=strtok(NULL, " "); // channel
-			char *topic=strtok(NULL, "")+1;
+			if(pkt.nargs<3)
+			{
+				w_buf_print(b, c_err, "Not enough arguments", "RPL_TOPIC: ");
+				break;
+			}
 			for(b2=0;b2<nbufs;b2++)
 			{
-				if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(ch, bufs[b2].bname, bufs[b].casemapping)==0))
+				if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(pkt.args[1], bufs[b2].bname, bufs[b].casemapping)==0))
 				{
-					char tmsg[32+strlen(ch)];
-					sprintf(tmsg, "Topic for %s is ", ch);
-					w_buf_print(b2, c_notice[1], topic, tmsg);
+					char tmsg[32+strlen(pkt.args[1])];
+					sprintf(tmsg, "Topic for %s is ", pkt.args[1]);
+					w_buf_print(b2, c_notice[1], pkt.args[2], tmsg);
 					if(bufs[b2].topic) free(bufs[b2].topic);
-					bufs[b2].topic=strdup(topic);
+					bufs[b2].topic=strdup(pkt.args[2]);
 				}
 			}
 		break;
 		case RPL_NOTOPIC: // 331 dest <channel> :No topic is set
-			ch=strtok(NULL, " "); // channel
+			if(pkt.nargs<2)
+			{
+				w_buf_print(b, c_err, "Not enough arguments", "RPL_NOTOPIC: ");
+				break;
+			}
 			for(b2=0;b2<nbufs;b2++)
 			{
-				if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(ch, bufs[b2].bname, bufs[b].casemapping)==0))
+				if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(pkt.args[1], bufs[b2].bname, bufs[b].casemapping)==0))
 				{
-					char tmsg[32+strlen(ch)];
-					sprintf(tmsg, "No topic is set for %s", ch);
+					char tmsg[32+strlen(pkt.args[1])];
+					sprintf(tmsg, "No topic is set for %s", pkt.args[1]);
 					w_buf_print(b2, c_notice[1], tmsg, "");
 					if(bufs[b2].topic) free(bufs[b2].topic);
 				}
 			}
 		break;
 		case RPL_X_TOPICWASSET: // 331 dest <channel> <nick> <time>
-			ch=strtok(NULL, " "); // channel
-			char *nick=strtok(NULL, " "); // by whom?
-			char *time=strtok(NULL, ""); // when?
+			if(pkt.nargs<3)
+			{
+				w_buf_print(b, c_err, "Not enough arguments", "RPL_X_TOPICWASSET: ");
+				break;
+			}
 			for(b2=0;b2<nbufs;b2++)
 			{
-				if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(ch, bufs[b2].bname, bufs[b].casemapping)==0))
+				if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(pkt.args[1], bufs[b2].bname, bufs[b].casemapping)==0))
 				{
 					time_t when;
-					sscanf(time, "%u", (unsigned int *)&when);
+					sscanf(pkt.args[3], "%u", (unsigned int *)&when);
 					char ts[256];
 					struct tm *tm = gmtime(&when);
 					size_t tslen = strftime(ts, sizeof(ts), "%H:%M:%S GMT on %a, %d %b %Y", tm); // TODO options controlling date format (eg. ISO 8601)
-					char tmsg[32+strlen(nick)+tslen];
-					sprintf(tmsg, "Topic was set by %s at %s", nick, ts);
+					char tmsg[32+strlen(pkt.args[2])+tslen];
+					sprintf(tmsg, "Topic was set by %s at %s", pkt.args[2], ts);
 					w_buf_print(b2, c_status, tmsg, "");
 				}
 			}
 		break;
 		case RPL_LUSERCLIENT: // 251 <dest> :There are <integer> users and <integer> invisible on <integer> servers"
 		case RPL_LUSERME: // 255 <dest> ":I have <integer> clients and <integer> servers
-			rest=strtok(NULL, "");
-			w_buf_print(b, c_status, rest+1, ": ");
+			if(pkt.nargs<2)
+			{
+				w_buf_print(b, c_err, "Not enough arguments", num==RPL_LUSERCLIENT?"RPL_LUSERCLIENT: ":num==RPL_LUSERME?"RPL_LUSERME: ":"RPL_LUSER???: ");
+				break;
+			}
+			w_buf_print(b, c_status, pkt.args[1], ": ");
 		break;
 		case RPL_LUSEROP: // 252 <dest> <integer> :operator(s) online
-		case RPL_LUSERUNKNOWN: // 253 <dest> "<integer> :unknown connection(s)
-		case RPL_LUSERCHANNELS: // 254 <dest> "<integer> :channels formed
+		case RPL_LUSERUNKNOWN: // 253 <dest> <integer> :unknown connection(s)
+		case RPL_LUSERCHANNELS: // 254 <dest> <integer> :channels formed
+			if(pkt.nargs<3)
 			{
-				char *count=strtok(NULL, " ");
-				rest=strtok(NULL, "");
-				char lmsg[2+strlen(count)+strlen(rest)];
-				sprintf(lmsg, "%s %s", count, rest+1);
-				w_buf_print(b, c_status, lmsg, ": ");
+				w_buf_print(b, c_err, "Not enough arguments", num==RPL_LUSEROP?"RPL_LUSEROP: ":num==RPL_LUSERUNKNOWN?"RPL_LUSERUNKNOWN: ":num==RPL_LUSERCHANNELS?"RPL_LUSERCHANNELS":"RPL_LUSER???: ");
+				break;
 			}
+			char lmsg[2+strlen(pkt.args[1])+strlen(pkt.args[2])];
+			sprintf(lmsg, "%s %s", pkt.args[1], pkt.args[2]);
+			w_buf_print(b, c_status, lmsg, ": ");
 		break;
 		case RPL_X_LOCALUSERS: // 265 <dest> :Current Local Users: <integer>\tMax: <integer>
 		case RPL_X_GLOBALUSERS: // 266 <dest> :Current Global Users: <integer>\tMax: <integer>
-			rest=strtok(NULL, "");
-			w_buf_print(b, c_status, rest+1, ": ");
+			if(pkt.nargs<2)
+			{
+				w_buf_print(b, c_err, "Not enough arguments", num==RPL_X_LOCALUSERS?"RPL_X_LOCALUSERS: ":num==RPL_X_GLOBALUSERS?"RPL_X_GLOBALUSERS: ":"RPL_???USERS: ");
+				break;
+			}
+			w_buf_print(b, c_status, pkt.args[1], ": ");
 		break;
 		default:
-			rest=strtok(NULL, "");
-			char umsg[16+strlen(dest)+strlen(rest)];
-			sprintf(umsg, "<<%d? %s %s", num, dest, rest);
-			w_buf_print(b, c_unn, umsg, "");
+			e_buf_print(b, c_unn, pkt, "Unknown numeric ");
 		break;
 	}
 	return(num);

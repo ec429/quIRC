@@ -63,8 +63,8 @@ char irc_to_lower(char c, cmap casemapping);
 int irc_strcasecmp(char *c1, char *c2, cmap casemapping);
 int irc_strncasecmp(char *c1, char *c2, int n, cmap casemapping);
 
-// Received-IRC message handlers.  strtok() state leaks across the boundaries of these functions, beware!
-int irc_numeric(char *cmd, int b);
+// Received-IRC message handlers
+int irc_numeric(message pkt, int b);
 int rx_ping(int fd);
 int rx_mode(servlist * serv, int b); // the first MODE triggers auto-join.  Apart from using it as a trigger, we don't look at modes just yet
 int rx_kill(int b, fd_set *master);
