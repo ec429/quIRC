@@ -54,6 +54,7 @@ typedef struct _buf
 	time_t *ts; // array of timestamps for lines (not used now, but there ready for eg. mergebuffers)
 	bool filled; // buffer has filled up and looped? (the buffers are circular in nature)
 	bool alert; // tab has new messages?
+	int hi_alert; // high-level alert status: 0 = none; 1: on (if alert then flashing else single flash); 2: off (flashing)
 	bool namreply; // tab is in the middle of reading a list of NAMES replies (RPL_NAMREPLY)?
 	bool live; // tab is connected?  when checking in a CHANNEL, remember to AND it with the parent's live (use LIVE(buf), defined further up this file)
 	cmap casemapping; // the SERVER's value is authoritative; the CHANNEL's value is ignored.  STATUS's value is irrelevant.  Set by ISUPPORT

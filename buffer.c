@@ -49,6 +49,7 @@ int init_buffer(int buf, btype type, char *bname, int nlines)
 	bufs[buf].ts=(time_t *)malloc(sizeof(time_t[nlines]));
 	bufs[buf].filled=false;
 	bufs[buf].alert=false;
+	bufs[buf].hi_alert=0;
 	bufs[buf].namreply=false;
 	bufs[buf].live=false;
 	bufs[buf].casemapping=RFC1459;
@@ -252,23 +253,30 @@ void in_update(char *inp)
 		}
 		if(b==cbuf)
 		{
-			c.back=2;
+			c.back=2; // green
 			c.hi=true;
 		}
 		else if(b==bufs[cbuf].server)
 		{
-			c.back=4;
+			c.back=4; // blue
 			c.ul=true;
 		}
 		if(bufs[b].alert)
 		{
-			c.fore=1;
+			if(bufs[b].hi_alert==1)
+			{
+				c.fore=6; // cyan
+			}
+			else
+			{
+				c.fore=1; // red
+			}
 			c.hi=true;
 			c.ul=false; // can't have both at once: it's not really a bitmask
 		}
 		if(!LIVE(b))
 		{
-			c.fore=3;
+			c.fore=3; // yellow
 			c.hi=true;
 			c.ul=false; // can't have both at once: it's not really a bitmask
 		}

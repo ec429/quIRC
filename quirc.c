@@ -104,6 +104,22 @@ int main(int argc, char *argv[])
 		}
 		else
 		{
+			if(timeout.tv_usec==0) // flashing of hi-alert tabs
+			{
+				int b;
+				for(b=0;b<nbufs;b++)
+				{
+					switch(bufs[b].hi_alert%2)
+					{
+						case 1:
+							bufs[b].hi_alert=bufs[b].alert?4:bufs[b].hi_alert-1;
+						break;
+						case 0:
+							bufs[b].hi_alert=max(bufs[b].hi_alert-1, 0);
+						break;
+					}
+				}
+			}
 			int fd;
 			for(fd=0;fd<=fdmax;fd++)
 			{
