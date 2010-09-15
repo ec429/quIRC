@@ -80,4 +80,4 @@ int rx_part(message pkt, int b);
 int rx_quit(message pkt, int b);
 int rx_nick(message pkt, int b);
 
-int ctcp(char *msg, char *from, char *src, int b2); // Handle CTCP (Client-To-Client Protocol) messages (from is crushed-src)
+int ctcp(char *msg, char *from, char *src, int b2, bool ha); // Handle CTCP (Client-To-Client Protocol) messages (from is crushed-src)

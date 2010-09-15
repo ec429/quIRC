@@ -722,6 +722,7 @@ int rx_kill(message pkt, int b, fd_set *master)
 			{
 				w_buf_print(b2, c_quit[0], pkt.nargs<2?"":pkt.args[1], "KILLed: ");
 				bufs[b2].live=false;
+				bufs[b2].hi_alert=5;
 				bufs[b2].handle=0;
 			}
 		}
@@ -773,6 +774,7 @@ int rx_kick(message pkt, int b)
 			{
 				w_buf_print(b2, c_quit[0], pkt.nargs<3?"(No reason)":pkt.args[2], "Kicked: ");
 				bufs[b2].live=false;
+				bufs[b2].hi_alert=5;
 			}
 		}
 		redraw_buffer();
@@ -819,6 +821,7 @@ int rx_error(message pkt, int b, fd_set *master)
 		{
 			e_buf_print(b2, c_quit[0], pkt, "Disconnected: ");
 			bufs[b2].live=false;
+			bufs[b2].hi_alert=5;
 			bufs[b2].handle=0;
 		}
 	}
@@ -842,6 +845,7 @@ int rx_privmsg(message pkt, int b, bool notice)
 	crush(&from, maxnlen);
 	int b2;
 	bool match=false;
+	bool ha=strstr(pkt.args[1], bufs[b].nick);
 	for(b2=0;b2<nbufs;b2++)
 	{
 		if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(pkt.args[0], bufs[b2].bname, bufs[b].casemapping)==0))
@@ -853,7 +857,7 @@ int rx_privmsg(message pkt, int b, bool notice)
 				continue;
 			if(*pkt.args[1]==1) // CTCP TODO: proper CTCP handling of embedded messages
 			{
-				ctcp(pkt.args[1], from, src, b2);
+				ctcp(pkt.args[1], from, src, b2, ha);
 			}
 			else
 			{
@@ -861,6 +865,8 @@ int rx_privmsg(message pkt, int b, bool notice)
 				memset(tag, ' ', maxnlen+3);
 				sprintf(tag+maxnlen-strlen(from), "<%s> ", from);
 				w_buf_print(b2, notice?c_notice[1]:c_msg[1], pkt.args[1], tag);
+				if(ha)
+					bufs[b].hi_alert=5;
 			}
 		}
 	}
@@ -872,7 +878,7 @@ int rx_privmsg(message pkt, int b, bool notice)
 		{
 			if(*pkt.args[1]==1) // CTCP TODO: proper CTCP handling of embedded messages
 			{
-				ctcp(pkt.args[1], from, src, b);
+				ctcp(pkt.args[1], from, src, b, true);
 			}
 			else
 			{
@@ -880,6 +886,7 @@ int rx_privmsg(message pkt, int b, bool notice)
 				memset(tag, ' ', maxnlen+8);
 				sprintf(tag+maxnlen-strlen(from), "(from %s) ", from);
 				w_buf_print(b, notice?c_notice[1]:c_msg[1], pkt.args[1], tag);
+				bufs[b].hi_alert=5;
 			}
 		}
 		else
@@ -1141,7 +1148,7 @@ int rx_nick(message pkt, int b)
 	return(0);
 }
 
-int ctcp(char *msg, char *from, char *src, int b2)
+int ctcp(char *msg, char *from, char *src, int b2, bool ha)
 {
 	int fd=bufs[b2].handle;
 	if(strncmp(msg, "\001ACTION ", 8)==0)
@@ -1151,6 +1158,9 @@ int ctcp(char *msg, char *from, char *src, int b2)
 		memset(tag, ' ', maxnlen+3);
 		sprintf(tag+maxnlen+2-strlen(from), "%s ", from);
 		w_buf_print(b2, c_actn[1], msg+8, tag);
+		ha=ha||strstr(msg+8, bufs[bufs[b2].server].nick);
+		if(ha)
+			bufs[b2].hi_alert=5;
 	}
 	else if(strncmp(msg, "\001FINGER", 7)==0)
 	{
@@ -1191,6 +1201,8 @@ int ctcp(char *msg, char *from, char *src, int b2)
 		char resp[32+strlen(src)+strlen(cmd)];
 		sprintf(resp, "NOTICE %s \001ERRMSG %s\001", src, cmd);
 		irc_tx(fd, resp);
+		if(ha)
+			bufs[b2].hi_alert=5;
 	}
 	return(0);
 }

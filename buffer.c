@@ -261,20 +261,19 @@ void in_update(char *inp)
 			c.back=4; // blue
 			c.ul=true;
 		}
-		if(bufs[b].alert)
+		if(bufs[b].hi_alert%2)
 		{
-			if(bufs[b].hi_alert==1)
-			{
-				c.fore=6; // cyan
-			}
-			else
-			{
-				c.fore=1; // red
-			}
+			c.fore=6; // cyan
 			c.hi=true;
 			c.ul=false; // can't have both at once: it's not really a bitmask
 		}
-		if(!LIVE(b))
+		else if(bufs[b].alert)
+		{
+			c.fore=1; // red
+			c.hi=true;
+			c.ul=false; // can't have both at once: it's not really a bitmask
+		}
+		if((!LIVE(b)) && (c.fore!=6))
 		{
 			c.fore=3; // yellow
 			c.hi=true;
