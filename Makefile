@@ -17,12 +17,12 @@ uninstall:
 	rm $(PREFIX)/bin/quirc
 
 quirc: quirc.c $(LIBS) $(INCLUDE)
-	$(CC) $(CFLAGS) -o quirc quirc.c $(LIBS)
+	$(CC) $(CFLAGS) -o quirc quirc.c $(LIBS) $(DEFINES)
 
 mtrace: quirc-mtrace
 
 quirc-mtrace: quirc.c $(LIBS) $(INCLUDE)
-	$(CC) $(CFLAGS) -o quirc-mtrace quirc.c $(LIBS) -g -DUSE_MTRACE
+	$(CC) $(CFLAGS) -o quirc-mtrace quirc.c $(LIBS) -g -DUSE_MTRACE $(DEFINES)
 
 clean:
 	rm *.o quirc
@@ -38,7 +38,7 @@ README: readme.htm
 # funky make cleverness to generate object files; a %.o /always/ depends on its %.h as well as its %.c
 
 %.o: %.c %.h
-	$(CC) -c $(CFLAGS) $(CPPFLAGS) $< -o $@
+	$(CC) -c $(CFLAGS) $(CPPFLAGS) $< -o $@ $(DEFINES)
 
 ttyesc.o: bits.h
 

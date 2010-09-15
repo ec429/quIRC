@@ -52,6 +52,9 @@ bool autojoin;
 char *username, *fname, *nick, *portno;
 servlist *servs;
 name *igns;
+#ifdef HAVE_DEBUG
+int debug;
+#endif // HAVE_DEBUG
 char version[16+strlen(VERSION_TXT)];
 
 int def_config(void); // set these to their defaults

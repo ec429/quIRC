@@ -526,6 +526,27 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					}
 					w_buf_print(0, c_status, "Default buf set", "/set: ");
 				}
+			#ifdef HAVE_DEBUG
+				else if(strcmp(opt, "debug")==0)
+				{
+					if(val)
+					{
+						sscanf(val, "%u", &debug);
+					}
+					else
+					{
+						debug=1;
+					}
+					if(debug)
+					{
+						w_buf_print(cbuf, c_status, "Debugging mode enabled", "/set: ");
+					}
+					else
+					{
+						w_buf_print(cbuf, c_status, "Debugging mode disabled", "/set: ");
+					}
+				}
+			#endif // HAVE_DEBUG
 				else
 				{
 					w_buf_print(cbuf, c_err, "No such option!", "/set: ");

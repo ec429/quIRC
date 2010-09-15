@@ -9,7 +9,6 @@
 
 #include <stdlib.h>
 #include <stdbool.h>
-#include "ttyesc.h"
 
 typedef struct
 {
@@ -19,6 +18,8 @@ typedef struct
 	bool ul;
 }
 colour;
+
+#include "ttyesc.h"
 
 int setcolour(colour);
 colour c_mirc(int, int);

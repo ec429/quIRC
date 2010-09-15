@@ -51,6 +51,14 @@ int irc_connect(char *server, char *portno, fd_set *master, int *fdmax)
 		}
 		break;
 	}
+#ifdef HAVE_DEBUG
+	if(debug)
+	{
+		char cmsg[16+strlen(sip)];
+		sprintf(cmsg, "fd=%d, ip=%s", serverhandle, sip);
+		w_buf_print(0, c_status, cmsg, "DBG connect: ");
+	}
+#endif // HAVE_DEBUG
 	if (p == NULL)
 	{
 		w_buf_print(0, c_err, "failed to connect to server", "/connect: ");
@@ -65,6 +73,12 @@ int irc_connect(char *server, char *portno, fd_set *master, int *fdmax)
 
 int irc_conn_rest(int b, char *nick, char *username, char *fullname)
 {
+#ifdef HAVE_DEBUG
+	if(debug)
+	{
+		w_buf_print(0, c_status, "", "DBG connect rest");
+	}
+#endif // HAVE_DEBUG
 	bufs[b].live=true; // mark it as live
 	if(bufs[b].autoent && bufs[b].autoent->nick)
 		nick=bufs[b].autoent->nick;
@@ -112,7 +126,6 @@ int autoconnect(fd_set *master, int *fdmax, servlist *serv)
 
 int irc_tx(int fd, char * packet)
 {
-	//printf(">> %s\n\n", packet); // for debugging purposes
 	char pq[512];
 	low_quote(packet, pq);
 	unsigned long l=min(strlen(pq), 511);
@@ -129,13 +142,21 @@ int irc_tx(int fd, char * packet)
 		p+=j;
 	}
 	send(fd, "\n", 1, 0);
+#ifdef HAVE_DEBUG
+	if(debug)
+	{
+		char tmsg[32+strlen(pq)];
+		sprintf(tmsg, "%d, %lu bytes: %s", fd, l, pq);
+		w_buf_print(0, c_status, tmsg, "DBG tx: ");
+	}
+#endif // HAVE_DEBUG
 	return(l); // Return the number of bytes sent
 }
 
 int irc_rx(int fd, char ** data)
 {
 	char buf[512];
-	int l=0;
+	unsigned long int l=0;
 	bool cr=false;
 	while(!cr)
 	{
@@ -168,6 +189,14 @@ int irc_rx(int fd, char ** data)
 		}
 	}
 	*data=strdup(buf);
+#ifdef HAVE_DEBUG
+	if(debug && *buf)
+	{
+		char rmsg[32+strlen(buf)];
+		sprintf(rmsg, "%d, %lu bytes: %s", fd, l, buf);
+		w_buf_print(0, c_status, rmsg, "DBG rx: ");
+	}
+#endif // HAVE_DEBUG
 	if(!*data)
 		return(1);
 	return(0);
