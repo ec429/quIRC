@@ -623,7 +623,7 @@ int rx_ping(message pkt, int b)
 	}
 	char pong[8+strlen(username)+strlen(pkt.args[0])];
 	sprintf(pong, "PONG %s %s", username, pkt.args[0]); // PONG <user> <sender>
-	return(irc_tx(bufs[b].server, pong));
+	return(irc_tx(bufs[bufs[b].server].handle, pong));
 }
 
 int rx_mode(int b)
