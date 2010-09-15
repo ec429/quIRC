@@ -301,9 +301,9 @@ int main(int argc, char *argv[])
 	if(state>0)
 		printf("quirc exiting\n");
 	int b;
-	for(b=0;b<nbufs;b++)
+	for(b=1;b<nbufs;b++)
 	{
-		if(bufs[b].handle!=0)
+		if((bufs[b].live) && (bufs[b].type==SERVER) && (bufs[b].handle!=0))
 		{
 			if(!qmsg) qmsg="quIRC Quit";
 			char quit[7+strlen(qmsg)];
