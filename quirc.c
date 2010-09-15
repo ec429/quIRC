@@ -119,6 +119,7 @@ int main(int argc, char *argv[])
 						break;
 					}
 				}
+				in_update(inp);
 			}
 			int fd;
 			for(fd=0;fd<=fdmax;fd++)

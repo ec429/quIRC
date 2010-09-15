@@ -866,7 +866,7 @@ int rx_privmsg(message pkt, int b, bool notice)
 				sprintf(tag+maxnlen-strlen(from), "<%s> ", from);
 				w_buf_print(b2, notice?c_notice[1]:c_msg[1], pkt.args[1], tag);
 				if(ha)
-					bufs[b].hi_alert=5;
+					bufs[b2].hi_alert=5;
 			}
 		}
 	}
@@ -886,7 +886,8 @@ int rx_privmsg(message pkt, int b, bool notice)
 				memset(tag, ' ', maxnlen+8);
 				sprintf(tag+maxnlen-strlen(from), "(from %s) ", from);
 				w_buf_print(b, notice?c_notice[1]:c_msg[1], pkt.args[1], tag);
-				bufs[b].hi_alert=5;
+				if(!notice)
+					bufs[b].hi_alert=5;
 			}
 		}
 		else
