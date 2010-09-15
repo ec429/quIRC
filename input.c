@@ -641,6 +641,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 				if(serverhandle)
 				{
 					int b=bufs[cbuf].server;
+					bufs[b].handle=serverhandle;
 					int b2;
 					for(b2=1;b2<nbufs;b2++)
 					{

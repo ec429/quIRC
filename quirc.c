@@ -145,7 +145,7 @@ int main(int argc, char *argv[])
 											}
 											else if(strcmp(pkt.cmd, "PING")==0)
 											{
-												rx_ping(pkt, fd);
+												rx_ping(pkt, b);
 											}
 											else if(strcmp(pkt.cmd, "MODE")==0)
 											{

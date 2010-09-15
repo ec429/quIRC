@@ -670,6 +670,7 @@ int rx_kill(message pkt, int b, fd_set *master)
 			{
 				w_buf_print(b2, c_quit[0], pkt.nargs<2?"":pkt.args[1], "KILLed: ");
 				bufs[b2].live=false;
+				bufs[b2].handle=0;
 			}
 		}
 		redraw_buffer();
@@ -766,6 +767,7 @@ int rx_error(message pkt, int b, fd_set *master)
 		{
 			e_buf_print(b2, c_quit[0], pkt, "Disconnected: ");
 			bufs[b2].live=false;
+			bufs[b2].handle=0;
 		}
 	}
 	return(redraw_buffer());
