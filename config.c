@@ -52,8 +52,8 @@ int rcread(FILE *rcfp)
 	while(!feof(rcfp))
 	{
 		char *line=fgetl(rcfp);
-		char *cmd=strtok(line, " \t");
-		if((*cmd=='#') || (*cmd=='\n') || (!*cmd)) // #lines are comments, blank lines are ignored
+		char *cmd=*line?strtok(line, " \t"):line;
+		if((*cmd=='#') || (!*cmd)) // #lines are comments, blank lines are ignored
 		{
 			// do nothing
 		}
@@ -118,7 +118,7 @@ int rcread(FILE *rcfp)
 			}
 			if(what)
 			{
-				char *spec=strtok(NULL, "\n");
+				char *spec=strtok(NULL, "");
 				colour new;int hi, ul;
 				sscanf(spec, "%d %d %d %d", &new.fore, &new.back, &hi, &ul);
 				new.hi=hi;new.ul=ul;
@@ -130,7 +130,7 @@ int rcread(FILE *rcfp)
 		}
 		else
 		{
-			char *rest=strtok(NULL, "\n");
+			char *rest=strtok(NULL, "");
 			if(!rest)
 			{
 				fprintf(stderr, "Command (%s) without argument!\n", cmd);

@@ -19,7 +19,7 @@
 #define max(a,b)	((a)>(b)?(a):(b))
 #define min(a,b)	((a)<(b)?(a):(b))
 
-char * fgetl(FILE *); // gets a line of string data; returns a malloc-like pointer (preserves trailing \n)
+char * fgetl(FILE *); // gets a line of string data; returns a malloc-like pointer
 int wordline(char *msg, int x, char **out, colour lc); // prepares a string for printing, breaking lines in between words
 void init_char(char **buf, int *l, int *i); // initialises a string buffer in heap.  *buf becomes a malloc-like pointer
 void append_char(char **buf, int *l, int *i, char c); // adds a character to a string buffer in heap (and realloc()s if needed)
