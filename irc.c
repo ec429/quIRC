@@ -189,7 +189,7 @@ message irc_breakdown(char *packet)
 		rv.cmd=strtok(packet, " ");
 		packet=strtok(NULL, "");
 	}
-	if(rv.prefix) rv.prefix=low_dequote(rv.prefix);
+	if(rv.prefix) rv.prefix=low_dequote(rv.prefix+1);
 	if(rv.cmd) rv.cmd=low_dequote(rv.cmd);
 	if(!(rv.cmd&&packet))
 	{
@@ -202,20 +202,21 @@ message irc_breakdown(char *packet)
 	while(*packet)
 	{
 		p=packet;
-		if((*p==':')||(arg==15))
+		if((*p==':')||(arg==14))
 		{
 			p++;
-			rv.args[arg]=low_dequote(p);
-			rv.nargs=15;
+			rv.args[arg++]=low_dequote(p);
+			rv.nargs=arg;
 			break;
 		}
-		while(*p&&(*p!=' '))
+		while((*p)&&((*p)!=' '))
 		{
 			p++;
 		}
-		rv.args[arg++]=low_dequote(packet);
-		packet=p+(*p?1:0);
+		char c=*p;
 		*p=0;
+		rv.args[arg++]=low_dequote(packet);
+		packet=p+(c?1:0);
 	}
 	rv.nargs=arg;
 	free(pp);
@@ -839,7 +840,7 @@ int rx_privmsg(message pkt, int b, bool notice)
 		sprintf(nm, "%s", src);
 		if(i_match(bufs[b].ilist, nm, true, bufs[b].casemapping)||i_match(bufs[0].ilist, nm, true, bufs[b].casemapping))
 			return(0);
-		if(irc_strcasecmp(pkt.args[0], bufs[b].nick, bufs[b].casemapping)==0)
+		if((irc_strcasecmp(pkt.args[0], bufs[b].nick, bufs[b].casemapping)==0) || (irc_strcasecmp(pkt.args[0], "AUTH", bufs[b].casemapping)==0))
 		{
 			if(*pkt.args[1]==1) // CTCP TODO: proper CTCP handling of embedded messages
 			{
