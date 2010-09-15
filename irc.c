@@ -667,7 +667,7 @@ int rx_kill(message pkt, int b, fd_set *master)
 		{
 			if((bufs[b2].server==b) || (bufs[b2].server==0))
 			{
-				w_buf_print(b2, c_quit[0], pkt.args<2?"":pkt.args[1], "KILLed: ");
+				w_buf_print(b2, c_quit[0], pkt.nargs<2?"":pkt.args[1], "KILLed: ");
 				bufs[b2].live=false;
 			}
 		}
@@ -779,7 +779,7 @@ int rx_privmsg(message pkt, int b, bool notice)
 		e_buf_print(b, c_err, pkt, "Not enough arguments: ");
 		return(0);
 	}
-	char *src=pkt.prefix?pkt.prefix:""
+	char *src=pkt.prefix?pkt.prefix:"";
 	char *bang=strchr(src, '!');
 	if(bang)
 		*bang++=0;
@@ -815,7 +815,7 @@ int rx_privmsg(message pkt, int b, bool notice)
 				break;
 			if(i_match(bufs[b2].ilist, nm, false, bufs[b].casemapping))
 				continue;
-			if(*pkt.args[1]==1) // CTCP
+			if(*pkt.args[1]==1) // CTCP TODO: proper CTCP handling of embedded messages
 			{
 				ctcp(pkt.args[1], from, src, b2);
 			}
@@ -841,7 +841,7 @@ int rx_privmsg(message pkt, int b, bool notice)
 			return(0);
 		if(irc_strcasecmp(pkt.args[0], bufs[b].nick, bufs[b].casemapping)==0)
 		{
-			if(*msg==1) // CTCP
+			if(*pkt.args[1]==1) // CTCP TODO: proper CTCP handling of embedded messages
 			{
 				ctcp(pkt.args[1], from, src, b);
 			}
@@ -876,12 +876,12 @@ int rx_topic(message pkt, int b)
 		*bang=0;
 	char *from=strdup(src);
 	scrush(&from, maxnlen);
+	bool match=false;
 	if(pkt.nargs<2)
 	{
 		char tag[maxnlen+20];
 		sprintf(tag, "%s removed the Topic", from);
 		int b2;
-		bool match=false;
 		for(b2=0;b2<nbufs;b2++)
 		{
 			if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(pkt.args[0], bufs[b2].bname, bufs[b].casemapping)==0))
@@ -898,15 +898,14 @@ int rx_topic(message pkt, int b)
 		char tag[maxnlen+20];
 		sprintf(tag, "%s set the Topic to ", from);
 		int b2;
-		bool match=false;
 		for(b2=0;b2<nbufs;b2++)
 		{
-			if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(dest, bufs[b2].bname, bufs[b].casemapping)==0))
+			if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(pkt.args[0], bufs[b2].bname, bufs[b].casemapping)==0))
 			{
 				w_buf_print(b2, c_notice[1], pkt.args[1], tag);
 				match=true;
 				if(bufs[b2].topic) free(bufs[b2].topic);
-				bufs[b2].topic=strdup(msg);
+				bufs[b2].topic=strdup(pkt.args[1]);
 			}
 		}
 	}
@@ -922,7 +921,7 @@ int rx_join(message pkt, int b)
 		e_buf_print(b, c_err, pkt, "Not enough arguments: ");
 		return(0);
 	}
-	char *src=pkt.prefix?pkt.prefix:""
+	char *src=pkt.prefix?pkt.prefix:"";
 	char *bang=strchr(src, '!');
 	if(bang)
 		*bang++=0;
@@ -945,7 +944,7 @@ int rx_join(message pkt, int b)
 		if(b2>=nbufs)
 		{
 			bufs=(buffer *)realloc(bufs, ++nbufs*sizeof(buffer));
-			init_buffer(nbufs-1, CHANNEL, dest+1, buflines);
+			init_buffer(nbufs-1, CHANNEL, pkt.args[0], buflines);
 			cbuf=nbufs-1;
 			bufs[cbuf].server=bufs[b].server;
 		}
@@ -984,7 +983,7 @@ int rx_part(message pkt, int b)
 		e_buf_print(b, c_err, pkt, "Not enough arguments: ");
 		return(0);
 	}
-	char *src=pkt.prefix?pkt.prefix:""
+	char *src=pkt.prefix?pkt.prefix:"";
 	char *bang=strchr(src, '!');
 	if(bang)
 		*bang++=0;
@@ -1042,7 +1041,7 @@ int rx_part(message pkt, int b)
 int rx_quit(message pkt, int b)
 {
 	// :nick!user@server QUIT message
-	char *src=pkt.prefix?pkt.prefix:""
+	char *src=pkt.prefix?pkt.prefix:"";
 	char *bang=strchr(src, '!');
 	if(bang)
 		*bang++=0;
