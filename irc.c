@@ -1069,19 +1069,22 @@ int rx_quit(message pkt, int b)
 	return(0);
 }
 
-int rx_nick(int b, char *packet, char *pdata)
+int rx_nick(message pkt, int b)
 {
-	char *dest=strtok(NULL, " \t");
-	char *src=packet+1;
+	// :nick!user@server NICK newnick
+	if(pkt.nargs<1)
+	{
+		e_buf_print(b, c_err, pkt, "Not enough arguments: ");
+		return(0);
+	}
+	char *src=pkt.prefix?pkt.prefix:"";
 	char *bang=strchr(src, '!');
 	if(bang)
-		*bang=0;
-	if(!isalpha(*src))
-		src++;
-	if(strcmp(dest+1, bufs[b].nick)==0)
+		*bang++=0;
+	if((strcmp(src, bufs[b].nick)==0)||(strcmp(pkt.args[0], bufs[b].nick)==0))
 	{
-		char dstr[30+strlen(src)+strlen(dest+1)];
-		sprintf(dstr, "You (%s) are now known as %s", src, dest+1);
+		char dstr[30+strlen(src)+strlen(pkt.args[0])];
+		sprintf(dstr, "You (%s) are now known as %s", src, pkt.args[0]);
 		int b2;
 		for(b2=0;b2<nbufs;b2++)
 		{
@@ -1089,7 +1092,7 @@ int rx_nick(int b, char *packet, char *pdata)
 			{
 				w_buf_print(b2, c_nick[1], dstr, "");
 				n_cull(&bufs[b2].nlist, src);
-				n_add(&bufs[b2].nlist, dest+1);
+				n_add(&bufs[b2].nlist, pkt.args[0]);
 			}
 		}
 	}
@@ -1104,16 +1107,16 @@ int rx_nick(int b, char *packet, char *pdata)
 				match=true;
 				if(n_cull(&bufs[b2].nlist, src))
 				{
-					n_add(&bufs[b2].nlist, dest+1);
-					char dstr[30+strlen(src)+strlen(dest+1)];
-					sprintf(dstr, "=%s= is now known as %s", src, dest+1);
+					n_add(&bufs[b2].nlist, pkt.args[0]);
+					char dstr[30+strlen(src)+strlen(pkt.args[0])];
+					sprintf(dstr, "=%s= is now known as %s", src, pkt.args[0]);
 					w_buf_print(b2, c_nick[1], dstr, "");
 				}
 			}
 		}
 		if(!match)
 		{
-			w_buf_print(b, c_err, pdata, "?? ");
+			e_buf_print(b, c_err, pkt, "Bad destination: ");
 		}
 	}
 	return(0);

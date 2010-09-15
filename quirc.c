@@ -195,8 +195,8 @@ int main(int argc, char *argv[])
 											{
 												e_buf_print(b, c_unk, pkt, "Unrecognised command: ");
 											}
+											message_free(pkt);
 										}
-										message_free(pkt);
 										free(packet);
 									}
 								}
