@@ -467,16 +467,13 @@ int irc_numeric(message pkt, int b)
 						n_free(bufs[b2].nlist);
 						bufs[b2].nlist=NULL;
 					}
-					int arg;
-					for(arg=3;arg<pkt.nargs;arg++)
+					char *nn=strtok(pkt.args[3], " ");
+					while(nn)
 					{
-						char *nn;
-						while((nn=strtok(NULL, " ")))
-						{
-							if((*nn=='@')||(*nn=='+'))
-								nn++;
-							n_add(&bufs[b2].nlist, nn);
-						}
+						if((*nn=='@')||(*nn=='+'))
+							nn++;
+						n_add(&bufs[b2].nlist, nn);
+						nn=strtok(NULL, " ");
 					}
 				}
 			}
