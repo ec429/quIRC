@@ -612,7 +612,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 	{
 		if(bufs[cbuf].server)
 		{
-			if(bufs[bufs[cbuf].server].live)
+			if(!bufs[bufs[cbuf].server].live)
 			{
 				char *newport;
 				if(args)
