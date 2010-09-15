@@ -149,47 +149,47 @@ int main(int argc, char *argv[])
 											}
 											else if(strcmp(pkt.cmd, "MODE")==0)
 											{
-												rx_mode(bufs[b].autoent, b);
+												rx_mode(b);
 											}
 											else if(strcmp(pkt.cmd, "KILL")==0)
 											{
-												rx_kill(b, &master);
+												rx_kill(pkt, b, &master);
 											}
 											else if(strcmp(pkt.cmd, "KICK")==0)
 											{
-												rx_kick(b);
+												rx_kick(pkt, b);
 											}
 											else if(strcmp(pkt.cmd, "ERROR")==0)
 											{
-												rx_error(b, &master);
+												rx_error(pkt, b, &master);
 											}
 											else if(strcmp(pkt.cmd, "PRIVMSG")==0)
 											{
-												rx_privmsg(b, packet, pdata);
+												rx_privmsg(pkt, b, false);
 											}
 											else if(strcmp(pkt.cmd, "NOTICE")==0)
 											{
-												rx_notice(b, packet);
+												rx_privmsg(pkt, b, true);
 											}
 											else if(strcmp(pkt.cmd, "TOPIC")==0)
 											{
-												rx_topic(b, packet);
+												rx_topic(pkt, b);
 											}
 											else if(strcmp(pkt.cmd, "JOIN")==0)
 											{
-												rx_join(b, packet, pdata);
+												rx_join(pkt, b);
 											}
 											else if(strcmp(pkt.cmd, "PART")==0)
 											{
-												rx_part(b, packet, pdata);
+												rx_part(pkt, b);
 											}
 											else if(strcmp(pkt.cmd, "QUIT")==0)
 											{
-												rx_quit(b, packet, pdata);
+												rx_quit(pkt, b);
 											}
 											else if(strcmp(pkt.cmd, "NICK")==0)
 											{
-												rx_nick(b, packet, pdata);
+												rx_nick(pkt, b);
 											}
 											else
 											{

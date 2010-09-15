@@ -453,7 +453,7 @@ int irc_numeric(message pkt, int b)
 			// 353 dest {=|/|\*|@} #chan :([@|\+]nick)+
 			if(pkt.nargs<3)
 			{
-				w_buf_print(b, c_err, "Not enough arguments", "RPL_NAMREPLY: ");
+				e_buf_print(b, c_err, pkt, "RPL_NAMREPLY: Not enough arguments: ");
 				break;
 			}
 			for(b2=0;b2<nbufs;b2++)
@@ -484,7 +484,7 @@ int irc_numeric(message pkt, int b)
 			// 366 dest #chan :End of /NAMES list
 			if(pkt.nargs<1)
 			{
-				w_buf_print(b, c_err, "Not enough arguments", "RPL_ENDOFNAMES: ");
+				e_buf_print(b, c_err, pkt, "RPL_ENDOFNAMES: Not enough arguments: ");
 				break;
 			}
 			for(b2=0;b2<nbufs;b2++)
@@ -503,7 +503,7 @@ int irc_numeric(message pkt, int b)
 		case RPL_MOTD: // 372 dest :- <text>
 			if(pkt.nargs<2)
 			{
-				w_buf_print(b, c_err, "Not enough arguments", num==RPL_MOTD?"RPL_MOTD: ":num==RPL_MOTDSTART?"RPL_MOTDSTART: ":num==RPL_ENDOFMOTD?"RPL_ENDOFMOTD: ":"RPL_MOTD???: ");
+				e_buf_print(b, c_err, pkt, num==RPL_MOTD?"RPL_MOTD: Not enough arguments: ":num==RPL_MOTDSTART?"RPL_MOTDSTART: Not enough arguments: ":num==RPL_ENDOFMOTD?"RPL_ENDOFMOTD: Not enough arguments: ":"RPL_MOTD???: Not enough arguments: ");
 				break;
 			}
 			w_buf_print(b, c_notice[1], pkt.args[1], "");
@@ -511,7 +511,7 @@ int irc_numeric(message pkt, int b)
 		case ERR_NOMOTD: // 422 <dest> :MOTD File is missing
 			if(pkt.nargs<2)
 			{
-				w_buf_print(b, c_err, "Not enough arguments", "ERR_NOMOTD: ");
+				e_buf_print(b, c_err, pkt, "ERR_NOMOTD: Not enough arguments: ");
 				break;
 			}
 			w_buf_print(b, c_notice[1], pkt.args[1], "");
@@ -519,7 +519,7 @@ int irc_numeric(message pkt, int b)
 		case RPL_TOPIC: // 332 dest <channel> :<topic>
 			if(pkt.nargs<3)
 			{
-				w_buf_print(b, c_err, "Not enough arguments", "RPL_TOPIC: ");
+				e_buf_print(b, c_err, pkt, "RPL_TOPIC: Not enough arguments: ");
 				break;
 			}
 			for(b2=0;b2<nbufs;b2++)
@@ -537,7 +537,7 @@ int irc_numeric(message pkt, int b)
 		case RPL_NOTOPIC: // 331 dest <channel> :No topic is set
 			if(pkt.nargs<2)
 			{
-				w_buf_print(b, c_err, "Not enough arguments", "RPL_NOTOPIC: ");
+				e_buf_print(b, c_err, pkt, "RPL_NOTOPIC: Not enough arguments: ");
 				break;
 			}
 			for(b2=0;b2<nbufs;b2++)
@@ -554,7 +554,7 @@ int irc_numeric(message pkt, int b)
 		case RPL_X_TOPICWASSET: // 331 dest <channel> <nick> <time>
 			if(pkt.nargs<3)
 			{
-				w_buf_print(b, c_err, "Not enough arguments", "RPL_X_TOPICWASSET: ");
+				e_buf_print(b, c_err, pkt, "RPL_X_TOPICWASSET: Not enough arguments: ");
 				break;
 			}
 			for(b2=0;b2<nbufs;b2++)
@@ -576,7 +576,7 @@ int irc_numeric(message pkt, int b)
 		case RPL_LUSERME: // 255 <dest> ":I have <integer> clients and <integer> servers
 			if(pkt.nargs<2)
 			{
-				w_buf_print(b, c_err, "Not enough arguments", num==RPL_LUSERCLIENT?"RPL_LUSERCLIENT: ":num==RPL_LUSERME?"RPL_LUSERME: ":"RPL_LUSER???: ");
+				e_buf_print(b, c_err, pkt, num==RPL_LUSERCLIENT?"RPL_LUSERCLIENT: Not enough arguments: ":num==RPL_LUSERME?"RPL_LUSERME: Not enough arguments: ":"RPL_LUSER???: Not enough arguments: ");
 				break;
 			}
 			w_buf_print(b, c_status, pkt.args[1], ": ");
@@ -586,7 +586,7 @@ int irc_numeric(message pkt, int b)
 		case RPL_LUSERCHANNELS: // 254 <dest> <integer> :channels formed
 			if(pkt.nargs<3)
 			{
-				w_buf_print(b, c_err, "Not enough arguments", num==RPL_LUSEROP?"RPL_LUSEROP: ":num==RPL_LUSERUNKNOWN?"RPL_LUSERUNKNOWN: ":num==RPL_LUSERCHANNELS?"RPL_LUSERCHANNELS":"RPL_LUSER???: ");
+				e_buf_print(b, c_err, pkt, num==RPL_LUSEROP?"RPL_LUSEROP: Not enough arguments: ":num==RPL_LUSERUNKNOWN?"RPL_LUSERUNKNOWN: Not enough arguments: ":num==RPL_LUSERCHANNELS?"RPL_LUSERCHANNELS: Not enough arguments: ":"RPL_LUSER???: Not enough arguments: ");
 				break;
 			}
 			else
@@ -600,13 +600,13 @@ int irc_numeric(message pkt, int b)
 		case RPL_X_GLOBALUSERS: // 266 <dest> :Current Global Users: <integer>\tMax: <integer>
 			if(pkt.nargs<2)
 			{
-				w_buf_print(b, c_err, "Not enough arguments", num==RPL_X_LOCALUSERS?"RPL_X_LOCALUSERS: ":num==RPL_X_GLOBALUSERS?"RPL_X_GLOBALUSERS: ":"RPL_???USERS: ");
+				e_buf_print(b, c_err, pkt, num==RPL_X_LOCALUSERS?"RPL_X_LOCALUSERS: Not enough arguments: ":num==RPL_X_GLOBALUSERS?"RPL_X_GLOBALUSERS: Not enough arguments: ":"RPL_???USERS: Not enough arguments: ");
 				break;
 			}
 			w_buf_print(b, c_status, pkt.args[1], ": ");
 		break;
 		default:
-			e_buf_print(b, c_unn, pkt, "Unknown numeric ");
+			e_buf_print(b, c_unn, pkt, "Unknown numeric: ");
 		break;
 	}
 	return(num);
@@ -617,7 +617,7 @@ int rx_ping(message pkt, int b)
 	// PING <sender>
 	if(pkt.nargs<1)
 	{
-		w_buf_print(b, c_err, "Not enough arguments", "PING: ");
+		e_buf_print(b, c_err, pkt, "Not enough arguments: ");
 		return(0);
 	}
 	char pong[8+strlen(username)+strlen(pkt.args[0])];
@@ -625,11 +625,12 @@ int rx_ping(message pkt, int b)
 	return(irc_tx(bufs[b].server, pong));
 }
 
-int rx_mode(servlist * serv, int b)
+int rx_mode(int b)
 {
 	// MODE <nick> ({\+|-}{i|w|o|O|r}*)*
 	// We don't recognise modes yet, other than as a trigger for auto-join
 	int fd=bufs[b].handle;
+	servlist *serv=bufs[b].autoent;
 	if(autojoin && serv->chans && !serv->join)
 	{
 		chanlist * curr=serv->chans;
@@ -651,9 +652,9 @@ int rx_mode(servlist * serv, int b)
 int rx_kill(message pkt, int b, fd_set *master)
 {
 	// KILL <nick> <comment>
-	if(pkt.nargs<2)
+	if(pkt.nargs<1)
 	{
-		w_buf_print(b, c_err, "Not enough arguments", "KILL: ");
+		e_buf_print(b, c_err, pkt, "Not enough arguments: ");
 		return(0);
 	}
 	int fd=bufs[b].handle;
@@ -666,7 +667,7 @@ int rx_kill(message pkt, int b, fd_set *master)
 		{
 			if((bufs[b2].server==b) || (bufs[b2].server==0))
 			{
-				w_buf_print(b2, c_quit[0], pkt.args[1], "KILLed: ");
+				w_buf_print(b2, c_quit[0], pkt.args<2?"":pkt.args[1], "KILLed: ");
 				bufs[b2].live=false;
 			}
 		}
@@ -681,9 +682,18 @@ int rx_kill(message pkt, int b, fd_set *master)
 			{
 				if(n_cull(&bufs[b2].nlist, pkt.args[0]))
 				{
-					char kmsg[24+strlen(pkt.args[0])+strlen(bufs[b].bname)];
-					sprintf(kmsg, "=%s= has left %s (killed)", pkt.args[0], bufs[b].bname);
-					w_buf_print(b2, c_quit[1], kmsg, "");
+					if(pkt.nargs<2)
+					{
+						char kmsg[24+strlen(pkt.args[0])+strlen(bufs[b].bname)];
+						sprintf(kmsg, "=%s= has left %s (Killed)", pkt.args[0], bufs[b].bname);
+						w_buf_print(b2, c_quit[1], kmsg, "");
+					}
+					else
+					{
+						char kmsg[28+strlen(pkt.args[0])+strlen(pkt.args[1])+strlen(bufs[b].bname)];
+						sprintf(kmsg, "=%s= has left %s (Killed: %s)", pkt.args[0], bufs[b].bname, pkt.args[1]);
+						w_buf_print(b2, c_quit[1], kmsg, "");
+					}
 				}
 			}
 		}
@@ -691,23 +701,23 @@ int rx_kill(message pkt, int b, fd_set *master)
 	return(0);
 }
 
-int rx_kick(int b)
+int rx_kick(message pkt, int b)
 {
-	char *chn=strtok(NULL, " \t"); // channel to kick from
-	char *dest=strtok(NULL, " \t"); // user to be kicked
-	if(!isalpha(*dest))
-		dest++;
-	char *rest=strtok(NULL, ""); // reason
-	if(*rest==':')
-		rest++;
-	if(irc_strcasecmp(dest, bufs[b].nick, bufs[b].casemapping)==0) // if it's us, generate a message and de-live the channel
+	// KICK #chan user [comment]
+	// From RFC2812: "The server MUST NOT send KICK messages with multiple channels or users to clients.  This is necessarily to maintain backward compatibility with old client software."
+	if(pkt.nargs<2)
+	{
+		e_buf_print(b, c_err, pkt, "Not enough arguments: ");
+		return(0);
+	}
+	if(irc_strcasecmp(pkt.args[1], bufs[b].nick, bufs[b].casemapping)==0) // if it's us, generate a message and de-live the channel
 	{
 		int b2;
 		for(b2=1;b2<nbufs;b2++)
 		{
-			if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(chn, bufs[b2].bname, bufs[b].casemapping)==0))
+			if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(pkt.args[0], bufs[b2].bname, bufs[b].casemapping)==0))
 			{
-				w_buf_print(b2, c_quit[0], rest, "Kicked: ");
+				w_buf_print(b2, c_quit[0], pkt.nargs<3?"(No reason)":pkt.args[2], "Kicked: ");
 				bufs[b2].live=false;
 			}
 		}
@@ -718,13 +728,22 @@ int rx_kick(int b)
 		int b2;
 		for(b2=1;b2<nbufs;b2++)
 		{
-			if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(chn, bufs[b2].bname, bufs[b].casemapping)==0))
+			if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(pkt.args[0], bufs[b2].bname, bufs[b].casemapping)==0))
 			{
-				if(n_cull(&bufs[b2].nlist, dest))
+				if(n_cull(&bufs[b2].nlist, pkt.args[1]))
 				{
-					char kmsg[32+strlen(dest)+strlen(rest)];
-					sprintf(kmsg, "=%s= was kicked.  Reason: %s", dest, rest);
-					w_buf_print(b2, c_quit[1], kmsg, "");
+					if(pkt.nargs<3)
+					{
+						char kmsg[32+strlen(pkt.args[1])];
+						sprintf(kmsg, "=%s= was kicked.  (No reason)", pkt.args[1]);
+						w_buf_print(b2, c_quit[1], kmsg, "");
+					}
+					else
+					{
+						char kmsg[32+strlen(pkt.args[1])+strlen(pkt.args[2])];
+						sprintf(kmsg, "=%s= was kicked.  Reason: %s", pkt.args[1], pkt.args[2]);
+						w_buf_print(b2, c_quit[1], kmsg, "");
+					}
 				}
 			}
 		}
@@ -732,40 +751,45 @@ int rx_kick(int b)
 	return(0);
 }
 
-int rx_error(int b, fd_set *master)
+int rx_error(message pkt, int b, fd_set *master)
 {
+	// ERROR [message]
 	// assume it's fatal
 	int fd=bufs[b].handle;
 	close(fd);
 	FD_CLR(fd, master);
-	char *rest=strtok(NULL, "");
-	if(*rest==':')
-		rest++;
 	int b2;
 	for(b2=1;b2<nbufs;b2++)
 	{
 		if((bufs[b2].server==b) || (bufs[b2].server==0))
 		{
-			w_buf_print(b2, c_quit[0], rest, "Disconnected: ERROR ");
+			e_buf_print(b2, c_quit[0], pkt, "Disconnected: ");
 			bufs[b2].live=false;
 		}
 	}
 	return(redraw_buffer());
 }
 
-int rx_privmsg(int b, char *packet, char *pdata)
+int rx_privmsg(message pkt, int b, bool notice)
 {
-	char *dest=strtok(NULL, " \t");
-	char *msg=dest+strlen(dest)+2; // prefixed with :
-	char *src=packet+1;
-	char *host=strchr(src, '@');
-	if(host)
-		host++;
+	// :nick!user@server PRIVMSG msgtarget text
+	// :nick!user@server NOTICE msgtarget text
+	if(pkt.nargs<2)
+	{
+		e_buf_print(b, c_err, pkt, "Not enough arguments: ");
+		return(0);
+	}
+	char *src=pkt.prefix?pkt.prefix:""
 	char *bang=strchr(src, '!');
 	if(bang)
 		*bang++=0;
-	if(!isalpha(*src))
-		src++;
+	else
+		bang="";
+	char *host=strchr(bang, '@');
+	if(host)
+		*host++=0;
+	else
+		host="";
 	char nm[strlen(src)+strlen(bang)+strlen(host)+3];
 	char *from=strdup(src);
 	crush(&from, maxnlen);
@@ -773,7 +797,7 @@ int rx_privmsg(int b, char *packet, char *pdata)
 	bool match=false;
 	for(b2=0;b2<nbufs;b2++)
 	{
-		if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(dest, bufs[b2].bname, bufs[b].casemapping)==0))
+		if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(pkt.args[0], bufs[b2].bname, bufs[b].casemapping)==0))
 		{
 			match=true;
 			sprintf(nm, "%s@%s", src, host);
@@ -791,16 +815,16 @@ int rx_privmsg(int b, char *packet, char *pdata)
 				break;
 			if(i_match(bufs[b2].ilist, nm, false, bufs[b].casemapping))
 				continue;
-			if(*msg==1) // CTCP
+			if(*pkt.args[1]==1) // CTCP
 			{
-				ctcp(msg, from, src, b2);
+				ctcp(pkt.args[1], from, src, b2);
 			}
 			else
 			{
 				char tag[maxnlen+4]; // TODO this tag-making bit ought to be refactored really
 				memset(tag, ' ', maxnlen+3);
 				sprintf(tag+maxnlen-strlen(from), "<%s> ", from);
-				w_buf_print(b2, c_msg[1], msg, tag);
+				w_buf_print(b2, notice?c_notice[1]:c_msg[1], pkt.args[1], tag);
 			}
 		}
 	}
@@ -815,114 +839,104 @@ int rx_privmsg(int b, char *packet, char *pdata)
 		sprintf(nm, "%s", src);
 		if(i_match(bufs[b].ilist, nm, true, bufs[b].casemapping)||i_match(bufs[0].ilist, nm, true, bufs[b].casemapping))
 			return(0);
-		if(irc_strcasecmp(dest, bufs[b].nick, bufs[b].casemapping)==0)
+		if(irc_strcasecmp(pkt.args[0], bufs[b].nick, bufs[b].casemapping)==0)
 		{
 			if(*msg==1) // CTCP
 			{
-				ctcp(msg, from, src, b);
+				ctcp(pkt.args[1], from, src, b);
 			}
 			else
 			{
 				char tag[maxnlen+9];
 				memset(tag, ' ', maxnlen+8);
 				sprintf(tag+maxnlen-strlen(from), "(from %s) ", from);
-				w_buf_print(b, c_msg[1], msg, tag);
+				w_buf_print(b, notice?c_notice[1]:c_msg[1], pkt.args[1], tag);
 			}
 		}
 		else
 		{
-			w_buf_print(b, c_err, pdata, "?? ");
+			e_buf_print(b, c_err, pkt, "Bad destination: ");
 		}
 	}
 	free(from);
 	return(0);
 }
 
-int rx_notice(int b, char *packet)
+int rx_topic(message pkt, int b)
 {
-	char *dest=strtok(NULL, " ");
-	char *msg=dest+strlen(dest)+2; // prefixed with :
-	char *src=packet+1;
-	char *host=strchr(src, '@');
-	if(host)
-		host++;
-	else
-		host="";
-	char *bang=strchr(src, '!');
-	if(bang)
-		*bang++=0;
-	else
-		bang="";
-	if(!isalpha(*src))
-		src++;
-	char nm[strlen(src)+strlen(bang)+strlen(host)+3];
-	sprintf(nm, "%s@%s", src, host);
-	if(i_match(bufs[b].ilist, nm, true, bufs[b].casemapping)||i_match(bufs[0].ilist, nm, true, bufs[b].casemapping))
+	// TOPIC <dest> [<topic>]
+	if(pkt.nargs<1)
+	{
+		e_buf_print(b, c_err, pkt, "Not enough arguments: ");
 		return(0);
-	sprintf(nm, "%s@%s", bang, host);
-	if(i_match(bufs[b].ilist, nm, true, bufs[b].casemapping)||i_match(bufs[0].ilist, nm, true, bufs[b].casemapping))
-		return(0);
-	sprintf(nm, "%s", src);
-	if(i_match(bufs[b].ilist, nm, true, bufs[b].casemapping)||i_match(bufs[0].ilist, nm, true, bufs[b].casemapping))
-		return(0);
-	char *from=strdup(src);
-	scrush(&from, maxnlen);
-	char tag[maxnlen+9];
-	memset(tag, ' ', maxnlen+8);
-	sprintf(tag+maxnlen-strlen(from), "(from %s) ", from);
-	free(from);
-	return(w_buf_print(b, c_notice[1], msg, tag));
-}
-
-int rx_topic(int b, char *packet)
-{
-	// <dest> :<topic>
-	char *dest=strtok(NULL, " ");
-	char *msg=dest+strlen(dest)+2; // prefixed with :
-	char *src=packet+1;
+	}
+	char *src=pkt.prefix?pkt.prefix:"";
 	char *bang=strchr(src, '!');
 	if(bang)
 		*bang=0;
 	char *from=strdup(src);
 	scrush(&from, maxnlen);
-	char tag[maxnlen+20];
-	sprintf(tag, "%s set the Topic to ", from);
-	free(from);
-	int b2;
-	bool match=false;
-	for(b2=0;b2<nbufs;b2++)
+	if(pkt.nargs<2)
 	{
-		if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(dest, bufs[b2].bname, bufs[b].casemapping)==0))
+		char tag[maxnlen+20];
+		sprintf(tag, "%s removed the Topic", from);
+		int b2;
+		bool match=false;
+		for(b2=0;b2<nbufs;b2++)
 		{
-			w_buf_print(b2, c_notice[1], msg, tag);
-			match=true;
-			if(bufs[b2].topic) free(bufs[b2].topic);
-			bufs[b2].topic=strdup(msg);
+			if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(pkt.args[0], bufs[b2].bname, bufs[b].casemapping)==0))
+			{
+				w_buf_print(b2, c_notice[1], "", tag);
+				match=true;
+				if(bufs[b2].topic) free(bufs[b2].topic);
+				bufs[b2].topic=NULL;
+			}
 		}
 	}
+	else
+	{
+		char tag[maxnlen+20];
+		sprintf(tag, "%s set the Topic to ", from);
+		int b2;
+		bool match=false;
+		for(b2=0;b2<nbufs;b2++)
+		{
+			if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(dest, bufs[b2].bname, bufs[b].casemapping)==0))
+			{
+				w_buf_print(b2, c_notice[1], pkt.args[1], tag);
+				match=true;
+				if(bufs[b2].topic) free(bufs[b2].topic);
+				bufs[b2].topic=strdup(msg);
+			}
+		}
+	}
+	free(from);
 	return(match?0:1);
 }
 
-int rx_join(int b, char *packet, char *pdata)
+int rx_join(message pkt, int b)
 {
-	char *dest=strtok(NULL, " \t");
-	char *src=packet+1;
+	// :nick!user@server JOIN #chan
+	if(pkt.nargs<1)
+	{
+		e_buf_print(b, c_err, pkt, "Not enough arguments: ");
+		return(0);
+	}
+	char *src=pkt.prefix?pkt.prefix:""
 	char *bang=strchr(src, '!');
 	if(bang)
-		*bang=0;
-	if(!isalpha(*src))
-		src++;
+		*bang++=0;
 	if(strcmp(src, bufs[b].nick)==0)
 	{
-		char dstr[20+strlen(src)+strlen(dest+1)];
-		sprintf(dstr, "You (%s) have joined %s", src, dest+1);
-		char cstr[16+strlen(src)+strlen(dest+1)];
-		sprintf(cstr, "quIRC - %s on %s", src, dest+1);
+		char dstr[20+strlen(src)+strlen(pkt.args[0])];
+		sprintf(dstr, "You (%s) have joined %s", src, pkt.args[0]);
+		char cstr[16+strlen(src)+strlen(pkt.args[0])];
+		sprintf(cstr, "quIRC - %s on %s", src, pkt.args[0]);
 		settitle(cstr);
 		int b2;
 		for(b2=1;b2<nbufs;b2++)
 		{
-			if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(dest+1, bufs[b2].bname, bufs[b].casemapping)==0))
+			if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(pkt.args[0], bufs[b2].bname, bufs[b].casemapping)==0))
 			{
 				cbuf=b2;
 				break;
@@ -945,38 +959,41 @@ int rx_join(int b, char *packet, char *pdata)
 		bool match=false;
 		for(b2=0;b2<nbufs;b2++)
 		{
-			if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(dest+1, bufs[b2].bname, bufs[b].casemapping)==0))
+			if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(pkt.args[0], bufs[b2].bname, bufs[b].casemapping)==0))
 			{
 				match=true;
-				char dstr[16+strlen(src)+strlen(dest+1)];
-				sprintf(dstr, "=%s= has joined %s", src, dest+1);
+				char dstr[16+strlen(src)+strlen(pkt.args[0])];
+				sprintf(dstr, "=%s= has joined %s", src, pkt.args[0]);
 				w_buf_print(b2, c_join[1], dstr, "");
 				n_add(&bufs[b2].nlist, src);
 			}
 		}
 		if(!match)
 		{
-			w_buf_print(b, c_err, pdata, "?? ");
+			e_buf_print(b, c_err, pkt, "Bad destination: ");
 		}
 	}
 	return(0);
 }
 
-int rx_part(int b, char *packet, char *pdata)
+int rx_part(message pkt, int b)
 {
-	char *dest=strtok(NULL, " \t");
-	char *src=packet+1;
+	// :nick!user@server PART #chan message
+	if(pkt.nargs<1)
+	{
+		e_buf_print(b, c_err, pkt, "Not enough arguments: ");
+		return(0);
+	}
+	char *src=pkt.prefix?pkt.prefix:""
 	char *bang=strchr(src, '!');
 	if(bang)
-		*bang=0;
-	if(!isalpha(*src))
-		src++;
+		*bang++=0;
 	if(strcmp(src, bufs[b].nick)==0)
 	{
 		int b2;
 		for(b2=0;b2<nbufs;b2++)
 		{
-			if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(dest, bufs[b2].bname, bufs[b].casemapping)==0))
+			if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(pkt.args[0], bufs[b2].bname, bufs[b].casemapping)==0))
 			{
 				if(b2==cbuf)
 				{
@@ -985,6 +1002,7 @@ int rx_part(int b, char *packet, char *pdata)
 					sprintf(cstr, "quIRC - connected to %s", bufs[b].bname);
 					settitle(cstr);
 				}
+				bufs[b2].live=false;
 				free_buffer(b2);
 			}
 		}
@@ -995,35 +1013,43 @@ int rx_part(int b, char *packet, char *pdata)
 		bool match=false;
 		for(b2=0;b2<nbufs;b2++)
 		{
-			if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(dest, bufs[b2].bname, bufs[b].casemapping)==0))
+			if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(pkt.args[0], bufs[b2].bname, bufs[b].casemapping)==0))
 			{
 				match=true;
-				char dstr[16+strlen(src)+strlen(dest)];
-				sprintf(dstr, "=%s= has left %s", src, dest);
-				w_buf_print(b2, c_part[1], dstr, "");
+				if(pkt.nargs<2)
+				{
+					char dstr[16+strlen(src)+strlen(pkt.args[0])];
+					sprintf(dstr, "=%s= has left %s", src, pkt.args[0]);
+					w_buf_print(b2, c_part[1], dstr, "");
+				}
+				else
+				{
+					char dstr[24+strlen(src)+strlen(pkt.args[0])+strlen(pkt.args[1])];
+					sprintf(dstr, "=%s= has left %s (Part: %s)", src, pkt.args[0], pkt.args[1]);
+					w_buf_print(b2, c_part[1], dstr, "");
+				}
 				n_cull(&bufs[b2].nlist, src);
 			}
 		}
 		if(!match)
 		{
-			w_buf_print(b, c_err, pdata, "?? ");
+			e_buf_print(b, c_err, pkt, "Bad destination: ");
 		}
 	}
 	return(0);
 }
 
-int rx_quit(int b, char *packet, char *pdata)
+int rx_quit(message pkt, int b)
 {
-	char *dest=strtok(NULL, "");
-	char *src=packet+1;
+	// :nick!user@server QUIT message
+	char *src=pkt.prefix?pkt.prefix:""
 	char *bang=strchr(src, '!');
 	if(bang)
-		*bang=0;
-	if(!isalpha(*src))
-		src++;
+		*bang++=0;
+	char *reason=pkt.nargs>0?pkt.args[0]:"";
 	if(strcmp(src, bufs[b].nick)==0) // this shouldn't happen
 	{
-		w_buf_print(b, c_err, pdata, "?? ");
+		e_buf_print(b, c_err, pkt, "Should not be from us: ");
 	}
 	else
 	{
@@ -1034,8 +1060,8 @@ int rx_quit(int b, char *packet, char *pdata)
 			{
 				if(n_cull(&bufs[b2].nlist, src))
 				{
-					char dstr[24+strlen(src)+strlen(bufs[b].bname)+strlen(dest+1)];
-					sprintf(dstr, "=%s= has left %s (%s)", src, bufs[b].bname, dest+1);
+					char dstr[24+strlen(src)+strlen(bufs[b].bname)+strlen(reason)];
+					sprintf(dstr, "=%s= has left %s (%s)", src, bufs[b].bname, reason);
 					w_buf_print(b2, c_quit[1], dstr, "");
 				}
 			}

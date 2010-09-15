@@ -67,12 +67,11 @@ int irc_strncasecmp(char *c1, char *c2, int n, cmap casemapping);
 // Received-IRC message handlers
 int irc_numeric(message pkt, int b);
 int rx_ping(message pkt, int b);
-int rx_mode(servlist * serv, int b); // the first MODE triggers auto-join.  Apart from using it as a trigger, we don't look at modes just yet
+int rx_mode(int b); // the first MODE triggers auto-join.  Apart from using it as a trigger, we don't look at modes just yet
 int rx_kill(message pkt, int b, fd_set *master);
 int rx_kick(message pkt, int b);
 int rx_error(message pkt, int b, fd_set *master);
-int rx_privmsg(message pkt, int b);
-int rx_notice(message pkt, int b);
+int rx_privmsg(message pkt, int b, bool notice);
 int rx_topic(message pkt, int b);
 int rx_join(message pkt, int b);
 int rx_part(message pkt, int b);
