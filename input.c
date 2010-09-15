@@ -1173,14 +1173,16 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					}
 					else
 					{
-						char *iusr=strtok(arg, "@");
-						char *ihst=strtok(NULL, "");
+						char *isrc,*iusr,*ihst;
+						prefix_split(arg, &isrc, &iusr, &ihst);
+						if((!isrc) || (*isrc==0) || (*isrc=='*'))
+							isrc="[^!@]*";
 						if((!iusr) || (*iusr==0) || (*iusr=='*'))
-							iusr="[^@]*";
+							iusr="[^!@]*";
 						if((!ihst) || (*ihst==0) || (*ihst=='*'))
 							ihst="[^@]*";
-						char expr[10+strlen(iusr)+strlen(ihst)];
-						sprintf(expr, "^%s[_~]*@%s$", iusr, ihst);
+						char expr[16+strlen(isrc)+strlen(iusr)+strlen(ihst)];
+						sprintf(expr, "^%s[_~]*!%s@%s$", isrc, iusr, ihst);
 						name *new=n_add(&bufs[cbuf].ilist, expr);
 						if(new)
 						{

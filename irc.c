@@ -232,6 +232,22 @@ void message_free(message pkt)
 		if(pkt.args[arg]) free(pkt.args[arg]);
 }
 
+void prefix_split(char * prefix, char **src, char **user, char **host)
+{
+	// {server|nick[[!user]@host]}
+	*src=prefix?prefix:"";
+	*host=strchr(*src, '@');
+	if(*host)
+		**host++=0;
+	else
+		*host="";
+	*user=strchr(*src, '!');
+	if(*user)
+		**user++=0;
+	else
+		*user="";
+}
+
 void low_quote(char *from, char to[512])
 {
 	int o=0;
@@ -442,6 +458,10 @@ int irc_numeric(message pkt, int b)
 						bufs[b].casemapping=RFC1459;
 					}
 				}
+				else if(strcmp(rest, "PREFIX")==0)
+				{
+					bufs[b].prefixes=value?strdup(value):NULL;
+				}
 				else
 				{
 					char isup[strlen(rest)+(value?strlen(value):0)+3];
@@ -457,6 +477,9 @@ int irc_numeric(message pkt, int b)
 				e_buf_print(b, c_err, pkt, "RPL_NAMREPLY: Not enough arguments: ");
 				break;
 			}
+			char *plist=bufs[bufs[b].server].prefixes?strchr(bufs[bufs[b].server].prefixes, ')'):NULL;
+			if(plist)
+				plist++;
 			for(b2=0;b2<nbufs;b2++)
 			{
 				if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(pkt.args[2], bufs[b2].bname, bufs[b].casemapping)==0))
@@ -470,8 +493,11 @@ int irc_numeric(message pkt, int b)
 					char *nn=strtok(pkt.args[3], " ");
 					while(nn)
 					{
-						if((*nn=='@')||(*nn=='+'))
-							nn++;
+						if(plist) // skip over prefix characters
+						{
+							while(strchr(plist, *nn))
+								nn++;
+						}
 						n_add(&bufs[b2].nlist, nn);
 						nn=strtok(NULL, " ");
 					}
@@ -772,25 +798,17 @@ int rx_error(message pkt, int b, fd_set *master)
 
 int rx_privmsg(message pkt, int b, bool notice)
 {
-	// :nick!user@server PRIVMSG msgtarget text
-	// :nick!user@server NOTICE msgtarget text
+	// :nick[[!user]@host] PRIVMSG msgtarget text
+	// :nick[[!user]@host] NOTICE msgtarget text
 	if(pkt.nargs<2)
 	{
 		e_buf_print(b, c_err, pkt, "Not enough arguments: ");
 		return(0);
 	}
-	char *src=pkt.prefix?pkt.prefix:"";
-	char *bang=strchr(src, '!');
-	if(bang)
-		*bang++=0;
-	else
-		bang="";
-	char *host=strchr(bang, '@');
-	if(host)
-		*host++=0;
-	else
-		host="";
-	char nm[strlen(src)+strlen(bang)+strlen(host)+3];
+	char *src, *user, *host;
+	prefix_split(pkt.prefix, &src, &user, &host);
+	char nm[strlen(src)+strlen(user)+strlen(host)+3];
+	sprintf(nm, "%s!%s@%s", src, user, host);
 	char *from=strdup(src);
 	crush(&from, maxnlen);
 	int b2;
@@ -800,17 +818,6 @@ int rx_privmsg(message pkt, int b, bool notice)
 		if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(pkt.args[0], bufs[b2].bname, bufs[b].casemapping)==0))
 		{
 			match=true;
-			sprintf(nm, "%s@%s", src, host);
-			if(i_match(bufs[b].ilist, nm, false, bufs[b].casemapping)||i_match(bufs[0].ilist, nm, false, bufs[b].casemapping))
-				break;
-			if(i_match(bufs[b2].ilist, nm, false, bufs[b].casemapping))
-				continue;
-			sprintf(nm, "%s@%s", bang, host);
-			if(i_match(bufs[b].ilist, nm, false, bufs[b].casemapping)||i_match(bufs[0].ilist, nm, false, bufs[b].casemapping))
-				break;
-			if(i_match(bufs[b2].ilist, nm, false, bufs[b].casemapping))
-				continue;
-			sprintf(nm, "%s", src);
 			if(i_match(bufs[b].ilist, nm, false, bufs[b].casemapping)||i_match(bufs[0].ilist, nm, false, bufs[b].casemapping))
 				break;
 			if(i_match(bufs[b2].ilist, nm, false, bufs[b].casemapping))
@@ -830,13 +837,6 @@ int rx_privmsg(message pkt, int b, bool notice)
 	}
 	if(!match)
 	{
-		sprintf(nm, "%s@%s", src, host);
-		if(i_match(bufs[b].ilist, nm, true, bufs[b].casemapping)||i_match(bufs[0].ilist, nm, true, bufs[b].casemapping))
-			return(0);
-		sprintf(nm, "%s@%s", bang, host);
-		if(i_match(bufs[b].ilist, nm, true, bufs[b].casemapping)||i_match(bufs[0].ilist, nm, true, bufs[b].casemapping))
-			return(0);
-		sprintf(nm, "%s", src);
 		if(i_match(bufs[b].ilist, nm, true, bufs[b].casemapping)||i_match(bufs[0].ilist, nm, true, bufs[b].casemapping))
 			return(0);
 		if((irc_strcasecmp(pkt.args[0], bufs[b].nick, bufs[b].casemapping)==0) || (irc_strcasecmp(pkt.args[0], "AUTH", bufs[b].casemapping)==0))
@@ -870,10 +870,8 @@ int rx_topic(message pkt, int b)
 		e_buf_print(b, c_err, pkt, "Not enough arguments: ");
 		return(0);
 	}
-	char *src=pkt.prefix?pkt.prefix:"";
-	char *bang=strchr(src, '!');
-	if(bang)
-		*bang=0;
+	char *src, *user, *host;
+	prefix_split(pkt.prefix, &src, &user, &host);
 	char *from=strdup(src);
 	scrush(&from, maxnlen);
 	bool match=false;
@@ -915,16 +913,14 @@ int rx_topic(message pkt, int b)
 
 int rx_join(message pkt, int b)
 {
-	// :nick!user@server JOIN #chan
+	// :nick[[!user]@host] JOIN #chan
 	if(pkt.nargs<1)
 	{
 		e_buf_print(b, c_err, pkt, "Not enough arguments: ");
 		return(0);
 	}
-	char *src=pkt.prefix?pkt.prefix:"";
-	char *bang=strchr(src, '!');
-	if(bang)
-		*bang++=0;
+	char *src, *user, *host;
+	prefix_split(pkt.prefix, &src, &user, &host);
 	if(strcmp(src, bufs[b].nick)==0)
 	{
 		char dstr[20+strlen(src)+strlen(pkt.args[0])];
@@ -977,16 +973,14 @@ int rx_join(message pkt, int b)
 
 int rx_part(message pkt, int b)
 {
-	// :nick!user@server PART #chan message
+	// :nick[[!user]@host] PART #chan message
 	if(pkt.nargs<1)
 	{
 		e_buf_print(b, c_err, pkt, "Not enough arguments: ");
 		return(0);
 	}
-	char *src=pkt.prefix?pkt.prefix:"";
-	char *bang=strchr(src, '!');
-	if(bang)
-		*bang++=0;
+	char *src, *user, *host;
+	prefix_split(pkt.prefix, &src, &user, &host);
 	if(strcmp(src, bufs[b].nick)==0)
 	{
 		int b2;
@@ -1040,11 +1034,9 @@ int rx_part(message pkt, int b)
 
 int rx_quit(message pkt, int b)
 {
-	// :nick!user@server QUIT message
-	char *src=pkt.prefix?pkt.prefix:"";
-	char *bang=strchr(src, '!');
-	if(bang)
-		*bang++=0;
+	// :nick[[!user]@host] QUIT message
+	char *src, *user, *host;
+	prefix_split(pkt.prefix, &src, &user, &host);
 	char *reason=pkt.nargs>0?pkt.args[0]:"";
 	if(strcmp(src, bufs[b].nick)==0) // this shouldn't happen
 	{
@@ -1071,16 +1063,14 @@ int rx_quit(message pkt, int b)
 
 int rx_nick(message pkt, int b)
 {
-	// :nick!user@server NICK newnick
+	// :nick[[!user]@host] NICK newnick
 	if(pkt.nargs<1)
 	{
 		e_buf_print(b, c_err, pkt, "Not enough arguments: ");
 		return(0);
 	}
-	char *src=pkt.prefix?pkt.prefix:"";
-	char *bang=strchr(src, '!');
-	if(bang)
-		*bang++=0;
+	char *src, *user, *host;
+	prefix_split(pkt.prefix, &src, &user, &host);
 	if((strcmp(src, bufs[b].nick)==0)||(strcmp(pkt.args[0], bufs[b].nick)==0))
 	{
 		char dstr[30+strlen(src)+strlen(pkt.args[0])];

@@ -56,6 +56,8 @@ int irc_rx(int fd, char ** data);
 
 message irc_breakdown(char *packet);
 void message_free(message pkt);
+void prefix_split(char * prefix, char **src, char **user, char **host);
+
 void low_quote(char *from, char to[512]);
 char * low_dequote(char *buf);
 
