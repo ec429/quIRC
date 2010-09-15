@@ -20,6 +20,7 @@
 #include "colour.h"
 #include "config.h"
 #include "bits.h"
+#include "input.h"
 #include "irc.h"
 #include "names.h"
 #include "text.h"
@@ -57,6 +58,7 @@ typedef struct _buf
 	int hi_alert; // high-level alert status: 0 = none; 1: on (if alert then flashing else single flash); 2: off (flashing)
 	bool namreply; // tab is in the middle of reading a list of NAMES replies (RPL_NAMREPLY)?
 	bool live; // tab is connected?  when checking in a CHANNEL, remember to AND it with the parent's live (use LIVE(buf), defined further up this file)
+	ibuffer input; // input history
 	cmap casemapping; // the SERVER's value is authoritative; the CHANNEL's value is ignored.  STATUS's value is irrelevant.  Set by ISUPPORT
 	char *prefixes; // ^^
 	servlist * autoent; // if this was opened by autoconnect(), this is filled in to point to the server's servlist entry

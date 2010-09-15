@@ -123,6 +123,14 @@ int inputchar(char **inp, int *state)
 			unsigned char d=getchar();
 			switch(d)
 			{
+				case 'A': // Up
+					bufs[cbuf].input.scroll=max(bufs[cbuf].input.scroll+2, bufs[cbuf].input.filled?bufs[cbuf].input.nlines-1:bufs[cbuf].input.ptr);
+					/* fall through */
+				case 'B': // Down
+					bufs[cbuf].input.scroll=min(bufs[cbuf].input.scroll-1, 0);
+					free(*inp);
+					*inp=strdup(bufs[cbuf].input.line[(bufs[cbuf].input.ptr+bufs[cbuf].input.nlines-bufs[cbuf].input.scroll)%bufs[cbuf].input.nlines]);
+				break;
 				case 'D': // left cursor counts as a backspace
 					if(ino)
 						(*inp)[ino-1]=0;
@@ -136,28 +144,49 @@ int inputchar(char **inp, int *state)
 				break;
 				case '5': // ^[[5
 				case '6': // ^[[6
-					if(getchar()==';')
+				{
+					unsigned char e=getchar();
+					switch(e)
 					{
-						if(getchar()=='5')
-						{
-							if(getchar()=='~')
+						case ';':
+							if(getchar()=='5')
 							{
-								if(d=='5') // C-PgUp
+								if(getchar()=='~')
 								{
-									bufs[cbuf].scroll=min(bufs[cbuf].scroll+height-2, bufs[cbuf].filled?bufs[cbuf].nlines-1:bufs[cbuf].ptr-1);
-									redraw_buffer();
-								}
-								else // d=='6' // C-PgDn
-								{
-									if(bufs[cbuf].scroll)
+									if(d=='5') // C-PgUp
 									{
-										bufs[cbuf].scroll=max(bufs[cbuf].scroll-(height-2), 0);
+										bufs[cbuf].scroll=min(bufs[cbuf].scroll+height-2, bufs[cbuf].filled?bufs[cbuf].nlines-1:bufs[cbuf].ptr-1);
 										redraw_buffer();
+									}
+									else // d=='6' // C-PgDn
+									{
+										if(bufs[cbuf].scroll)
+										{
+											bufs[cbuf].scroll=max(bufs[cbuf].scroll-(height-2), 0);
+											redraw_buffer();
+										}
 									}
 								}
 							}
-						}
+						break;
+						case '~':
+							if(d=='5') // PgUp
+							{
+								bufs[cbuf].input.scroll=max(bufs[cbuf].input.scroll+height, bufs[cbuf].input.filled?bufs[cbuf].input.nlines-1:bufs[cbuf].input.ptr);
+							}
+							else // d=='6' // PgDn
+							{
+								bufs[cbuf].input.scroll=min(bufs[cbuf].input.scroll-height, 0);
+							}
+							char *ln=bufs[cbuf].input.line[(bufs[cbuf].input.ptr+bufs[cbuf].input.nlines-bufs[cbuf].input.scroll)%bufs[cbuf].input.nlines];
+							if(ln)
+							{
+								free(*inp);
+								*inp=strdup(ln);
+							}
+						break;
 					}
+				}
 				break;
 				case '1': // ^[[1
 					if(getchar()==';')
@@ -216,6 +245,7 @@ int inputchar(char **inp, int *state)
 	if(c=='\n')
 	{
 		*state=3;
+		addtoibuf(&bufs[cbuf].input, *inp);
 	}
 	else
 	{
@@ -1244,4 +1274,42 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 	sprintf(dstr, "/%s: ", cmd);
 	w_buf_print(cbuf, c_err, "Unrecognised command!", dstr);
 	return(0);
+}
+
+void initibuf(ibuffer *i)
+{
+	i->nlines=buflines;
+	i->ptr=0;
+	i->scroll=0;
+	i->filled=false;
+	i->line=(char **)malloc(i->nlines*sizeof(char *));
+}
+
+void addtoibuf(ibuffer *i, char *data)
+{
+	if(i)
+	{
+		if(i->filled)
+		{
+			if(i->line[i->ptr])
+				free(i->line[i->ptr]);
+		}
+		i->line[i->ptr++]=strdup(data?data:"");
+		if(i->ptr>=i->nlines)
+		{
+			i->ptr=0;
+			i->filled=true;
+		}
+		i->scroll=0;
+	}
+}
+
+void freeibuf(ibuffer *i)
+{
+	int l;
+	for(l=0;l<(i->filled?i->nlines:i->ptr);l++)
+	{
+		if(i->line[l])
+			free(i->line[l]);
+	}
 }

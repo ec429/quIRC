@@ -52,6 +52,7 @@ int init_buffer(int buf, btype type, char *bname, int nlines)
 	bufs[buf].hi_alert=0;
 	bufs[buf].namreply=false;
 	bufs[buf].live=false;
+	initibuf(&bufs[buf].input);
 	bufs[buf].casemapping=RFC1459;
 	bufs[buf].prefixes=NULL;
 	bufs[buf].autoent=NULL;
@@ -79,6 +80,7 @@ int free_buffer(int buf)
 			free(bufs[buf].lt[l]);
 		free(bufs[buf].lt);
 		free(bufs[buf].ts);
+		freeibuf(&bufs[buf].input);
 		if(cbuf>=buf)
 			cbuf--;
 		nbufs--;
