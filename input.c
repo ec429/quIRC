@@ -123,13 +123,33 @@ int inputchar(char **inp, int *state)
 			unsigned char d=getchar();
 			switch(d)
 			{
-				case 'A': // Up
-					bufs[cbuf].input.scroll=max(bufs[cbuf].input.scroll+2, bufs[cbuf].input.filled?bufs[cbuf].input.nlines-1:bufs[cbuf].input.ptr);
-					/* fall through */
-				case 'B': // Down
-					bufs[cbuf].input.scroll=min(bufs[cbuf].input.scroll-1, 0);
-					free(*inp);
-					*inp=strdup(bufs[cbuf].input.line[(bufs[cbuf].input.ptr+bufs[cbuf].input.nlines-bufs[cbuf].input.scroll)%bufs[cbuf].input.nlines]);
+				case 'A': // ^[[A
+				case 'B': // ^[[B
+					if(d=='A') // Up
+					{
+						bufs[cbuf].input.scroll=min(bufs[cbuf].input.scroll+1, bufs[cbuf].input.filled?bufs[cbuf].input.nlines-1:bufs[cbuf].input.ptr);
+					}
+					else // d=='B' // Down
+					{
+						bufs[cbuf].input.scroll=max(bufs[cbuf].input.scroll-1, 0);
+					}
+					if(bufs[cbuf].input.ptr||bufs[cbuf].input.filled)
+					{
+						if(bufs[cbuf].input.scroll)
+						{
+							char *ln=bufs[cbuf].input.line[(bufs[cbuf].input.ptr+bufs[cbuf].input.nlines-bufs[cbuf].input.scroll)%bufs[cbuf].input.nlines];
+							if(ln)
+							{
+								free(*inp);
+								*inp=strdup(ln);
+							}
+						}
+						else
+						{
+							free(*inp);
+							*inp=NULL;
+						}
+					}
 				break;
 				case 'D': // left cursor counts as a backspace
 					if(ino)
@@ -172,17 +192,28 @@ int inputchar(char **inp, int *state)
 						case '~':
 							if(d=='5') // PgUp
 							{
-								bufs[cbuf].input.scroll=max(bufs[cbuf].input.scroll+height, bufs[cbuf].input.filled?bufs[cbuf].input.nlines-1:bufs[cbuf].input.ptr);
+								bufs[cbuf].input.scroll=min(bufs[cbuf].input.scroll+height, bufs[cbuf].input.filled?bufs[cbuf].input.nlines-1:bufs[cbuf].input.ptr);
 							}
 							else // d=='6' // PgDn
 							{
-								bufs[cbuf].input.scroll=min(bufs[cbuf].input.scroll-height, 0);
+								bufs[cbuf].input.scroll=max(bufs[cbuf].input.scroll-height, 0);
 							}
-							char *ln=bufs[cbuf].input.line[(bufs[cbuf].input.ptr+bufs[cbuf].input.nlines-bufs[cbuf].input.scroll)%bufs[cbuf].input.nlines];
-							if(ln)
+							if(bufs[cbuf].input.ptr||bufs[cbuf].input.filled)
 							{
-								free(*inp);
-								*inp=strdup(ln);
+								if(bufs[cbuf].input.scroll)
+								{
+									char *ln=bufs[cbuf].input.line[(bufs[cbuf].input.ptr+bufs[cbuf].input.nlines-bufs[cbuf].input.scroll)%bufs[cbuf].input.nlines];
+									if(ln)
+									{
+										free(*inp);
+										*inp=strdup(ln);
+									}
+								}
+								else
+								{
+									free(*inp);
+									*inp=NULL;
+								}
 							}
 						break;
 					}
