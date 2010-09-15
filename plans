@@ -6,8 +6,6 @@ Quiet mode.  Don't emit diagnostics for eg. unrecognised IRC traffic (such as nu
 
 curses.  The current hardwired ANSI-escapes code for painting the screen is clumsy.  However, it's tailored to my needs, and now that it's neatly packaged away, it should be easier to cope with.  So, I may just stick with it.
 
-Urgent Alerts.  When your nick is mentioned, trigger a higher-level alert which causes the tab to flash.
-
 Automate config handling.  Generated code?
 
 Interface separation.  It should be possible to write decoupled interface modules which may access the buffers at a variety of depths (eg. pre-formatting) and through a variety of methods (such as mmap(2), a serialised textual IPC format, etc.).
