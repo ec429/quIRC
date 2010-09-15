@@ -398,7 +398,20 @@ int w_buf_print(int buf, colour lc, char *lt, char *lead)
 
 int e_buf_print(int buf, colour lc, message pkt, char *lead)
 {
-	
+	int arg;
+	int len=strlen(pkt.cmd)+2;
+	for(arg=0;arg<pkt.nargs;arg++)
+	{
+		len+=strlen(pkt.args[arg])+1;
+	}
+	char text[len];
+	strcpy(text, pkt.cmd);
+	for(arg=0;arg<pkt.nargs;arg++)
+	{
+		strcat(text, " ");
+		strcat(text, pkt.args[arg]);
+	}
+	return(w_buf_print(buf, lc, text, lead));
 }
 
 void titlebar(void)

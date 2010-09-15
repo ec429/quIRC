@@ -198,7 +198,6 @@ message irc_breakdown(char *packet)
 	}
 	int arg=0;
 	char *p;
-	bool trail=false;
 	while(*packet)
 	{
 		p=packet;
@@ -458,7 +457,7 @@ int irc_numeric(message pkt, int b)
 						bufs[b2].nlist=NULL;
 					}
 					int arg;
-					for(arg=3;arg<nargs;arg++)
+					for(arg=3;arg<pkt.nargs;arg++)
 					{
 						char *nn;
 						while((nn=strtok(NULL, " ")))
@@ -580,9 +579,12 @@ int irc_numeric(message pkt, int b)
 				w_buf_print(b, c_err, "Not enough arguments", num==RPL_LUSEROP?"RPL_LUSEROP: ":num==RPL_LUSERUNKNOWN?"RPL_LUSERUNKNOWN: ":num==RPL_LUSERCHANNELS?"RPL_LUSERCHANNELS":"RPL_LUSER???: ");
 				break;
 			}
-			char lmsg[2+strlen(pkt.args[1])+strlen(pkt.args[2])];
-			sprintf(lmsg, "%s %s", pkt.args[1], pkt.args[2]);
-			w_buf_print(b, c_status, lmsg, ": ");
+			else
+			{
+				char lmsg[2+strlen(pkt.args[1])+strlen(pkt.args[2])];
+				sprintf(lmsg, "%s %s", pkt.args[1], pkt.args[2]);
+				w_buf_print(b, c_status, lmsg, ": ");
+			}
 		break;
 		case RPL_X_LOCALUSERS: // 265 <dest> :Current Local Users: <integer>\tMax: <integer>
 		case RPL_X_GLOBALUSERS: // 266 <dest> :Current Global Users: <integer>\tMax: <integer>
