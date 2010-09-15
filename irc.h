@@ -66,17 +66,17 @@ int irc_strncasecmp(char *c1, char *c2, int n, cmap casemapping);
 
 // Received-IRC message handlers
 int irc_numeric(message pkt, int b);
-int rx_ping(message pkt, int fd);
+int rx_ping(message pkt, int b);
 int rx_mode(servlist * serv, int b); // the first MODE triggers auto-join.  Apart from using it as a trigger, we don't look at modes just yet
-int rx_kill(int b, fd_set *master);
-int rx_kick(int b);
-int rx_error(int b, fd_set *master);
-int rx_privmsg(int b, char *packet, char *pdata);
-int rx_notice(int b, char *packet);
-int rx_topic(int b, char *packet);
-int rx_join(int b, char *packet, char *pdata);
-int rx_part(int b, char *packet, char *pdata);
-int rx_quit(int b, char *packet, char *pdata);
-int rx_nick(int b, char *packet, char *pdata);
+int rx_kill(message pkt, int b, fd_set *master);
+int rx_kick(message pkt, int b);
+int rx_error(message pkt, int b, fd_set *master);
+int rx_privmsg(message pkt, int b);
+int rx_notice(message pkt, int b);
+int rx_topic(message pkt, int b);
+int rx_join(message pkt, int b);
+int rx_part(message pkt, int b);
+int rx_quit(message pkt, int b);
+int rx_nick(message pkt, int b);
 
 int ctcp(char *msg, char *from, char *src, int b2); // Handle CTCP (Client-To-Client Protocol) messages (from is crushed-src)

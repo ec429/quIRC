@@ -612,7 +612,7 @@ int irc_numeric(message pkt, int b)
 	return(num);
 }
 
-int rx_ping(message pkt, int fd)
+int rx_ping(message pkt, int b)
 {
 	// PING <sender>
 	if(pkt.nargs<1)
@@ -622,12 +622,13 @@ int rx_ping(message pkt, int fd)
 	}
 	char pong[8+strlen(username)+strlen(pkt.args[0])];
 	sprintf(pong, "PONG %s %s", username, pkt.args[0]); // PONG <user> <sender>
-	return(irc_tx(fd, pong));
+	return(irc_tx(bufs[b].server, pong));
 }
 
 int rx_mode(servlist * serv, int b)
 {
-	// 
+	// MODE <nick> ({\+|-}{i|w|o|O|r}*)*
+	// We don't recognise modes yet, other than as a trigger for auto-join
 	int fd=bufs[b].handle;
 	if(autojoin && serv->chans && !serv->join)
 	{
@@ -647,16 +648,16 @@ int rx_mode(servlist * serv, int b)
 	return(0);
 }
 
-int rx_kill(int b, fd_set *master)
+int rx_kill(message pkt, int b, fd_set *master)
 {
+	// KILL <nick> <comment>
+	if(pkt.nargs<2)
+	{
+		w_buf_print(b, c_err, "Not enough arguments", "KILL: ");
+		return(0);
+	}
 	int fd=bufs[b].handle;
-	char *dest=strtok(NULL, " \t"); // user to be killed
-	if(!isalpha(*dest))
-		dest++;
-	char *rest=strtok(NULL, "");
-	if(*rest==':')
-		rest++;
-	if(strcmp(dest, bufs[b].nick)==0) // if it's us, we disconnect from the server
+	if(strcmp(pkt.args[0], bufs[b].nick)==0) // if it's us, we disconnect from the server
 	{
 		close(fd);
 		FD_CLR(fd, master);
@@ -665,7 +666,7 @@ int rx_kill(int b, fd_set *master)
 		{
 			if((bufs[b2].server==b) || (bufs[b2].server==0))
 			{
-				w_buf_print(b2, c_quit[0], rest, "KILLed: ");
+				w_buf_print(b2, c_quit[0], pkt.args[1], "KILLed: ");
 				bufs[b2].live=false;
 			}
 		}
@@ -678,10 +679,10 @@ int rx_kill(int b, fd_set *master)
 		{
 			if((bufs[b2].server==b) || (bufs[b2].server==0))
 			{
-				if(n_cull(&bufs[b2].nlist, dest))
+				if(n_cull(&bufs[b2].nlist, pkt.args[0]))
 				{
-					char kmsg[24+strlen(dest)+strlen(bufs[b].bname)];
-					sprintf(kmsg, "=%s= has left %s (killed)", dest, bufs[b].bname);
+					char kmsg[24+strlen(pkt.args[0])+strlen(bufs[b].bname)];
+					sprintf(kmsg, "=%s= has left %s (killed)", pkt.args[0], bufs[b].bname);
 					w_buf_print(b2, c_quit[1], kmsg, "");
 				}
 			}
