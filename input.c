@@ -32,12 +32,12 @@ int inputchar(iline *inp, int *state)
 			free(inp->right.data);
 			inp->right.data=nr;
 			inp->right.l=inp->left.i+inp->right.i+1;
-			inp->right.i=inp.right.l-1;
+			inp->right.i=inp->right.l-1;
 			inp->left.i=inp->left.l=0;
 		}
 		if(c=='\t') // tab completion of nicks
 		{
-			int sp=max(ino-1, 0);
+			int sp=max(inp->left.i-1, 0);
 			while(sp>0 && !strchr(" \t", inp->left.data[sp-1]))
 				sp--;
 			name *curr=bufs[cbuf].nlist;
@@ -46,7 +46,7 @@ int inputchar(iline *inp, int *state)
 			int mlen;
 			while(curr)
 			{
-				if((ino==sp) || (irc_strncasecmp(inp->left.data+sp, curr->data, ino-sp, bufs[cbuf].casemapping)==0))
+				if((inp->left.i==sp) || (irc_strncasecmp(inp->left.data+sp, curr->data, inp->left.i-sp, bufs[cbuf].casemapping)==0))
 				{
 					n_add(&found, curr->data);
 					if((found->next)&&(found->next->data))
@@ -70,7 +70,7 @@ int inputchar(iline *inp, int *state)
 			}
 			if(found)
 			{
-				if((mlen>ino-sp)&&(count>1))
+				if((mlen>inp->left.i-sp)&&(count>1))
 				{
 					inp->left.data=(char *)realloc(inp->left.data, sp+mlen+4);
 					snprintf(inp->left.data+sp, mlen+1, "%s", found->data);
@@ -160,7 +160,7 @@ int inputchar(iline *inp, int *state)
 				case 'C': // ^[[C // Right
 					if(inp->right.data && *inp->right.data)
 					{
-						append_ichar(inp->left, inp->right.data[0]);
+						append_ichar(&inp->left, inp->right.data[0]);
 						inp->right.data=strdup(inp->right.data+1);
 						inp->right.i--;
 						inp->right.l=0;
@@ -169,7 +169,7 @@ int inputchar(iline *inp, int *state)
 				case 'D': // ^[[D // Left
 					if(inp->left.i)
 					{
-						unsigned char e=back_ichar(inp->left);
+						unsigned char e=back_ichar(&inp->left);
 						if(e)
 						{
 							char *nr=(char *)malloc(inp->right.i+2);
@@ -199,7 +199,7 @@ int inputchar(iline *inp, int *state)
 					{
 						size_t b=inp->left.i+inp->right.i;
 						char *nl=(char *)malloc(b+1);
-						sprintf(nr, "%s%s", inp->left.data?inp->left.data:"", inp->right.data?inp->right.data:"");
+						sprintf(nl, "%s%s", inp->left.data?inp->left.data:"", inp->right.data?inp->right.data:"");
 						ifree(inp);
 						inp->left.data=nl;
 						inp->left.i=b;
@@ -209,7 +209,7 @@ int inputchar(iline *inp, int *state)
 				case '3': // take another
 					if(getchar()=='~') // delete
 					{
-						back_ichar(inp);
+						back_ichar(&inp->left);
 					}
 				break;
 				case '5': // ^[[5
@@ -325,14 +325,14 @@ int inputchar(iline *inp, int *state)
 	if(c=='\n')
 	{
 		*state=3;
-		char out[(inp->left?strlen(inp->left):0)+(inp->right?strlen(inp->right):0)+1];
-		sprintf(out, "%s%s", inp->left?inp->left:"", inp->right?inp->right:"");
+		char out[inp->left.i+inp->right.i+1];
+		sprintf(out, "%s%s", inp->left.data?inp->left.data:"", inp->right.data?inp->right.data:"");
 		addtoibuf(&bufs[cbuf].input, out);
 		ifree(inp);
 	}
 	else
 	{
-		in_update(inp);
+		in_update(*inp);
 	}
 	return(0);
 }

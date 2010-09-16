@@ -86,9 +86,9 @@ int main(int argc, char *argv[])
 	{
 		w_buf_print(0, c_status, "Not connected - use /server to connect", "");
 	}
-	in_update("");
+	iline inp={{NULL, 0, 0}, {NULL, 0, 0}};
+	in_update(inp);
 	struct timeval timeout;
-	char *inp=NULL;
 	int state=0; // odd-numbered states are fatal
 	while(!(state%2))
 	{
@@ -243,21 +243,22 @@ int main(int argc, char *argv[])
 		switch(state)
 		{
 			case 3: // TODO: fix this stuff (inp isn't the right thing any more)
-				if(!inp)
+				if(!bufs[cbuf].input.line[bufs[cbuf].input.ptr])
 				{
-					fprintf(stderr, "\nInternal error - state==3 and inp is NULL!\n");
+					fprintf(stderr, "\nInternal error - state==3 and inputline is NULL!\n");
 					break;
 				}
-				if(*inp)
+				char *iinput=strdup(bufs[cbuf].input.line[bufs[cbuf].input.ptr]);
+				if(iinput&&*iinput) // ignore empty lines, and ignore if iinput is NULL
 				{
 					fflush(stdout);
-					char *deq=slash_dequote(inp); // dequote
-					free(inp);
-					inp=deq;
-					if(*inp=='/')
+					char *deq=slash_dequote(iinput); // dequote
+					free(iinput);
+					iinput=deq;
+					if(*iinput=='/')
 					{
-						state=cmd_handle(inp, &qmsg, &master, &fdmax);
-						free(inp);inp=NULL;
+						state=cmd_handle(iinput, &qmsg, &master, &fdmax);
+						free(iinput);iinput=NULL;
 					}
 					else
 					{
@@ -267,8 +268,8 @@ int main(int argc, char *argv[])
 							{
 								if(bufs[cbuf].live)
 								{
-									char pmsg[12+strlen(bufs[cbuf].bname)+strlen(inp)];
-									sprintf(pmsg, "PRIVMSG %s :%s", bufs[cbuf].bname, inp);
+									char pmsg[12+strlen(bufs[cbuf].bname)+strlen(iinput)];
+									sprintf(pmsg, "PRIVMSG %s :%s", bufs[cbuf].bname, iinput);
 									irc_tx(bufs[cbuf].handle, pmsg);
 									char tag[maxnlen+4];
 									memset(tag, ' ', maxnlen+3);
@@ -276,7 +277,7 @@ int main(int argc, char *argv[])
 									crush(&cnick, maxnlen);
 									sprintf(tag+maxnlen-strlen(cnick), "<%s> ", cnick);
 									free(cnick);
-									w_buf_print(cbuf, c_msg[0], inp, tag);
+									w_buf_print(cbuf, c_msg[0], iinput, tag);
 								}
 								else
 								{
@@ -292,7 +293,7 @@ int main(int argc, char *argv[])
 						{
 							w_buf_print(cbuf, c_err, "Can't talk - view is not a channel!", "");
 						}
-						free(inp);inp=NULL;
+						free(iinput);iinput=NULL;
 						state=0;
 					}
 				}
