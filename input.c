@@ -1105,7 +1105,11 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 							crush(&cnick, maxnlen);
 							sprintf(tag+maxnlen-strlen(cnick), "<%s> ", cnick);
 							free(cnick);
+							bool al=bufs[b2].alert; // save alert status...
+							int hi=bufs[b2].hi_alert;
 							w_buf_print(b2, c_msg[0], args, tag);
+							bufs[b2].alert=al; // and restore it
+							bufs[b2].hi_alert=hi;
 						}
 						else
 						{
