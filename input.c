@@ -167,7 +167,7 @@ int inputchar(iline *inp, int *state)
 					}
 				break;
 				case 'D': // ^[[D // Left
-					if(inp->left.data && *inp->left.data)
+					if(inp->left.i)
 					{
 						unsigned char e=back_ichar(inp->left);
 						if(e)
@@ -182,11 +182,34 @@ int inputchar(iline *inp, int *state)
 						}
 					}
 				break;
+				case 'H': // ^[[H // Home
+					if(inp->left.i)
+					{
+						size_t b=inp->left.i+inp->right.i;
+						char *nr=(char *)malloc(b+1);
+						sprintf(nr, "%s%s", inp->left.data?inp->left.data:"", inp->right.data?inp->right.data:"");
+						ifree(inp);
+						inp->right.data=nr;
+						inp->right.i=b;
+						inp->right.l=b+1;
+					}
+				break;
+				case 'F': // ^[[F // End
+					if(inp->right.i)
+					{
+						size_t b=inp->left.i+inp->right.i;
+						char *nl=(char *)malloc(b+1);
+						sprintf(nr, "%s%s", inp->left.data?inp->left.data:"", inp->right.data?inp->right.data:"");
+						ifree(inp);
+						inp->left.data=nl;
+						inp->left.i=b;
+						inp->left.l=b+1;
+					}
+				break;
 				case '3': // take another
 					if(getchar()=='~') // delete
 					{
-						if(ino)
-							inp->left[ino-1]=0;
+						back_ichar(inp);
 					}
 				break;
 				case '5': // ^[[5
