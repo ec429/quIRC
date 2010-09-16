@@ -8,34 +8,37 @@
 
 #include "input.h"
 
-int inputchar(char **inp, int *state)
+int inputchar(iline *inp, int *state)
 {
 	printf("\010\010\010" CLA);
-	int ino=(*inp)?strlen(*inp):0;
-	*inp=(char *)realloc(*inp, ino+2);
-	unsigned char c=(*inp)[ino]=getchar();
+	unsigned char c=getchar();
+	append_ichar(&inp->left, c);
 	if(c!='\t')
 		ttab=false;
-	(*inp)[ino+1]=0;
 	if(strchr("\010\177", c)) // various backspace-type characters
 	{
-		if(ino)
-			(*inp)[ino-1]=0;
-		(*inp)[ino]=0;
+		back_ichar(&inp->left);
+		back_ichar(&inp->left);
 	}
 	else if((c<32) || (c==0xc2)) // this also stomps on the newline
 	{
-		(*inp)[ino]=0;
+		back_ichar(&inp->left);
 		if(c==1)
 		{
-			free(*inp);
-			*inp=NULL;
-			ino=0;
+			char *nr=(char *)malloc(inp->left.i+inp->right.i+1);
+			sprintf(nr, "%s%s", inp->left.data?inp->left.data:"", inp->right.data?inp->right.data:"");
+			free(inp->left.data);
+			inp->left.data=NULL;
+			free(inp->right.data);
+			inp->right.data=nr;
+			inp->right.l=inp->left.i+inp->right.i+1;
+			inp->right.i=inp.right.l-1;
+			inp->left.i=inp->left.l=0;
 		}
 		if(c=='\t') // tab completion of nicks
 		{
 			int sp=max(ino-1, 0);
-			while(sp>0 && !strchr(" \t", (*inp)[sp-1]))
+			while(sp>0 && !strchr(" \t", inp->left.data[sp-1]))
 				sp--;
 			name *curr=bufs[cbuf].nlist;
 			name *found=NULL;
@@ -43,7 +46,7 @@ int inputchar(char **inp, int *state)
 			int mlen;
 			while(curr)
 			{
-				if((ino==sp) || (irc_strncasecmp((*inp)+sp, curr->data, ino-sp, bufs[cbuf].casemapping)==0))
+				if((ino==sp) || (irc_strncasecmp(inp->left.data+sp, curr->data, ino-sp, bufs[cbuf].casemapping)==0))
 				{
 					n_add(&found, curr->data);
 					if((found->next)&&(found->next->data))
@@ -69,8 +72,10 @@ int inputchar(char **inp, int *state)
 			{
 				if((mlen>ino-sp)&&(count>1))
 				{
-					*inp=(char *)realloc(*inp, sp+mlen+4);
-					snprintf((*inp)+sp, mlen+1, "%s", found->data);
+					inp->left.data=(char *)realloc(inp->left.data, sp+mlen+4);
+					snprintf(inp->left.data+sp, mlen+1, "%s", found->data);
+					inp->left.i=strlen(inp->left.data);
+					inp->left.l=sp+mlen+4;
 					ttab=false;
 				}
 				else if((count>16)&&!ttab)
@@ -101,11 +106,13 @@ int inputchar(char **inp, int *state)
 				}
 				else
 				{
-					*inp=(char *)realloc(*inp, sp+strlen(found->data)+4);
+					inp->left.data=(char *)realloc(inp->left.data, sp+strlen(found->data)+4);
 					if(sp)
-						sprintf((*inp)+sp, "%s", found->data);
+						sprintf(inp->left.data+sp, "%s", found->data);
 					else
-						sprintf((*inp)+sp, "%s: ", found->data);
+						sprintf(inp->left.data+sp, "%s: ", found->data);
+					inp->left.i=strlen(inp->left.data);
+					inp->left.l=sp+strlen(found->data)+4;
 					ttab=false;
 				}
 			}
@@ -140,26 +147,46 @@ int inputchar(char **inp, int *state)
 							char *ln=bufs[cbuf].input.line[(bufs[cbuf].input.ptr+bufs[cbuf].input.nlines-bufs[cbuf].input.scroll)%bufs[cbuf].input.nlines];
 							if(ln)
 							{
-								free(*inp);
-								*inp=strdup(ln);
+								ifree(inp);
+								inp->left.data=strdup(ln);inp->left.i=strlen(inp->left.data);inp->left.l=0;
 							}
 						}
 						else
 						{
-							free(*inp);
-							*inp=NULL;
+							ifree(inp);
 						}
 					}
 				break;
-				case 'D': // left cursor counts as a backspace
-					if(ino)
-						(*inp)[ino-1]=0;
+				case 'C': // ^[[C // Right
+					if(inp->right.data && *inp->right.data)
+					{
+						append_ichar(inp->left, inp->right.data[0]);
+						inp->right.data=strdup(inp->right.data+1);
+						inp->right.i--;
+						inp->right.l=0;
+					}
+				break;
+				case 'D': // ^[[D // Left
+					if(inp->left.data && *inp->left.data)
+					{
+						unsigned char e=back_ichar(inp->left);
+						if(e)
+						{
+							char *nr=(char *)malloc(inp->right.i+2);
+							*nr=e;
+							nr[1]=0;
+							strcat(nr+1, inp->right.data);
+							inp->right.data=nr;
+							inp->right.i++;
+							inp->right.l=inp->right.i+1;
+						}
+					}
 				break;
 				case '3': // take another
 					if(getchar()=='~') // delete
 					{
 						if(ino)
-							(*inp)[ino-1]=0;
+							inp->left[ino-1]=0;
 					}
 				break;
 				case '5': // ^[[5
@@ -205,14 +232,13 @@ int inputchar(char **inp, int *state)
 									char *ln=bufs[cbuf].input.line[(bufs[cbuf].input.ptr+bufs[cbuf].input.nlines-bufs[cbuf].input.scroll)%bufs[cbuf].input.nlines];
 									if(ln)
 									{
-										free(*inp);
-										*inp=strdup(ln);
+										ifree(inp);
+										inp->left.data=strdup(ln);inp->left.i=strlen(inp->left.data);inp->left.l=0;
 									}
 								}
 								else
 								{
-									free(*inp);
-									*inp=NULL;
+									ifree(inp);
 								}
 							}
 						break;
@@ -276,11 +302,14 @@ int inputchar(char **inp, int *state)
 	if(c=='\n')
 	{
 		*state=3;
-		addtoibuf(&bufs[cbuf].input, *inp);
+		char out[(inp->left?strlen(inp->left):0)+(inp->right?strlen(inp->right):0)+1];
+		sprintf(out, "%s%s", inp->left?inp->left:"", inp->right?inp->right:"");
+		addtoibuf(&bufs[cbuf].input, out);
+		ifree(inp);
 	}
 	else
 	{
-		in_update(*inp);
+		in_update(inp);
 	}
 	return(0);
 }
@@ -1343,4 +1372,35 @@ void freeibuf(ibuffer *i)
 		if(i->line[l])
 			free(i->line[l]);
 	}
+}
+
+void init_ichar(ichar *buf)
+{
+	init_char(&buf->data, &buf->l, &buf->i);
+}
+
+void append_ichar(ichar *buf, char c)
+{
+	append_char(&buf->data, &buf->l, &buf->i, c);
+}
+
+char back_ichar(ichar *buf)
+{
+	char c=0;
+	if(buf->i)
+	{
+		c=buf->data[(buf->i)];
+		buf->data[--(buf->i)]=0;
+	}
+	return(c);
+}
+
+void ifree(iline *buf)
+{
+	if(buf->left.data) free(buf->left.data);
+	if(buf->right.data) free(buf->right.data);
+	buf->left.data=NULL;
+	buf->right.data=NULL;
+	buf->left.i=buf->left.l=0;
+	buf->right.i=buf->right.l=0;
 }

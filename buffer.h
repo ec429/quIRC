@@ -77,6 +77,6 @@ int redraw_buffer(void);
 int buf_print(int buf, colour lc, char *lt); // don't include trailing \n, because buf_print appends CLR \n
 int w_buf_print(int buf, colour lc, char *lt, char *lead);
 int e_buf_print(int buf, colour lc, message pkt, char *lead);
-void in_update(char *inp);
+void in_update(iline inp);
 char *highlight(char *src); // use ANSI-colours to highlight \escapes.  Returns a malloc-like pointer
 void titlebar(void);

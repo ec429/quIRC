@@ -152,7 +152,7 @@ void append_char(char **buf, int *l, int *i, char c)
 	char *nbuf=*buf;
 	if((*i)>=(*l))
 	{
-		*l=*l*2;
+		*l=*i*2;
 		nbuf=(char *)realloc(*buf, *l);
 	}
 	if(nbuf)

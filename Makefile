@@ -53,7 +53,7 @@ buffer.o: buffer.c buffer.h ttyesc.h colour.h bits.h names.h text.h irc.h config
 
 config.o: config.c config.h names.h bits.h colour.h text.h version.h
 
-input.o: input.c input.h ttyesc.h names.h buffer.h irc.h
+input.o: input.c input.h ttyesc.h names.h buffer.h irc.h bits.h
 
 names.o: names.c names.h buffer.h
 

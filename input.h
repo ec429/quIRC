@@ -16,6 +16,21 @@
 
 typedef struct
 {
+	char *data;
+	int l;
+	int i;
+}
+ichar;
+
+typedef struct
+{
+	ichar left;
+	ichar right;
+}
+iline;
+
+typedef struct
+{
 	int nlines;
 	int ptr;
 	int scroll;
@@ -28,12 +43,17 @@ ibuffer;
 #include "names.h"
 #include "buffer.h"
 #include "irc.h"
+#include "bits.h"
 
 bool ttab;
 
-int inputchar(char **inp, int *state);
+int inputchar(iline *inp, int *state);
 char * slash_dequote(char *inp);
 int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax);
 void initibuf(ibuffer *i);
 void addtoibuf(ibuffer *i, char *data);
 void freeibuf(ibuffer *i);
+void init_ichar(ichar *buf); // wrapper around init_char
+void append_ichar(ichar *buf, char c); // wrapper around append_char
+char back_ichar(ichar *buf); // returns the deleted char
+void ifree(iline *buf);

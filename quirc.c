@@ -129,6 +129,7 @@ int main(int argc, char *argv[])
 					if(fd==0)
 					{
 						inputchar(&inp, &state);
+						break; // handle the input; everyone else can wait
 					}
 					else
 					{
@@ -241,7 +242,7 @@ int main(int argc, char *argv[])
 		}
 		switch(state)
 		{
-			case 3:
+			case 3: // TODO: fix this stuff (inp isn't the right thing any more)
 				if(!inp)
 				{
 					fprintf(stderr, "\nInternal error - state==3 and inp is NULL!\n");
