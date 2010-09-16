@@ -322,18 +322,46 @@ int inputchar(iline *inp, int *state)
 			}
 		}
 	}
-	else if(c==0xc2) // c2 bN = alt-N (for N in 0...9)
+	if((c&0xe0)==0xc0) // 110xxxxx -> 2 bytes of UTF-8
 	{
-		unsigned char d=getchar();
-		if((d&0xf0)==0xb0)
+		if(c==0xc2) // c2 bN = alt-N (for N in 0...9)
 		{
-			cbuf=min(max(d&0x0f, 0), nbufs-1);
-			redraw_buffer();
-			back_ichar(&inp->left);
+			unsigned char d=getchar();
+			if((d&0xf0)==0xb0)
+			{
+				cbuf=min(max(d&0x0f, 0), nbufs-1);
+				redraw_buffer();
+				back_ichar(&inp->left);
+			}
+			else
+			{
+				append_char(&inp->left.data, &inp->left.l, &inp->left.i, d);
+			}
 		}
 		else
 		{
-			ungetc(d, stdin);
+			append_char(&inp->left.data, &inp->left.l, &inp->left.i, getchar());
+		}
+	}
+	if((c&0xf0)==0xe0) // 1110xxxx -> 3 bytes of UTF-8
+	{
+		unsigned char d=getchar();
+		append_char(&inp->left.data, &inp->left.l, &inp->left.i, d);
+		if((d&0xc0)==0x80) // 10xxxxxx - UTF middlebyte
+		{
+			append_char(&inp->left.data, &inp->left.l, &inp->left.i, getchar());
+		}
+	}
+	if((c&0xf8)==0xf0) // 11110xxx -> 4 bytes of UTF-8
+	{
+		unsigned char d=getchar();
+		append_char(&inp->left.data, &inp->left.l, &inp->left.i, d);
+		if((d&0xc0)==0x80) // 10xxxxxx - UTF middlebyte, so get another
+		{
+			unsigned char e=getchar();
+			append_char(&inp->left.data, &inp->left.l, &inp->left.i, e);
+			if((e&0xc0)==0x80) // 10xxxxxx - UTF middlebyte, so get another
+				append_char(&inp->left.data, &inp->left.l, &inp->left.i, getchar());
 		}
 	}
 	if(c=='\n')
