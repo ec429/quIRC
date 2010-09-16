@@ -2,6 +2,13 @@
 ****** quIRC: readme ******
 ** quIRC is a simple terminal-based IRC (Internet Relay Chat) client. It is
 written in C. **
+***** Contents *****
+    * Further_Help
+    * Commands
+    * Configuration
+    * Input_Controls
+    * Other_Controls
+    * Tab_strip
 ***** Further Help *****
 If this file doesn't answer your question, you can find help from several other
 places.
@@ -158,17 +165,47 @@ ident can be any of
   unn
       Unknown numerics (splurged to output)
 ***** Input controls *****
-At present you cannot edit input with the cursors; you have to backspace.
-Typing part of a nick and then pressing (tab) will cause the nick to be
-autocompleted.
-Ctrl-A clears the current input.
-Ctrl-left and Ctrl-right change tab.
-Alt-[#], where [#] is a number key, changes to tab [#], where (status) is tab
-0.
-***** Scrollback controls *****
-You can scroll the current buffer with Ctrl-Up/Dn (and Ctrl-PgUp/Dn) to scroll
-a line (resp. a page) at a time.
-You can also use Ctrl-Home/End to jump to the top/bottom of the buffer.
+These are based, broadly, on bash's controls.
+  Up/Down/PgUp/PgDn
+      Read lines from the input history. History is local to the current tab.
+  Left/Right
+      Move the cursor within the current input line.
+  Home
+  Ctrl-A
+      Move the cursor to the beginning of the input line.
+  End
+  Ctrl-E
+      Move the cursor to the end of the input line.
+  Ctrl-C
+      Clear the input line.
+  Ctrl-X
+      Clear everything to the left of the cursor.
+  Ctrl-K
+      Clear everything to the right of the cursor.
+  Tab
+  Ctrl-I
+      Autocomplete the nickname to the left of the cursor.
+  Backspace
+      Delete the character to the left of the cursor.
+  Ctrl-W
+      Delete the word to the left of the cursor. Words are delimited only by
+      spaces.
+***** Other controls *****
+  Ctrl-Up
+  Ctrl-Down
+      Scroll the current buffer a line at a time.
+  Ctrl-PgUp
+  Ctrl-PgDn
+      Scroll the current buffer a page at a time.
+  Ctrl-Home
+      Scroll to the top of the current buffer.
+  Ctrl-End
+      Scroll to the bottom of the current buffer.
+  Ctrl-left
+  Ctrl-right
+      Change tab.
+  Alt-[#], where [#] is a number key
+      Equivalent to /tab [#]
 ***** Tab strip *****
 The strip of tabs along the bottom of the screen has various indicators.
 The parens bracketing the name tell you what kind of tab it is:
@@ -181,5 +218,6 @@ The parens bracketing the name tell you what kind of tab it is:
 The background colour is green for the current tab, and blue for the current
 tab's parent server (if applicable).
 The foreground colour of tabs other than the current tab will turn red to
-indicate that there are new messages on that tab. If a tab is 'dead' (eg.
-disconnected from server), it turns yellow.
+indicate that there are new messages on that tab (and flash cyan if a message
+contains your nick). If a tab is 'dead' (eg. disconnected from server), it
+turns yellow.

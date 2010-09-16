@@ -13,6 +13,17 @@
 <h1>quIRC: readme</h1>
 <h5>quIRC is a simple terminal-based IRC (Internet Relay Chat) client.  It is written in C.</h5>
 </div><!--#title-->
+<div id="contents">
+<h2>Contents</h2>
+<ul>
+<li><a href="#furtherhelp">Further Help</a></li>
+<li><a href="#commands">Commands</a></li>
+<li><a href="#configuration">Configuration</a></li>
+<li><a href="#inputcontrols">Input Controls</a></li>
+<li><a href="#othercontrols">Other Controls</a></li>
+<li><a href="#tabstrip">Tab strip</a></li>
+</ul>
+</div><!--#contents-->
 <div id="furtherhelp">
 <h2>Further Help</h2>
 <p>If this file doesn&apos;t answer your question, you can find help from several other places.</p>
@@ -154,16 +165,52 @@ will turn on Full-Width-Colour (makes coloured backgrounds for lines (eg. /me) r
 </div><!--#configuration-->
 <div id="inputcontrols">
 <h2>Input controls</h2>
-<p>At present you cannot edit input with the cursors; you have to backspace.</p>
-<p>Typing part of a nick and then pressing <em>(tab)</em> will cause the nick to be autocompleted.<br />
-Ctrl-A clears the current input.</p>
-Ctrl-left and Ctrl-right change tab.<br />
-Alt-<em>[#]</em>, where <em>[#]</em> is a number key, changes to tab <em>[#]</em>, where (status) is tab 0.</p>
+<p>These are based, broadly, on <small>bash</small>'s controls.</p>
+<dl>
+<dt>Up/Down/PgUp/PgDn</dt>
+	<dd>Read lines from the input history.  History is local to the current tab.</dd>
+<dt>Left/Right</dt>
+	<dd>Move the cursor within the current input line.</dd>
+<dt>Home</dt>
+<dt>Ctrl-A</dt>
+	<dd>Move the cursor to the beginning of the input line.</dd>
+<dt>End</dt>
+<dt>Ctrl-E</dt>
+	<dd>Move the cursor to the end of the input line.</dd>
+<dt>Ctrl-C</dt>
+	<dd>Clear the input line.</dd>
+<dt>Ctrl-X</dt>
+	<dd>Clear everything to the left of the cursor.</dd>
+<dt>Ctrl-K</dt>
+	<dd>Clear everything to the right of the cursor.</dd>
+<dt>Tab</dt>
+<dt>Ctrl-I</dt>
+	<dd>Autocomplete the nickname to the left of the cursor.</dd>
+<dt>Backspace</dt>
+	<dd>Delete the character to the left of the cursor.</dd>
+<dt>Ctrl-W</dt>
+	<dd>Delete the word to the left of the cursor.  Words are delimited only by spaces.</dd>
+</dl>
 </div><!--#inputcontrols-->
-<div id="scrollcontrols">
-<h2>Scrollback controls</h2>
-<p>You can scroll the current buffer with Ctrl-Up/Dn (and Ctrl-PgUp/Dn) to scroll a line (resp. a page) at a time.<br />
-You can also use Ctrl-Home/End to jump to the top/bottom of the buffer.</p>
+<div id="othercontrols">
+<h2>Other controls</h2>
+<dl>
+<dt>Ctrl-Up</dt>
+<dt>Ctrl-Down</dt>
+	<dd>Scroll the current buffer a line at a time.</dd>
+<dt>Ctrl-PgUp</dt>
+<dt>Ctrl-PgDn</dt>
+	<dd>Scroll the current buffer a page at a time.</dd>
+<dt>Ctrl-Home</dt>
+	<dd>Scroll to the top of the current buffer.</dd>
+<dt>Ctrl-End</dt>
+	<dd>Scroll to the bottom of the current buffer.</dd>
+<dt>Ctrl-left</dt>
+<dt>Ctrl-right</dt>
+	<dd>Change tab.</dd>
+<dt>Alt-<em>[#]</em>, where <em>[#]</em> is a number key</dt>
+	<dd>Equivalent to <small>/tab <em>[#]</em></small></dd>
+</dl>
 </div><!--#scrollcontrols-->
 <div id="tabstrip">
 <h2>Tab strip</h2>
@@ -175,7 +222,7 @@ You can also use Ctrl-Home/End to jump to the top/bottom of the buffer.</p>
 <dt>[]</dt><dd>channel</dd>
 </dl>
 <p>The background colour is green for the current tab, and blue for the current tab&apos;s parent server (if applicable).</p>
-<p>The foreground colour of tabs other than the current tab will turn red to indicate that there are new messages on that tab.  If a tab is 'dead' (eg. disconnected from server), it turns yellow.</p>
+<p>The foreground colour of tabs other than the current tab will turn red to indicate that there are new messages on that tab (and flash cyan if a message contains your nick).  If a tab is 'dead' (eg. disconnected from server), it turns yellow.</p>
 </div><!--#tabstrip-->
 </body>
 </html>

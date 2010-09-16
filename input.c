@@ -20,7 +20,7 @@ int inputchar(iline *inp, int *state)
 		back_ichar(&inp->left);
 		back_ichar(&inp->left);
 	}
-	else if((c<32) || (c==0xc2)) // this also stomps on the newline
+	else if(c<32) // this also stomps on the newline
 	{
 		back_ichar(&inp->left);
 		if(c==1) // C-a ~= home
@@ -329,6 +329,11 @@ int inputchar(iline *inp, int *state)
 		{
 			cbuf=min(max(d&0x0f, 0), nbufs-1);
 			redraw_buffer();
+			back_ichar(&inp->left);
+		}
+		else
+		{
+			ungetc(d, stdin);
 		}
 	}
 	if(c=='\n')
