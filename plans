@@ -14,8 +14,6 @@ Interface separation.  It should be possible to write decoupled interface module
 
 Private messaging tabs.
 
-Input editing.  Should use something based on Emacs line editing keys (C-a will mean 'go to start of line', unlike now when it means 'backspace to start of line'!).  May be provided by curses - investigate.
-
 quoting/escaping tables.  Instead of duplicative hard-baked logic, we should have a data-driven system with a single point of truth.
 
 http links.  Command /http <n>, opens the nth previous link in web browser.  Links considered to be any word starting "http://"; words are delimited by whitespace.  The actual command run is set with $BROWSER,--browser=,/set browser; %s is replaced with the URL.  If no browser is registered, return an error.  The count <n> is local to each buffer; the most recent link is number 0.  If <n> not specified, defaults to 0.  Also /http <url> opens <url> in web browser, and /http <n><TAB> replaces <n> with the corresponding <url> (so you can check it's the right link, and ^A it if not).

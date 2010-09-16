@@ -222,7 +222,7 @@ int buf_print(int buf, colour lc, char *lt)
 	return(add_to_buffer(buf, lc, lt));
 }
 
-void in_update(char *inp)
+void in_update(iline inp)
 {
 	height=max(height, 5); // anything less than this is /silly/
 	width=max(width, 30); // widths less than 30 break things, and are /also silly/
@@ -304,28 +304,60 @@ void in_update(char *inp)
 	resetcol();
 	printf("\n");
 	// input
-	int ino=inp?strlen(inp):0;
-	if(ino>width-2)
+	if(inp.left.i+inp.right.i+1<width)
 	{
-		int shw=max(min(10, width-27), 0);
-		int skip=(width>=40)?20:10;
-		int off=0;
-		while(strlen(inp+off+shw)>width-(6+shw))
-			off+=skip;
-		char l[11];
-		sprintf(l, "%.*s", shw, inp);
-		char *lh=highlight(l);
-		char *rh=highlight(inp+off+shw);
-		printf("%s...%s" CLR, lh, rh);
+		char *lh=highlight(inp.left.data?inp.left.data:"");
+		char *rh=highlight(inp.right.data?inp.right.data:"");
+		printf("%s_%s" CLR, lh, rh);
 		free(lh);
 		free(rh);
 	}
 	else
 	{
-		char *h=highlight(inp?inp:"");
-		printf("%s" CLR, h);
-		free(h);
-	}	
+		if(inp.left.i<width*0.75)
+		{
+			char *lh=highlight(inp.left.data?inp.left.data:"");
+			char rl[width-inp.left.i-3-max(3, (width-inp.left.i)/4)];
+			snprintf(rl, width-inp.left.i-3-max(3, (width-inp.left.i)/4), "%s", inp.right.data);
+			char *rlh=highlight(rl);
+			char *rrh=highlight(inp.right.data+inp.right.i-max(3, (width-inp.left.i)/4));
+			printf("%s_%s...%s" CLR, lh, rlh, rrh);
+			free(lh);
+			free(rlh);
+			free(rrh);
+		}
+		else if(inp.right.i<width*0.75)
+		{
+			char ll[width-inp.right.i-3-max(3, (width-inp.right.i)/4)];
+			snprintf(ll, width-inp.right.i-3-max(3, (width-inp.right.i)/4), "%s", inp.left.data);
+			char *llh=highlight(ll);
+			char *lrh=highlight(inp.left.data+inp.left.i-max(3, (width-inp.right.i)/4));
+			char *rh=highlight(inp.right.data?inp.right.data:"");
+			printf("%s...%s_%s" CLR, llh, lrh, rh);
+			free(llh);
+			free(lrh);
+			free(rh);
+		}
+		else
+		{
+			int torem=floor((width/4.0)*floor(((inp.left.i-(width/2.0))*4.0/width)+0.5));
+			torem=min(torem, inp.left.i-3);
+			int c=inp.left.i+4-torem;
+			char ll[max(3, c/4)+1];
+			snprintf(ll, max(3, c/4)+1, "%s", inp.left.data);
+			char *llh=highlight(ll);
+			char *lrh=highlight(inp.left.data+torem+max(3, c/4));
+			char rl[width-c-3-max(3, (width-c)/4)];
+			snprintf(rl, width-c-3-max(3, (width-c)/4), "%s", inp.right.data);
+			char *rlh=highlight(rl);
+			char *rrh=highlight(inp.right.data+inp.right.i-max(3, (width-c)/4));
+			printf("%s...%s_%s...%s" CLR, llh, lrh, rlh, rrh);
+			free(llh);
+			free(lrh);
+			free(rlh);
+			free(rrh);
+		}
+	}
 	fflush(stdout);
 }
 

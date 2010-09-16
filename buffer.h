@@ -16,6 +16,7 @@
 #include <string.h>
 #include <time.h>
 #include <ctype.h>
+#include <math.h>
 #include "ttyesc.h"
 #include "colour.h"
 #include "config.h"
