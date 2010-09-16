@@ -35,8 +35,8 @@ int def_config(void)
 	maxnlen=16;
 	servs=NULL;
 	igns=NULL;
-	portno="6667";
-	username="quirc";
+	portno=strdup("6667");
+	username=strdup("quirc");
 	fname=(char *)malloc(64+strlen(VERSION_TXT));
 	nick=strdup("ac");
 	sprintf(fname, "quIRC %hhu.%hhu.%hhu%s%s : http://github.com/ec429/quIRC", VERSION_MAJ, VERSION_MIN, VERSION_REV, VERSION_TXT[0]?"-":"", VERSION_TXT);
@@ -403,13 +403,25 @@ signed int pargs(int argc, char *argv[])
 			servs->igns=NULL;
 		}
 		else if(strncmp(argv[arg], "--port=", 7)==0)
-			portno=argv[arg]+7;
+		{
+			free(portno);
+			portno=strdup(argv[arg]+7);
+		}
 		else if(strncmp(argv[arg], "--uname=", 8)==0)
-			username=argv[arg]+8;
+		{
+			free(username);
+			username=strdup(argv[arg]+8);
+		}
 		else if(strncmp(argv[arg], "--fname=", 8)==0)
+		{
+			free(fname);
 			fname=argv[arg]+8;
+		}
 		else if(strncmp(argv[arg], "--nick=", 7)==0)
+		{
+			free(nick);
 			nick=strdup(argv[arg]+7);
+		}
 		else if(servs && (strncmp(argv[arg], "--chan=", 7)==0))
 		{
 			chanlist * new=(chanlist *)malloc(sizeof(chanlist));

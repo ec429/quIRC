@@ -9,6 +9,7 @@ int ttyraw(int fd)
 {
 	/*	Set terminal mode as follows:
 		Noncanonical mode - turn off ICANON.
+		Disable signal generation - turn off ISIG
 		Turn ECHO mode off.
 		Disable input parity detection (INPCK).
 		Disable stripping of eighth bit on input (ISTRIP).
@@ -22,7 +23,7 @@ int ttyraw(int fd)
 		return(-1);
 	newtermios = oldtermios;
 
-	newtermios.c_lflag &= ~(ICANON | ECHO);
+	newtermios.c_lflag &= ~(ICANON | ISIG | ECHO);
 	newtermios.c_iflag &= ~(INPCK | ISTRIP | IXON);
 	newtermios.c_cflag &= ~(CSIZE | PARENB);
 	newtermios.c_cflag |= CS8;

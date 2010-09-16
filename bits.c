@@ -148,6 +148,7 @@ void append_char(char **buf, int *l, int *i, char c)
 	else
 	{
 		init_char(buf, l, i);
+		append_char(buf, l, i, c);
 	}
 	char *nbuf=*buf;
 	if((*i)>=(*l))

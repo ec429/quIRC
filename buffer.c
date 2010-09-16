@@ -328,10 +328,10 @@ void in_update(iline inp)
 		}
 		else if(inp.right.i<width*0.75)
 		{
-			char ll[width-inp.right.i-3-max(3, (width-inp.right.i)/4)];
-			snprintf(ll, width-inp.right.i-3-max(3, (width-inp.right.i)/4), "%s", inp.left.data);
+			char ll[max(3, (width-inp.right.i)/4)];
+			snprintf(ll, max(3, (width-inp.right.i)/4), "%s", inp.left.data);
 			char *llh=highlight(ll);
-			char *lrh=highlight(inp.left.data+inp.left.i-max(3, (width-inp.right.i)/4));
+			char *lrh=highlight(inp.left.data+inp.left.i-width+3+inp.right.i+max(3, (width-inp.right.i)/4));
 			char *rh=highlight(inp.right.data?inp.right.data:"");
 			printf("%s...%s" SAVEPOS "%s" CLR RESTPOS, llh, lrh, rh);
 			free(llh);
@@ -347,8 +347,8 @@ void in_update(iline inp)
 			snprintf(ll, max(3, c/4)+1, "%s", inp.left.data);
 			char *llh=highlight(ll);
 			char *lrh=highlight(inp.left.data+torem+max(3, c/4));
-			char rl[width-c-3-max(3, (width-c)/4)];
-			snprintf(rl, width-c-3-max(3, (width-c)/4), "%s", inp.right.data);
+			char rl[width-c-2-max(3, (width-c)/4)];
+			snprintf(rl, width-c-2-max(3, (width-c)/4), "%s", inp.right.data);
 			char *rlh=highlight(rl);
 			char *rrh=highlight(inp.right.data+inp.right.i-max(3, (width-c)/4));
 			printf("%s...%s" SAVEPOS "%s...%s" CLR RESTPOS, llh, lrh, rlh, rrh);

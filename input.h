@@ -53,7 +53,8 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax);
 void initibuf(ibuffer *i);
 void addtoibuf(ibuffer *i, char *data);
 void freeibuf(ibuffer *i);
-void init_ichar(ichar *buf); // wrapper around init_char
-void append_ichar(ichar *buf, char c); // wrapper around append_char
 char back_ichar(ichar *buf); // returns the deleted char
 void ifree(iline *buf);
+
+void i_home(iline *inp);
+void i_end(iline *inp);

@@ -12,9 +12,7 @@ int inputchar(iline *inp, int *state)
 {
 	printf("\010\010\010" CLA);
 	unsigned char c=getchar();
-	if(!inp->left.i)
-		init_ichar(&inp->left);
-	append_ichar(&inp->left, c);
+	append_char(&inp->left.data, &inp->left.l, &inp->left.i, c);
 	if(c!='\t')
 		ttab=false;
 	if(strchr("\010\177", c)) // various backspace-type characters
@@ -25,17 +23,35 @@ int inputchar(iline *inp, int *state)
 	else if((c<32) || (c==0xc2)) // this also stomps on the newline
 	{
 		back_ichar(&inp->left);
-		if(c==1)
+		if(c==1) // C-a ~= home
 		{
-			char *nr=(char *)malloc(inp->left.i+inp->right.i+1);
-			sprintf(nr, "%s%s", inp->left.data?inp->left.data:"", inp->right.data?inp->right.data:"");
+			i_home(inp);
+		}
+		if(c==5) // C-e ~= end
+		{
+			i_end(inp);
+		}
+		if(c==3) // C-c ~= clear
+		{
+			ifree(inp);
+		}
+		if(c==24) // C-x ~= clear to left
+		{
 			free(inp->left.data);
 			inp->left.data=NULL;
-			free(inp->right.data);
-			inp->right.data=nr;
-			inp->right.l=inp->left.i+inp->right.i+1;
-			inp->right.i=inp->right.l-1;
 			inp->left.i=inp->left.l=0;
+		}
+		if(c==11) // C-k ~= clear to right
+		{
+			free(inp->right.data);
+			inp->right.data=NULL;
+			inp->right.i=inp->right.l=0;
+		}
+		if(c==23) // C-w ~= backspace word
+		{
+			while(back_ichar(&inp->left)==' ');
+			while(!strchr(" ", back_ichar(&inp->left)));
+			append_char(&inp->left.data, &inp->left.l, &inp->left.i, ' ');
 		}
 		if(c=='\t') // tab completion of nicks
 		{
@@ -162,8 +178,10 @@ int inputchar(iline *inp, int *state)
 				case 'C': // ^[[C // Right
 					if(inp->right.data && *inp->right.data)
 					{
-						append_ichar(&inp->left, inp->right.data[0]);
-						inp->right.data=strdup(inp->right.data+1);
+						append_char(&inp->left.data, &inp->left.l, &inp->left.i, inp->right.data[0]);
+						char *nr=strdup(inp->right.data+1);
+						free(inp->right.data);
+						inp->right.data=nr;
 						inp->right.i--;
 						inp->right.l=0;
 					}
@@ -192,28 +210,10 @@ int inputchar(iline *inp, int *state)
 					}
 				break;
 				case 'H': // ^[[H // Home
-					if(inp->left.i)
-					{
-						size_t b=inp->left.i+inp->right.i;
-						char *nr=(char *)malloc(b+1);
-						sprintf(nr, "%s%s", inp->left.data?inp->left.data:"", inp->right.data?inp->right.data:"");
-						ifree(inp);
-						inp->right.data=nr;
-						inp->right.i=b;
-						inp->right.l=b+1;
-					}
+					i_home(inp);
 				break;
 				case 'F': // ^[[F // End
-					if(inp->right.i)
-					{
-						size_t b=inp->left.i+inp->right.i;
-						char *nl=(char *)malloc(b+1);
-						sprintf(nl, "%s%s", inp->left.data?inp->left.data:"", inp->right.data?inp->right.data:"");
-						ifree(inp);
-						inp->left.data=nl;
-						inp->left.i=b;
-						inp->left.l=b+1;
-					}
+					i_end(inp);
 				break;
 				case '3': // take another
 					if(getchar()=='~') // delete
@@ -1398,22 +1398,16 @@ void addtoibuf(ibuffer *i, char *data)
 
 void freeibuf(ibuffer *i)
 {
-	int l;
-	for(l=0;l<(i->filled?i->nlines:i->ptr);l++)
+	if(i->line)
 	{
-		if(i->line[l])
-			free(i->line[l]);
+		int l;
+		for(l=0;l<(i->filled?i->nlines:i->ptr);l++)
+		{
+			if(i->line[l])
+				free(i->line[l]);
+		}
+		free(i->line);
 	}
-}
-
-void init_ichar(ichar *buf)
-{
-	init_char(&buf->data, &buf->l, &buf->i);
-}
-
-void append_ichar(ichar *buf, char c)
-{
-	append_char(&buf->data, &buf->l, &buf->i, c);
 }
 
 char back_ichar(ichar *buf)
@@ -1435,4 +1429,32 @@ void ifree(iline *buf)
 	buf->right.data=NULL;
 	buf->left.i=buf->left.l=0;
 	buf->right.i=buf->right.l=0;
+}
+
+void i_home(iline *inp)
+{
+	if(inp->left.i)
+	{
+		size_t b=inp->left.i+inp->right.i;
+		char *nr=(char *)malloc(b+1);
+		sprintf(nr, "%s%s", inp->left.data?inp->left.data:"", inp->right.data?inp->right.data:"");
+		ifree(inp);
+		inp->right.data=nr;
+		inp->right.i=b;
+		inp->right.l=b+1;
+	}
+}
+
+void i_end(iline *inp)
+{
+	if(inp->right.i)
+	{
+		size_t b=inp->left.i+inp->right.i;
+		char *nl=(char *)malloc(b+1);
+		sprintf(nl, "%s%s", inp->left.data?inp->left.data:"", inp->right.data?inp->right.data:"");
+		ifree(inp);
+		inp->left.data=nl;
+		inp->left.i=b;
+		inp->left.l=b+1;
+	}
 }
