@@ -308,7 +308,7 @@ void in_update(iline inp)
 	{
 		char *lh=highlight(inp.left.data?inp.left.data:"");
 		char *rh=highlight(inp.right.data?inp.right.data:"");
-		printf("%s_%s" CLR, lh, rh);
+		printf("%s" SAVEPOS "%s" CLR RESTPOS, lh, rh);
 		free(lh);
 		free(rh);
 	}
@@ -321,7 +321,7 @@ void in_update(iline inp)
 			snprintf(rl, width-inp.left.i-3-max(3, (width-inp.left.i)/4), "%s", inp.right.data);
 			char *rlh=highlight(rl);
 			char *rrh=highlight(inp.right.data+inp.right.i-max(3, (width-inp.left.i)/4));
-			printf("%s_%s...%s" CLR, lh, rlh, rrh);
+			printf("%s" SAVEPOS "%s...%s" CLR RESTPOS, lh, rlh, rrh);
 			free(lh);
 			free(rlh);
 			free(rrh);
@@ -333,7 +333,7 @@ void in_update(iline inp)
 			char *llh=highlight(ll);
 			char *lrh=highlight(inp.left.data+inp.left.i-max(3, (width-inp.right.i)/4));
 			char *rh=highlight(inp.right.data?inp.right.data:"");
-			printf("%s...%s_%s" CLR, llh, lrh, rh);
+			printf("%s...%s" SAVEPOS "%s" CLR RESTPOS, llh, lrh, rh);
 			free(llh);
 			free(lrh);
 			free(rh);
@@ -351,7 +351,7 @@ void in_update(iline inp)
 			snprintf(rl, width-c-3-max(3, (width-c)/4), "%s", inp.right.data);
 			char *rlh=highlight(rl);
 			char *rrh=highlight(inp.right.data+inp.right.i-max(3, (width-c)/4));
-			printf("%s...%s_%s...%s" CLR, llh, lrh, rlh, rrh);
+			printf("%s...%s" SAVEPOS "%s...%s" CLR RESTPOS, llh, lrh, rlh, rrh);
 			free(llh);
 			free(lrh);
 			free(rlh);

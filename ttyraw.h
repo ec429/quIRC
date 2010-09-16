@@ -6,4 +6,3 @@
 
 int ttyraw(int fd);
 int ttyreset(int fd);
-void sigcatch(int sig);

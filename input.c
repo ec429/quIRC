@@ -12,6 +12,8 @@ int inputchar(iline *inp, int *state)
 {
 	printf("\010\010\010" CLA);
 	unsigned char c=getchar();
+	if(!inp->left.i)
+		init_ichar(&inp->left);
 	append_ichar(&inp->left, c);
 	if(c!='\t')
 		ttab=false;
@@ -174,8 +176,15 @@ int inputchar(iline *inp, int *state)
 						{
 							char *nr=(char *)malloc(inp->right.i+2);
 							*nr=e;
-							nr[1]=0;
-							strcat(nr+1, inp->right.data);
+							if(inp->right.data)
+							{
+								strcpy(nr+1, inp->right.data);
+								free(inp->right.data);
+							}
+							else
+							{
+								nr[1]=0;
+							}
 							inp->right.data=nr;
 							inp->right.i++;
 							inp->right.l=inp->right.i+1;
@@ -1412,8 +1421,8 @@ char back_ichar(ichar *buf)
 	char c=0;
 	if(buf->i)
 	{
-		c=buf->data[(buf->i)];
-		buf->data[--(buf->i)]=0;
+		c=buf->data[--(buf->i)];
+		buf->data[(buf->i)]=0;
 	}
 	return(c);
 }

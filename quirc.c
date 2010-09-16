@@ -242,13 +242,14 @@ int main(int argc, char *argv[])
 		}
 		switch(state)
 		{
-			case 3: // TODO: fix this stuff (inp isn't the right thing any more)
-				if(!bufs[cbuf].input.line[bufs[cbuf].input.ptr])
+			case 3:;
+				char *iptr=bufs[cbuf].input.line[(bufs[cbuf].input.ptr+bufs[cbuf].input.nlines-1)%bufs[cbuf].input.nlines];
+				if(!iptr)
 				{
-					fprintf(stderr, "\nInternal error - state==3 and inputline is NULL!\n");
+					fprintf(stderr, "\nInternal error - state==3 and iptr is NULL!\n");
 					break;
 				}
-				char *iinput=strdup(bufs[cbuf].input.line[bufs[cbuf].input.ptr]);
+				char *iinput=strdup(iptr);
 				if(iinput&&*iinput) // ignore empty lines, and ignore if iinput is NULL
 				{
 					fflush(stdout);

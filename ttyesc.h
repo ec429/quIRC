@@ -11,6 +11,8 @@
 #define LOCATE		"\033[%d;%dH"	// as being very similar to some basic keywords... :p
 #define CLR			"\033[K"		// CLear Line to right
 #define CLA			"\033[2K"		// Clear Line All
+#define SAVEPOS		"\033[s"		// Save cursor position
+#define RESTPOS		"\033[u"		// Restore cursor position
 
 #include <stdio.h>
 #include <stdbool.h>
