@@ -53,7 +53,8 @@ int inputchar(iline *inp, int *state)
 		{
 			while(back_ichar(&inp->left)==' ');
 			while(!strchr(" ", back_ichar(&inp->left)));
-			append_char(&inp->left.data, &inp->left.l, &inp->left.i, ' ');
+			if(inp->left.i)
+				append_char(&inp->left.data, &inp->left.l, &inp->left.i, ' ');
 		}
 		if(c=='\t') // tab completion of nicks
 		{
