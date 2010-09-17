@@ -8,6 +8,11 @@
 
 #include "irc.h"
 
+void handle_sigpipe(int sig)
+{
+	sigpipe=1;
+}
+
 int irc_connect(char *server, char *portno, fd_set *master, int *fdmax)
 {
 	int serverhandle;
@@ -126,7 +131,8 @@ int autoconnect(fd_set *master, int *fdmax, servlist *serv)
 
 int irc_tx(int fd, char * packet)
 {
-	char pq[512];
+	sigpipe=0;
+    char pq[512];
 	low_quote(packet, pq);
 	unsigned long l=min(strlen(pq), 511);
 	unsigned long p=0;
@@ -135,11 +141,26 @@ int irc_tx(int fd, char * packet)
 		signed long j=send(fd, pq+p, l-p, 0);
 		if(j<1)
 		{
+			if(sigpipe)
+				break;
 			if(errno==EINTR)
 				continue;
 			return(p); // Something went wrong with send()!
 		}
 		p+=j;
+	}
+	if(sigpipe)
+	{
+	#ifdef HAVE_DEBUG
+		if(debug)
+		{
+			char tmsg[32+strlen(pq)];
+			sprintf(tmsg, "%d, %lu bytes: %s", fd, p, pq);
+			w_buf_print(0, c_status, tmsg, "DBG SIGPIPE tx: ");
+		}
+	#endif // HAVE_DEBUG
+		sigpipe=0;
+		return(-1);
 	}
 	send(fd, "\n", 1, 0);
 #ifdef HAVE_DEBUG
@@ -150,11 +171,17 @@ int irc_tx(int fd, char * packet)
 		w_buf_print(0, c_status, tmsg, "DBG tx: ");
 	}
 #endif // HAVE_DEBUG
+	if(sigpipe)
+	{
+		sigpipe=0;
+		return(-1);
+	}
 	return(l); // Return the number of bytes sent
 }
 
 int irc_rx(int fd, char ** data)
 {
+	sigpipe=0;
 	char buf[512];
 	unsigned long int l=0;
 	bool cr=false;
@@ -173,6 +200,8 @@ int irc_rx(int fd, char ** data)
 		}
 		else if(bytes<0)
 		{
+			if(sigpipe)
+				break;
 			if(errno==EINTR)
 				continue;
 			int b;
@@ -194,9 +223,14 @@ int irc_rx(int fd, char ** data)
 	{
 		char rmsg[32+strlen(buf)];
 		sprintf(rmsg, "%d, %lu bytes: %s", fd, l, buf);
-		w_buf_print(0, c_status, rmsg, "DBG rx: ");
+		w_buf_print(0, c_status, rmsg, sigpipe?"DBG SIGPIPE rx: ":"DBG rx: ");
 	}
 #endif // HAVE_DEBUG
+	if(sigpipe)
+	{
+		sigpipe=0;
+		return(-1);
+	}
 	if(!*data)
 		return(1);
 	return(0);

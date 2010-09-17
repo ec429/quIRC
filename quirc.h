@@ -14,6 +14,7 @@
 #include <sys/time.h>
 #include <ctype.h>
 #include <errno.h>
+#include <signal.h>
 #ifdef	USE_MTRACE
 	#include <mcheck.h>
 #endif // USE_MTRACE

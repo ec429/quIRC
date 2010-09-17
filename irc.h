@@ -21,6 +21,7 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <errno.h>
+#include <signal.h>
 
 typedef enum
 {
@@ -47,6 +48,10 @@ message;
 #include "names.h"
 
 #define MQUOTE	'\020'
+
+volatile sig_atomic_t sigpipe;
+
+void handle_sigpipe(int sig);
 
 int irc_connect(char *server, char *portno, fd_set *master, int *fdmax); // non-blocking
 int irc_conn_rest(int b, char *nick, char *username, char *fullname); // call this when the non-blocking connect() has finished

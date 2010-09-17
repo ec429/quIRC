@@ -23,6 +23,20 @@ int main(int argc, char *argv[])
 	#ifdef	USE_MTRACE
 		mtrace();
 	#endif	// USE_MTRACE
+	
+	sigpipe=0;
+    struct sigaction sa;
+    sa.sa_handler = handle_sigpipe;
+    sa.sa_flags=0;
+    sigemptyset(&sa.sa_mask);
+
+    if(sigaction(SIGPIPE, &sa, NULL)==-1)
+    {
+    	fprintf(stderr, "Failed to set SIGPIPE handler\n");
+        perror("sigaction");
+        return(1);
+    }
+
 	int infc=fcntl(STDIN_FILENO, F_GETFD);
 	char *fcfail=NULL;
 	if(infc>=0)
