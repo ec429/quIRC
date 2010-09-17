@@ -125,9 +125,24 @@ int main(int argc, char *argv[])
 			{
 				if(FD_ISSET(fd, &readfds))
 				{
-					if(fd==0)
+					if(fd==STDIN_FILENO)
 					{
 						inputchar(&inp, &state);
+						/* WARNING!  Possibly non-portable code; relies on edge-case behaviour */
+						bool loop=true;
+						while(loop && !state)
+						{
+							errno=0;
+							fflush(stdin);
+							if(errno==ESPIPE)
+							{
+								inputchar(&inp, &state); // ESPIPE only happens if there is data waiting to be read
+							}
+							else
+							{
+								loop=false;
+							}
+						}
 						break; // handle the input; everyone else can wait
 					}
 					else
