@@ -171,11 +171,11 @@ int main(int argc, char *argv[])
 									if((e=irc_rx(fd, &packet))!=0)
 									{
 										char emsg[64];
-										sprintf(emsg, "error: irc_rx(%d, &%p): %d", fd, packet, e);
+										sprintf(emsg, "irc_rx(%d, &%p): %d", fd, packet, e);
 										close(fd);
 										FD_CLR(fd, &master);
 										bufs[b].live=false;
-										w_buf_print(0, c_err, emsg, "");
+										w_buf_print(0, c_err, emsg, "error: ");
 										redraw_buffer();
 									}
 									else if(packet)
@@ -344,7 +344,7 @@ int main(int argc, char *argv[])
 			in_update(inp);
 		}
 	}
-	if(state>0)
+	if(state!=0)
 		printf("quirc exiting\n");
 	int b;
 	for(b=0;b<nbufs;b++)
