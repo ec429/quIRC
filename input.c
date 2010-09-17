@@ -684,6 +684,18 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					}
 					w_buf_print(0, c_status, "Default buf set", "/set: ");
 				}
+				else if(strcmp(opt, "tping")==0)
+				{
+					if(val)
+					{
+						sscanf(val, "%u", &tping);
+					}
+					else
+					{
+						tping=60;
+					}
+					w_buf_print(0, c_status, "Outbound ping timeout set", "/set: ");
+				}
 			#ifdef HAVE_DEBUG
 				else if(strcmp(opt, "debug")==0)
 				{

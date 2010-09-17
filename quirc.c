@@ -252,6 +252,10 @@ int main(int argc, char *argv[])
 											{
 												rx_ping(pkt, b);
 											}
+											else if(strcmp(pkt.cmd, "PONG")==0)
+											{
+												// ignore, as /anything/ resets the ping-timer
+											}
 											else if(strcmp(pkt.cmd, "MODE")==0)
 											{
 												rx_mode(b);
