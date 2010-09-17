@@ -23,6 +23,13 @@ int main(int argc, char *argv[])
 	#ifdef	USE_MTRACE
 		mtrace();
 	#endif	// USE_MTRACE
+	int infc=fcntl(STDIN_FILENO, F_GETFD);
+	char *fcfail=NULL;
+	if(infc>=0)
+	{
+		if(fcntl(STDIN_FILENO, F_SETFD, infc|O_NONBLOCK)==-1)
+			fcfail=strerror(errno);
+	}
 	if(c_init())
 	{
 		fprintf(stderr, "Failed to initialise colours\n"); // should be impossible
@@ -64,11 +71,16 @@ int main(int argc, char *argv[])
 	for(i=0;i<height;i++) // push old stuff off the top of the screen, so it's preserved
 		printf("\n");
 	
-	e=initialise_buffers(buflines, nick);
+	e=initialise_buffers(buflines);
 	if(e)
 	{
 		fprintf(stderr, "Failed to set up buffers\n");
 		return(1);
+	}
+	
+	if(fcfail)
+	{
+		w_buf_print(0, c_status, fcfail, "fcntl: ");
 	}
 	
 	fd_set master, readfds;

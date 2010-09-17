@@ -70,7 +70,7 @@ int nbufs;
 int cbuf;
 buffer *bufs;
 
-int initialise_buffers(int buflines, char *nick);
+int initialise_buffers(int buflines);
 int init_buffer(int buf, btype type, char *bname, int nlines);
 int free_buffer(int buf);
 int add_to_buffer(int buf, colour lc, char *lt);

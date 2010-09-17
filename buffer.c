@@ -8,7 +8,7 @@
 
 #include "buffer.h"
 
-int initialise_buffers(int buflines, char *nick)
+int initialise_buffers(int buflines)
 {
 	bufs=(buffer *)malloc(sizeof(buffer));
 	if(!bufs)
