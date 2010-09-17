@@ -44,7 +44,7 @@ int init_buffer(int buf, btype type, char *bname, int nlines)
 	int i;
 	for(i=0;i<bufs[buf].nlines;i++)
 	{
-		bufs[buf].lt[i]=malloc(1); // free() safe
+		bufs[buf].lt[i]=NULL;
 	}
 	bufs[buf].ts=(time_t *)malloc(sizeof(time_t[nlines]));
 	bufs[buf].filled=false;
@@ -77,7 +77,7 @@ int free_buffer(int buf)
 		if(bufs[buf].topic) free(bufs[buf].topic);
 		int l;
 		for(l=0;l<bufs[buf].nlines;l++)
-			free(bufs[buf].lt[l]);
+			if(bufs[buf].lt[l]) free(bufs[buf].lt[l]);
 		free(bufs[buf].lt);
 		free(bufs[buf].ts);
 		freeibuf(&bufs[buf].input);
@@ -122,7 +122,7 @@ int add_to_buffer(int buf, colour lc, char *lt)
 		lt=nl+1;
 	}
 	bufs[buf].lc[bufs[buf].ptr]=lc;
-	free(bufs[buf].lt[bufs[buf].ptr]);
+	if(bufs[buf].lt[bufs[buf].ptr]) free(bufs[buf].lt[bufs[buf].ptr]);
 	bufs[buf].lt[bufs[buf].ptr]=strdup(lt);
 	bufs[buf].ts[bufs[buf].ptr]=time(NULL);
 	bufs[buf].ptr=(bufs[buf].ptr+1)%bufs[buf].nlines;
