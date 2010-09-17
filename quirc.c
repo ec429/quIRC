@@ -95,7 +95,6 @@ int main(int argc, char *argv[])
 		timeout.tv_sec=0;
 		timeout.tv_usec=250000;
 		
-		fflush(stdin);
 		readfds=master;
 		if(select(fdmax+1, &readfds, NULL, NULL, &timeout)==-1)
 		{
