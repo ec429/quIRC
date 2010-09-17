@@ -42,6 +42,7 @@ typedef struct _buf
 {
 	btype type;
 	char *bname; // "status" or serverloc or #channel or @nick (resp. types)
+	char *realsname; // real server name (not the same as bname)
 	name *nlist; // only used for CHANNELs and PRIVATE: linked-list of nicks
 	name *ilist; // ignore-list
 	int handle; // used for SERVER: file descriptor
@@ -57,6 +58,8 @@ typedef struct _buf
 	bool filled; // buffer has filled up and looped? (the buffers are circular in nature)
 	bool alert; // tab has new messages?
 	int hi_alert; // high-level alert status: 0 = none; 1: on (if alert then flashing else single flash); 2: off (flashing)
+	int ping; // ping/idleness status (SERVER)
+	time_t last; // when was the last RX? (SERVER)
 	bool namreply; // tab is in the middle of reading a list of NAMES replies (RPL_NAMREPLY)?
 	bool live; // tab is connected?  when checking in a CHANNEL, remember to AND it with the parent's live (use LIVE(buf), defined further up this file)
 	bool conninpr; // connection in progress? (SERVER only)

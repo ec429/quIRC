@@ -86,6 +86,8 @@ int irc_conn_rest(int b, char *nick, char *username, char *fullname)
 #endif // HAVE_DEBUG
 	bufs[b].live=true; // mark it as live
 	bufs[b].conninpr=false;
+	bufs[b].ping=0;
+	bufs[b].last=time(NULL);
 	if(bufs[b].autoent && bufs[b].autoent->nick)
 		nick=bufs[b].autoent->nick;
 	// TODO: Optionally send a PASS message before the NICK/USER

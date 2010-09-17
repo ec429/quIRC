@@ -30,6 +30,7 @@ int init_buffer(int buf, btype type, char *bname, int nlines)
 {
 	bufs[buf].type=type;
 	bufs[buf].bname=strdup(bname);
+	bufs[buf].realsname=NULL;
 	bufs[buf].nlist=NULL;
 	bufs[buf].ilist=NULL;
 	bufs[buf].handle=0;
@@ -50,6 +51,8 @@ int init_buffer(int buf, btype type, char *bname, int nlines)
 	bufs[buf].filled=false;
 	bufs[buf].alert=false;
 	bufs[buf].hi_alert=0;
+	bufs[buf].ping=0;
+	bufs[buf].last=time(NULL);
 	bufs[buf].namreply=false;
 	bufs[buf].live=false;
 	bufs[buf].conninpr=false;
@@ -69,7 +72,8 @@ int free_buffer(int buf)
 	}
 	else
 	{
-		free(bufs[buf].bname);
+		if(bufs[buf].bname) free(bufs[buf].bname);
+		if(bufs[buf].realsname) free(bufs[buf].realsname);
 		n_free(bufs[buf].nlist);
 		bufs[buf].nlist=NULL;
 		n_free(bufs[buf].ilist);

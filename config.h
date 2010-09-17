@@ -52,6 +52,7 @@ bool autojoin;
 char *username, *fname, *nick, *portno;
 servlist *servs;
 name *igns;
+int tping; // ping timeout
 #ifdef HAVE_DEBUG
 int debug;
 #endif // HAVE_DEBUG

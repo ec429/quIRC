@@ -118,13 +118,47 @@ int main(int argc, char *argv[])
 	int state=0; // odd-numbered states are fatal
 	while(!(state%2))
 	{
-		// propagate liveness values into dependent tabs
+		// propagate liveness values into dependent tabs, and ping idle connections
 		{
+			time_t now=time(NULL);
 			int b;
 			for(b=0;b<nbufs;b++)
 			{
-				if(bufs[b].live&&!bufs[bufs[b].server].live)
-					bufs[b].live=false;
+				if(bufs[b].live)
+				{
+					if(bufs[b].type==SERVER)
+					{
+						int idle=now-bufs[b].last;
+						if(tping && (idle>tping)) // a tping value of 0 means "don't ping"
+						{
+							if(bufs[b].ping)
+							{
+								bufs[b].live=false;
+								if(bufs[b].handle)
+								{
+									close(bufs[b].handle);
+									FD_CLR(bufs[b].handle, &master);
+									w_buf_print(b, c_err, "Outbound ping timeout", "Disconnected: ");
+								}
+								bufs[b].alert=true;
+								bufs[b].hi_alert=5;
+							}
+							else
+							{
+								char pmsg[8+strlen(bufs[b].realsname)];
+								sprintf(pmsg, "PING %s", bufs[b].realsname);
+								irc_tx(bufs[b].handle, pmsg);
+								bufs[b].ping++;
+							}
+							bufs[b].last=now;
+						}
+					}
+					else if(!bufs[bufs[b].server].live)
+					{
+						bufs[b].live=false;
+						w_buf_print(b, c_err, "Connection to server lost", "Disconnected: ");
+					}
+				}
 			}
 		}
 		timeout.tv_sec=0;
@@ -203,9 +237,13 @@ int main(int argc, char *argv[])
 									}
 									else if(packet)
 									{
+										bufs[b].ping=0;
+										bufs[b].last=time(NULL);
 										if(*packet)
 										{
 											message pkt=irc_breakdown(packet);
+											if(!bufs[b].realsname && pkt.prefix)
+												bufs[b].realsname=strdup(pkt.prefix);
 											if(isdigit(*pkt.cmd))
 											{
 												irc_numeric(pkt, b);
