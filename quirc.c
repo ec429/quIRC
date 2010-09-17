@@ -151,6 +151,7 @@ int main(int argc, char *argv[])
 								bufs[b].ping++;
 							}
 							bufs[b].last=now;
+							in_update(inp);
 						}
 					}
 					else if(!bufs[bufs[b].server].live)
@@ -422,7 +423,7 @@ int main(int argc, char *argv[])
 	if(state!=0)
 		printf("quirc exiting\n");
 	int b;
-	for(b=0;b<nbufs;b++)
+	for(b=1;b<nbufs;b++)
 	{
 		if((bufs[b].live) && (bufs[b].type==SERVER) && (bufs[b].handle!=0))
 		{
@@ -435,6 +436,8 @@ int main(int argc, char *argv[])
 		free_buffer(b);
 		b--;
 	}
+	bufs[0].live=false;
+	free_buffer(0);
 	if(bufs) free(bufs);
 	if(username) free(username);
 	if(fname) free(fname);
