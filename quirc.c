@@ -118,6 +118,15 @@ int main(int argc, char *argv[])
 	int state=0; // odd-numbered states are fatal
 	while(!(state%2))
 	{
+		// propagate liveness values into dependent tabs
+		{
+			int b;
+			for(b=0;b<nbufs;b++)
+			{
+				if(bufs[b].live&&!bufs[bufs[b].server].live)
+					bufs[b].live=false;
+			}
+		}
 		timeout.tv_sec=0;
 		timeout.tv_usec=250000;
 		
@@ -261,9 +270,19 @@ int main(int argc, char *argv[])
 										}
 									}
 								}
-								else
+								else if(bufs[b].conninpr)
 								{
 									irc_conn_rest(b, nick, username, fname);
+								}
+								else
+								{
+									char emsg[32];
+									sprintf(emsg, "buf %d, fd %d", b, fd);
+									close(fd);
+									FD_CLR(fd, &master);
+									bufs[b].live=false;
+									w_buf_print(0, c_err, emsg, "error: read on a dead tab: ");
+									redraw_buffer();
 								}
 								in_update(inp);
 								b=nbufs+1;
@@ -307,7 +326,7 @@ int main(int argc, char *argv[])
 						{
 							if(bufs[cbuf].handle)
 							{
-								if(bufs[cbuf].live)
+								if(LIVE(cbuf))
 								{
 									char pmsg[12+strlen(bufs[cbuf].bname)+strlen(iinput)];
 									sprintf(pmsg, "PRIVMSG %s :%s", bufs[cbuf].bname, iinput);

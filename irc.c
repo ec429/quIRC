@@ -85,6 +85,7 @@ int irc_conn_rest(int b, char *nick, char *username, char *fullname)
 	}
 #endif // HAVE_DEBUG
 	bufs[b].live=true; // mark it as live
+	bufs[b].conninpr=false;
 	if(bufs[b].autoent && bufs[b].autoent->nick)
 		nick=bufs[b].autoent->nick;
 	// TODO: Optionally send a PASS message before the NICK/USER
@@ -122,6 +123,7 @@ int autoconnect(fd_set *master, int *fdmax, servlist *serv)
 		bufs[cbuf].autoent=serv;
 		if(serv) bufs[cbuf].ilist=serv->igns;
 		bufs[cbuf].server=cbuf;
+		bufs[cbuf].conninpr=true;
 		add_to_buffer(cbuf, c_status, cstr);
 		sprintf(cstr, "quIRC - connecting to %s", serv->name);
 		settitle(cstr);
@@ -136,13 +138,11 @@ int irc_tx(int fd, char * packet)
 	low_quote(packet, pq);
 	unsigned long l=min(strlen(pq), 511);
 	unsigned long p=0;
-	while(p<l)
+	while((p<l)&&!sigpipe)
 	{
 		signed long j=send(fd, pq+p, l-p, 0);
 		if(j<1)
 		{
-			if(sigpipe)
-				break;
 			if(errno==EINTR)
 				continue;
 			return(p); // Something went wrong with send()!
@@ -185,9 +185,9 @@ int irc_rx(int fd, char ** data)
 	char buf[512];
 	unsigned long int l=0;
 	bool cr=false;
-	while(!cr)
+	while(!(cr||sigpipe))
 	{
-		long bytes=recv(fd, buf+l, 1, MSG_WAITALL);
+		long bytes=recv(fd, buf+l, 1, 0);
 		if(bytes>0)
 		{
 			char c=buf[l];
@@ -200,8 +200,6 @@ int irc_rx(int fd, char ** data)
 		}
 		else if(bytes<0)
 		{
-			if(sigpipe)
-				break;
 			if(errno==EINTR)
 				continue;
 			int b;

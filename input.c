@@ -775,6 +775,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					bufs[cbuf].handle=serverhandle;
 					bufs[cbuf].nick=strdup(nick);
 					bufs[cbuf].server=cbuf;
+					bufs[cbuf].conninpr=true;
 					w_buf_print(cbuf, c_status, dstr, "/server: ");
 					sprintf(cstr, "quIRC - connected to %s", server);
 					settitle(cstr);
@@ -827,6 +828,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 						if(bufs[b2].server==b)
 							bufs[b2].handle=serverhandle;
 					}
+					bufs[cbuf].conninpr=true;
 					w_buf_print(cbuf, c_status, dstr, "/server: ");
 					sprintf(cstr, "quIRC - connected to %s", bufs[bufs[cbuf].server].bname);
 					settitle(cstr);

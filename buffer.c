@@ -52,6 +52,7 @@ int init_buffer(int buf, btype type, char *bname, int nlines)
 	bufs[buf].hi_alert=0;
 	bufs[buf].namreply=false;
 	bufs[buf].live=false;
+	bufs[buf].conninpr=false;
 	initibuf(&bufs[buf].input);
 	bufs[buf].casemapping=RFC1459;
 	bufs[buf].prefixes=NULL;
