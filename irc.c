@@ -684,7 +684,7 @@ int rx_mode(int b)
 	// We don't recognise modes yet, other than as a trigger for auto-join
 	int fd=bufs[b].handle;
 	servlist *serv=bufs[b].autoent;
-	if(autojoin && serv->chans && !serv->join)
+	if(autojoin && serv && serv->chans && !serv->join)
 	{
 		chanlist * curr=serv->chans;
 		while(curr)
