@@ -11,7 +11,9 @@
 int inputchar(iline *inp, int *state)
 {
 	printf("\010\010\010" CLA);
-	unsigned char c=getchar();
+	int c=getchar();
+	if((c==0)||(c==EOF)) // stdin is set to non-blocking, so this may happen
+		return(0);
 	append_char(&inp->left.data, &inp->left.l, &inp->left.i, c);
 	if(c!='\t')
 		ttab=false;
@@ -326,7 +328,7 @@ int inputchar(iline *inp, int *state)
 	{
 		if(c==0xc2) // c2 bN = alt-N (for N in 0...9)
 		{
-			unsigned char d=getchar();
+			int d=getchar();
 			if((d&0xf0)==0xb0)
 			{
 				cbuf=min(max(d&0x0f, 0), nbufs-1);
@@ -345,7 +347,7 @@ int inputchar(iline *inp, int *state)
 	}
 	if((c&0xf0)==0xe0) // 1110xxxx -> 3 bytes of UTF-8
 	{
-		unsigned char d=getchar();
+		int d=getchar();
 		append_char(&inp->left.data, &inp->left.l, &inp->left.i, d);
 		if((d&0xc0)==0x80) // 10xxxxxx - UTF middlebyte
 		{
@@ -354,11 +356,11 @@ int inputchar(iline *inp, int *state)
 	}
 	if((c&0xf8)==0xf0) // 11110xxx -> 4 bytes of UTF-8
 	{
-		unsigned char d=getchar();
+		int d=getchar();
 		append_char(&inp->left.data, &inp->left.l, &inp->left.i, d);
 		if((d&0xc0)==0x80) // 10xxxxxx - UTF middlebyte, so get another
 		{
-			unsigned char e=getchar();
+			int e=getchar();
 			append_char(&inp->left.data, &inp->left.l, &inp->left.i, e);
 			if((e&0xc0)==0x80) // 10xxxxxx - UTF middlebyte, so get another
 				append_char(&inp->left.data, &inp->left.l, &inp->left.i, getchar());
