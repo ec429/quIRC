@@ -221,7 +221,13 @@ int inputchar(iline *inp, int *state)
 				case '3': // take another
 					if(getchar()=='~') // delete
 					{
-						back_ichar(&inp->right);
+						if(*inp->right.data)
+						{
+							char *nr=strdup(inp->right.data+1);
+							free(inp->right.data);
+							inp->right.data=nr;
+							inp->right.l=inp->right.i--;
+						}
 					}
 				break;
 				case '5': // ^[[5
