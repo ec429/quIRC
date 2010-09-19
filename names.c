@@ -123,11 +123,11 @@ int i_cull(name ** list, char *nm)
 	if(!list)
 		return(0);
 	int rv=0;
-	char rm[strlen(nm)+2];
-	if(strchr(nm, '@'))
-		strcpy(rm, nm);
-	else
-		sprintf(rm, "%s@", nm);
+	char *pnm=strdup(nm?nm:"");
+	char *src, *user, *host;
+	prefix_split(pnm, &src, &user, &host);
+	char rm[strlen(src)+strlen(user)+strlen(host)+3];
+	sprintf(rm, "%s!%s@%s", src, user, host);
 	name *curr=*list;
 	while(curr)
 	{

@@ -55,7 +55,7 @@ config.o: config.c config.h names.h bits.h colour.h text.h version.h
 
 input.o: input.c input.h ttyesc.h names.h buffer.h irc.h bits.h
 
-names.o: names.c names.h buffer.h
+names.o: names.c names.h buffer.h irc.h
 
 c_init.c: colour.d c_init.awk
 	$(AWK) -f c_init.awk colour.d > c_init.c
