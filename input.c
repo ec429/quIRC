@@ -847,6 +847,8 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 							bufs[b2].handle=serverhandle;
 					}
 					bufs[cbuf].conninpr=true;
+					if(bufs[cbuf].realsname) free(bufs[cbuf].realsname);
+					bufs[cbuf].realsname=NULL;
 					w_buf_print(cbuf, c_status, dstr, "/server: ");
 					sprintf(cstr, "quIRC - connected to %s", bufs[bufs[cbuf].server].bname);
 					settitle(cstr);
