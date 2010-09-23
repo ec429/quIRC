@@ -243,14 +243,14 @@ int inputchar(iline *inp, int *state)
 								{
 									if(d=='5') // C-PgUp
 									{
-										bufs[cbuf].scroll=min(bufs[cbuf].scroll+height-2, bufs[cbuf].filled?bufs[cbuf].nlines-1:bufs[cbuf].ptr-1);
+										bufs[cbuf].scroll=min(bufs[cbuf].scroll+height-3, bufs[cbuf].filled?bufs[cbuf].nlines-1:bufs[cbuf].ptr-1);
 										redraw_buffer();
 									}
 									else // d=='6' // C-PgDn
 									{
 										if(bufs[cbuf].scroll)
 										{
-											bufs[cbuf].scroll=max(bufs[cbuf].scroll-(height-2), 0);
+											bufs[cbuf].scroll=max(bufs[cbuf].scroll-(height-3), 0);
 											redraw_buffer();
 										}
 									}
