@@ -889,9 +889,9 @@ int rx_privmsg(message pkt, int b, bool notice)
 				break;
 			if(i_match(bufs[b2].ilist, nm, false, bufs[b].casemapping))
 				continue;
-			if(!notice && *pkt.args[1]==1) // CTCP TODO: proper CTCP handling of embedded messages
+			if(*pkt.args[1]==1) // CTCP TODO: proper CTCP handling of embedded messages
 			{
-				ctcp(pkt.args[1], from, src, b2, ha);
+				ctcp(pkt.args[1], from, src, b2, ha, notice, false);
 			}
 			else
 			{
@@ -910,9 +910,9 @@ int rx_privmsg(message pkt, int b, bool notice)
 			return(0);
 		if((irc_strcasecmp(pkt.args[0], bufs[b].nick, bufs[b].casemapping)==0) || (irc_strcasecmp(pkt.args[0], "AUTH", bufs[b].casemapping)==0))
 		{
-			if(!notice && *pkt.args[1]==1) // CTCP TODO: proper CTCP handling of embedded messages
+			if(*pkt.args[1]==1) // CTCP TODO: proper CTCP handling of embedded messages
 			{
-				ctcp(pkt.args[1], from, src, b, true);
+				ctcp(pkt.args[1], from, src, b, true, notice, true);
 			}
 			else
 			{
@@ -1183,7 +1183,7 @@ int rx_nick(message pkt, int b)
 	return(0);
 }
 
-int ctcp(char *msg, char *from, char *src, int b2, bool ha)
+int ctcp(char *msg, char *from, char *src, int b2, bool ha, bool notice, bool priv)
 {
 	int fd=bufs[b2].handle;
 	if(strncmp(msg, "\001ACTION ", 8)==0)
@@ -1199,33 +1199,133 @@ int ctcp(char *msg, char *from, char *src, int b2, bool ha)
 	}
 	else if(strncmp(msg, "\001FINGER", 7)==0)
 	{
-		char resp[32+strlen(src)+strlen(fname)];
-		sprintf(resp, "NOTICE %s \001FINGER :%s\001", src, fname);
-		irc_tx(fd, resp);
+		if(notice)
+		{
+			if(priv)
+			{
+				char tag[maxnlen+9];
+				memset(tag, ' ', maxnlen+8);
+				sprintf(tag+maxnlen-strlen(from), "(from %s) ", from);
+				w_buf_print(b2, c_notice[1], msg, tag);
+			}
+			else
+			{
+				char tag[maxnlen+4]; // TODO this tag-making bit ought to be refactored really
+				memset(tag, ' ', maxnlen+3);
+				sprintf(tag+maxnlen-strlen(from), "<%s> ", from);
+				w_buf_print(b2, c_notice[1], msg, tag);
+			}
+			if(ha)
+				bufs[b2].hi_alert=5;
+		}
+		else
+		{
+			char resp[32+strlen(src)+strlen(fname)];
+			sprintf(resp, "NOTICE %s \001FINGER :%s\001", src, fname);
+			irc_tx(fd, resp);
+		}
 	}
 	else if(strncmp(msg, "\001PING", 5)==0)
 	{
-		char resp[16+strlen(src)+strlen(msg)];
-		sprintf(resp, "NOTICE %s %s", src, msg);
-		irc_tx(fd, resp);
+		if(notice)
+		{
+			if(priv)
+			{
+				char tag[maxnlen+9];
+				memset(tag, ' ', maxnlen+8);
+				sprintf(tag+maxnlen-strlen(from), "(from %s) ", from);
+				w_buf_print(b2, c_notice[1], msg, tag);
+			}
+			else
+			{
+				char tag[maxnlen+4]; // TODO this tag-making bit ought to be refactored really
+				memset(tag, ' ', maxnlen+3);
+				sprintf(tag+maxnlen-strlen(from), "<%s> ", from);
+				w_buf_print(b2, c_notice[1], msg, tag);
+			}
+			if(ha)
+				bufs[b2].hi_alert=5;
+		}
+		else
+		{
+			char resp[16+strlen(src)+strlen(msg)];
+			sprintf(resp, "NOTICE %s %s", src, msg);
+			irc_tx(fd, resp);
+		}
 	}
 	else if(strncmp(msg, "\001CLIENTINFO", 11)==0)
 	{
-		char resp[64+strlen(src)];
-		sprintf(resp, "NOTICE %s \001CLIENTINFO ACTION FINGER PING CLIENTINFO VERSION\001", src);
-		irc_tx(fd, resp);
+		if(notice)
+		{
+			if(priv)
+			{
+				char tag[maxnlen+9];
+				memset(tag, ' ', maxnlen+8);
+				sprintf(tag+maxnlen-strlen(from), "(from %s) ", from);
+				w_buf_print(b2, c_notice[1], msg, tag);
+			}
+			else
+			{
+				char tag[maxnlen+4]; // TODO this tag-making bit ought to be refactored really
+				memset(tag, ' ', maxnlen+3);
+				sprintf(tag+maxnlen-strlen(from), "<%s> ", from);
+				w_buf_print(b2, c_notice[1], msg, tag);
+			}
+			if(ha)
+				bufs[b2].hi_alert=5;
+		}
+		else
+		{
+			char resp[64+strlen(src)];
+			sprintf(resp, "NOTICE %s \001CLIENTINFO ACTION FINGER PING CLIENTINFO VERSION\001", src);
+			irc_tx(fd, resp);
+		}
 	}
 	else if(strncmp(msg, "\001VERSION", 8)==0)
 	{
-		char resp[32+strlen(src)+strlen(version)+strlen(CC_VERSION)];
-		sprintf(resp, "NOTICE %s \001VERSION %s:%s:%s\001", src, "quIRC", version, CC_VERSION);
-		irc_tx(fd, resp);
+		if(notice)
+		{
+			if(priv)
+			{
+				char tag[maxnlen+9];
+				memset(tag, ' ', maxnlen+8);
+				sprintf(tag+maxnlen-strlen(from), "(from %s) ", from);
+				w_buf_print(b2, c_notice[1], msg, tag);
+			}
+			else
+			{
+				char tag[maxnlen+4]; // TODO this tag-making bit ought to be refactored really
+				memset(tag, ' ', maxnlen+3);
+				sprintf(tag+maxnlen-strlen(from), "<%s> ", from);
+				w_buf_print(b2, c_notice[1], msg, tag);
+			}
+			if(ha)
+				bufs[b2].hi_alert=5;
+		}
+		else
+		{
+			char resp[32+strlen(src)+strlen(version)+strlen(CC_VERSION)];
+			sprintf(resp, "NOTICE %s \001VERSION %s:%s:%s\001", src, "quIRC", version, CC_VERSION);
+			irc_tx(fd, resp);
+		}
 	}
 	else
 	{
 		char tag[maxnlen+9];
-		memset(tag, ' ', maxnlen+8);
-		sprintf(tag+maxnlen-strlen(from), "(from %s) ", from);
+		if(priv)
+		{
+			memset(tag, ' ', maxnlen+8);
+			sprintf(tag+maxnlen-strlen(from), "(from %s) ", from);
+			w_buf_print(b2, c_notice[1], msg, tag);
+		}
+		else
+		{
+			memset(tag, ' ', maxnlen+3);
+			sprintf(tag+maxnlen-strlen(from), "<%s> ", from);
+			w_buf_print(b2, c_notice[1], msg, tag);
+		}
+		if(ha)
+			bufs[b2].hi_alert=5;
 		char *cmd=msg+1;
 		char *space=strchr(cmd, ' ');
 		if(space)
@@ -1233,9 +1333,12 @@ int ctcp(char *msg, char *from, char *src, int b2, bool ha)
 		char cmsg[32+strlen(cmd)];
 		sprintf(cmsg, "Unrecognised CTCP %s (ignoring)", cmd);
 		w_buf_print(b2, c_unk, cmsg, tag);
-		char resp[32+strlen(src)+strlen(cmd)];
-		sprintf(resp, "NOTICE %s \001ERRMSG %s\001", src, cmd);
-		irc_tx(fd, resp);
+		if(!notice)
+		{
+			char resp[32+strlen(src)+strlen(cmd)];
+			sprintf(resp, "NOTICE %s \001ERRMSG %s\001", src, cmd);
+			irc_tx(fd, resp);
+		}
 		if(ha)
 			bufs[b2].hi_alert=5;
 	}
