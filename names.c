@@ -14,7 +14,7 @@ name * n_add(name ** list, char *data, cmap casemapping)
 		return(NULL);
 	n_cull(list, data, casemapping);
 	name *ptr=*list;
-	bool last=!ptr;
+	bool last=false;
 	while(ptr&&(irc_strcasecmp(data, ptr->data, casemapping)>0))
 	{
 		if(ptr->next)
@@ -31,27 +31,29 @@ name * n_add(name ** list, char *data, cmap casemapping)
 	new->data=strdup(data);
 	new->icase=false;
 	new->pms=false;
-	if(last)
+	if(ptr)
 	{
-		if(ptr)
+		if(last)
 		{
-			ptr->next=new;
 			new->prev=ptr;
 			new->next=NULL;
+			ptr->next=new;
 		}
 		else
 		{
-			*list=new;
-			new->prev=NULL;
-			new->next=NULL;
+			if(ptr->prev)
+			{
+				ptr->prev->next=new;
+				new->prev=ptr->prev;
+			}
+			else
+			{
+				*list=new;
+				new->prev=NULL;
+			}
+			ptr->prev=new;
+			new->next=ptr;
 		}
-	}
-	else if(ptr->prev)
-	{
-		ptr->prev->next=new;
-		new->prev=ptr->prev;
-		ptr->prev=new;
-		new->next=ptr;
 	}
 	else
 	{

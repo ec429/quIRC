@@ -69,13 +69,14 @@ int inputchar(iline *inp, int *state)
 			{
 				if((inp->left.i==sp) || (irc_strncasecmp(inp->left.data+sp, curr->data, inp->left.i-sp, bufs[cbuf].casemapping)==0))
 				{
+					name *old=found;
 					n_add(&found, curr->data, bufs[cbuf].casemapping);
-					if((found->next)&&(found->next->data))
+					if(old&&(old->data))
 					{
 						int i;
 						for(i=0;i<mlen;i++)
 						{
-							if(irc_to_upper(found->data[i], bufs[cbuf].casemapping)!=irc_to_upper(found->next->data[i], bufs[cbuf].casemapping))
+							if(irc_to_upper(curr->data[i], bufs[cbuf].casemapping)!=irc_to_upper(old->data[i], bufs[cbuf].casemapping))
 								break;
 						}
 						mlen=i;
