@@ -13,15 +13,31 @@ name * n_add(name ** list, char *data)
 	if(!list)
 		return(NULL);
 	n_cull(list, data);
+	name *ptr=*list, *prev=NULL;
+	while(ptr&&strcmp(data, ptr->data)>0)
+	{
+		prev=ptr;
+		ptr=ptr->next;
+	}
 	name *new=(name *)malloc(sizeof(name));
 	new->data=strdup(data);
 	new->icase=false;
 	new->pms=false;
-	new->prev=NULL;
-	new->next=*list;
-	if(*list)
-		(*list)->prev=new;
-	*list=new;
+	if(ptr && ptr->prev)
+	{
+		ptr->prev->next=new;
+		new->prev=ptr->prev;
+		ptr->prev=new;
+		new->next=ptr;
+	}
+	else
+	{
+		new->prev=NULL;
+		new->next=*list;
+		if(*list)
+			(*list)->prev=new;
+		*list=new;
+	}
 	return(new);
 }
 
