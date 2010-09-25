@@ -27,8 +27,8 @@ name;
 #include "buffer.h"
 #include "irc.h"
 
-name * n_add(name ** list, char *data); // returns pointer to the added name (which should also be the new value of *list).  Calls n_cull() first
-int n_cull(name ** list, char *data); // returns number of instances culled
+name * n_add(name ** list, char *data, cmap casemapping); // returns pointer to the added name.  Calls n_cull() first
+int n_cull(name ** list, char *data, cmap casemapping); // returns number of instances culled
 void n_free(name * list);
 
 int i_match(name * list, char *nm, bool pm, cmap casemapping); // returns number of matches

@@ -8,22 +8,45 @@
 
 #include "names.h"
 
-name * n_add(name ** list, char *data)
+name * n_add(name ** list, char *data, cmap casemapping)
 {
 	if(!list)
 		return(NULL);
-	n_cull(list, data);
-	name *ptr=*list, *prev=NULL;
-	while(ptr&&strcmp(data, ptr->data)>0)
+	n_cull(list, data, casemapping);
+	name *ptr=*list;
+	bool last=!ptr;
+	while(ptr&&(irc_strcasecmp(data, ptr->data, casemapping)>0))
 	{
-		prev=ptr;
-		ptr=ptr->next;
+		if(ptr->next)
+		{
+			ptr=ptr->next;
+		}
+		else
+		{
+			last=true;
+			break;
+		}
 	}
 	name *new=(name *)malloc(sizeof(name));
 	new->data=strdup(data);
 	new->icase=false;
 	new->pms=false;
-	if(ptr && ptr->prev)
+	if(last)
+	{
+		if(ptr)
+		{
+			ptr->next=new;
+			new->prev=ptr;
+			new->next=NULL;
+		}
+		else
+		{
+			*list=new;
+			new->prev=NULL;
+			new->next=NULL;
+		}
+	}
+	else if(ptr->prev)
 	{
 		ptr->prev->next=new;
 		new->prev=ptr->prev;
@@ -41,7 +64,7 @@ name * n_add(name ** list, char *data)
 	return(new);
 }
 
-int n_cull(name ** list, char *data)
+int n_cull(name ** list, char *data, cmap casemapping)
 {
 	if(!list)
 		return(0);
@@ -50,7 +73,7 @@ int n_cull(name ** list, char *data)
 	while(curr)
 	{
 		name *next=curr->next;
-		if(strcmp(curr->data, data)==0)
+		if(irc_strcasecmp(curr->data, data, casemapping)==0)
 		{
 			if(curr->prev)
 			{

@@ -183,7 +183,7 @@ int rcread(FILE *rcfp)
 				bool regex=strchr(sw, 'r');
 				if(regex)
 				{
-					name *new=n_add(&igns, rest);
+					name *new=n_add(&igns, rest, RFC1459);
 					if(new)
 					{
 						new->icase=icase;
@@ -200,7 +200,7 @@ int rcread(FILE *rcfp)
 						ihst="[^@]*";
 					char expr[10+strlen(iusr)+strlen(ihst)];
 					sprintf(expr, "^%s[_~]*@%s$", iusr, ihst);
-					name *new=n_add(&igns, expr);
+					name *new=n_add(&igns, expr, RFC1459);
 					if(new)
 					{
 						new->icase=icase;
@@ -225,7 +225,7 @@ int rcread(FILE *rcfp)
 				bool regex=strchr(sw, 'r');
 				if(regex)
 				{
-					name *new=n_add(&servs->igns, rest);
+					name *new=n_add(&servs->igns, rest, RFC1459);
 					if(new)
 					{
 						new->icase=icase;
@@ -244,7 +244,7 @@ int rcread(FILE *rcfp)
 						ihst="[^@]*";
 					char expr[16+strlen(isrc)+strlen(iusr)+strlen(ihst)];
 						sprintf(expr, "^%s[_~]*!%s@%s$", isrc, iusr, ihst);
-					name *new=n_add(&servs->igns, expr);
+					name *new=n_add(&servs->igns, expr, RFC1459);
 					if(new)
 					{
 						new->icase=icase;

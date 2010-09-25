@@ -69,7 +69,7 @@ int inputchar(iline *inp, int *state)
 			{
 				if((inp->left.i==sp) || (irc_strncasecmp(inp->left.data+sp, curr->data, inp->left.i-sp, bufs[cbuf].casemapping)==0))
 				{
-					n_add(&found, curr->data);
+					n_add(&found, curr->data, bufs[cbuf].casemapping);
 					if((found->next)&&(found->next->data))
 					{
 						int i;
@@ -1371,7 +1371,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					}
 					else if(regex)
 					{
-						name *new=n_add(&bufs[cbuf].ilist, arg);
+						name *new=n_add(&bufs[cbuf].ilist, arg, bufs[cbuf].casemapping);
 						if(new)
 						{
 							w_buf_print(cbuf, c_status, "Entry added", "/ignore: ");
@@ -1391,7 +1391,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 							ihst="[^@]*";
 						char expr[16+strlen(isrc)+strlen(iusr)+strlen(ihst)];
 						sprintf(expr, "^%s[_~]*!%s@%s$", isrc, iusr, ihst);
-						name *new=n_add(&bufs[cbuf].ilist, expr);
+						name *new=n_add(&bufs[cbuf].ilist, expr, bufs[cbuf].casemapping);
 						if(new)
 						{
 							w_buf_print(cbuf, c_status, "Entry added", "/ignore: ");

@@ -561,7 +561,7 @@ int irc_numeric(message pkt, int b)
 							while(strchr(plist, *nn))
 								nn++;
 						}
-						n_add(&bufs[b2].nlist, nn);
+						n_add(&bufs[b2].nlist, nn, bufs[b].casemapping);
 						nn=strtok(NULL, " ");
 					}
 				}
@@ -769,7 +769,7 @@ int rx_kill(message pkt, int b, fd_set *master)
 		{
 			if((bufs[b2].server==b) || (bufs[b2].server==0))
 			{
-				if(n_cull(&bufs[b2].nlist, pkt.args[0]))
+				if(n_cull(&bufs[b2].nlist, pkt.args[0], bufs[b2].casemapping))
 				{
 					if(pkt.nargs<2)
 					{
@@ -820,7 +820,7 @@ int rx_kick(message pkt, int b)
 		{
 			if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(pkt.args[0], bufs[b2].bname, bufs[b].casemapping)==0))
 			{
-				if(n_cull(&bufs[b2].nlist, pkt.args[1]))
+				if(n_cull(&bufs[b2].nlist, pkt.args[1], bufs[b2].casemapping))
 				{
 					if(pkt.nargs<3)
 					{
@@ -1034,7 +1034,7 @@ int rx_join(message pkt, int b)
 				char dstr[16+strlen(pkt.args[0])];
 				sprintf(dstr, "has joined %s", pkt.args[0]);
 				w_buf_print(b2, c_join[1], dstr, tag);
-				n_add(&bufs[b2].nlist, src);
+				n_add(&bufs[b2].nlist, src, bufs[b2].casemapping);
 			}
 		}
 		free(tag);
@@ -1100,7 +1100,7 @@ int rx_part(message pkt, int b)
 					sprintf(dstr, "has left %s (Part: %s)", pkt.args[0], pkt.args[1]);
 					w_buf_print(b2, c_part[1], dstr, tag);
 				}
-				n_cull(&bufs[b2].nlist, src);
+				n_cull(&bufs[b2].nlist, src, bufs[b2].casemapping);
 			}
 		}
 		free(tag);
@@ -1133,7 +1133,7 @@ int rx_quit(message pkt, int b)
 		{
 			if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL))
 			{
-				if(n_cull(&bufs[b2].nlist, src))
+				if(n_cull(&bufs[b2].nlist, src, bufs[b2].casemapping))
 				{
 					char dstr[24+strlen(bufs[b].bname)+strlen(reason)];
 					sprintf(dstr, "has left %s (%s)", bufs[b].bname, reason);
@@ -1166,8 +1166,8 @@ int rx_nick(message pkt, int b)
 			if(bufs[b2].server==b)
 			{
 				w_buf_print(b2, c_nick[1], dstr, "");
-				n_cull(&bufs[b2].nlist, src);
-				n_add(&bufs[b2].nlist, pkt.args[0]);
+				n_cull(&bufs[b2].nlist, src, bufs[b2].casemapping);
+				n_add(&bufs[b2].nlist, pkt.args[0], bufs[b2].casemapping);
 			}
 		}
 	}
@@ -1184,9 +1184,9 @@ int rx_nick(message pkt, int b)
 			if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL))
 			{
 				match=true;
-				if(n_cull(&bufs[b2].nlist, src))
+				if(n_cull(&bufs[b2].nlist, src, bufs[b2].casemapping))
 				{
-					n_add(&bufs[b2].nlist, pkt.args[0]);
+					n_add(&bufs[b2].nlist, pkt.args[0], bufs[b2].casemapping);
 					char dstr[30+strlen(pkt.args[0])];
 					sprintf(dstr, "is now known as %s", pkt.args[0]);
 					w_buf_print(b2, c_nick[1], dstr, tag);
