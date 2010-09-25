@@ -10,6 +10,8 @@ Automate config handling.  Generated code?
 
 Runtime buffer resizing.
 
+Sort the tab-completion list alphabetically.
+
 Interface separation.  It should be possible to write decoupled interface modules which may access the buffers at a variety of depths (eg. pre-formatting) and through a variety of methods (such as mmap(2), a serialised textual IPC format, etc.).
 
 Private messaging tabs.

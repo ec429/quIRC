@@ -889,7 +889,7 @@ int rx_privmsg(message pkt, int b, bool notice)
 				break;
 			if(i_match(bufs[b2].ilist, nm, false, bufs[b].casemapping))
 				continue;
-			if(*pkt.args[1]==1) // CTCP TODO: proper CTCP handling of embedded messages
+			if(!notice && *pkt.args[1]==1) // CTCP TODO: proper CTCP handling of embedded messages
 			{
 				ctcp(pkt.args[1], from, src, b2, ha);
 			}
@@ -910,7 +910,7 @@ int rx_privmsg(message pkt, int b, bool notice)
 			return(0);
 		if((irc_strcasecmp(pkt.args[0], bufs[b].nick, bufs[b].casemapping)==0) || (irc_strcasecmp(pkt.args[0], "AUTH", bufs[b].casemapping)==0))
 		{
-			if(*pkt.args[1]==1) // CTCP TODO: proper CTCP handling of embedded messages
+			if(!notice && *pkt.args[1]==1) // CTCP TODO: proper CTCP handling of embedded messages
 			{
 				ctcp(pkt.args[1], from, src, b, true);
 			}
