@@ -895,7 +895,7 @@ int rx_privmsg(message pkt, int b, bool notice)
 			}
 			else
 			{
-				char *tag=mktag("<%s>", from);
+				char *tag=mktag("<%s> ", from);
 				w_buf_print(b2, notice?c_notice[1]:c_msg[1], pkt.args[1], tag);
 				free(tag);
 				if(ha)

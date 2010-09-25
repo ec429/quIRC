@@ -1106,7 +1106,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 							text[strlen(text)-1]=0; // stomp out trailing newlines, they break things
 						char *cdest=strdup(dest);
 						crush(&cdest, maxnlen);
-						char *tag=mktag("  (to %s)", cdest);
+						char *tag=mktag("  (to %s) ", cdest);
 						free(cdest);
 						w_buf_print(cbuf, c_msg[0], text, tag);
 						free(tag);
