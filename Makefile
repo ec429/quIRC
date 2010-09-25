@@ -67,8 +67,20 @@ version.h: version
 dist: all doc
 	-mkdir quirc_$(VERSION)
 	for p in $$(ls); do cp $$p quirc_$(VERSION)/$$p; done;
-	rm quirc_$(VERSION)/*.tar.gz
+	-rm quirc_$(VERSION)/*.tar.gz
+	sed -i -e "s/\.\/gitversion/touch version.h/" -e "s/[g]it describe --tags/\.\/quirc -V 2>\&1 | col | head -n1 | grep -o \"quirc .*\" | tail -c+7/" quirc_$(VERSION)/Makefile
 	tar -cvvf quirc_$(VERSION).tar quirc_$(VERSION)/
 	gzip quirc_$(VERSION).tar
 	rm -r quirc_$(VERSION)
+
+dists: c_init.c doc
+	-mkdir quirc_$(VERSION)_src
+	for p in $$(ls); do cp $$p quirc_$(VERSION)_src/$$p; done;
+	-rm quirc_$(VERSION)_src/*.tar.gz
+	rm quirc_$(VERSION)_src/*.o
+	rm quirc_$(VERSION)_src/quirc
+	sed -i -e "s/\.\/gitversion/touch version.h/" -e "s/[g]it describe --tags/\.\/quirc -V 2>\&1 | col | head -n1 | grep -o \"quirc .*\" | tail -c+7/" quirc_$(VERSION)_src/Makefile
+	tar -cvvf quirc_$(VERSION)_src.tar quirc_$(VERSION)_src/
+	gzip quirc_$(VERSION)_src.tar
+	rm -r quirc_$(VERSION)_src
 
