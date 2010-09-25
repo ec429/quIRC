@@ -1156,7 +1156,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 								args[strlen(args)-1]=0; // stomp out trailing newlines, they break things
 							char *cnick=strdup(bufs[bufs[b2].server].nick);
 							crush(&cnick, maxnlen);
-							char *tag=mktag(cnick, "<%s> ");
+							char *tag=mktag("<%s> ", cnick);
 							free(cnick);
 							bool al=bufs[b2].alert; // save alert status...
 							int hi=bufs[b2].hi_alert;

@@ -895,7 +895,7 @@ int rx_privmsg(message pkt, int b, bool notice)
 			}
 			else
 			{
-				char *tag=mktag(from, "<%s> ");
+				char *tag=mktag("<%s>", from);
 				w_buf_print(b2, notice?c_notice[1]:c_msg[1], pkt.args[1], tag);
 				free(tag);
 				if(ha)
@@ -915,7 +915,7 @@ int rx_privmsg(message pkt, int b, bool notice)
 			}
 			else
 			{
-				char *tag=mktag(from, "(from %s) ");
+				char *tag=mktag("(from %s) ", from);
 				w_buf_print(b, notice?c_notice[1]:c_msg[1], pkt.args[1], tag);
 				free(tag);
 				if(!notice)
@@ -1219,7 +1219,7 @@ int ctcp(char *msg, char *from, char *src, int b2, bool ha, bool notice, bool pr
 	{
 		if(notice)
 		{
-			char *tag=mktag(from, "(from %s) ");
+			char *tag=mktag("(from %s) ", from);
 			w_buf_print(b2, c_notice[1], msg, tag);
 			free(tag);
 			if(ha)
@@ -1236,7 +1236,7 @@ int ctcp(char *msg, char *from, char *src, int b2, bool ha, bool notice, bool pr
 	{
 		if(notice)
 		{
-			char *tag=mktag(from, "(from %s) ");
+			char *tag=mktag("(from %s) ", from);
 			w_buf_print(b2, c_notice[1], msg, tag);
 			free(tag);
 			if(ha)
@@ -1253,7 +1253,7 @@ int ctcp(char *msg, char *from, char *src, int b2, bool ha, bool notice, bool pr
 	{
 		if(notice)
 		{
-			char *tag=mktag(from, "(from %s) ");
+			char *tag=mktag("(from %s) ", from);
 			w_buf_print(b2, c_notice[1], msg, tag);
 			free(tag);
 			if(ha)
@@ -1270,7 +1270,7 @@ int ctcp(char *msg, char *from, char *src, int b2, bool ha, bool notice, bool pr
 	{
 		if(notice)
 		{
-			char *tag=mktag(from, "(from %s) ");
+			char *tag=mktag("(from %s) ", from);
 			w_buf_print(b2, c_notice[1], msg, tag);
 			free(tag);
 			if(ha)
@@ -1285,7 +1285,7 @@ int ctcp(char *msg, char *from, char *src, int b2, bool ha, bool notice, bool pr
 	}
 	else
 	{
-		char *tag=mktag(from, "(from %s) ");
+		char *tag=mktag("(from %s) ", from);
 		w_buf_print(b2, c_notice[1], msg, tag);
 		free(tag);
 		if(ha)
