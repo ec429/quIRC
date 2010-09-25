@@ -236,3 +236,9 @@ void scrush(char **buf, int len)
 		}
 	}
 }
+
+void mktag(char *buf, char *from, bool priv)
+{
+	memset(buf, ' ', maxnlen+8);
+	sprintf(buf+maxnlen-strlen(from), priv?"(from %s) ":"<%s> ", from);
+}

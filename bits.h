@@ -15,6 +15,8 @@
 #include "colour.h"
 #include "config.h"
 
+#define TAGLEN	(maxnlen+9) // size of buffer needed for mktag()
+
 // helper fn macros
 #define max(a,b)	((a)>(b)?(a):(b))
 #define min(a,b)	((a)<(b)?(a):(b))
@@ -26,3 +28,4 @@ void append_char(char **buf, int *l, int *i, char c); // adds a character to a s
 void append_str(char **buf, int *l, int *i, char *str); // adds a string to a string buffer in heap (and realloc()s if needed)
 void crush(char **buf, int len);
 void scrush(char **buf, int len);
+void mktag(char *buf, char *from, bool priv);

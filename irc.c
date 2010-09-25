@@ -895,9 +895,8 @@ int rx_privmsg(message pkt, int b, bool notice)
 			}
 			else
 			{
-				char tag[maxnlen+4]; // TODO this tag-making bit ought to be refactored really
-				memset(tag, ' ', maxnlen+3);
-				sprintf(tag+maxnlen-strlen(from), "<%s> ", from);
+				char tag[TAGLEN];
+				mktag(tag, from, false);
 				w_buf_print(b2, notice?c_notice[1]:c_msg[1], pkt.args[1], tag);
 				if(ha)
 					bufs[b2].hi_alert=5;
@@ -916,9 +915,8 @@ int rx_privmsg(message pkt, int b, bool notice)
 			}
 			else
 			{
-				char tag[maxnlen+9];
-				memset(tag, ' ', maxnlen+8);
-				sprintf(tag+maxnlen-strlen(from), "(from %s) ", from);
+				char tag[TAGLEN];
+				mktag(tag, from, true);
 				w_buf_print(b, notice?c_notice[1]:c_msg[1], pkt.args[1], tag);
 				if(!notice)
 					bufs[b].hi_alert=5;
@@ -1201,20 +1199,9 @@ int ctcp(char *msg, char *from, char *src, int b2, bool ha, bool notice, bool pr
 	{
 		if(notice)
 		{
-			if(priv)
-			{
-				char tag[maxnlen+9];
-				memset(tag, ' ', maxnlen+8);
-				sprintf(tag+maxnlen-strlen(from), "(from %s) ", from);
-				w_buf_print(b2, c_notice[1], msg, tag);
-			}
-			else
-			{
-				char tag[maxnlen+4]; // TODO this tag-making bit ought to be refactored really
-				memset(tag, ' ', maxnlen+3);
-				sprintf(tag+maxnlen-strlen(from), "<%s> ", from);
-				w_buf_print(b2, c_notice[1], msg, tag);
-			}
+			char tag[TAGLEN];
+			mktag(tag, from, priv);
+			w_buf_print(b2, c_notice[1], msg, tag);
 			if(ha)
 				bufs[b2].hi_alert=5;
 		}
@@ -1229,20 +1216,9 @@ int ctcp(char *msg, char *from, char *src, int b2, bool ha, bool notice, bool pr
 	{
 		if(notice)
 		{
-			if(priv)
-			{
-				char tag[maxnlen+9];
-				memset(tag, ' ', maxnlen+8);
-				sprintf(tag+maxnlen-strlen(from), "(from %s) ", from);
-				w_buf_print(b2, c_notice[1], msg, tag);
-			}
-			else
-			{
-				char tag[maxnlen+4]; // TODO this tag-making bit ought to be refactored really
-				memset(tag, ' ', maxnlen+3);
-				sprintf(tag+maxnlen-strlen(from), "<%s> ", from);
-				w_buf_print(b2, c_notice[1], msg, tag);
-			}
+			char tag[TAGLEN];
+			mktag(tag, from, priv);
+			w_buf_print(b2, c_notice[1], msg, tag);
 			if(ha)
 				bufs[b2].hi_alert=5;
 		}
@@ -1257,20 +1233,9 @@ int ctcp(char *msg, char *from, char *src, int b2, bool ha, bool notice, bool pr
 	{
 		if(notice)
 		{
-			if(priv)
-			{
-				char tag[maxnlen+9];
-				memset(tag, ' ', maxnlen+8);
-				sprintf(tag+maxnlen-strlen(from), "(from %s) ", from);
-				w_buf_print(b2, c_notice[1], msg, tag);
-			}
-			else
-			{
-				char tag[maxnlen+4]; // TODO this tag-making bit ought to be refactored really
-				memset(tag, ' ', maxnlen+3);
-				sprintf(tag+maxnlen-strlen(from), "<%s> ", from);
-				w_buf_print(b2, c_notice[1], msg, tag);
-			}
+			char tag[TAGLEN];
+			mktag(tag, from, priv);
+			w_buf_print(b2, c_notice[1], msg, tag);
 			if(ha)
 				bufs[b2].hi_alert=5;
 		}
@@ -1285,20 +1250,9 @@ int ctcp(char *msg, char *from, char *src, int b2, bool ha, bool notice, bool pr
 	{
 		if(notice)
 		{
-			if(priv)
-			{
-				char tag[maxnlen+9];
-				memset(tag, ' ', maxnlen+8);
-				sprintf(tag+maxnlen-strlen(from), "(from %s) ", from);
-				w_buf_print(b2, c_notice[1], msg, tag);
-			}
-			else
-			{
-				char tag[maxnlen+4]; // TODO this tag-making bit ought to be refactored really
-				memset(tag, ' ', maxnlen+3);
-				sprintf(tag+maxnlen-strlen(from), "<%s> ", from);
-				w_buf_print(b2, c_notice[1], msg, tag);
-			}
+			char tag[TAGLEN];
+			mktag(tag, from, priv);
+			w_buf_print(b2, c_notice[1], msg, tag);
 			if(ha)
 				bufs[b2].hi_alert=5;
 		}
@@ -1311,19 +1265,9 @@ int ctcp(char *msg, char *from, char *src, int b2, bool ha, bool notice, bool pr
 	}
 	else
 	{
-		char tag[maxnlen+9];
-		if(priv)
-		{
-			memset(tag, ' ', maxnlen+8);
-			sprintf(tag+maxnlen-strlen(from), "(from %s) ", from);
-			w_buf_print(b2, c_notice[1], msg, tag);
-		}
-		else
-		{
-			memset(tag, ' ', maxnlen+3);
-			sprintf(tag+maxnlen-strlen(from), "<%s> ", from);
-			w_buf_print(b2, c_notice[1], msg, tag);
-		}
+		char tag[TAGLEN];
+		mktag(tag, from, priv);
+		w_buf_print(b2, c_notice[1], msg, tag);
 		if(ha)
 			bufs[b2].hi_alert=5;
 		char *cmd=msg+1;

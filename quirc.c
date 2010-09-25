@@ -374,11 +374,10 @@ int main(int argc, char *argv[])
 									char pmsg[12+strlen(bufs[cbuf].bname)+strlen(iinput)];
 									sprintf(pmsg, "PRIVMSG %s :%s", bufs[cbuf].bname, iinput);
 									irc_tx(bufs[cbuf].handle, pmsg);
-									char tag[maxnlen+4];
-									memset(tag, ' ', maxnlen+3);
 									char *cnick=strdup(bufs[bufs[cbuf].server].nick);
 									crush(&cnick, maxnlen);
-									sprintf(tag+maxnlen-strlen(cnick), "<%s> ", cnick);
+									char tag[TAGLEN];
+									mktag(tag, cnick, false);
 									free(cnick);
 									w_buf_print(cbuf, c_msg[0], iinput, tag);
 								}
