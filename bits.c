@@ -237,8 +237,17 @@ void scrush(char **buf, int len)
 	}
 }
 
-void mktag(char *buf, char *from, bool priv)
+char *mktag(char *fmt, char *from)
 {
-	memset(buf, ' ', maxnlen+8);
-	sprintf(buf+maxnlen-strlen(from), priv?"(from %s) ":"<%s> ", from);
+	char *rv=NULL;
+	if(strlen(from)<=maxnlen)
+	{
+		rv=(char *)malloc(strlen(fmt)+maxnlen);
+		if(rv)
+		{
+			memset(rv, ' ', maxnlen+strlen(fmt)-1);
+			sprintf(rv+maxnlen-strlen(from), fmt, from);
+		}
+	}
+	return(rv);
 }

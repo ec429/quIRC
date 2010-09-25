@@ -376,10 +376,10 @@ int main(int argc, char *argv[])
 									irc_tx(bufs[cbuf].handle, pmsg);
 									char *cnick=strdup(bufs[bufs[cbuf].server].nick);
 									crush(&cnick, maxnlen);
-									char tag[TAGLEN];
-									mktag(tag, cnick, false);
+									char *tag=mktag(cnick, "<%s> ");
 									free(cnick);
 									w_buf_print(cbuf, c_msg[0], iinput, tag);
+									free(tag);
 								}
 								else
 								{

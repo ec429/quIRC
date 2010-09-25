@@ -1104,10 +1104,12 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 						irc_tx(bufs[cbuf].handle, privmsg);
 						while(text[strlen(text)-1]=='\n')
 							text[strlen(text)-1]=0; // stomp out trailing newlines, they break things
-						char tag[TAGLEN];
-						memset(tag, ' ', maxnlen+8);
-						sprintf(tag+maxnlen+2-strlen(dest), "(to %s) ", dest);
+						char *cdest=strdup(dest);
+						crush(&cdest, maxnlen);
+						char *tag=mktag("  (to %s)", cdest);
+						free(cdest);
 						w_buf_print(cbuf, c_msg[0], text, tag);
+						free(tag);
 					}
 					else
 					{
@@ -1154,12 +1156,12 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 								args[strlen(args)-1]=0; // stomp out trailing newlines, they break things
 							char *cnick=strdup(bufs[bufs[b2].server].nick);
 							crush(&cnick, maxnlen);
-							char tag[TAGLEN];
-							mktag(tag, cnick, false);
+							char *tag=mktag(cnick, "<%s> ");
 							free(cnick);
 							bool al=bufs[b2].alert; // save alert status...
 							int hi=bufs[b2].hi_alert;
 							w_buf_print(b2, c_msg[0], args, tag);
+							free(tag);
 							bufs[b2].alert=al; // and restore it
 							bufs[b2].hi_alert=hi;
 						}
@@ -1200,11 +1202,10 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 						args[strlen(args)-1]=0; // stomp out trailing newlines, they break things
 					char *cnick=strdup(bufs[bufs[cbuf].server].nick);
 					crush(&cnick, maxnlen);
-					char tag[TAGLEN];
-					memset(tag, ' ', maxnlen+3);
-					sprintf(tag+maxnlen+2-strlen(cnick), "%s ", cnick);
+					char *tag=mktag("  %s ", cnick);
 					free(cnick);
 					w_buf_print(cbuf, c_actn[0], args, tag);
+					free(tag);
 				}
 				else
 				{

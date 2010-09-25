@@ -895,9 +895,9 @@ int rx_privmsg(message pkt, int b, bool notice)
 			}
 			else
 			{
-				char tag[TAGLEN];
-				mktag(tag, from, false);
+				char *tag=mktag(from, "<%s> ");
 				w_buf_print(b2, notice?c_notice[1]:c_msg[1], pkt.args[1], tag);
+				free(tag);
 				if(ha)
 					bufs[b2].hi_alert=5;
 			}
@@ -915,9 +915,9 @@ int rx_privmsg(message pkt, int b, bool notice)
 			}
 			else
 			{
-				char tag[TAGLEN];
-				mktag(tag, from, true);
+				char *tag=mktag(from, "(from %s) ");
 				w_buf_print(b, notice?c_notice[1]:c_msg[1], pkt.args[1], tag);
+				free(tag);
 				if(!notice)
 					bufs[b].hi_alert=5;
 			}
@@ -946,24 +946,24 @@ int rx_topic(message pkt, int b)
 	bool match=false;
 	if(pkt.nargs<2)
 	{
-		char tag[maxnlen+20];
-		sprintf(tag, "%s removed the Topic", from);
+		char *tag=mktag("%s ", from);
 		int b2;
 		for(b2=0;b2<nbufs;b2++)
 		{
 			if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(pkt.args[0], bufs[b2].bname, bufs[b].casemapping)==0))
 			{
-				w_buf_print(b2, c_notice[1], "", tag);
+				w_buf_print(b2, c_notice[1], "removed the Topic", tag);
 				match=true;
 				if(bufs[b2].topic) free(bufs[b2].topic);
 				bufs[b2].topic=NULL;
 			}
 		}
+		free(tag);
 	}
 	else
 	{
-		char tag[maxnlen+20];
-		sprintf(tag, "%s set the Topic to ", from);
+		
+		char *tag=mktag("%s set the Topic to ", from);
 		int b2;
 		for(b2=0;b2<nbufs;b2++)
 		{
@@ -975,6 +975,7 @@ int rx_topic(message pkt, int b)
 				bufs[b2].topic=strdup(pkt.args[1]);
 			}
 		}
+		free(tag);
 	}
 	free(from);
 	return(match?0:1);
@@ -1019,19 +1020,24 @@ int rx_join(message pkt, int b)
 	}
 	else
 	{
-		int b2;
+		char *from=strdup(src);
+		crush(&from, maxnlen);
+		char *tag=mktag("=%s= ", from);
+		free(from);
 		bool match=false;
+		int b2;
 		for(b2=0;b2<nbufs;b2++)
 		{
 			if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(pkt.args[0], bufs[b2].bname, bufs[b].casemapping)==0))
 			{
 				match=true;
-				char dstr[16+strlen(src)+strlen(pkt.args[0])];
-				sprintf(dstr, "=%s= has joined %s", src, pkt.args[0]);
-				w_buf_print(b2, c_join[1], dstr, "");
+				char dstr[16+strlen(pkt.args[0])];
+				sprintf(dstr, "has joined %s", pkt.args[0]);
+				w_buf_print(b2, c_join[1], dstr, tag);
 				n_add(&bufs[b2].nlist, src);
 			}
 		}
+		free(tag);
 		if(!match)
 		{
 			e_buf_print(b, c_err, pkt, "Bad destination: ");
@@ -1071,8 +1077,12 @@ int rx_part(message pkt, int b)
 	}
 	else
 	{
-		int b2;
+		char *from=strdup(src);
+		crush(&from, maxnlen);
+		char *tag=mktag("=%s= ", from);
+		free(from);
 		bool match=false;
+		int b2;
 		for(b2=0;b2<nbufs;b2++)
 		{
 			if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(pkt.args[0], bufs[b2].bname, bufs[b].casemapping)==0))
@@ -1080,19 +1090,20 @@ int rx_part(message pkt, int b)
 				match=true;
 				if(pkt.nargs<2)
 				{
-					char dstr[16+strlen(src)+strlen(pkt.args[0])];
-					sprintf(dstr, "=%s= has left %s", src, pkt.args[0]);
-					w_buf_print(b2, c_part[1], dstr, "");
+					char dstr[16+strlen(pkt.args[0])];
+					sprintf(dstr, "has left %s", pkt.args[0]);
+					w_buf_print(b2, c_part[1], dstr, tag);
 				}
 				else
 				{
-					char dstr[24+strlen(src)+strlen(pkt.args[0])+strlen(pkt.args[1])];
-					sprintf(dstr, "=%s= has left %s (Part: %s)", src, pkt.args[0], pkt.args[1]);
-					w_buf_print(b2, c_part[1], dstr, "");
+					char dstr[24+strlen(pkt.args[0])+strlen(pkt.args[1])];
+					sprintf(dstr, "has left %s (Part: %s)", pkt.args[0], pkt.args[1]);
+					w_buf_print(b2, c_part[1], dstr, tag);
 				}
 				n_cull(&bufs[b2].nlist, src);
 			}
 		}
+		free(tag);
 		if(!match)
 		{
 			e_buf_print(b, c_err, pkt, "Bad destination: ");
@@ -1113,6 +1124,10 @@ int rx_quit(message pkt, int b)
 	}
 	else
 	{
+		char *from=strdup(src);
+		crush(&from, maxnlen);
+		char *tag=mktag("=%s= ", from);
+		free(from);
 		int b2;
 		for(b2=0;b2<nbufs;b2++)
 		{
@@ -1120,12 +1135,13 @@ int rx_quit(message pkt, int b)
 			{
 				if(n_cull(&bufs[b2].nlist, src))
 				{
-					char dstr[24+strlen(src)+strlen(bufs[b].bname)+strlen(reason)];
-					sprintf(dstr, "=%s= has left %s (%s)", src, bufs[b].bname, reason);
-					w_buf_print(b2, c_quit[1], dstr, "");
+					char dstr[24+strlen(bufs[b].bname)+strlen(reason)];
+					sprintf(dstr, "has left %s (%s)", bufs[b].bname, reason);
+					w_buf_print(b2, c_quit[1], dstr, tag);
 				}
 			}
 		}
+		free(tag);
 	}
 	return(0);
 }
@@ -1157,6 +1173,10 @@ int rx_nick(message pkt, int b)
 	}
 	else
 	{
+		char *from=strdup(src);
+		crush(&from, maxnlen);
+		char *tag=mktag("=%s= ", from);
+		free(from);
 		int b2;
 		bool match=false;
 		for(b2=0;b2<nbufs;b2++)
@@ -1167,12 +1187,13 @@ int rx_nick(message pkt, int b)
 				if(n_cull(&bufs[b2].nlist, src))
 				{
 					n_add(&bufs[b2].nlist, pkt.args[0]);
-					char dstr[30+strlen(src)+strlen(pkt.args[0])];
-					sprintf(dstr, "=%s= is now known as %s", src, pkt.args[0]);
-					w_buf_print(b2, c_nick[1], dstr, "");
+					char dstr[30+strlen(pkt.args[0])];
+					sprintf(dstr, "is now known as %s", pkt.args[0]);
+					w_buf_print(b2, c_nick[1], dstr, tag);
 				}
 			}
 		}
+		free(tag);
 		if(!match)
 		{
 			e_buf_print(b, c_err, pkt, "Bad destination: ");
@@ -1187,10 +1208,9 @@ int ctcp(char *msg, char *from, char *src, int b2, bool ha, bool notice, bool pr
 	if(strncmp(msg, "\001ACTION ", 8)==0)
 	{
 		msg[strlen(msg)-1]=0; // remove trailing \001
-		char tag[maxnlen+4];
-		memset(tag, ' ', maxnlen+3);
-		sprintf(tag+maxnlen+2-strlen(from), "%s ", from);
+		char *tag=mktag("  %s ", from);
 		w_buf_print(b2, c_actn[1], msg+8, tag);
+		free(tag);
 		ha=ha||strstr(msg+8, bufs[bufs[b2].server].nick);
 		if(ha)
 			bufs[b2].hi_alert=5;
@@ -1199,9 +1219,9 @@ int ctcp(char *msg, char *from, char *src, int b2, bool ha, bool notice, bool pr
 	{
 		if(notice)
 		{
-			char tag[TAGLEN];
-			mktag(tag, from, priv);
+			char *tag=mktag(from, "(from %s) ");
 			w_buf_print(b2, c_notice[1], msg, tag);
+			free(tag);
 			if(ha)
 				bufs[b2].hi_alert=5;
 		}
@@ -1216,9 +1236,9 @@ int ctcp(char *msg, char *from, char *src, int b2, bool ha, bool notice, bool pr
 	{
 		if(notice)
 		{
-			char tag[TAGLEN];
-			mktag(tag, from, priv);
+			char *tag=mktag(from, "(from %s) ");
 			w_buf_print(b2, c_notice[1], msg, tag);
+			free(tag);
 			if(ha)
 				bufs[b2].hi_alert=5;
 		}
@@ -1233,9 +1253,9 @@ int ctcp(char *msg, char *from, char *src, int b2, bool ha, bool notice, bool pr
 	{
 		if(notice)
 		{
-			char tag[TAGLEN];
-			mktag(tag, from, priv);
+			char *tag=mktag(from, "(from %s) ");
 			w_buf_print(b2, c_notice[1], msg, tag);
+			free(tag);
 			if(ha)
 				bufs[b2].hi_alert=5;
 		}
@@ -1250,9 +1270,9 @@ int ctcp(char *msg, char *from, char *src, int b2, bool ha, bool notice, bool pr
 	{
 		if(notice)
 		{
-			char tag[TAGLEN];
-			mktag(tag, from, priv);
+			char *tag=mktag(from, "(from %s) ");
 			w_buf_print(b2, c_notice[1], msg, tag);
+			free(tag);
 			if(ha)
 				bufs[b2].hi_alert=5;
 		}
@@ -1265,9 +1285,9 @@ int ctcp(char *msg, char *from, char *src, int b2, bool ha, bool notice, bool pr
 	}
 	else
 	{
-		char tag[TAGLEN];
-		mktag(tag, from, priv);
+		char *tag=mktag(from, "(from %s) ");
 		w_buf_print(b2, c_notice[1], msg, tag);
+		free(tag);
 		if(ha)
 			bufs[b2].hi_alert=5;
 		char *cmd=msg+1;
