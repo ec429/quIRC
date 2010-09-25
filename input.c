@@ -1255,6 +1255,39 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		}
 		return(0);
 	}
+	if(strcmp(cmd, "sort")==0)
+	{
+		int newbufs[nbufs];
+		buffer bi[nbufs];
+		newbufs[0]=0;
+		int b,buf=1;
+		for(b=0;b<nbufs;b++)
+		{
+			bi[b]=bufs[b];
+			if(bufs[b].type==SERVER)
+			{
+				newbufs[buf++]=b;
+				int b2;
+				for(b2=1;b2<nbufs;b2++)
+				{
+					if((bufs[b2].server==b)&&(b2!=b))
+						newbufs[buf++]=b2;
+				}
+			}
+		}
+		if(buf!=nbufs)
+		{
+			w_buf_print(cbuf, c_err, "Internal error (bad count)", "/sort: ");
+			return(0);
+		}
+		for(b=0;b<nbufs;b++)
+		{
+			bufs[b]=bi[newbufs[b]];
+			bufs[b].server=newbufs[bufs[b].server];
+		}
+		cbuf=newbufs[cbuf];
+		return(0);
+	}
 	if(strcmp(cmd, "left")==0)
 	{
 		if(cbuf<2)
