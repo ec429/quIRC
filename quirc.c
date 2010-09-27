@@ -365,7 +365,7 @@ int main(int argc, char *argv[])
 					}
 					else
 					{
-						if(bufs[cbuf].type==CHANNEL) // TODO add PRIVATE
+						if((bufs[cbuf].type==CHANNEL)||(bufs[cbuf].type==PRIVATE))
 						{
 							if(bufs[cbuf].handle)
 							{

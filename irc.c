@@ -909,17 +909,44 @@ int rx_privmsg(message pkt, int b, bool notice)
 			return(0);
 		if((irc_strcasecmp(pkt.args[0], bufs[b].nick, bufs[b].casemapping)==0) || (irc_strcasecmp(pkt.args[0], "AUTH", bufs[b].casemapping)==0))
 		{
-			if(*pkt.args[1]==1) // CTCP TODO: proper CTCP handling of embedded messages
+			if(!notice)
 			{
-				ctcp(pkt.args[1], from, src, b, true, notice, true);
+				if(*pkt.args[1]==1) // CTCP TODO: proper CTCP handling of embedded messages
+				{
+					ctcp(pkt.args[1], from, src, b, true, notice, true);
+				}
+				else
+				{
+					int b2=findptab(b, src);
+					if(b2<0)
+					{
+						bufs=(buffer *)realloc(bufs, ++nbufs*sizeof(buffer));
+						init_buffer(nbufs-1, PRIVATE, src, buflines);
+						b2=nbufs-1;
+						bufs[b2].server=bufs[b].server;
+						bufs[b2].handle=bufs[bufs[b2].server].handle;
+						bufs[b2].live=true;
+						n_add(&bufs[b2].nlist, bufs[bufs[b2].server].nick, bufs[b].casemapping);
+						n_add(&bufs[b2].nlist, src, bufs[b].casemapping);
+					}
+					char *tag=mktag("<%s> ", from);
+					w_buf_print(b2, notice?c_notice[1]:c_msg[1], pkt.args[1], tag);
+					free(tag);
+					bufs[b2].hi_alert=5;
+				}
 			}
 			else
 			{
-				char *tag=mktag("(from %s) ", from);
-				w_buf_print(b, notice?c_notice[1]:c_msg[1], pkt.args[1], tag);
-				free(tag);
-				if(!notice)
-					bufs[b].hi_alert=5;
+				if(*pkt.args[1]==1) // CTCP TODO: proper CTCP handling of embedded messages
+				{
+					ctcp(pkt.args[1], from, src, b, true, notice, true);
+				}
+				else
+				{
+					char *tag=mktag("(from %s) ", from);
+					w_buf_print(b, notice?c_notice[1]:c_msg[1], pkt.args[1], tag);
+					free(tag);
+				}
 			}
 		}
 		else
@@ -1034,7 +1061,7 @@ int rx_join(message pkt, int b)
 				char dstr[16+strlen(pkt.args[0])];
 				sprintf(dstr, "has joined %s", pkt.args[0]);
 				w_buf_print(b2, c_join[1], dstr, tag);
-				n_add(&bufs[b2].nlist, src, bufs[b2].casemapping);
+				n_add(&bufs[b2].nlist, src, bufs[b].casemapping);
 			}
 		}
 		free(tag);
@@ -1100,7 +1127,7 @@ int rx_part(message pkt, int b)
 					sprintf(dstr, "has left %s (Part: %s)", pkt.args[0], pkt.args[1]);
 					w_buf_print(b2, c_part[1], dstr, tag);
 				}
-				n_cull(&bufs[b2].nlist, src, bufs[b2].casemapping);
+				n_cull(&bufs[b2].nlist, src, bufs[b].casemapping);
 			}
 		}
 		free(tag);
@@ -1131,9 +1158,9 @@ int rx_quit(message pkt, int b)
 		int b2;
 		for(b2=0;b2<nbufs;b2++)
 		{
-			if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL))
+			if((bufs[b2].server==b) && ((bufs[b2].type==CHANNEL)||(bufs[b2].type==PRIVATE)))
 			{
-				if(n_cull(&bufs[b2].nlist, src, bufs[b2].casemapping))
+				if(n_cull(&bufs[b2].nlist, src, bufs[b].casemapping))
 				{
 					char dstr[24+strlen(bufs[b].bname)+strlen(reason)];
 					sprintf(dstr, "has left %s (%s)", bufs[b].bname, reason);
@@ -1166,8 +1193,8 @@ int rx_nick(message pkt, int b)
 			if(bufs[b2].server==b)
 			{
 				w_buf_print(b2, c_nick[1], dstr, "");
-				n_cull(&bufs[b2].nlist, src, bufs[b2].casemapping);
-				n_add(&bufs[b2].nlist, pkt.args[0], bufs[b2].casemapping);
+				n_cull(&bufs[b2].nlist, src, bufs[b].casemapping);
+				n_add(&bufs[b2].nlist, pkt.args[0], bufs[b].casemapping);
 			}
 		}
 	}
@@ -1181,12 +1208,12 @@ int rx_nick(message pkt, int b)
 		bool match=false;
 		for(b2=0;b2<nbufs;b2++)
 		{
-			if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL))
+			if((bufs[b2].server==b) && ((bufs[b2].type==CHANNEL)||(bufs[b2].type==PRIVATE)))
 			{
 				match=true;
-				if(n_cull(&bufs[b2].nlist, src, bufs[b2].casemapping))
+				if(n_cull(&bufs[b2].nlist, src, bufs[b].casemapping))
 				{
-					n_add(&bufs[b2].nlist, pkt.args[0], bufs[b2].casemapping);
+					n_add(&bufs[b2].nlist, pkt.args[0], bufs[b].casemapping);
 					char dstr[30+strlen(pkt.args[0])];
 					sprintf(dstr, "is now known as %s", pkt.args[0]);
 					w_buf_print(b2, c_nick[1], dstr, tag);

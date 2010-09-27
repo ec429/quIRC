@@ -85,3 +85,4 @@ int e_buf_print(int buf, colour lc, message pkt, char *lead);
 void in_update(iline inp);
 char *highlight(char *src); // use ANSI-colours to highlight \escapes.  Returns a malloc-like pointer
 void titlebar(void);
+int findptab(int b, char *src);

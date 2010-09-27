@@ -593,3 +593,14 @@ void titlebar(void)
 	printf("\n");
 	printf(LOCATE, height-1, 1);
 }
+
+int findptab(int b, char *src)
+{
+	int b2;
+	for(b2=0;b2<nbufs;b2++)
+	{
+		if((bufs[b2].server==b)&&(bufs[b2].type==PRIVATE)&&(irc_strcasecmp(bufs[b2].bname, src, bufs[b].casemapping)==0))
+			return(b2);
+	}
+	return(-1);
+}

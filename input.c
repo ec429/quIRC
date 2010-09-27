@@ -1094,6 +1094,19 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		{
 			char *dest=strtok(args, " ");
 			char *text=strtok(NULL, "");
+			int b2=findptab(bufs[cbuf].server, dest);
+			if(b2<0)
+			{
+				bufs=(buffer *)realloc(bufs, ++nbufs*sizeof(buffer));
+				init_buffer(nbufs-1, PRIVATE, dest, buflines);
+				b2=nbufs-1;
+				bufs[b2].server=bufs[cbuf].server;
+				bufs[b2].handle=bufs[bufs[b2].server].handle;
+				bufs[b2].live=true;
+				n_add(&bufs[b2].nlist, bufs[bufs[b2].server].nick, bufs[bufs[b2].server].casemapping);
+				n_add(&bufs[b2].nlist, dest, bufs[bufs[b2].server].casemapping);
+			}
+			cbuf=b2;
 			if(text)
 			{
 				if(bufs[cbuf].handle)
@@ -1105,10 +1118,10 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 						irc_tx(bufs[cbuf].handle, privmsg);
 						while(text[strlen(text)-1]=='\n')
 							text[strlen(text)-1]=0; // stomp out trailing newlines, they break things
-						char *cdest=strdup(dest);
-						crush(&cdest, maxnlen);
-						char *tag=mktag("  (to %s) ", cdest);
-						free(cdest);
+						char *cnick=strdup(bufs[bufs[cbuf].server].nick);
+						crush(&cnick, maxnlen);
+						char *tag=mktag("<%s> ", cnick);
+						free(cnick);
 						w_buf_print(cbuf, c_msg[0], text, tag);
 						free(tag);
 					}
@@ -1121,10 +1134,6 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 				{
 					w_buf_print(cbuf, c_err, "Can't send to channel - not connected!", "/msg: ");
 				}
-			}
-			else
-			{
-				w_buf_print(cbuf, c_err, "Must specify a message!", "/msg: ");
 			}
 		}
 		else
