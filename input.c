@@ -885,12 +885,14 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 			int b2;
 			for(b2=1;b2<nbufs;b2++)
 			{
-				while((b2<nbufs) && ((bufs[b2].server==b) || (bufs[b2].server==0)))
+				while((b2<nbufs) && (bufs[b2].type!=SERVER) && ((bufs[b2].server==b) || (bufs[b2].server==0)))
 				{
 					bufs[b2].live=false;
 					free_buffer(b2);
 				}
 			}
+			bufs[b].live=false;
+			free_buffer(b);
 			cbuf=0;
 			if(force_redraw<3)
 			{
