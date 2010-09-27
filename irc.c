@@ -692,6 +692,17 @@ int irc_numeric(message pkt, int b)
 			}
 			w_buf_print(b, c_status, pkt.args[1], ": ");
 		break;
+		case ERR_NOSUCHNICK: // 401 <dest> <nick> :No such nick/channel
+			if(pkt.nargs<2)
+			{
+				e_buf_print(b, c_err, pkt, "ERR_NOSUCHNICK: Not enough arguments: ");
+				break;
+			}
+			int b2=findptab(b, pkt.args[1]);
+			if(b2<0)
+				b2=b;
+			w_buf_print(b2, c_err, pkt.args[1], "No such nick/channel: ");
+		break;
 		default:
 			e_buf_print(b, c_unn, pkt, "Unknown numeric: ");
 		break;
