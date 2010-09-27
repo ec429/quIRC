@@ -20,7 +20,7 @@ Or try our IRC channel, #quirc on irc.newnet.net (if your problem doesn't
 prevent you from joining us there!)
 ***** Commands *****
 All commands are prefixed with a '/'. Anything else is a message to be sent to
-the channel.
+the channel (or nick if current tab is a private messaging tab).
   /server url
       Connects to the given server (will open in a new tab).
   /nick nickname
@@ -30,8 +30,10 @@ the channel.
       Joins the given channel (will open in a new tab).
   /me action
       Sends an 'action' to the channel.
-  /msg recipient message
-      Private message; sends the message to the given recipient.
+  /msg recipient [message]
+      Private message; sends the message to the given recipient. Will open a
+      private messaging tab if one is not already open for that recipient. If
+      message is omitted, just opens the tab.
   /amsg message
       Send message to all attached channels on this server.
   /topic [message]
@@ -219,6 +221,8 @@ The parens bracketing the name tell you what kind of tab it is:
       server
   []
       channel
+  <>
+      nick (private messaging)
 The background colour is green for the current tab, and blue for the current
 tab's parent server (if applicable).
 The foreground colour of tabs other than the current tab will turn red to

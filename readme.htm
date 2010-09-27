@@ -33,7 +33,7 @@ Then there&apos;s the github page, <a href="http://github.com/ec429/quIRC">http:
 </div><!--#furtherhelp-->
 <div id="commands">
 <h2>Commands</h2>
-<p>All commands are prefixed with a &apos;/&apos;.  Anything else is a message to be sent to the channel.</p>
+<p>All commands are prefixed with a &apos;/&apos;.  Anything else is a message to be sent to the channel (or nick if current tab is a private messaging tab).</p>
 <dl>
 <dt>/server <em>url</em></dt>
 	<dd>Connects to the given server (will open in a new tab).</dd>
@@ -43,8 +43,8 @@ Then there&apos;s the github page, <a href="http://github.com/ec429/quIRC">http:
 	<dd>Joins the given channel (will open in a new tab).</dd>
 <dt>/me <em>action</em></dt>
 	<dd>Sends an &apos;action&apos; to the channel.</dd>
-<dt>/msg <em>recipient</em> <em>message</em></dt>
-	<dd>Private message; sends the message to the given recipient.</dd>
+<dt>/msg <em>recipient</em> [<em>message</em>]</dt>
+	<dd>Private message; sends the message to the given recipient.  Will open a private messaging tab if one is not already open for that recipient.  If <em>message</em> is omitted, just opens the tab.</dd>
 <dt>/amsg <em>message</em></dt>
 	<dd>Send message to all attached channels on this server.</dd>
 <dt>/topic [<em>message</em>]</dt>
@@ -222,6 +222,7 @@ will turn on Full-Width-Colour (makes coloured backgrounds for lines (eg. /me) r
 <dt>()</dt><dd>status</dd>
 <dt>{}</dt><dd>server</dd>
 <dt>[]</dt><dd>channel</dd>
+<dt><></dt><dd>nick (private messaging)</dd>
 </dl>
 <p>The background colour is green for the current tab, and blue for the current tab&apos;s parent server (if applicable).</p>
 <p>The foreground colour of tabs other than the current tab will turn red to indicate that there are new messages on that tab (and flash cyan if a message contains your nick).  If a tab is 'dead' (eg. disconnected from server), it turns yellow.</p>
