@@ -5,7 +5,7 @@ CFLAGS ?= -Wall
 AWK ?= gawk
 VERSION := `git describe --tags`
 PREFIX ?= /usr/local
-LIBS := ttyraw.o ttyesc.o irc.o bits.o colour.o buffer.o names.o config.o input.o -lm
+LIBS := ttyraw.o ttyesc.o irc.o bits.o colour.o buffer.o names.o config.o input.o
 INCLUDE := ttyraw.h ttyesc.h irc.h bits.h colour.h buffer.h names.h config.h input.h version.h
 DEFINES ?= -DHAVE_DEBUG
 
@@ -18,12 +18,12 @@ uninstall:
 	rm $(PREFIX)/bin/quirc
 
 quirc: quirc.c $(LIBS) $(INCLUDE)
-	$(CC) $(CFLAGS) $(CPPFLAGS) -o quirc quirc.c $(LIBS) $(DEFINES)
+	$(CC) $(CFLAGS) $(CPPFLAGS) -o quirc quirc.c $(LIBS) -lm $(DEFINES)
 
 mtrace: quirc-mtrace
 
 quirc-mtrace: quirc.c $(LIBS) $(INCLUDE)
-	$(CC) $(CFLAGS) $(CPPFLAGS) -o quirc-mtrace quirc.c $(LIBS) -g -DUSE_MTRACE $(DEFINES)
+	$(CC) $(CFLAGS) $(CPPFLAGS) -o quirc-mtrace quirc.c $(LIBS) -lm -g -DUSE_MTRACE $(DEFINES)
 
 clean:
 	rm *.o quirc
