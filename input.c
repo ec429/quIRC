@@ -222,7 +222,7 @@ int inputchar(iline *inp, int *state)
 				case '3': // take another
 					if(getchar()=='~') // delete
 					{
-						if(*inp->right.data)
+						if(inp->right.data && inp->right.i)
 						{
 							char *nr=strdup(inp->right.data+1);
 							free(inp->right.data);
