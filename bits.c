@@ -251,3 +251,13 @@ char *mktag(char *fmt, char *from)
 	}
 	return(rv);
 }
+
+#ifdef	NEED_STRNDUP
+char *strndup(const char *s, size_t size)
+{
+	char *rv=(char *)malloc(size+1);
+	strncpy(rv, s, size);
+	rv[size]=0;
+	return(rv);
+}
+#endif
