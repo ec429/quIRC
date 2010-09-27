@@ -92,6 +92,10 @@ the channel.
   /right
       Swaps the current tab with the tab on its left (or right); tab 0 (status)
       cannot be moved.
+  /sort
+      Sorts the tab list into an intuitive order (grouping channels after their
+      parent servers; maintaining the order of the servers and of each server's
+      channels).
 ***** Configuration *****
 quIRC can be configured through an "rc file" as follows.
 In your home directory (/home/username), create a file called ".quirc", and

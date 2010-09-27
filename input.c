@@ -1093,6 +1093,11 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		else if(args)
 		{
 			char *dest=strtok(args, " ");
+			if(!dest)
+			{
+				w_buf_print(cbuf, c_err, "Must specify a recipient!", "/msg: ");
+				return(0);
+			}
 			char *text=strtok(NULL, "");
 			int b2=findptab(bufs[cbuf].server, dest);
 			if(b2<0)
@@ -1103,7 +1108,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 				bufs[b2].server=bufs[cbuf].server;
 				bufs[b2].handle=bufs[bufs[b2].server].handle;
 				bufs[b2].live=true;
-				n_add(&bufs[b2].nlist, bufs[bufs[b2].server].nick, bufs[bufs[b2].server].casemapping);
+				if(bufs[bufs[b2].server].nick) n_add(&bufs[b2].nlist, bufs[bufs[b2].server].nick, bufs[bufs[b2].server].casemapping);
 				n_add(&bufs[b2].nlist, dest, bufs[bufs[b2].server].casemapping);
 			}
 			cbuf=b2;
@@ -1280,7 +1285,9 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 				for(b2=1;b2<nbufs;b2++)
 				{
 					if((bufs[b2].server==b)&&(b2!=b))
+					{
 						newbufs[buf++]=b2;
+					}
 				}
 			}
 		}
@@ -1289,10 +1296,13 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 			w_buf_print(cbuf, c_err, "Internal error (bad count)", "/sort: ");
 			return(0);
 		}
+		int serv=0;
 		for(b=0;b<nbufs;b++)
 		{
 			bufs[b]=bi[newbufs[b]];
-			bufs[b].server=newbufs[bufs[b].server];
+			if(bufs[b].type==SERVER)
+				serv=b;
+			bufs[b].server=serv;
 		}
 		cbuf=newbufs[cbuf];
 		return(0);
