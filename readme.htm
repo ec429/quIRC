@@ -4,7 +4,7 @@
 	<title>quIRC: README</title>
 	<meta http-equiv="Content-Type" content="text/html;charset=utf-8;" />
 	<link rel="stylesheet" href="readme.css" />
-	<style>
+	<style type="text/css">
 		tt {margin-left:4em;}
 	</style>
 </head>
@@ -22,6 +22,7 @@
 <li><a href="#inputcontrols">Input Controls</a></li>
 <li><a href="#othercontrols">Other Controls</a></li>
 <li><a href="#tabstrip">Tab strip</a></li>
+<li><a href="#trouble">Troubleshooting</a></li>
 </ul>
 </div><!--#contents-->
 <div id="furtherhelp">
@@ -125,7 +126,7 @@ where the <em>options</em> to [*]ignore are those for the /ignore command (excep
 where 0 doesn&apos;t scan for mirc-colours, 1 silently strips them out, and 2 displays the appropriate colour.  The default is mcc 1.</p>
 <p>Another setting here is force-redraw, with<br />
 <tt>fred <em>force-redraw</em></tt><br />
-which will redraw the whole screen when things change; the number controls how often.<br>
+which will redraw the whole screen when things change; the number controls how often.<br />
 0 won't redraw at all, while 3 will redraw every 0.25 seconds.  The default is 2, which redraws whenever any buffer is written to or input is entered.</p>
 <p>The size of each scrollback buffer, in lines, can be set with<br />
 <tt>buf <em>buf-lines</em></tt><br />
@@ -227,5 +228,12 @@ will turn on Full-Width-Colour (makes coloured backgrounds for lines (eg. /me) r
 <p>The background colour is green for the current tab, and blue for the current tab&apos;s parent server (if applicable).</p>
 <p>The foreground colour of tabs other than the current tab will turn red to indicate that there are new messages on that tab (and flash cyan if a message contains your nick).  If a tab is 'dead' (eg. disconnected from server), it turns yellow.</p>
 </div><!--#tabstrip-->
+<div id="trouble">
+<h2>Troubleshooting</h2>
+<dl>
+<dt>I get several copies of the status line scrolling up my screen!</dt>
+<dd><p>One possible cause of this is that your terminal size is not what quIRC thinks it is.  You may need to /set height and width, or export the environment variables $LINES and $COLUMNS from your shell (typically you would also add this to your shell's .rc file), or as a last resort resize your terminal to 80x24.</p><p>Another possibility is that your terminal emulator isn't recognising VT100 escape sequences (which quIRC uses heavily for eg. cursor positioning).  For details see your terminal emulator's documentation; it is known that xterm works out-of-the-box, and that PuTTY has an option to enable VT100 support.</p></dd>
+</dl>
+</div><!--#trouble-->
 </body>
 </html>

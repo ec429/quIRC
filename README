@@ -9,6 +9,7 @@ written in C. **
     * Input_Controls
     * Other_Controls
     * Tab_strip
+    * Troubleshooting
 ***** Further Help *****
 If this file doesn't answer your question, you can find help from several other
 places.
@@ -229,3 +230,15 @@ The foreground colour of tabs other than the current tab will turn red to
 indicate that there are new messages on that tab (and flash cyan if a message
 contains your nick). If a tab is 'dead' (eg. disconnected from server), it
 turns yellow.
+***** Troubleshooting *****
+  I get several copies of the status line scrolling up my screen!
+      One possible cause of this is that your terminal size is not what quIRC
+      thinks it is. You may need to /set height and width, or export the
+      environment variables $LINES and $COLUMNS from your shell (typically you
+      would also add this to your shell's .rc file), or as a last resort resize
+      your terminal to 80x24.
+      Another possibility is that your terminal emulator isn't recognising
+      VT100 escape sequences (which quIRC uses heavily for eg. cursor
+      positioning). For details see your terminal emulator's documentation; it
+      is known that xterm works out-of-the-box, and that PuTTY has an option to
+      enable VT100 support.
