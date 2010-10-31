@@ -1470,7 +1470,14 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		}
 		else
 		{
-			if(LIVE(cbuf))
+			bool force=false;
+			if(strncmp(args, "-f", 2)==0)
+			{
+				force=true;
+				args++;
+				while (*++args==' ');
+			}
+			if(force||LIVE(cbuf))
 			{
 				irc_tx(bufs[cbuf].handle, args);
 				w_buf_print(cbuf, c_status, args, "/cmd: ");
