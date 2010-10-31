@@ -798,7 +798,6 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					w_buf_print(cbuf, c_status, dstr, "/server: ");
 					sprintf(cstr, "quIRC - connected to %s", server);
 					settitle(cstr);
-					irc_tx(serverhandle, "FOO");
 				}
 			}
 		}
