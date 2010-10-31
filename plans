@@ -8,7 +8,13 @@ curses.  The current hardwired ANSI-escapes code for painting the screen is clum
 
 Automate config handling.  Generated code?
 
+Accept destination "Global".
+
+Store both unprocessed /and/ processed text; that way we can eg. resize line lengths when /setting width, /set mcc can act retroactively, etc.
+
 /away.
+
+Logging & Persistent backscroll.
 
 Runtime buffer resizing.
 
