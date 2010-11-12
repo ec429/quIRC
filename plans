@@ -6,7 +6,15 @@ Quiet mode.  Don't emit diagnostics for eg. unrecognised IRC traffic (such as nu
 
 curses.  The current hardwired ANSI-escapes code for painting the screen is clumsy.  However, it's tailored to my needs, and now that it's neatly packaged away, it should be easier to cope with.  So, I may just stick with it.
 
+PASS (auto-send during connect time).  Also need to fix the problem of the conn_rest not getting called for eg worldofspectrum (why is this happening?)
+
+Fix possible issue with CTCP.  Funny stuff (including random characters) happened when eg spike1 sent a CTCP PONG to the channel.
+
+Proper handling of Unicode in character-based things like cursor-movement, backspace.
+
 Automate config handling.  Generated code?
+
+Fix re"join"ing of <msg> tabs.
 
 Accept destination "Global".
 
