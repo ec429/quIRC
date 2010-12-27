@@ -256,6 +256,7 @@ char *mktag(char *fmt, char *from)
 char *strndup(const char *s, size_t size)
 {
 	char *rv=(char *)malloc(size+1);
+	if(rv==NULL) return(NULL);
 	strncpy(rv, s, size);
 	rv[size]=0;
 	return(rv);
