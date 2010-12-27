@@ -918,7 +918,7 @@ int rx_privmsg(message pkt, int b, bool notice)
 	{
 		if(i_match(bufs[b].ilist, nm, true, bufs[b].casemapping)||i_match(bufs[0].ilist, nm, true, bufs[b].casemapping))
 			return(0);
-		if((irc_strcasecmp(pkt.args[0], bufs[b].nick, bufs[b].casemapping)==0) || (irc_strcasecmp(pkt.args[0], "AUTH", bufs[b].casemapping)==0))
+		if((irc_strcasecmp(pkt.args[0], bufs[b].nick, bufs[b].casemapping)==0) || (irc_strcasecmp(pkt.args[0], "AUTH", bufs[b].casemapping)==0) || (irc_strcasecmp(pkt.args[0], "Global", bufs[b].casemapping)==0))
 		{
 			if(!notice)
 			{

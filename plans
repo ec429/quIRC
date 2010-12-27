@@ -18,10 +18,6 @@ Proper handling of Unicode in character-based things like cursor-movement, backs
 
 Automate config handling.  Generated code?
 
-Fix re"join"ing of <msg> tabs.
-
-Accept destination "Global".
-
 Store both unprocessed /and/ processed text; that way we can eg. resize line lengths when /setting width, /set mcc can act retroactively, etc.
 
 /away.
