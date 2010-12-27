@@ -1,6 +1,6 @@
 ==quIRC:future plans==
 
-Fix segfault when missing options in .quirc *ignore entry
+Init-buffer, to catch messages before initialise_buffers called
 
 Scripting language.  Under development in branch 'script'.
 

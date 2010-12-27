@@ -50,6 +50,7 @@ int def_config(void)
 
 int rcread(FILE *rcfp)
 {
+	int nerrors=0; // number of lines with errors
 	while(!feof(rcfp))
 	{
 		char *line=fgetl(rcfp);
@@ -128,6 +129,11 @@ int rcread(FILE *rcfp)
 				if((which%2)==0)
 					what[1]=new;
 			}
+			else
+			{
+				fprintf(stderr, "Unrecognised ident in %%colour (%s)\n", cmd);
+				nerrors++;
+			}
 		}
 		else
 		{
@@ -135,6 +141,7 @@ int rcread(FILE *rcfp)
 			if(!rest)
 			{
 				fprintf(stderr, "Command (%s) without argument!\n", cmd);
+				nerrors++;
 			}
 			else if(strcmp(cmd, "server")==0)
 			{
@@ -172,39 +179,47 @@ int rcread(FILE *rcfp)
 				if(*sw!='-')
 				{
 					fprintf(stderr, "ignore: need options (use '-' for no options)\n");
-				}
-				rest=strtok(NULL, "");
-				if(!rest)
-				{
-					fprintf(stderr, "ignore: need options (use '-' for no options)\n");
-				}
-				bool icase=strchr(sw, 'i');
-				bool pms=strchr(sw, 'p');
-				bool regex=strchr(sw, 'r');
-				if(regex)
-				{
-					name *new=n_add(&igns, rest, RFC1459);
-					if(new)
-					{
-						new->icase=icase;
-						new->pms=pms;
-					}
+					nerrors++;
 				}
 				else
 				{
-					char *iusr=strtok(rest, "@");
-					char *ihst=strtok(NULL, "");
-					if((!iusr) || (*iusr==0) || (*iusr=='*'))
-						iusr="[^@]*";
-					if((!ihst) || (*ihst==0) || (*ihst=='*'))
-						ihst="[^@]*";
-					char expr[10+strlen(iusr)+strlen(ihst)];
-					sprintf(expr, "^%s[_~]*@%s$", iusr, ihst);
-					name *new=n_add(&igns, expr, RFC1459);
-					if(new)
+					rest=strtok(NULL, "");
+					if(!rest)
 					{
-						new->icase=icase;
-						new->pms=pms;
+						fprintf(stderr, "ignore: need options (use '-' for no options)\n");
+						nerrors++;
+					}
+					else
+					{
+						bool icase=strchr(sw, 'i');
+						bool pms=strchr(sw, 'p');
+						bool regex=strchr(sw, 'r');
+						if(regex)
+						{
+							name *new=n_add(&igns, rest, RFC1459);
+							if(new)
+							{
+								new->icase=icase;
+								new->pms=pms;
+							}
+						}
+						else
+						{
+							char *iusr=strtok(rest, "@");
+							char *ihst=strtok(NULL, "");
+							if((!iusr) || (*iusr==0) || (*iusr=='*'))
+								iusr="[^@]*";
+							if((!ihst) || (*ihst==0) || (*ihst=='*'))
+								ihst="[^@]*";
+							char expr[10+strlen(iusr)+strlen(ihst)];
+							sprintf(expr, "^%s[_~]*@%s$", iusr, ihst);
+							name *new=n_add(&igns, expr, RFC1459);
+							if(new)
+							{
+								new->icase=icase;
+								new->pms=pms;
+							}
+						}
 					}
 				}
 			}
@@ -214,41 +229,49 @@ int rcread(FILE *rcfp)
 				if(*sw!='-')
 				{
 					fprintf(stderr, "*ignore: need options (use '-' for no options)\n");
-				}
-				rest=strtok(NULL, "");
-				if(!rest)
-				{
-					fprintf(stderr, "*ignore: need options (use '-' for no options)\n");
-				}
-				bool icase=strchr(sw, 'i');
-				bool pms=strchr(sw, 'p');
-				bool regex=strchr(sw, 'r');
-				if(regex)
-				{
-					name *new=n_add(&servs->igns, rest, RFC1459);
-					if(new)
-					{
-						new->icase=icase;
-						new->pms=pms;
-					}
+					nerrors++;
 				}
 				else
 				{
-					char *isrc,*iusr,*ihst;
-					prefix_split(rest, &isrc, &iusr, &ihst);
-					if((!isrc) || (*isrc==0) || (*isrc=='*'))
-						isrc="[^!@]*";
-					if((!iusr) || (*iusr==0) || (*iusr=='*'))
-						iusr="[^!@]*";
-					if((!ihst) || (*ihst==0) || (*ihst=='*'))
-						ihst="[^@]*";
-					char expr[16+strlen(isrc)+strlen(iusr)+strlen(ihst)];
-						sprintf(expr, "^%s[_~]*!%s@%s$", isrc, iusr, ihst);
-					name *new=n_add(&servs->igns, expr, RFC1459);
-					if(new)
+					rest=strtok(NULL, "");
+					if(!rest)
 					{
-						new->icase=icase;
-						new->pms=pms;
+						fprintf(stderr, "*ignore: need options (use '-' for no options)\n");
+						nerrors++;
+					}
+					else
+					{
+						bool icase=strchr(sw, 'i');
+						bool pms=strchr(sw, 'p');
+						bool regex=strchr(sw, 'r');
+						if(regex)
+						{
+							name *new=n_add(&servs->igns, rest, RFC1459);
+							if(new)
+							{
+								new->icase=icase;
+								new->pms=pms;
+							}
+						}
+						else
+						{
+							char *isrc,*iusr,*ihst;
+							prefix_split(rest, &isrc, &iusr, &ihst);
+							if((!isrc) || (*isrc==0) || (*isrc=='*'))
+								isrc="[^!@]*";
+							if((!iusr) || (*iusr==0) || (*iusr=='*'))
+								iusr="[^!@]*";
+							if((!ihst) || (*ihst==0) || (*ihst=='*'))
+								ihst="[^@]*";
+							char expr[16+strlen(isrc)+strlen(iusr)+strlen(ihst)];
+								sprintf(expr, "^%s[_~]*!%s@%s$", isrc, iusr, ihst);
+							name *new=n_add(&servs->igns, expr, RFC1459);
+							if(new)
+							{
+								new->icase=icase;
+								new->pms=pms;
+							}
+						}
 					}
 				}
 			}
@@ -300,11 +323,12 @@ int rcread(FILE *rcfp)
 			else
 			{
 				fprintf(stderr, "Unrecognised cmd %s in .quirc (ignoring)\n", cmd);
+				nerrors++;
 			}
 		}
 		free(line);
 	}
-	return(0);
+	return(nerrors);
 }
 
 signed int pargs(int argc, char *argv[])

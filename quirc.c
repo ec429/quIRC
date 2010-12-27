@@ -61,9 +61,10 @@ int main(int argc, char *argv[])
 	char *home=getenv("HOME");
 	if(home) chdir(home);
 	FILE *rcfp=fopen(rcfile, "r");
+	int rc_err=0;
 	if(rcfp)
 	{
-		rcread(rcfp);
+		rc_err=rcread(rcfp);
 		fclose(rcfp);
 	}
 	
@@ -95,6 +96,18 @@ int main(int argc, char *argv[])
 	if(fcfail)
 	{
 		w_buf_print(0, c_status, fcfail, "fcntl: ");
+	}
+	
+	if(!rcfp)
+	{
+		w_buf_print(0, c_status, "no config file found.  Install one at ~/.quirc", "rc: ");
+	}
+	
+	if(rc_err)
+	{
+		char msg[32];
+		sprintf(msg, "%d errors in ~/.quirc", rc_err);
+		w_buf_print(0, c_status, msg, "rc: ");
 	}
 	
 	fd_set master, readfds;
