@@ -943,7 +943,22 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 	}
 	if(strcmp(cmd, "rejoin")==0)
 	{
-		if(bufs[cbuf].type!=CHANNEL)
+		if(bufs[cbuf].type==PRIVATE)
+		{
+			if(!(bufs[cbuf].handle && bufs[bufs[cbuf].server].live))
+			{
+				w_buf_print(cbuf, c_err, "Disconnected, can't send", "/rejoin: ");
+			}
+			else if(bufs[cbuf].live)
+			{
+				w_buf_print(cbuf, c_err, "Already in this channel", "/rejoin: ");
+			}
+			else
+			{
+				bufs[cbuf].live=true;
+			}
+		}
+		else if(bufs[cbuf].type!=CHANNEL)
 		{
 			w_buf_print(cbuf, c_err, "View is not a channel!", "/rejoin: ");
 		}
@@ -1202,9 +1217,9 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 	}
 	if(strcmp(cmd, "me")==0)
 	{
-		if(bufs[cbuf].type!=CHANNEL) // TODO add PRIVATE
+		if(!((bufs[cbuf].type==CHANNEL)||(bufs[cbuf].type==PRIVATE)))
 		{
-			w_buf_print(cbuf, c_err, "This view is not a channel!", "/me: ");
+			w_buf_print(cbuf, c_err, "Can't talk here, not a channel/private chat", "/me: ");
 		}
 		else if(args)
 		{
