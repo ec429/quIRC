@@ -11,17 +11,19 @@ written in C. **
     * Tab_strip
     * Troubleshooting
 ***** Further Help *****
-If this file doesn't answer your question, you can find help from several other
-places.
+If this file doesn&apos;t answer your question, you can find help from several
+other places.
 First port of call is the website, http://dev-null.chu.cam.ac.uk (sometimes
-it's not there, in which case try http://alistairsserver.no-ip.org:50001).
-Then there's the github page, http://github.com/ec429/quIRC (which should also
-have an up-to-date link to the abovementioned website).
-Or try our IRC channel, #quirc on irc.newnet.net (if your problem doesn't
+it&apos;s not there, in which case try http://alistairsserver.no-ip.org:50001).
+Then there&apos;s the github page, http://github.com/ec429/quIRC (which should
+also have an up-to-date link to the abovementioned website).
+Or try our IRC channel, #quirc on irc.newnet.net (if your problem doesn&apos;t
 prevent you from joining us there!)
+Note: before reporting a bug, check the file wontfix, which lists things which
+are known to be wrong but whose fixes would be unacceptably crocky.
 ***** Commands *****
-All commands are prefixed with a '/'. Anything else is a message to be sent to
-the channel (or nick if current tab is a private messaging tab).
+All commands are prefixed with a &apos;/&apos;. Anything else is a message to
+be sent to the channel (or nick if current tab is a private messaging tab).
   /server url
       Connects to the given server (will open in a new tab).
   /nick nickname
@@ -30,7 +32,7 @@ the channel (or nick if current tab is a private messaging tab).
   /join channel
       Joins the given channel (will open in a new tab).
   /me action
-      Sends an 'action' to the channel.
+      Sends an &apos;action&apos; to the channel.
   /msg recipient [message]
       Private message; sends the message to the given recipient. Will open a
       private messaging tab if one is not already open for that recipient. If
@@ -42,17 +44,17 @@ the channel (or nick if current tab is a private messaging tab).
   /set option [value]
       Sets configuration options; the options are analogous to those in .quirc,
       with one or two extras.
-          * The options 'height' and 'width' are used to tell quIRC how many
-            rows and columns your terminal has (for cursor-positioning). quIRC
-            will try to deduce these values (from environment variables $LINES
-            and $COLUMNS, using defaults of 80x24 if these env vars are not
-            found), but you can override those guesses here or on the command
-            line.
+          * The options &apos;height&apos; and &apos;width&apos; are used to
+            tell quIRC how many rows and columns your terminal has (for cursor-
+            positioning). quIRC will try to deduce these values (from
+            environment variables $LINES and $COLUMNS, using defaults of 80x24
+            if these env vars are not found), but you can override those
+            guesses here or on the command line.
   /ignore [-ipd] user[@host]
   /ignore [-ipd] -r regex
   /ignore -l
-      Adds a user to your "ignore list", thus preventing messages from that
-      user from appearing.
+      Adds a user to your &quot;ignore list&quot;, thus preventing messages
+      from that user from appearing.
         -i
             Match will be case-insensitive
         -p
@@ -74,7 +76,8 @@ the channel (or nick if current tab is a private messaging tab).
   /leave channel
       Leaves (departs) the given channel.
   /disconnect [message]
-      Disconnects from the server, optionally sending a 'quit message'.
+      Disconnects from the server, optionally sending a &apos;quit
+      message&apos;.
   /close
       Closes the current tab. In addition, has an effect which depends on the
       tab type:
@@ -86,7 +89,7 @@ the channel (or nick if current tab is a private messaging tab).
             Leaves the channel
   /quit [message]
   /exit [message]
-      Quits quIRC, optionally sending a 'quit message' to the server.
+      Quits quIRC, optionally sending a &apos;quit message&apos; to the server.
   /cmd command
       Allows you to send a raw command to the server; not recommended.
   /tab n
@@ -100,9 +103,9 @@ the channel (or nick if current tab is a private messaging tab).
       parent servers; maintaining the order of the servers and of each server's
       channels).
 ***** Configuration *****
-quIRC can be configured through an "rc file" as follows.
-In your home directory (/home/username), create a file called ".quirc", and
-open it in your editor.
+quIRC can be configured through an &quot;rc file&quot; as follows.
+In your home directory (/home/username), create a file called
+&quot;.quirc&quot;, and open it in your editor.
 In this file you can set servers, nick and channels to automatically use:
 nick global-nickname
 ignore -options global-ignore
@@ -112,12 +115,13 @@ server url
 *ignore -options ignore-on-that-server
 where the options to [*]ignore are those for the /ignore command (except for l
 and d), and must not be separated by whitespace. You can however combine
-options, like -ipr.
+options, like -ipr. The options may not be omitted; if none are required, use -
+(dash).
 Set the maximum length of nick that will be displayed, with lines
 mnln maxnicklen
 You can also set mirc-colour-compatibility, with
 mcc mcc-level
-where 0 doesn't scan for mirc-colours, 1 silently strips them out, and 2
+where 0 doesn&apos;t scan for mirc-colours, 1 silently strips them out, and 2
 displays the appropriate colour. The default is mcc 1.
 Another setting here is force-redraw, with
 fred force-redraw
@@ -139,11 +143,11 @@ a magenta background, to make it more visible) and Top-Status-Bar (uses the top
 line of the terminal for some status information). To turn them off replace the
 1 with a 0. By default fwc and hts are turned off; tsb is turned on.
 These settings and others can be overridden at runtime with commandline
-options. For details run "quirc --help".
+options. For details run &quot;quirc --help&quot;.
 You can also customise the colours quIRC uses. A custom colour line starts with
-'%', followed optionally by 'S' or 'R' (only use this colour when Sending or
-Receiving respectively), followed by an identifier, then space or tab, then
-four space-separated numbers. Like this:
+&apos;%&apos;, followed optionally by &apos;S&apos; or &apos;R&apos; (only use
+this colour when Sending or Receiving respectively), followed by an identifier,
+then space or tab, then four space-separated numbers. Like this:
 %[S|R]identfore back hi ul
 Fore and Back set the foreground and background colours (8 colours each, red=1
 green=2 blue=4, add for mixtures, eg white=7). Hi sets bright, Ul sets
@@ -162,7 +166,7 @@ ident can be any of
   nick
       Nick-change notifications
   act
-      Actions ('/me does something')
+      Actions (&apos;/me does something&apos;)
   status
       status messages
   err
@@ -225,7 +229,7 @@ The parens bracketing the name tell you what kind of tab it is:
   <>
       nick (private messaging)
 The background colour is green for the current tab, and blue for the current
-tab's parent server (if applicable).
+tab&apos;s parent server (if applicable).
 The foreground colour of tabs other than the current tab will turn red to
 indicate that there are new messages on that tab (and flash cyan if a message
 contains your nick). If a tab is 'dead' (eg. disconnected from server), it
