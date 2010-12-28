@@ -24,29 +24,35 @@ int main(int argc, char *argv[])
 		mtrace();
 	#endif	// USE_MTRACE
 	
+	init_start_buffer();
+	
 	sigpipe=0;
     struct sigaction sa;
     sa.sa_handler = handle_sigpipe;
     sa.sa_flags=0;
     sigemptyset(&sa.sa_mask);
-
-    if(sigaction(SIGPIPE, &sa, NULL)==-1)
-    {
-    	fprintf(stderr, "Failed to set SIGPIPE handler\n");
-        perror("sigaction");
-        return(1);
-    }
-
+	
+	if(sigaction(SIGPIPE, &sa, NULL)==-1)
+	{
+		fprintf(stderr, "Failed to set SIGPIPE handler\n");
+		perror("sigaction");
+		return(1);
+	}
+	
 	int infc=fcntl(STDIN_FILENO, F_GETFD);
-	char *fcfail=NULL;
 	if(infc>=0)
 	{
 		if(fcntl(STDIN_FILENO, F_SETFD, infc|O_NONBLOCK)==-1)
-			fcfail=strerror(errno);
+		{
+			char *err=strerror(errno);
+			char msg[48+strlen(err)];
+			sprintf(msg, "Failed to mark stdin non-blocking: fcntl: %s", err);
+			asb_failsafe(c_status, msg);
+		}
 	}
-	if(c_init())
+	if(c_init()!=0) // should be impossible
 	{
-		fprintf(stderr, "Failed to initialise colours\n"); // should be impossible
+		fprintf(stderr, "Failed to initialise colours\n");
 		return(1);
 	}
 	if(def_config())
@@ -66,11 +72,22 @@ int main(int argc, char *argv[])
 	{
 		rc_err=rcread(rcfp);
 		fclose(rcfp);
+		if(rc_err)
+		{
+			char msg[32];
+			sprintf(msg, "%d errors in ~/.quirc", rc_err);
+			asb_failsafe(c_status, msg);
+		}
+	}
+	else
+	{
+		asb_failsafe(c_status, "no config file found.  Install one at ~/.quirc");
 	}
 	
 	signed int e=pargs(argc, argv);
 	if(e>=0)
 	{
+		push_buffer();
 		return(e);
 	}
 	
@@ -93,22 +110,7 @@ int main(int argc, char *argv[])
 		return(1);
 	}
 	
-	if(fcfail)
-	{
-		w_buf_print(0, c_status, fcfail, "fcntl: ");
-	}
-	
-	if(!rcfp)
-	{
-		w_buf_print(0, c_status, "no config file found.  Install one at ~/.quirc", "rc: ");
-	}
-	
-	if(rc_err)
-	{
-		char msg[32];
-		sprintf(msg, "%d errors in ~/.quirc", rc_err);
-		w_buf_print(0, c_status, msg, "rc: ");
-	}
+	push_buffer();
 	
 	fd_set master, readfds;
 	FD_ZERO(&master);

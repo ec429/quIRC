@@ -8,6 +8,78 @@
 
 #include "buffer.h"
 
+int init_start_buffer(void)
+{
+	s_buf.nlines=0;
+	s_buf.lt=NULL;
+	s_buf.lc=NULL;
+	s_buf.ts=NULL;
+	s_buf.errs=0;
+	return(0);
+}
+
+int add_to_start_buffer(colour lc, char *lt)
+{
+	s_buf.nlines++;
+	char **nlt;colour *nlc;time_t *nts;
+	nlt=(char **)realloc(s_buf.lt, s_buf.nlines*sizeof(char *));
+	if(!nlt)
+	{
+		s_buf.nlines--;
+		s_buf.errs++;
+		return(1);
+	}
+	s_buf.lt=nlt;
+	s_buf.lt[s_buf.nlines-1]=strdup(lt);
+	nlc=(colour *)realloc(s_buf.lc, s_buf.nlines*sizeof(colour));
+	if(!nlc)
+	{
+		s_buf.nlines--;
+		s_buf.errs++;
+		return(1);
+	}
+	s_buf.lc=nlc;
+	s_buf.lc[s_buf.nlines-1]=lc;
+	nts=(time_t *)realloc(s_buf.ts, s_buf.nlines*sizeof(time_t));
+	if(!nts)
+	{
+		s_buf.nlines--;
+		s_buf.errs++;
+		return(1);
+	}
+	s_buf.ts=nts;
+	s_buf.ts[s_buf.nlines-1]=time(NULL);
+	return(0);
+}
+
+int asb_failsafe(colour lc, char *lt)
+{
+	int e=0;
+	if((e=add_to_start_buffer(lc, lt)))
+	{
+		fprintf(stderr, "init[%d]: %s\n", e, lt);
+	}
+	return(e);
+}
+
+int free_start_buffer(void)
+{
+	int i;
+	if(s_buf.lt)
+	{
+		for(i=0;i<s_buf.nlines;i++)
+		{
+			if(s_buf.lt[i]) free(s_buf.lt[i]);
+		}
+		free(s_buf.lt);
+		s_buf.lt=NULL;
+	}
+	if(s_buf.lc) free(s_buf.lc);
+	if(s_buf.ts) free(s_buf.ts);
+	s_buf.nlines=0;
+	return(0);
+}
+
 int initialise_buffers(int buflines)
 {
 	bufs=(buffer *)malloc(sizeof(buffer));
@@ -114,7 +186,7 @@ int add_to_buffer(int buf, colour lc, char *lt)
 {
 	if(buf>=nbufs)
 	{
-		w_buf_print(0, c_err, "Line was written to bad buffer!  Contents below.", "add_to_buffer()");
+		w_buf_print(0, c_err, "Line was written to bad buffer!  Contents below.", "add_to_buffer(): ");
 		w_buf_print(0, lc, lt, "");
 		return(1);
 	}
@@ -468,6 +540,41 @@ int e_buf_print(int buf, colour lc, message pkt, char *lead)
 		strcat(text, pkt.args[arg]);
 	}
 	return(w_buf_print(buf, lc, text, lead));
+}
+
+int transfer_start_buffer(void)
+{
+	int i,e=0;
+	for(i=0;i<s_buf.nlines;i++)
+	{
+		e|=w_buf_print(0, s_buf.lc[i], s_buf.lt[i], "init: ");
+	}
+	return(e);
+}
+
+int push_buffer(void)
+{
+	if(transfer_start_buffer())
+	{
+		w_buf_print(0, c_err, "Failed to transfer start_buffer", "init[xsb]: ");
+		int i;
+		for(i=0;i<s_buf.nlines;i++)
+		{
+			fprintf(stderr, "init[xsb]: %s\n", s_buf.lt[i]);
+		}
+		char msg[32];
+		sprintf(msg, "%d messages written to stderr", s_buf.nlines);
+		w_buf_print(0, c_status, msg, "init[xsb]: ");
+	}
+	
+	if(s_buf.errs)
+	{
+		char msg[80];
+		sprintf(msg, "%d messages were written to stderr due to start_buffer errors", s_buf.errs);
+		w_buf_print(0, c_err, msg, "init[errs]: ");
+	}
+	
+	return(free_start_buffer());
 }
 
 void titlebar(void)

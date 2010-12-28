@@ -131,7 +131,9 @@ int rcread(FILE *rcfp)
 			}
 			else
 			{
-				fprintf(stderr, "Unrecognised ident in %%colour (%s)\n", cmd);
+				char msg[48+strlen(cmd)];
+				sprintf(msg, "rc: Unrecognised ident in %%colour (%s)", cmd);
+				asb_failsafe(c_err, msg);
 				nerrors++;
 			}
 		}
@@ -140,7 +142,9 @@ int rcread(FILE *rcfp)
 			char *rest=strtok(NULL, "");
 			if(!rest)
 			{
-				fprintf(stderr, "Command (%s) without argument!\n", cmd);
+				char msg[40+strlen(cmd)];
+				sprintf(msg, "rc: Command (%s) without argument", cmd);
+				asb_failsafe(c_err, msg);
 				nerrors++;
 			}
 			else if(strcmp(cmd, "server")==0)
@@ -178,7 +182,7 @@ int rcread(FILE *rcfp)
 				char *sw=strtok(rest, " \t");
 				if(*sw!='-')
 				{
-					fprintf(stderr, "ignore: need options (use '-' for no options)\n");
+					asb_failsafe(c_err, "rc: ignore: need options (use '-' for no options)");
 					nerrors++;
 				}
 				else
@@ -186,7 +190,7 @@ int rcread(FILE *rcfp)
 					rest=strtok(NULL, "");
 					if(!rest)
 					{
-						fprintf(stderr, "ignore: need options (use '-' for no options)\n");
+						asb_failsafe(c_err, "rc: ignore: need options (use '-' for no options)");
 						nerrors++;
 					}
 					else
@@ -228,7 +232,7 @@ int rcread(FILE *rcfp)
 				char *sw=strtok(rest, " \t");
 				if(*sw!='-')
 				{
-					fprintf(stderr, "*ignore: need options (use '-' for no options)\n");
+					asb_failsafe(c_err, "rc: *ignore: need options (use '-' for no options)");
 					nerrors++;
 				}
 				else
@@ -236,7 +240,7 @@ int rcread(FILE *rcfp)
 					rest=strtok(NULL, "");
 					if(!rest)
 					{
-						fprintf(stderr, "*ignore: need options (use '-' for no options)\n");
+						asb_failsafe(c_err, "rc: *ignore: need options (use '-' for no options)");
 						nerrors++;
 					}
 					else
@@ -322,7 +326,9 @@ int rcread(FILE *rcfp)
 		#endif // HAVE_DEBUG
 			else
 			{
-				fprintf(stderr, "Unrecognised cmd %s in .quirc (ignoring)\n", cmd);
+				char msg[48+strlen(cmd)];
+				sprintf(msg, "rc: Unrecognised cmd %s in .quirc (ignoring)", cmd);
+				asb_failsafe(c_err, msg);
 				nerrors++;
 			}
 		}
@@ -353,7 +359,7 @@ signed int pargs(int argc, char *argv[])
 			if(width<30)
 			{
 				width=30;
-				printf("width set to minimum 30\n");
+				asb_failsafe(c_status, "pargs: width set to minimum 30");
 			}
 		}
 		else if(strncmp(argv[arg], "--height=", 9)==0)
@@ -362,7 +368,7 @@ signed int pargs(int argc, char *argv[])
 			if(height<5)
 			{
 				height=5;
-				printf("height set to minimum 5\n");
+				asb_failsafe(c_status, "pargs: height set to minimum 5");
 			}
 		}
 		else if(strncmp(argv[arg], "--maxnicklen=", 13)==0)
@@ -471,7 +477,9 @@ signed int pargs(int argc, char *argv[])
 	#endif // HAVE_DEBUG
 		else
 		{
-			fprintf(stderr, "Unrecognised argument '%s'\n", argv[arg]);
+			char msg[40+strlen(argv[arg])];
+			sprintf(msg, "pargs: Unrecognised argument '%s'", argv[arg]);
+			asb_failsafe(c_err, msg);
 		}
 	}
 	if(check) return(0);

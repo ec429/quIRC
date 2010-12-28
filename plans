@@ -1,7 +1,5 @@
 ==quIRC:future plans==
 
-Init-buffer, to catch messages before initialise_buffers called
-
 Scripting language.  Under development in branch 'script'.
 
 Quiet mode.  Don't emit diagnostics for eg. unrecognised IRC traffic (such as numerics).

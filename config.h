@@ -38,6 +38,7 @@ servlist;
 #include "colour.h"
 #include "text.h"
 #include "version.h"
+#include "buffer.h"
 
 // global settings & state
 int width, height; // term size
