@@ -10,8 +10,6 @@ PASS (auto-send during connect time).  Also need to fix the problem of the conn_
 
 Fix possible issue with CTCP.  Funny stuff (including random characters) happened when eg spike1 sent a CTCP PONG to the channel.
 
-Allow /me in <msg> tabs.  Why did this ever happen in the first place?
-
 Proper handling of Unicode in character-based things like cursor-movement, backspace.
 
 Automate config handling.  Generated code?
