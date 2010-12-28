@@ -186,8 +186,11 @@ int add_to_buffer(int buf, colour lc, char *lt)
 {
 	if(buf>=nbufs)
 	{
-		w_buf_print(0, c_err, "Line was written to bad buffer!  Contents below.", "add_to_buffer(): ");
-		w_buf_print(0, lc, lt, "");
+		if(bufs&&buf)
+		{
+			w_buf_print(0, c_err, "Line was written to bad buffer!  Contents below.", "add_to_buffer(): ");
+			w_buf_print(0, lc, lt, "");
+		}
 		return(1);
 	}
 	char *nl;
@@ -269,6 +272,7 @@ int redraw_buffer(void)
 
 int buf_print(int buf, colour lc, char *lt)
 {
+	if(!bufs) return(2);
 	if(force_redraw)
 	{
 		int e=add_to_buffer(buf, lc, lt);
@@ -554,7 +558,7 @@ int transfer_start_buffer(void)
 
 int push_buffer(void)
 {
-	if(transfer_start_buffer())
+	if(!bufs || transfer_start_buffer())
 	{
 		w_buf_print(0, c_err, "Failed to transfer start_buffer", "init[xsb]: ");
 		int i;

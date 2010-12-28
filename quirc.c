@@ -24,6 +24,8 @@ int main(int argc, char *argv[])
 		mtrace();
 	#endif	// USE_MTRACE
 	
+	bufs=NULL;
+	
 	init_start_buffer();
 	
 	sigpipe=0;
@@ -36,6 +38,7 @@ int main(int argc, char *argv[])
 	{
 		fprintf(stderr, "Failed to set SIGPIPE handler\n");
 		perror("sigaction");
+		push_buffer();
 		return(1);
 	}
 	
@@ -53,11 +56,13 @@ int main(int argc, char *argv[])
 	if(c_init()!=0) // should be impossible
 	{
 		fprintf(stderr, "Failed to initialise colours\n");
+		push_buffer();
 		return(1);
 	}
 	if(def_config())
 	{
 		fprintf(stderr, "Failed to apply default configuration\n");
+		push_buffer();
 		return(1);
 	}
 	settitle("quIRC - not connected");
@@ -96,6 +101,7 @@ int main(int argc, char *argv[])
 	{
 		fprintf(stderr, "Failed to set raw mode on tty\n");
 		perror("ttyraw");
+		push_buffer();
 		return(1);
 	}
 	
@@ -107,6 +113,7 @@ int main(int argc, char *argv[])
 	if(e)
 	{
 		fprintf(stderr, "Failed to set up buffers\n");
+		push_buffer();
 		return(1);
 	}
 	
