@@ -110,8 +110,21 @@ int init_buffer(int buf, btype type, char *bname, int nlines)
 	bufs[buf].nick=NULL;
 	bufs[buf].topic=NULL;
 	bufs[buf].nlines=nlines;
+	/*int nlines; // number of lines allocated
+	int ptr; // pointer to current unproc line
+	int scroll; // unproc line of current pscrbot (distance up from ptr)
+	int ascroll; // proc line (lpt offset) of start of [scroll]
+	colour *lc; // array of colours for lines
+	char **lt; // array of (unprocessed) text for lines
+	char **ltag; // array of (unprocessed) tag text for lines
+	time_t *ts; // array of timestamps for unproc lines (not used now, but there ready for eg. mergebuffers)
+	bool filled; // buffer has filled up and looped? (the buffers are circular in nature)
+	char *lpt[128]; // array of processed lines; offsets don't necessarily match the unprocessed arrays'.  size = height * 2.  unfilled-ness denoted by NULLs
+	int pstart; // lpt index of start of lpt buffer
+	int pscrbot; // lpt index of screen bottom in lpt buffer*/
 	bufs[buf].ptr=0;
 	bufs[buf].scroll=0;
+	bufs[buf].ascroll=0;
 	bufs[buf].lc=(colour *)malloc(sizeof(colour[nlines]));
 	bufs[buf].lt=(char **)malloc(sizeof(char *[nlines]));
 	int i;
@@ -119,6 +132,20 @@ int init_buffer(int buf, btype type, char *bname, int nlines)
 	{
 		bufs[buf].lt[i]=NULL;
 	}
+	bufs[buf].ltag=(char **)malloc(sizeof(char *[nlines]));
+	int i;
+	for(i=0;i<bufs[buf].nlines;i++)
+	{
+		bufs[buf].ltag[i]=NULL;
+	}
+	int i;
+	for(i=0;i<128;i++)
+	{
+		bufs[buf].lpt[i]=NULL;
+	}
+	bufs[buf].pstart=0;
+	bufs[buf].pscrbot=0;
+	bufs[buf].rendered=true;
 	bufs[buf].ts=(time_t *)malloc(sizeof(time_t[nlines]));
 	bufs[buf].filled=false;
 	bufs[buf].alert=false;
@@ -150,13 +177,24 @@ int free_buffer(int buf)
 		bufs[buf].nlist=NULL;
 		n_free(bufs[buf].ilist);
 		bufs[buf].ilist=NULL;
-		free(bufs[buf].lc);
+		if(bufs[buf].lc) free(bufs[buf].lc);
 		if(bufs[buf].topic) free(bufs[buf].topic);
 		int l;
-		for(l=0;l<bufs[buf].nlines;l++)
-			if(bufs[buf].lt[l]) free(bufs[buf].lt[l]);
-		free(bufs[buf].lt);
-		free(bufs[buf].ts);
+		if(bufs[buf].lt)
+		{
+			for(l=0;l<bufs[buf].nlines;l++)
+				if(bufs[buf].lt[l]) free(bufs[buf].lt[l]);
+			free(bufs[buf].lt);
+		}
+		if(bufs[buf].ltag)
+		{
+			for(l=0;l<bufs[buf].nlines;l++)
+				if(bufs[buf].ltag[l]) free(bufs[buf].ltag[l]);
+			free(bufs[buf].ltag);
+		}
+		for(l=0;l<PBUFSIZ;l++)
+			if(bufs[buf].lpt[l]) free(bufs[buf].lpt[l]);
+		if(bufs[buf].ts) free(bufs[buf].ts);
 		freeibuf(&bufs[buf].input);
 		if(cbuf>=buf)
 			cbuf--;
@@ -193,14 +231,6 @@ int add_to_buffer(int buf, colour lc, char *lt)
 		}
 		return(1);
 	}
-	char *nl;
-	while((nl=strchr(lt, '\n'))!=NULL)
-	{
-		char *ln=strndup(lt, (size_t)(nl-lt));
-		add_to_buffer(buf, lc, ln);
-		free(ln);
-		lt=nl+1;
-	}
 	bufs[buf].lc[bufs[buf].ptr]=lc;
 	if(bufs[buf].lt[bufs[buf].ptr]) free(bufs[buf].lt[bufs[buf].ptr]);
 	bufs[buf].lt[bufs[buf].ptr]=strdup(lt);
@@ -208,8 +238,7 @@ int add_to_buffer(int buf, colour lc, char *lt)
 	bufs[buf].ptr=(bufs[buf].ptr+1)%bufs[buf].nlines;
 	if(bufs[buf].ptr==0)
 		bufs[buf].filled=true;
-	if(bufs[buf].scroll)
-		bufs[buf].scroll=min(bufs[buf].scroll+1, bufs[buf].nlines-1);
+	bufs[buf].rendered=false; // mark tab dirty
 	bufs[buf].alert=true;
 	bufs[cbuf].alert=false;
 	return(0);
@@ -217,6 +246,61 @@ int add_to_buffer(int buf, colour lc, char *lt)
 
 int redraw_buffer(void)
 {
+	if(!bufs[cbuf].rendered)
+	{
+		int e=render_buffer(cbuf);
+		if(e) return(e);
+		if(!bufs[cbuf].rendered) return(1);
+	}
+	int sl=(bufs[cbuf].pscrbot+(tsb?4:3)+PBUFSIZ-height)%PBUFSIZ;
+	int dis=0; // disorder
+	if(bufs[cbuf].pstart>sl) dis++;
+	if(sl>bufs[cbuf].pscrbot) dis++;
+	if(bufs[cbuf].pscrbot>=bufs[cbuf].pstart) dis++;
+	if(dis==2)
+		sl=bufs[cbuf].pstart;
+	printf(CLS LOCATE, (bufs[cbuf].pscrbot+PBUFSIZ-sl)%PBUFSIZ, 1);
+	int l;
+	for(l=sl;l!=bufs[cbuf].pscrbot;l=(l+1)%PBUFSIZ)
+	{
+		printf("%s", bufs[cbuf].lpt[l]);
+	}
+	switch(bufs[cbuf].type)
+	{
+		case STATUS:
+			settitle("quIRC - status");
+		break;
+		case SERVER: // have to scope it for the cstr 'variably modified type'
+			{
+				char cstr[16+strlen(bufs[cbuf].bname)];
+				sprintf(cstr, "quIRC - %s", bufs[cbuf].bname);
+				settitle(cstr);
+			}
+		break;
+		case CHANNEL: // have to scope it for the cstr 'variably modified type'
+			{
+				char cstr[16+strlen(bufs[cbuf].bname)+strlen(bufs[bufs[cbuf].server].bname)];
+				sprintf(cstr, "quIRC - %s on %s", bufs[cbuf].bname, bufs[bufs[cbuf].server].bname);
+				settitle(cstr);
+			}
+		break;
+		case PRIVATE: // have to scope it for the cstr 'variably modified type'
+			{
+				char cstr[16+strlen(bufs[cbuf].bname)+strlen(bufs[bufs[cbuf].server].bname)];
+				sprintf(cstr, "quIRC - <%s> on %s", bufs[cbuf].bname, bufs[bufs[cbuf].server].bname);
+				settitle(cstr);
+			}
+		break;
+		default:
+			settitle("quIRC");
+		break;
+	}
+	if(tsb)
+		titlebar();
+	bufs[cbuf].alert=false;
+	return(0);
+}
+/*
 	int sl = ( bufs[cbuf].filled ? (bufs[cbuf].ptr+max(bufs[cbuf].nlines-(bufs[cbuf].scroll+height-3), 1))%bufs[cbuf].nlines : max(bufs[cbuf].ptr-(bufs[cbuf].scroll+height-3), 0) );
 	int el = ( bufs[cbuf].filled ? (bufs[cbuf].ptr+bufs[cbuf].nlines-bufs[cbuf].scroll)%bufs[cbuf].nlines : max(bufs[cbuf].ptr-bufs[cbuf].scroll, 0) );
 	int dl=el-sl;
@@ -241,35 +325,7 @@ int redraw_buffer(void)
 		}
 	}
 	printf(CLA "\n");
-	switch(bufs[cbuf].type)
-	{
-		case STATUS:
-			settitle("quIRC - status");
-		break;
-		case SERVER: // have to scope it for the cstr 'variably modified type'
-			{
-				char cstr[16+strlen(bufs[cbuf].bname)];
-				sprintf(cstr, "quIRC - %s", bufs[cbuf].bname);
-				settitle(cstr);
-			}
-		break;
-		case CHANNEL: // have to scope it for the cstr 'variably modified type'
-			{
-				char cstr[16+strlen(bufs[cbuf].bname)+strlen(bufs[bufs[cbuf].server].bname)];
-				sprintf(cstr, "quIRC - %s on %s", bufs[cbuf].bname, bufs[bufs[cbuf].server].bname);
-				settitle(cstr);
-			}
-		break;
-		default:
-			settitle("quIRC");
-		break;
-	}
-	if(tsb)
-		titlebar();
-	bufs[cbuf].alert=false;
-	return(0);
-}
-
+*/
 int buf_print(int buf, colour lc, char *lt)
 {
 	if(!bufs) return(2);
