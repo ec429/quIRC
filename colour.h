@@ -21,7 +21,8 @@ colour;
 
 #include "ttyesc.h"
 
-int setcolour(colour);
+int setcolour(colour); // wrapper for setcol
+int s_setcolour(colour, char **, int *, int *); // wrapper for s_setcol
 colour c_mirc(int, int);
 int c_init(void);
 

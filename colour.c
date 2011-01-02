@@ -13,6 +13,11 @@ int setcolour(colour c)
 	return(setcol(c.fore, c.back, c.hi, c.ul));
 }
 
+int s_setcolour(colour c, char **rv, int *l, int *i)
+{
+	return(s_setcol(c.fore, c.back, c.hi, c.ul, rv, l, i));
+}
+
 colour c_mirc(int fore, int back)
 {
 	/*mIRC colours:

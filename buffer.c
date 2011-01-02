@@ -238,7 +238,7 @@ int add_to_buffer(int buf, colour lc, char *lt)
 	bufs[buf].ptr=(bufs[buf].ptr+1)%bufs[buf].nlines;
 	if(bufs[buf].ptr==0)
 		bufs[buf].filled=true;
-	bufs[buf].rendered=false; // mark tab dirty
+	bufs[buf].rendered=false; // mark tab dirty; TODO be more intelligent about avoiding full re-renders
 	bufs[buf].alert=true;
 	bufs[cbuf].alert=false;
 	return(0);
@@ -265,6 +265,7 @@ int redraw_buffer(void)
 	{
 		printf("%s", bufs[cbuf].lpt[l]);
 	}
+	printf(CLA "\n");
 	switch(bufs[cbuf].type)
 	{
 		case STATUS:
@@ -300,32 +301,140 @@ int redraw_buffer(void)
 	bufs[cbuf].alert=false;
 	return(0);
 }
-/*
-	int sl = ( bufs[cbuf].filled ? (bufs[cbuf].ptr+max(bufs[cbuf].nlines-(bufs[cbuf].scroll+height-3), 1))%bufs[cbuf].nlines : max(bufs[cbuf].ptr-(bufs[cbuf].scroll+height-3), 0) );
-	int el = ( bufs[cbuf].filled ? (bufs[cbuf].ptr+bufs[cbuf].nlines-bufs[cbuf].scroll)%bufs[cbuf].nlines : max(bufs[cbuf].ptr-bufs[cbuf].scroll, 0) );
-	int dl=el-sl;
-	if(dl<0) dl+=bufs[cbuf].nlines;
-	printf(CLS LOCATE, height-(dl+1), 1);
-	resetcol();
-	int l;
-	for(l=sl;l!=el;l=(l+1)%bufs[cbuf].nlines)
+
+int render_buffer(int buf)
+{
+	if(bufs[buf].rendered)
+		return(0); // nothing to do
+	int l=start;
+	int pl;
+	for(pl=0;pl<PBUFSIZ;pl++)
 	{
-		setcolour(bufs[cbuf].lc[l]);
-		if(full_width_colour)
+		if(bufs[buf].lpt[pl]) free(bufs[buf].lpt[pl]; 
+		bufs[buf].lpt[pl]=NULL;
+	}
+	pl=0;
+	int apl=0;
+	bool bot=false, // passed screen bottom (scroll and ascroll)?
+		bot1=false; // within the logical line of screen bottom (scroll)?
+	int as=bufs[buf].astart;
+	char *curline=NULL, *last=NULL, *n=NULL;
+	bool filled=false;
+	int overfill=0;
+	while(!(bot && (((bufs[buf].pscrbot-height-(overfill%PBUFSIZ)+2*PBUFSIZ)%PBUFSIZ)>((pl-bufs[buf].pscrbot+PBUFSIZ)%PBUFSIZ))))
+	{
+		if(!curline)
 		{
-			printf("%s" CLR, bufs[cbuf].lt[l]);
-			resetcol();
-			printf("\n");
+			if(last) free(last); last=NULL;
+			char *tag;int ci,cl;
+			init_char(&curline, &cl, &ci);
+			s_setcolour(bufs[buf].lc[l], &curline, &cl, &ci);
+			append_str(&curline, &cl, &ci, bufs[buf].ltag[l]);
+			wordline(bufs[buf].lt[l], strlen(curline), &curline, bufs[buf].lc);
+			if(full_width_colour)
+			{
+				append_str(&curline, &cl, &ci, CLR);
+				s_resetcol(&curline, &cl, &ci);
+			}
+			else
+			{
+				s_resetcol(&curline, &cl, &ci);
+				append_str(&curline, &cl, &ci, CLR);
+			}
+			append_char(&curline, &cl, &ci, '\n');
+			n=strchr(out, '\n');
+			free(ltd);
+			last=curline;
+			apl=0;
+		}
+		if(!*n) n=NULL;
+		char oldc;
+		if(n)
+		{
+			oldc=*n++;
+			*n=0;
+		}
+		if(as)
+		{
+			as--;
 		}
 		else
 		{
-			printf("%s", bufs[cbuf].lt[l]);
-			resetcol();
-			printf(CLR "\n");
+			bufs[buf].lpt[pl]=strdup(curline);
+			pl=(pl+1)%PBUFSIZ;
+			if(filled)
+			{
+				overfill++;
+			}
+			else
+			{
+				if(!pl)
+					filled=true;
+			}
+		}
+		if(n)
+		{
+			*n=oldc;
+			curline=n;
+			n=strchr(curline, '\n');
+			apl++;
+			if(bot1 && (apl==bufs[buf].ascroll))
+			{
+				bot=true;
+				bufs[buf].pscrbot=pl;
+			}
+		}
+		else
+		{
+			curline=NULL;
+			if(as)
+			{
+				bufs[buf].astart=as;bufs[buf].start++;
+			}
+			if(bot1)
+			{
+				bot=true; // weren't enough physical lines in this logical line
+				bufs[buf].pscrbot=pl;
+				bufs[buf].scroll=(bufs[buf].scroll+1)%bufs[buf].nlines;
+				bufs[buf].ascroll=0;
+			}
+			l=(l+1)%bufs[buf].nlines;
+			if(l==bufs[buf].ptr)
+			{
+				if(!bot)
+				{
+					bufs[buf].scroll=l-1;
+					bufs[buf].ascroll=apl;
+					bufs[buf].pscrbot=pl;
+				}
+				break;
+			}
+			else if(bufs[buf].scroll==l)
+			{
+				bot1=true;
+				if(bufs[buf].ascroll==0)
+				{
+					bot=true;
+					bufs[buf].pscrbot=pl;
+				}
+			}
 		}
 	}
-	printf(CLA "\n");
-*/
+	if(filled)
+	{
+		bufs[buf].pstart=(pl+1)%PBUFSIZ;
+		if(overfill)
+		{
+			bufs[buf].astart+=overfill; // so at least it'll be less wasteful next time
+		}
+	}
+	else
+	{
+		bufs[buf].pstart=0;
+	}
+	if(last) free(last); last=NULL;
+}
+
 int buf_print(int buf, colour lc, char *lt)
 {
 	if(!bufs) return(2);

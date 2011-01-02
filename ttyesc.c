@@ -52,6 +52,11 @@ int resetcol(void)
 	return(setcol(7, 0, false, false));
 }
 
+int s_resetcol(char **rv, int *l, int *i)
+{
+	return(s_setcol(7, 0, false, false, rv, l, i));
+}
+
 int settitle(char *newtitle)
 {
 	printf("\033]0;%s\007", newtitle);

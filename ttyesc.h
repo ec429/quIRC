@@ -21,4 +21,5 @@
 int setcol(int fore, int back, bool hi, bool ul); // sets the text colour
 int s_setcol(int fore, int back, bool hi, bool ul, char **rv, int *l, int *i); // writes a setcol-like string with append_char (see bits.h)
 int resetcol(void); // default setcol() values
+int s_resetcol(char **rv, int *l, int *i); // s_setcol to the colour set by resetcol
 int settitle(char *newtitle); // sets the window title if running in a term in a window system (eg. xterm)

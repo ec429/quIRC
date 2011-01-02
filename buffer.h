@@ -52,8 +52,10 @@ typedef struct _buf
 	char *topic; // used for CHANNELs
 	int nlines; // number of lines allocated
 	int ptr; // pointer to current unproc line
-	int scroll; // unproc line of current pscrbot (distance up from ptr)
-	int ascroll; // proc line (lpt offset) of start of [scroll]
+	int start; // unproc line of current pstart
+	int astart; // physical line within [start]
+	int scroll; // unproc line of screen bottom
+	int ascroll; // physical line within [scroll]
 	colour *lc; // array of colours for lines
 	char **lt; // array of (unprocessed) text for lines
 	char **ltag; // array of (unprocessed) tag text for lines
@@ -100,6 +102,7 @@ int init_buffer(int buf, btype type, char *bname, int nlines);
 int free_buffer(int buf);
 int add_to_buffer(int buf, colour lc, char *lt);
 int redraw_buffer(void);
+int render_buffer(int buf);
 int buf_print(int buf, colour lc, char *lt); // don't include trailing \n, because buf_print appends CLR \n
 int w_buf_print(int buf, colour lc, char *lt, char *lead);
 int e_buf_print(int buf, colour lc, message pkt, char *lead);

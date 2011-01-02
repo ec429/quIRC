@@ -19,7 +19,7 @@ char * fgetl(FILE *fp)
 	return(lout);
 }
 
-int wordline(char *msg, int x, char **out, colour lc)
+int wordline(const char *msg, int x, char **out, colour lc)
 {
 	int tabx=x;
 	if((!tabx) || (tabx*2>width))
@@ -171,7 +171,7 @@ void append_char(char **buf, int *l, int *i, char c)
 	}
 }
 
-void append_str(char **buf, int *l, int *i, char *str)
+void append_str(char **buf, int *l, int *i, const char *str)
 {
 	while(*str) // not the most tremendously efficient implementation, but conceptually simple at least
 	{
