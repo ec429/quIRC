@@ -1325,7 +1325,6 @@ int ctcp(char *msg, char *from, char *src, int b2, bool ha, bool notice, bool pr
 	{
 		char *tag=mktag("(from %s) ", from);
 		w_buf_print(b2, c_notice[1], msg, tag);
-		free(tag);
 		if(ha)
 			bufs[b2].hi_alert=5;
 		char *cmd=msg+1;
@@ -1335,6 +1334,7 @@ int ctcp(char *msg, char *from, char *src, int b2, bool ha, bool notice, bool pr
 		char cmsg[32+strlen(cmd)];
 		sprintf(cmsg, "Unrecognised CTCP %s (ignoring)", cmd);
 		w_buf_print(b2, c_unk, cmsg, tag);
+		free(tag);
 		if(!notice)
 		{
 			char resp[32+strlen(src)+strlen(cmd)];
