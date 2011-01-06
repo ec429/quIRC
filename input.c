@@ -303,15 +303,22 @@ int inputchar(iline *inp, int *state)
 									redraw_buffer();
 								break;
 								case 'A': // C-up
-									//bufs[cbuf].scroll=min(bufs[cbuf].scroll+1, bufs[cbuf].filled?bufs[cbuf].nlines-1:bufs[cbuf].ptr-1);
+									bufs[cbuf].ascroll--;bufs[cbuf].rendered=false; // TODO: intelligent scrolling so we don't have to fully re-render each time
 									redraw_buffer();
 								break;
 								case 'B': // C-down
-									if(bufs[cbuf].scroll)
+									bufs[cbuf].ascroll++;bufs[cbuf].rendered=false; // TODO: intelligent scrolling so we don't have to fully re-render each time
+									if(bufs[cbuf].ascroll<=0) // scroll is from bottom
 									{
-										//bufs[cbuf].scroll=bufs[cbuf].scroll-1;
-										redraw_buffer();
+										if(bufs[cbuf].ascroll==0) // top of next line
+										{
+											if(bufs[cbuf].scroll==bufs[cbuf].ptr)
+												bufs[cbuf].ascroll=-1; // were already at bottom
+											else
+												bufs[cbuf].scroll++;
+										}
 									}
+									redraw_buffer();
 								break;
 								case 'F': // C-end
 									if(bufs[cbuf].scroll)

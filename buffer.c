@@ -272,13 +272,13 @@ int redraw_buffer(void)
 	if(bufs[cbuf].pscrbot>=bufs[cbuf].pstart) dis++;
 	if(dis==2)
 		sl=bufs[cbuf].pstart;
-	printf(CLS LOCATE, height-((bufs[cbuf].pscrbot+PBUFSIZ-sl)%PBUFSIZ)-1, 1);
+	printf(CLS LOCATE, height-((bufs[cbuf].pscrbot+PBUFSIZ-sl)%PBUFSIZ)-2, 1);
 	int l;
 	for(l=sl;l!=bufs[cbuf].pscrbot;l=(l+1)%PBUFSIZ)
 	{
 		printf("%s", bufs[cbuf].lpt[l]);
 	}
-	printf(CLA "\n");
+	printf("%d:%d (%d), %d;%d;%d" CLR "\n", bufs[cbuf].scroll, bufs[cbuf].ascroll, bufs[cbuf].ptr, exdata, exdatb, exdatc);
 	switch(bufs[cbuf].type)
 	{
 		case STATUS:
@@ -317,6 +317,7 @@ int redraw_buffer(void)
 
 int render_buffer(int buf)
 {
+	exdata=0;
 	if(bufs[buf].rendered)
 		return(0); // nothing to do
 	int l=bufs[buf].start;
@@ -329,7 +330,7 @@ int render_buffer(int buf)
 	pl=0;
 	int apl=0;
 	bool bot=false, // passed screen bottom (scroll and ascroll)?
-		bot1=false; // within the logical line of screen bottom (scroll)?
+		bot1=(l==bufs[buf].scroll); // within the logical line of screen bottom (scroll)?
 	int as=bufs[buf].astart;
 	char *curline=NULL, *last=NULL, *n=NULL;
 	bool filled=false;
@@ -403,18 +404,46 @@ int render_buffer(int buf)
 			{
 				bufs[buf].astart=as;bufs[buf].start++;
 			}
-			if(bot1)
+			if(bot1&&!bot)
 			{
 				bot=true;
-				if(bufs[buf].ascroll==-1) // bottom-of-logical-line
+				if(bufs[buf].ascroll<0) // count from bottom-of-logical-line
 				{
-					bufs[buf].pscrbot=(pl+PBUFSIZ-1)%PBUFSIZ;
+					exdata=apl+128;exdatb=bufs[buf].ascroll;
+					if((-bufs[buf].ascroll)<=apl) // scrolly magic
+					{
+						bufs[buf].pscrbot=(pl+PBUFSIZ+bufs[buf].scroll)%PBUFSIZ;
+					}
+					else
+					{
+						bufs[buf].scroll--;
+						if(bufs[buf].scroll==(bufs[buf].filled?bufs[buf].ptr:-1))
+						{
+							bufs[buf].scroll++;
+							exdatc=256+bufs[buf].scroll;
+							bufs[buf].ascroll=0;
+						}
+						else
+						{
+							bufs[buf].scroll=(bufs[buf].scroll+bufs[buf].nlines)%bufs[buf].nlines;
+							exdatc=bufs[buf].scroll;
+							bufs[buf].ascroll+=apl;
+						}
+					}
 				}
 				else // weren't enough physical lines in this logical line
 				{
+					exdata=192;
 					bufs[buf].pscrbot=pl;
-					bufs[buf].scroll=(bufs[buf].scroll+1)%bufs[buf].nlines;
-					bufs[buf].ascroll=0;
+					if(bufs[buf].scroll==bufs[buf].ptr)
+					{
+						bufs[buf].ascroll=-1;
+					}
+					else
+					{
+						bufs[buf].scroll=(bufs[buf].scroll+1)%bufs[buf].nlines;
+						bufs[buf].ascroll=0;
+					}
 				}
 			}
 			l=(l+1)%bufs[buf].nlines;
@@ -422,9 +451,26 @@ int render_buffer(int buf)
 			{
 				if(!bot)
 				{
-					bufs[buf].scroll=l;
-					bufs[buf].ascroll=-1;
+					exdata=64+apl;
+					exdatb=bufs[buf].ascroll;
 					bufs[buf].pscrbot=pl;
+					if(bufs[buf].scroll==(bufs[buf].filled?(bufs[buf].ptr+1)%bufs[buf].nlines:0))
+					{
+						bufs[buf].ascroll=max(bufs[buf].ascroll, 0);
+					}
+					else
+					{
+						if(apl+bufs[buf].ascroll<0)
+						{
+							bufs[buf].scroll=(l+bufs[buf].nlines-1)%bufs[buf].nlines;
+							bufs[buf].ascroll+=apl;
+						}
+						else
+						{
+							bufs[buf].scroll=l;
+							bufs[buf].ascroll=-1;
+						}
+					}
 				}
 				break;
 			}

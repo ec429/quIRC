@@ -82,6 +82,7 @@ buffer;
 int nbufs;
 int cbuf;
 buffer *bufs;
+int exdata,exdatb,exdatc;
 
 struct
 {
