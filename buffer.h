@@ -53,7 +53,7 @@ typedef struct _buf
 	int nlines; // number of lines allocated
 	int ptr; // pointer to current unproc line
 	int start; // unproc line of current pstart
-	int astart; // physical line within [start]
+	int astart; // physical line within [start] (0 is last, 1 is penultimate etc)
 	int scroll; // unproc line of screen bottom
 	int ascroll; // physical line within [scroll]
 	colour *lc; // array of colours for lines
@@ -82,7 +82,7 @@ buffer;
 int nbufs;
 int cbuf;
 buffer *bufs;
-int exdata,exdatb,exdatc;
+int exdata,exdatb,exdatc,exdatd;
 
 struct
 {

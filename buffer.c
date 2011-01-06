@@ -124,7 +124,7 @@ int init_buffer(int buf, btype type, char *bname, int nlines)
 	int pscrbot; // lpt index of screen bottom in lpt buffer*/
 	bufs[buf].ptr=0;
 	bufs[buf].scroll=0;
-	bufs[buf].ascroll=-1;
+	bufs[buf].ascroll=0;
 	bufs[buf].lc=(colour *)malloc(sizeof(colour[nlines]));
 	bufs[buf].lt=(char **)malloc(sizeof(char *[nlines]));
 	int i;
@@ -229,7 +229,7 @@ int add_to_buffer(int buf, colour lc, char *lt, char *ltag)
 		}
 		return(1);
 	}
-	bool scrollisptr=(bufs[buf].scroll==bufs[buf].ptr)&&(bufs[buf].ascroll==-1);
+	bool scrollisptr=(bufs[buf].scroll==bufs[buf].ptr)&&(bufs[buf].ascroll==0);
 	bufs[buf].lc[bufs[buf].ptr]=lc;
 	if(bufs[buf].lt[bufs[buf].ptr]) free(bufs[buf].lt[bufs[buf].ptr]);
 	bufs[buf].lt[bufs[buf].ptr]=strdup(lt);
@@ -240,7 +240,7 @@ int add_to_buffer(int buf, colour lc, char *lt, char *ltag)
 	if(scrollisptr)
 	{
 		bufs[buf].scroll=bufs[buf].ptr;
-		bufs[buf].ascroll=-1;
+		bufs[buf].ascroll=0;
 	}
 	if(bufs[buf].ptr==0)
 		bufs[buf].filled=true;
@@ -278,7 +278,7 @@ int redraw_buffer(void)
 	{
 		printf("%s", bufs[cbuf].lpt[l]);
 	}
-	printf("%d:%d (%d), %d;%d;%d" CLR "\n", bufs[cbuf].scroll, bufs[cbuf].ascroll, bufs[cbuf].ptr, exdata, exdatb, exdatc);
+	printf("%d:%d (%d), %d;%d;%d;%d" CLR "\n", bufs[cbuf].scroll, bufs[cbuf].ascroll, bufs[cbuf].ptr, exdata, exdatb, exdatc, exdatd);
 	switch(bufs[cbuf].type)
 	{
 		case STATUS:
@@ -315,9 +315,10 @@ int redraw_buffer(void)
 	return(0);
 }
 
-int render_buffer(int buf)
+int render_buffer(int buf) // TODO: Fix this XXX XXX may have to rewrite it from scratch XXX XXX
 {
 	exdata=0;
+	start_render:
 	if(bufs[buf].rendered)
 		return(0); // nothing to do
 	int l=bufs[buf].start;
@@ -329,8 +330,7 @@ int render_buffer(int buf)
 	}
 	pl=0;
 	int apl=0;
-	bool bot=false, // passed screen bottom (scroll and ascroll)?
-		bot1=(l==bufs[buf].scroll); // within the logical line of screen bottom (scroll)?
+	bool bot=false; // passed screen bottom (scroll and ascroll)?
 	int as=bufs[buf].astart;
 	char *curline=NULL, *last=NULL, *n=NULL;
 	bool filled=false;
@@ -384,18 +384,13 @@ int render_buffer(int buf)
 				if(!pl)
 					filled=true;
 			}
+			apl++;
 		}
 		if(n)
 		{
 			*n=oldc;
 			curline=n;
 			n=strchr(curline, '\n');
-			apl++;
-			if(bot1 && (apl==bufs[buf].ascroll))
-			{
-				bot=true;
-				bufs[buf].pscrbot=pl;
-			}
 		}
 		else
 		{
@@ -404,84 +399,89 @@ int render_buffer(int buf)
 			{
 				bufs[buf].astart=as;bufs[buf].start++;
 			}
-			if(bot1&&!bot)
+			if(l>=bufs[buf].scroll-1)
 			{
-				bot=true;
-				if(bufs[buf].ascroll<0) // count from bottom-of-logical-line
+				if(bot)
 				{
-					exdata=apl+128;exdatb=bufs[buf].ascroll;
-					if((-bufs[buf].ascroll)<=apl) // scrolly magic
+					exdata=256;
+					exdatb=bufs[buf].ascroll;
+					exdatc=apl;
+					if(bufs[buf].ascroll<0)
 					{
-						bufs[buf].pscrbot=(pl+PBUFSIZ+bufs[buf].scroll)%PBUFSIZ;
-					}
-					else
-					{
-						bufs[buf].scroll--;
-						if(bufs[buf].scroll==(bufs[buf].filled?bufs[buf].ptr:-1))
+						if(bufs[buf].scroll==bufs[buf].ptr)
 						{
-							bufs[buf].scroll++;
-							exdatc=256+bufs[buf].scroll;
 							bufs[buf].ascroll=0;
 						}
 						else
 						{
-							bufs[buf].scroll=(bufs[buf].scroll+bufs[buf].nlines)%bufs[buf].nlines;
-							exdatc=bufs[buf].scroll;
 							bufs[buf].ascroll+=apl;
+							bufs[buf].scroll=(bufs[buf].scroll+1)%bufs[buf].nlines;
 						}
 					}
 				}
-				else // weren't enough physical lines in this logical line
+				else
 				{
-					exdata=192;
-					bufs[buf].pscrbot=pl;
-					if(bufs[buf].scroll==bufs[buf].ptr)
+					bot=true;
+					if(bufs[buf].ascroll>=apl)
 					{
-						bufs[buf].ascroll=-1;
+						exdata=128;
+						exdatb=bufs[buf].ascroll;
+						exdatc=apl;
+						bufs[buf].ascroll-=apl;
+						bufs[buf].scroll--;
+						if(bufs[buf].scroll==(bufs[buf].filled?bufs[buf].ptr:-1))
+						{
+							bufs[buf].scroll++;
+							bufs[buf].ascroll=apl;
+							bufs[buf].pscrbot=0;
+						}
+						else
+						{
+							bufs[buf].scroll=(bufs[buf].scroll+bufs[buf].nlines)%bufs[buf].nlines;
+							exdata=255;
+							goto start_render;
+						}
 					}
 					else
 					{
-						bufs[buf].scroll=(bufs[buf].scroll+1)%bufs[buf].nlines;
-						bufs[buf].ascroll=0;
+						exdata=192+bufs[buf].scroll;
+						exdatb=bufs[buf].ascroll;
+						exdatc=apl;
+						if((bufs[buf].ascroll<0)&&(bufs[buf].scroll==bufs[buf].ptr))
+						{
+							bufs[buf].ascroll=0;
+						}
+						bufs[buf].pscrbot=pl-bufs[buf].ascroll;
 					}
 				}
 			}
 			l=(l+1)%bufs[buf].nlines;
 			if(l==bufs[buf].ptr)
 			{
+				exdatd=bot?64:0;
 				if(!bot)
 				{
 					exdata=64+apl;
 					exdatb=bufs[buf].ascroll;
-					bufs[buf].pscrbot=pl;
-					if(bufs[buf].scroll==(bufs[buf].filled?(bufs[buf].ptr+1)%bufs[buf].nlines:0))
+					exdatc=bufs[buf].scroll;
+					if(l>=bufs[buf].scroll-1)
 					{
-						bufs[buf].ascroll=max(bufs[buf].ascroll, 0);
+						bufs[buf].pscrbot=pl-bufs[buf].ascroll;
+						if(bufs[buf].ascroll>=apl)
+						{
+							bufs[buf].scroll--;
+							bufs[buf].ascroll-=apl;
+							goto start_render;
+						}
 					}
 					else
 					{
-						if(apl+bufs[buf].ascroll<0)
-						{
-							bufs[buf].scroll=(l+bufs[buf].nlines-1)%bufs[buf].nlines;
-							bufs[buf].ascroll+=apl;
-						}
-						else
-						{
-							bufs[buf].scroll=l;
-							bufs[buf].ascroll=-1;
-						}
+						bufs[buf].pscrbot=pl;
+						bufs[buf].scroll=l;
+						bufs[buf].ascroll=0;
 					}
 				}
 				break;
-			}
-			else if(bufs[buf].scroll==l)
-			{
-				bot1=true;
-				if(bufs[buf].ascroll==0)
-				{
-					bot=true;
-					bufs[buf].pscrbot=pl;
-				}
 			}
 		}
 	}
