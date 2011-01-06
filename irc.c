@@ -10,7 +10,8 @@
 
 void handle_sigpipe(int sig)
 {
-	sigpipe=1;
+	if(sig==SIGPIPE)
+		sigpipe=1;
 }
 
 int irc_connect(char *server, char *portno, fd_set *master, int *fdmax)
@@ -1257,7 +1258,7 @@ int ctcp(char *msg, char *from, char *src, int b2, bool ha, bool notice, bool pr
 	{
 		if(notice)
 		{
-			char *tag=mktag("(from %s) ", from);
+			char *tag=mktag(priv?"(%s) ":"(from %s) ", from);
 			w_buf_print(b2, c_notice[1], msg, tag);
 			free(tag);
 			if(ha)
@@ -1274,7 +1275,7 @@ int ctcp(char *msg, char *from, char *src, int b2, bool ha, bool notice, bool pr
 	{
 		if(notice)
 		{
-			char *tag=mktag("(from %s) ", from);
+			char *tag=mktag(priv?"(%s) ":"(from %s) ", from);
 			w_buf_print(b2, c_notice[1], msg, tag);
 			free(tag);
 			if(ha)
@@ -1291,7 +1292,7 @@ int ctcp(char *msg, char *from, char *src, int b2, bool ha, bool notice, bool pr
 	{
 		if(notice)
 		{
-			char *tag=mktag("(from %s) ", from);
+			char *tag=mktag(priv?"(%s) ":"(from %s) ", from);
 			w_buf_print(b2, c_notice[1], msg, tag);
 			free(tag);
 			if(ha)
@@ -1308,7 +1309,7 @@ int ctcp(char *msg, char *from, char *src, int b2, bool ha, bool notice, bool pr
 	{
 		if(notice)
 		{
-			char *tag=mktag("(from %s) ", from);
+			char *tag=mktag(priv?"(%s) ":"(from %s) ", from);
 			w_buf_print(b2, c_notice[1], msg, tag);
 			free(tag);
 			if(ha)
@@ -1323,7 +1324,7 @@ int ctcp(char *msg, char *from, char *src, int b2, bool ha, bool notice, bool pr
 	}
 	else
 	{
-		char *tag=mktag("(from %s) ", from);
+		char *tag=mktag(priv?"(%s) ":"(from %s) ", from);
 		w_buf_print(b2, c_notice[1], msg, tag);
 		if(ha)
 			bufs[b2].hi_alert=5;

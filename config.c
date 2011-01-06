@@ -298,19 +298,19 @@ int rcread(FILE *rcfp)
 				sscanf(rest, "%u", &mirc_colour_compat);
 			else if(strcmp(cmd, "fwc")==0)
 			{
-				int fwc;
+				unsigned int fwc;
 				sscanf(rest, "%u", &fwc);
 				full_width_colour=fwc;
 			}
 			else if(strcmp(cmd, "hts")==0)
 			{
-				int hts;
+				unsigned int hts;
 				sscanf(rest, "%u", &hts);
 				hilite_tabstrip=hts;
 			}
 			else if(strcmp(cmd, "tsb")==0)
 			{
-				int ntsb;
+				unsigned int ntsb;
 				sscanf(rest, "%u", &ntsb);
 				tsb=ntsb;
 			}

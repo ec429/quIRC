@@ -51,7 +51,7 @@ message;
 
 volatile sig_atomic_t sigpipe;
 
-void handle_sigpipe(int sig);
+void handle_sigpipe(int);
 
 int irc_connect(char *server, char *portno, fd_set *master, int *fdmax); // non-blocking
 int irc_conn_rest(int b, char *nick, char *username, char *fullname); // call this when the non-blocking connect() has finished

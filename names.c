@@ -199,7 +199,7 @@ int i_cull(name ** list, char *nm)
 	return(rv);
 }
 
-void i_list(int b)
+void i_list(void)
 {
 	int count=0;
 	if(bufs[cbuf].type==CHANNEL)

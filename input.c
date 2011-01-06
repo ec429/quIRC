@@ -244,7 +244,7 @@ int inputchar(iline *inp, int *state)
 								{
 									if(d=='5') // C-PgUp
 									{
-										bufs[cbuf].scroll=min(bufs[cbuf].scroll+height-3, bufs[cbuf].filled?bufs[cbuf].nlines-1:bufs[cbuf].ptr-1);
+										bufs[cbuf].scroll=min(bufs[cbuf].scroll+(signed)height-3, bufs[cbuf].filled?bufs[cbuf].nlines-1:bufs[cbuf].ptr-1);
 										redraw_buffer();
 									}
 									else // d=='6' // C-PgDn
@@ -261,7 +261,7 @@ int inputchar(iline *inp, int *state)
 						case '~':
 							if(d=='5') // PgUp
 							{
-								bufs[cbuf].input.scroll=min(bufs[cbuf].input.scroll+height, bufs[cbuf].input.filled?bufs[cbuf].input.nlines-1:bufs[cbuf].input.ptr);
+								bufs[cbuf].input.scroll=min(bufs[cbuf].input.scroll+(signed)height, bufs[cbuf].input.filled?bufs[cbuf].input.nlines-1:bufs[cbuf].input.ptr);
 							}
 							else // d=='6' // PgDn
 							{
@@ -393,7 +393,7 @@ char * slash_dequote(char *inp)
 {
 	size_t l=strlen(inp)+1;
 	char *rv=(char *)malloc(l+1); // we only get shorter, so this will be enough
-	int o=0;
+	unsigned int o=0;
 	while((*inp) && (o<l)) // o>=l should never happen, but it's covered just in case
 	{
 		if(*inp=='\\') // \n, \r, \\, \ooo (\0 remains escaped)
@@ -620,7 +620,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 				{
 					if(val)
 					{
-						int fwc;
+						unsigned int fwc;
 						sscanf(val, "%u", &fwc);
 						full_width_colour=fwc;
 					}
@@ -641,7 +641,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 				{
 					if(val)
 					{
-						int hts;
+						unsigned int hts;
 						sscanf(val, "%u", &hts);
 						hilite_tabstrip=hts;
 					}
@@ -662,7 +662,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 				{
 					if(val)
 					{
-						int ntsb;
+						unsigned int ntsb;
 						sscanf(val, "%u", &ntsb);
 						tsb=ntsb;
 					}
@@ -1417,7 +1417,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					}
 					else if(strcmp(arg, "-l")==0)
 					{
-						i_list(cbuf);
+						i_list();
 						break;
 					}
 					else if(strcmp(arg, "--")==0)

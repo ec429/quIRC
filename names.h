@@ -33,4 +33,4 @@ void n_free(name * list);
 
 int i_match(name * list, char *nm, bool pm, cmap casemapping); // returns number of matches
 int i_cull(name ** list, char *nm); // returns number of instances culled
-void i_list(int b);
+void i_list(void);

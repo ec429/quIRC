@@ -105,7 +105,7 @@ int main(int argc, char *argv[])
 		return(1);
 	}
 	
-	int i;
+	unsigned int i;
 	for(i=0;i<height;i++) // push old stuff off the top of the screen, so it's preserved
 		printf("\n");
 	
@@ -150,7 +150,7 @@ int main(int argc, char *argv[])
 				{
 					if(bufs[b].type==SERVER)
 					{
-						int idle=now-bufs[b].last;
+						unsigned int idle=now-bufs[b].last;
 						if(tping && (idle>tping)) // a tping value of 0 means "don't ping"
 						{
 							if(bufs[b].ping)

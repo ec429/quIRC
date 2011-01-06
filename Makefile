@@ -1,7 +1,7 @@
 # Makefile for quIRC
 
 CC ?= gcc
-CFLAGS ?= -Wall
+CFLAGS ?= -Wall -Wextra -Werror -pedantic -std=gnu99 -g
 AWK ?= gawk
 VERSION := `git describe --tags`
 PREFIX ?= /usr/local

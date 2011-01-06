@@ -133,12 +133,10 @@ int init_buffer(int buf, btype type, char *bname, int nlines)
 		bufs[buf].lt[i]=NULL;
 	}
 	bufs[buf].ltag=(char **)malloc(sizeof(char *[nlines]));
-	int i;
 	for(i=0;i<bufs[buf].nlines;i++)
 	{
 		bufs[buf].ltag[i]=NULL;
 	}
-	int i;
 	for(i=0;i<128;i++)
 	{
 		bufs[buf].lpt[i]=NULL;
@@ -306,11 +304,11 @@ int render_buffer(int buf)
 {
 	if(bufs[buf].rendered)
 		return(0); // nothing to do
-	int l=start;
+	int l=bufs[buf].start;
 	int pl;
 	for(pl=0;pl<PBUFSIZ;pl++)
 	{
-		if(bufs[buf].lpt[pl]) free(bufs[buf].lpt[pl]; 
+		if(bufs[buf].lpt[pl]) free(bufs[buf].lpt[pl]); 
 		bufs[buf].lpt[pl]=NULL;
 	}
 	pl=0;
@@ -321,16 +319,16 @@ int render_buffer(int buf)
 	char *curline=NULL, *last=NULL, *n=NULL;
 	bool filled=false;
 	int overfill=0;
-	while(!(bot && (((bufs[buf].pscrbot-height-(overfill%PBUFSIZ)+2*PBUFSIZ)%PBUFSIZ)>((pl-bufs[buf].pscrbot+PBUFSIZ)%PBUFSIZ))))
+	while(!(bot && (((bufs[buf].pscrbot-(signed)height-(overfill%PBUFSIZ)+2*PBUFSIZ)%PBUFSIZ)>((pl-bufs[buf].pscrbot+PBUFSIZ)%PBUFSIZ))))
 	{
 		if(!curline)
 		{
 			if(last) free(last); last=NULL;
-			char *tag;int ci,cl;
+			int ci,cl;
 			init_char(&curline, &cl, &ci);
 			s_setcolour(bufs[buf].lc[l], &curline, &cl, &ci);
 			append_str(&curline, &cl, &ci, bufs[buf].ltag[l]);
-			wordline(bufs[buf].lt[l], strlen(curline), &curline, bufs[buf].lc);
+			wordline(bufs[buf].lt[l], strlen(curline), &curline, bufs[buf].lc[l]);
 			if(full_width_colour)
 			{
 				append_str(&curline, &cl, &ci, CLR);
@@ -342,16 +340,15 @@ int render_buffer(int buf)
 				append_str(&curline, &cl, &ci, CLR);
 			}
 			append_char(&curline, &cl, &ci, '\n');
-			n=strchr(out, '\n');
-			free(ltd);
+			n=strchr(curline, '\n');
 			last=curline;
 			apl=0;
 		}
-		if(!*n) n=NULL;
+		if(n&&!*n) n=NULL;
 		char oldc;
 		if(n)
 		{
-			oldc=*n++;
+			oldc=*++n;
 			*n=0;
 		}
 		if(as)
@@ -433,6 +430,7 @@ int render_buffer(int buf)
 		bufs[buf].pstart=0;
 	}
 	if(last) free(last); last=NULL;
+	return(0);
 }
 
 int buf_print(int buf, colour lc, char *lt)
@@ -550,7 +548,7 @@ void in_update(iline inp)
 	resetcol();
 	printf("\n");
 	// input
-	if(inp.left.i+inp.right.i+1<width)
+	if((unsigned)inp.left.i+(unsigned)inp.right.i+1<width)
 	{
 		char *lh=highlight(inp.left.data?inp.left.data:"");
 		char *rh=highlight(inp.right.data?inp.right.data:"");
@@ -750,7 +748,7 @@ void titlebar(void)
 {
 	printf(LOCATE CLA, 1, 1);
 	setcol(0, 7, true, false);
-	int gits;
+	unsigned int gits;
 	sscanf(VERSION_TXT, "%u", &gits);
 	const char *hashgit=strchr(VERSION_TXT, ' ');
 	if(hashgit)
@@ -763,7 +761,7 @@ void titlebar(void)
 	crush(&cnick, 16);
 	crush(&cchan, 16);
 	char tbar[width];
-	int wleft=width-1;
+	unsigned int wleft=width-1;
 	bool use[8]; // #chan	nick	quIRC	version	gits	ghashgit	server	topic...
 	char version[32];
 	sprintf(version, "%hhu.%hhu.%hhu", VERSION_MAJ, VERSION_MIN, VERSION_REV);
@@ -815,7 +813,7 @@ void titlebar(void)
 	{
 		use[7]=true;
 	}
-	int i;
+	unsigned int i;
 	for(i=0;i<width;i++)
 		tbar[i]='-';
 	tbar[width]=0;

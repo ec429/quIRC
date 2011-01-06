@@ -19,16 +19,16 @@ char * fgetl(FILE *fp)
 	return(lout);
 }
 
-int wordline(const char *msg, int x, char **out, colour lc)
+int wordline(const char *msg, unsigned int x, char **out, colour lc)
 {
-	int tabx=x;
+	unsigned int tabx=x;
 	if((!tabx) || (tabx*2>width))
 		tabx=8;
 	int l,i,l2,i2;
 	i=strlen(*out);
 	l=i+1;
 	char *word;
-	char *ptr=msg;
+	const char *ptr=msg;
 	while(*ptr)
 	{
 		switch(*ptr)
@@ -80,7 +80,7 @@ int wordline(const char *msg, int x, char **out, colour lc)
 					{
 						int fore=0, back=0;
 						ssize_t bytes=0;
-						if(sscanf(ptr, "\003%u,%u%zn", &fore, &back, &bytes)==2)
+						if(sscanf(ptr, "\003%d,%d%zn", &fore, &back, &bytes)==2)
 						{
 							ptr+=bytes;
 							if(mirc_colour_compat==2)
@@ -89,7 +89,7 @@ int wordline(const char *msg, int x, char **out, colour lc)
 								s_setcol(mcc.fore, mcc.back, mcc.hi, mcc.ul, &word, &l2, &i2);
 							}
 						}
-						else if(sscanf(ptr, "\003%u%zn", &fore, &bytes)==1)
+						else if(sscanf(ptr, "\003%d%zn", &fore, &bytes)==1)
 						{
 							ptr+=bytes;
 							if(mirc_colour_compat==2)
@@ -173,7 +173,7 @@ void append_char(char **buf, int *l, int *i, char c)
 
 void append_str(char **buf, int *l, int *i, const char *str)
 {
-	while(*str) // not the most tremendously efficient implementation, but conceptually simple at least
+	while(str && *str) // not the most tremendously efficient implementation, but conceptually simple at least
 	{
 		append_char(buf, l, i, *str++);
 	}
@@ -187,7 +187,7 @@ void init_char(char **buf, int *l, int *i)
 	*i=0;
 }
 
-void crush(char **buf, int len)
+void crush(char **buf, unsigned int len)
 {
 	if(strlen(*buf)>len)
 	{
@@ -209,7 +209,7 @@ void crush(char **buf, int len)
 	}
 }
 
-void scrush(char **buf, int len)
+void scrush(char **buf, unsigned int len)
 {
 	if(strlen(*buf)>len)
 	{

@@ -41,11 +41,11 @@ servlist;
 #include "buffer.h"
 
 // global settings & state
-int width, height; // term size
-int mirc_colour_compat;
-int force_redraw;
-int buflines;
-int maxnlen;
+unsigned int width, height; // term size
+unsigned int mirc_colour_compat;
+unsigned int force_redraw;
+unsigned int buflines;
+unsigned int maxnlen;
 bool full_width_colour;
 bool hilite_tabstrip;
 bool tsb; // top status bar
@@ -53,9 +53,9 @@ bool autojoin;
 char *username, *fname, *nick, *portno;
 servlist *servs;
 name *igns;
-int tping; // ping timeout
+unsigned int tping; // ping timeout
 #ifdef HAVE_DEBUG
-int debug;
+unsigned int debug;
 #endif // HAVE_DEBUG
 char version[16+strlen(VERSION_TXT)];
 
