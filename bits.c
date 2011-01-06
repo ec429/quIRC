@@ -19,14 +19,16 @@ char * fgetl(FILE *fp)
 	return(lout);
 }
 
-int wordline(const char *msg, unsigned int x, char **out, colour lc)
+int wordline(const char *msg, unsigned int x, char **out, int *l, int *i, colour lc)
 {
 	unsigned int tabx=x;
 	if((!tabx) || (tabx*2>width))
+	{
 		tabx=8;
-	int l,i,l2,i2;
-	i=strlen(*out);
-	l=i+1;
+		while(x++<tabx)
+			append_char(out, l, i, ' ');
+	}
+	int l2,i2;
 	char *word;
 	const char *ptr=msg;
 	while(*ptr)
@@ -36,22 +38,22 @@ int wordline(const char *msg, unsigned int x, char **out, colour lc)
 			case ' ':
 				if(++x<width)
 				{
-					append_char(out, &l, &i, ' ');
+					append_char(out, l, i, ' ');
 				}
 				else
 				{
-					append_char(out, &l, &i, '\n');
+					append_char(out, l, i, '\n');
 					for(x=0;x<tabx;x++)
-						append_char(out, &l, &i, ' ');
+						append_char(out, l, i, ' ');
 				}
 				ptr++;
 			break;
 			case '\n':
 				if(*++ptr)
 				{
-					append_char(out, &l, &i, '\n');
+					append_char(out, l, i, '\n');
 					for(x=0;x<tabx;x++)
-						append_char(out, &l, &i, ' ');
+						append_char(out, l, i, ' ');
 				}
 			break;
 			case '\t':
@@ -59,13 +61,13 @@ int wordline(const char *msg, unsigned int x, char **out, colour lc)
 				{
 					if(++x<width)
 					{
-						append_char(out, &l, &i, ' ');
+						append_char(out, l, i, ' ');
 					}
 					else
 					{
-						append_char(out, &l, &i, '\n');
+						append_char(out, l, i, '\n');
 						for(x=0;x<tabx;x++)
-							append_char(out, &l, &i, ' ');
+							append_char(out, l, i, ' ');
 						break;
 					}
 				}
@@ -120,16 +122,16 @@ int wordline(const char *msg, unsigned int x, char **out, colour lc)
 				}
 				if(wdlen+x<width)
 				{
-					append_str(out, &l, &i, word);
+					append_str(out, l, i, word);
 					free(word);
 					x+=wdlen;
 				}
 				else
 				{
-					append_char(out, &l, &i, '\n');
+					append_char(out, l, i, '\n');
 					for(x=0;x<tabx;x++)
-						append_char(out, &l, &i, ' ');
-					append_str(out, &l, &i, word);
+						append_char(out, l, i, ' ');
+					append_str(out, l, i, word);
 					free(word);
 					x+=wdlen;
 				}

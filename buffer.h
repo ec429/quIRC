@@ -100,11 +100,9 @@ int free_start_buffer(void);
 int initialise_buffers(int buflines);
 int init_buffer(int buf, btype type, char *bname, int nlines);
 int free_buffer(int buf);
-int add_to_buffer(int buf, colour lc, char *lt);
+int add_to_buffer(int buf, colour lc, char *lt, char *ltag);
 int redraw_buffer(void);
 int render_buffer(int buf);
-int buf_print(int buf, colour lc, char *lt); // don't include trailing \n, because buf_print appends CLR \n
-int w_buf_print(int buf, colour lc, char *lt, char *lead);
 int e_buf_print(int buf, colour lc, message pkt, char *lead);
 int transfer_start_buffer(void);
 int push_buffer(void);

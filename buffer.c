@@ -91,10 +91,10 @@ int initialise_buffers(int buflines)
 	bufs[0].live=true; // STATUS is never dead
 	bufs[0].nick=nick;
 	bufs[0].ilist=igns;
-	w_buf_print(0, c_status, "Copyright (C) 2010 Edward Cree", "quirc -- ");
-	w_buf_print(0, c_status, "This program comes with ABSOLUTELY NO WARRANTY.", "");
-	w_buf_print(0, c_status, "This is free software, and you are welcome to redistribute it under certain conditions.  (GNU GPL v3+)", "");
-	w_buf_print(0, c_status, "For further details, see the file 'COPYING' in the quirc directory.", "");
+	add_to_buffer(0, c_status, "Copyright (C) 2010 Edward Cree", "quirc -- ");
+	add_to_buffer(0, c_status, "This program comes with ABSOLUTELY NO WARRANTY.", "");
+	add_to_buffer(0, c_status, "This is free software, and you are welcome to redistribute it under certain conditions.  (GNU GPL v3+)", "");
+	add_to_buffer(0, c_status, "For further details, see the file 'COPYING' in the quirc directory.", "");
 	return(0);
 }
 
@@ -124,7 +124,7 @@ int init_buffer(int buf, btype type, char *bname, int nlines)
 	int pscrbot; // lpt index of screen bottom in lpt buffer*/
 	bufs[buf].ptr=0;
 	bufs[buf].scroll=0;
-	bufs[buf].ascroll=0;
+	bufs[buf].ascroll=-1;
 	bufs[buf].lc=(colour *)malloc(sizeof(colour[nlines]));
 	bufs[buf].lt=(char **)malloc(sizeof(char *[nlines]));
 	int i;
@@ -164,7 +164,7 @@ int free_buffer(int buf)
 {
 	if(bufs[buf].live)
 	{
-		w_buf_print(buf, c_err, "Buffer is still live!", "free_buffer:");
+		add_to_buffer(buf, c_err, "Buffer is still live!", "free_buffer:");
 		return(1);
 	}
 	else
@@ -218,27 +218,42 @@ int free_buffer(int buf)
 	}
 }
 
-int add_to_buffer(int buf, colour lc, char *lt)
+int add_to_buffer(int buf, colour lc, char *lt, char *ltag)
 {
 	if(buf>=nbufs)
 	{
 		if(bufs&&buf)
 		{
-			w_buf_print(0, c_err, "Line was written to bad buffer!  Contents below.", "add_to_buffer(): ");
-			w_buf_print(0, lc, lt, "");
+			add_to_buffer(0, c_err, "Line was written to bad buffer!  Contents below.", "add_to_buffer(): ");
+			add_to_buffer(0, lc, lt, "");
 		}
 		return(1);
 	}
+	bool scrollisptr=(bufs[buf].scroll==bufs[buf].ptr)&&(bufs[buf].ascroll==-1);
 	bufs[buf].lc[bufs[buf].ptr]=lc;
 	if(bufs[buf].lt[bufs[buf].ptr]) free(bufs[buf].lt[bufs[buf].ptr]);
 	bufs[buf].lt[bufs[buf].ptr]=strdup(lt);
+	if(bufs[buf].ltag[bufs[buf].ptr]) free(bufs[buf].ltag[bufs[buf].ptr]);
+	bufs[buf].ltag[bufs[buf].ptr]=strdup(ltag);
 	bufs[buf].ts[bufs[buf].ptr]=time(NULL);
 	bufs[buf].ptr=(bufs[buf].ptr+1)%bufs[buf].nlines;
+	if(scrollisptr)
+	{
+		bufs[buf].scroll=bufs[buf].ptr;
+		bufs[buf].ascroll=-1;
+	}
 	if(bufs[buf].ptr==0)
 		bufs[buf].filled=true;
 	bufs[buf].rendered=false; // mark tab dirty; TODO be more intelligent about avoiding full re-renders
-	bufs[buf].alert=true;
-	bufs[cbuf].alert=false;
+	if(buf==cbuf)
+	{
+		int e=redraw_buffer();
+		if(e) return(e);
+	}
+	else
+	{
+		bufs[buf].alert=true;
+	}
 	return(0);
 }
 
@@ -257,7 +272,7 @@ int redraw_buffer(void)
 	if(bufs[cbuf].pscrbot>=bufs[cbuf].pstart) dis++;
 	if(dis==2)
 		sl=bufs[cbuf].pstart;
-	printf(CLS LOCATE, (bufs[cbuf].pscrbot+PBUFSIZ-sl)%PBUFSIZ, 1);
+	printf(CLS LOCATE, height-((bufs[cbuf].pscrbot+PBUFSIZ-sl)%PBUFSIZ)-1, 1);
 	int l;
 	for(l=sl;l!=bufs[cbuf].pscrbot;l=(l+1)%PBUFSIZ)
 	{
@@ -328,7 +343,7 @@ int render_buffer(int buf)
 			init_char(&curline, &cl, &ci);
 			s_setcolour(bufs[buf].lc[l], &curline, &cl, &ci);
 			append_str(&curline, &cl, &ci, bufs[buf].ltag[l]);
-			wordline(bufs[buf].lt[l], strlen(curline), &curline, bufs[buf].lc[l]);
+			wordline(bufs[buf].lt[l], strlen(bufs[buf].ltag[l]), &curline, &cl, &ci, bufs[buf].lc[l]);
 			if(full_width_colour)
 			{
 				append_str(&curline, &cl, &ci, CLR);
@@ -355,7 +370,7 @@ int render_buffer(int buf)
 		{
 			as--;
 		}
-		else
+		else if(*curline)
 		{
 			bufs[buf].lpt[pl]=strdup(curline);
 			pl=(pl+1)%PBUFSIZ;
@@ -390,18 +405,25 @@ int render_buffer(int buf)
 			}
 			if(bot1)
 			{
-				bot=true; // weren't enough physical lines in this logical line
-				bufs[buf].pscrbot=pl;
-				bufs[buf].scroll=(bufs[buf].scroll+1)%bufs[buf].nlines;
-				bufs[buf].ascroll=0;
+				bot=true;
+				if(bufs[buf].ascroll==-1) // bottom-of-logical-line
+				{
+					bufs[buf].pscrbot=(pl+PBUFSIZ-1)%PBUFSIZ;
+				}
+				else // weren't enough physical lines in this logical line
+				{
+					bufs[buf].pscrbot=pl;
+					bufs[buf].scroll=(bufs[buf].scroll+1)%bufs[buf].nlines;
+					bufs[buf].ascroll=0;
+				}
 			}
 			l=(l+1)%bufs[buf].nlines;
 			if(l==bufs[buf].ptr)
 			{
 				if(!bot)
 				{
-					bufs[buf].scroll=l-1;
-					bufs[buf].ascroll=apl;
+					bufs[buf].scroll=l;
+					bufs[buf].ascroll=-1;
 					bufs[buf].pscrbot=pl;
 				}
 				break;
@@ -430,40 +452,8 @@ int render_buffer(int buf)
 		bufs[buf].pstart=0;
 	}
 	if(last) free(last); last=NULL;
+	bufs[buf].rendered=true;
 	return(0);
-}
-
-int buf_print(int buf, colour lc, char *lt)
-{
-	if(!bufs) return(2);
-	if(force_redraw)
-	{
-		int e=add_to_buffer(buf, lc, lt);
-		redraw_buffer();
-		return(e);
-	}
-	if((buf==cbuf) && (bufs[buf].scroll==0))
-	{
-		setcolour(lc);
-		printf(CLA "\n");
-		printf(LOCATE CLA, height-1, 1);
-		printf(LOCATE, height-2, 1);
-		if(full_width_colour)
-		{
-			printf(CLA "%s" CLR, lt);
-			resetcol();
-			printf("\n" CLA "\n");
-		}
-		else
-		{
-			printf(CLA "%s", lt);
-			resetcol();
-			printf(CLR "\n" CLA "\n");
-		}
-		if(tsb)
-			titlebar();
-	}
-	return(add_to_buffer(buf, lc, lt));
 }
 
 void in_update(iline inp)
@@ -671,17 +661,6 @@ char *highlight(char *src)
 	return(rv);
 }
 
-int w_buf_print(int buf, colour lc, char *lt, char *lead)
-{
-	char *ltd=strdup(lt);
-	char *out=strdup(lead);
-	wordline(ltd, strlen(out), &out, lc);
-	int e=buf_print(buf, lc, out);
-	free(ltd);
-	free(out);
-	return(e);
-}
-
 int e_buf_print(int buf, colour lc, message pkt, char *lead)
 {
 	int arg;
@@ -706,7 +685,7 @@ int e_buf_print(int buf, colour lc, message pkt, char *lead)
 		strcat(text, " _ ");
 		strcat(text, pkt.args[arg]);
 	}
-	return(w_buf_print(buf, lc, text, lead));
+	return(add_to_buffer(buf, lc, text, lead));
 }
 
 int transfer_start_buffer(void)
@@ -714,7 +693,7 @@ int transfer_start_buffer(void)
 	int i,e=0;
 	for(i=0;i<s_buf.nlines;i++)
 	{
-		e|=w_buf_print(0, s_buf.lc[i], s_buf.lt[i], "init: ");
+		e|=add_to_buffer(0, s_buf.lc[i], s_buf.lt[i], "init: ");
 	}
 	return(e);
 }
@@ -723,7 +702,7 @@ int push_buffer(void)
 {
 	if(!bufs || transfer_start_buffer())
 	{
-		w_buf_print(0, c_err, "Failed to transfer start_buffer", "init[xsb]: ");
+		add_to_buffer(0, c_err, "Failed to transfer start_buffer", "init[xsb]: ");
 		int i;
 		for(i=0;i<s_buf.nlines;i++)
 		{
@@ -731,14 +710,14 @@ int push_buffer(void)
 		}
 		char msg[32];
 		sprintf(msg, "%d messages written to stderr", s_buf.nlines);
-		w_buf_print(0, c_status, msg, "init[xsb]: ");
+		add_to_buffer(0, c_status, msg, "init[xsb]: ");
 	}
 	
 	if(s_buf.errs)
 	{
 		char msg[80];
 		sprintf(msg, "%d messages were written to stderr due to start_buffer errors", s_buf.errs);
-		w_buf_print(0, c_err, msg, "init[errs]: ");
+		add_to_buffer(0, c_err, msg, "init[errs]: ");
 	}
 	
 	return(free_start_buffer());

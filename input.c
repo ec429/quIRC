@@ -102,7 +102,7 @@ int inputchar(iline *inp, int *state)
 				}
 				else if((count>16)&&!ttab)
 				{
-					w_buf_print(cbuf, c_status, "Multiple matches (over 16; tab again to list)", "[tab] ");
+					add_to_buffer(cbuf, c_status, "Multiple matches (over 16; tab again to list)", "[tab] ");
 					ttab=true;
 				}
 				else if(found->next||(count>1))
@@ -121,8 +121,8 @@ int inputchar(iline *inp, int *state)
 						}
 					}
 					if(!ttab)
-						w_buf_print(cbuf, c_status, "Multiple matches", "[tab] ");
-					w_buf_print(cbuf, c_status, fmsg, "[tab] ");
+						add_to_buffer(cbuf, c_status, "Multiple matches", "[tab] ");
+					add_to_buffer(cbuf, c_status, fmsg, "[tab] ");
 					free(fmsg);
 					ttab=false;
 				}
@@ -140,7 +140,7 @@ int inputchar(iline *inp, int *state)
 			}
 			else
 			{
-				w_buf_print(cbuf, c_status, "No nicks match", "[tab] ");
+				add_to_buffer(cbuf, c_status, "No nicks match", "[tab] ");
 			}
 			n_free(found);
 		}
@@ -244,14 +244,14 @@ int inputchar(iline *inp, int *state)
 								{
 									if(d=='5') // C-PgUp
 									{
-										bufs[cbuf].scroll=min(bufs[cbuf].scroll+(signed)height-3, bufs[cbuf].filled?bufs[cbuf].nlines-1:bufs[cbuf].ptr-1);
+										//bufs[cbuf].scroll=min(bufs[cbuf].scroll+(signed)height-3, bufs[cbuf].filled?bufs[cbuf].nlines-1:bufs[cbuf].ptr-1);
 										redraw_buffer();
 									}
 									else // d=='6' // C-PgDn
 									{
 										if(bufs[cbuf].scroll)
 										{
-											bufs[cbuf].scroll=max(bufs[cbuf].scroll-(height-3), 0);
+											//bufs[cbuf].scroll=max(bufs[cbuf].scroll-(height-3), 0);
 											redraw_buffer();
 										}
 									}
@@ -303,25 +303,25 @@ int inputchar(iline *inp, int *state)
 									redraw_buffer();
 								break;
 								case 'A': // C-up
-									bufs[cbuf].scroll=min(bufs[cbuf].scroll+1, bufs[cbuf].filled?bufs[cbuf].nlines-1:bufs[cbuf].ptr-1);
+									//bufs[cbuf].scroll=min(bufs[cbuf].scroll+1, bufs[cbuf].filled?bufs[cbuf].nlines-1:bufs[cbuf].ptr-1);
 									redraw_buffer();
 								break;
 								case 'B': // C-down
 									if(bufs[cbuf].scroll)
 									{
-										bufs[cbuf].scroll=bufs[cbuf].scroll-1;
+										//bufs[cbuf].scroll=bufs[cbuf].scroll-1;
 										redraw_buffer();
 									}
 								break;
 								case 'F': // C-end
 									if(bufs[cbuf].scroll)
 									{
-										bufs[cbuf].scroll=0;
+										//bufs[cbuf].scroll=0;
 										redraw_buffer();
 									}
 								break;
 								case 'H': // C-home
-									bufs[cbuf].scroll=bufs[cbuf].filled?bufs[cbuf].nlines-1:bufs[cbuf].ptr-1;
+									//bufs[cbuf].scroll=bufs[cbuf].filled?bufs[cbuf].nlines-1:bufs[cbuf].ptr-1;
 									redraw_buffer();
 								break;
 							}
@@ -493,8 +493,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 	if((strcmp(cmd, "quit")==0)||(strcmp(cmd, "exit")==0))
 	{
 		if(args) *qmsg=strdup(args);
-		printf(LOCATE, height-2, 1);
-		printf(CLA "Exited quirc\n" CLA "\n");
+		add_to_buffer(cbuf, c_status, "Exited quirc", "/quit: ");
 		return(-1);
 	}
 	if(strcmp(cmd, "set")==0) // set options
@@ -517,12 +516,12 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					}
 					if(width<30)
 					{
-						w_buf_print(cbuf, c_status, "width set to minimum 30", "/set: ");
+						add_to_buffer(cbuf, c_status, "width set to minimum 30", "/set: ");
 						width=30;
 					}
 					else
 					{
-						w_buf_print(cbuf, c_status, "width set", "/set: ");
+						add_to_buffer(cbuf, c_status, "width set", "/set: ");
 					}
 					if(force_redraw<3)
 					{
@@ -541,12 +540,12 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					}
 					if(height<5)
 					{
-						w_buf_print(cbuf, c_status, "height set to minimum 5", "/set: ");
+						add_to_buffer(cbuf, c_status, "height set to minimum 5", "/set: ");
 						height=5;
 					}
 					else
 					{
-						w_buf_print(cbuf, c_status, "height set", "/set: ");
+						add_to_buffer(cbuf, c_status, "height set", "/set: ");
 					}
 					if(force_redraw<3)
 					{
@@ -567,12 +566,12 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					{
 						char fmsg[36];
 						sprintf(fmsg, "force-redraw level %u enabled", force_redraw);
-						w_buf_print(cbuf, c_status, fmsg, "/set: ");
+						add_to_buffer(cbuf, c_status, fmsg, "/set: ");
 						redraw_buffer();
 					}
 					else
 					{
-						w_buf_print(cbuf, c_status, "force-redraw disabled", "/set: ");
+						add_to_buffer(cbuf, c_status, "force-redraw disabled", "/set: ");
 					}
 				}
 				else if(strcmp(opt, "mnln")==0)
@@ -588,11 +587,11 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					if(maxnlen<4)
 					{
 						maxnlen=4;
-						w_buf_print(cbuf, c_status, "maxnicklen set to minimum 4", "/set: ");
+						add_to_buffer(cbuf, c_status, "maxnicklen set to minimum 4", "/set: ");
 					}
 					else
 					{
-						w_buf_print(cbuf, c_status, "maxnicklen set", "/set: ");
+						add_to_buffer(cbuf, c_status, "maxnicklen set", "/set: ");
 					}
 				}
 				else if(strcmp(opt, "mcc")==0)
@@ -609,11 +608,11 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					{
 						char mmsg[26];
 						sprintf(mmsg, "mcc level %u enabled", mirc_colour_compat);
-						w_buf_print(cbuf, c_status, mmsg, "/set: ");
+						add_to_buffer(cbuf, c_status, mmsg, "/set: ");
 					}
 					else
 					{
-						w_buf_print(cbuf, c_status, "mcc disabled", "/set: ");
+						add_to_buffer(cbuf, c_status, "mcc disabled", "/set: ");
 					}
 				}
 				else if(strcmp(opt, "fwc")==0)
@@ -630,11 +629,11 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					}
 					if(full_width_colour)
 					{
-						w_buf_print(cbuf, c_status, "fwc enabled", "/set: ");
+						add_to_buffer(cbuf, c_status, "fwc enabled", "/set: ");
 					}
 					else
 					{
-						w_buf_print(cbuf, c_status, "fwc disabled", "/set: ");
+						add_to_buffer(cbuf, c_status, "fwc disabled", "/set: ");
 					}
 				}
 				else if(strcmp(opt, "hts")==0)
@@ -651,11 +650,11 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					}
 					if(hilite_tabstrip)
 					{
-						w_buf_print(cbuf, c_status, "hts enabled", "/set: ");
+						add_to_buffer(cbuf, c_status, "hts enabled", "/set: ");
 					}
 					else
 					{
-						w_buf_print(cbuf, c_status, "hts disabled", "/set: ");
+						add_to_buffer(cbuf, c_status, "hts disabled", "/set: ");
 					}
 				}
 				else if(strcmp(opt, "tsb")==0)
@@ -672,11 +671,11 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					}
 					if(tsb)
 					{
-						w_buf_print(cbuf, c_status, "tsb enabled", "/set: ");
+						add_to_buffer(cbuf, c_status, "tsb enabled", "/set: ");
 					}
 					else
 					{
-						w_buf_print(cbuf, c_status, "tsb disabled", "/set: ");
+						add_to_buffer(cbuf, c_status, "tsb disabled", "/set: ");
 					}
 				}
 				else if(strcmp(opt, "buf")==0)
@@ -689,7 +688,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					{
 						buflines=256;
 					}
-					w_buf_print(0, c_status, "Default buf set", "/set: ");
+					add_to_buffer(0, c_status, "Default buf set", "/set: ");
 				}
 				else if(strcmp(opt, "tping")==0)
 				{
@@ -701,7 +700,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					{
 						tping=60;
 					}
-					w_buf_print(0, c_status, "Outbound ping timeout set", "/set: ");
+					add_to_buffer(0, c_status, "Outbound ping timeout set", "/set: ");
 				}
 			#ifdef HAVE_DEBUG
 				else if(strcmp(opt, "debug")==0)
@@ -716,27 +715,27 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					}
 					if(debug)
 					{
-						w_buf_print(cbuf, c_status, "Debugging mode enabled", "/set: ");
+						add_to_buffer(cbuf, c_status, "Debugging mode enabled", "/set: ");
 					}
 					else
 					{
-						w_buf_print(cbuf, c_status, "Debugging mode disabled", "/set: ");
+						add_to_buffer(cbuf, c_status, "Debugging mode disabled", "/set: ");
 					}
 				}
 			#endif // HAVE_DEBUG
 				else
 				{
-					w_buf_print(cbuf, c_err, "No such option!", "/set: ");
+					add_to_buffer(cbuf, c_err, "No such option!", "/set: ");
 				}
 			}
 			else
 			{
-				w_buf_print(cbuf, c_err, "But what do you want to set?", "/set: ");
+				add_to_buffer(cbuf, c_err, "But what do you want to set?", "/set: ");
 			}
 		}
 		else
 		{
-			w_buf_print(cbuf, c_err, "But what do you want to set?", "/set: ");
+			add_to_buffer(cbuf, c_err, "But what do you want to set?", "/set: ");
 		}
 		return(0);
 	}
@@ -795,7 +794,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					bufs[cbuf].nick=strdup(nick);
 					bufs[cbuf].server=cbuf;
 					bufs[cbuf].conninpr=true;
-					w_buf_print(cbuf, c_status, dstr, "/server: ");
+					add_to_buffer(cbuf, c_status, dstr, "/server: ");
 					sprintf(cstr, "quIRC - connected to %s", server);
 					settitle(cstr);
 				}
@@ -803,7 +802,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		}
 		else
 		{
-			w_buf_print(cbuf, c_err, "Must specify a server!", "/server: ");
+			add_to_buffer(cbuf, c_err, "Must specify a server!", "/server: ");
 		}
 		return(0);
 	}
@@ -850,19 +849,19 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					bufs[cbuf].conninpr=true;
 					if(bufs[cbuf].realsname) free(bufs[cbuf].realsname);
 					bufs[cbuf].realsname=NULL;
-					w_buf_print(cbuf, c_status, dstr, "/server: ");
+					add_to_buffer(cbuf, c_status, dstr, "/server: ");
 					sprintf(cstr, "quIRC - connected to %s", bufs[bufs[cbuf].server].bname);
 					settitle(cstr);
 				}
 			}
 			else
 			{
-				w_buf_print(cbuf, c_err, "Already connected to server", "/reconnect: ");
+				add_to_buffer(cbuf, c_err, "Already connected to server", "/reconnect: ");
 			}
 		}
 		else
 		{
-			w_buf_print(cbuf, c_err, "Must be run in the context of a server!", "/reconnect: ");
+			add_to_buffer(cbuf, c_err, "Must be run in the context of a server!", "/reconnect: ");
 		}
 		return(0);
 	}
@@ -901,7 +900,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		}
 		else
 		{
-			w_buf_print(cbuf, c_err, "Can't disconnect (status)!", "/disconnect: ");
+			add_to_buffer(cbuf, c_err, "Can't disconnect (status)!", "/disconnect: ");
 		}
 		return(0);
 	}
@@ -909,18 +908,18 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 	{
 		if(!bufs[cbuf].handle)
 		{
-			w_buf_print(cbuf, c_err, "Must be run in the context of a server!", "/join: ");
+			add_to_buffer(cbuf, c_err, "Must be run in the context of a server!", "/join: ");
 		}
 		else if(!bufs[bufs[cbuf].server].live)
 		{
-			w_buf_print(cbuf, c_err, "Disconnected, can't send", "/join: ");
+			add_to_buffer(cbuf, c_err, "Disconnected, can't send", "/join: ");
 		}
 		else if(args)
 		{
 			char *chan=strtok(args, " ");
 			if(!chan)
 			{
-				w_buf_print(cbuf, c_err, "Must specify a channel!", "/join: ");
+				add_to_buffer(cbuf, c_err, "Must specify a channel!", "/join: ");
 			}
 			else
 			{
@@ -937,7 +936,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		}
 		else
 		{
-			w_buf_print(cbuf, c_err, "Must specify a channel!", "/join: ");
+			add_to_buffer(cbuf, c_err, "Must specify a channel!", "/join: ");
 		}
 		return(0);
 	}
@@ -947,11 +946,11 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		{
 			if(!(bufs[cbuf].handle && bufs[bufs[cbuf].server].live))
 			{
-				w_buf_print(cbuf, c_err, "Disconnected, can't send", "/rejoin: ");
+				add_to_buffer(cbuf, c_err, "Disconnected, can't send", "/rejoin: ");
 			}
 			else if(bufs[cbuf].live)
 			{
-				w_buf_print(cbuf, c_err, "Already in this channel", "/rejoin: ");
+				add_to_buffer(cbuf, c_err, "Already in this channel", "/rejoin: ");
 			}
 			else
 			{
@@ -960,15 +959,15 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		}
 		else if(bufs[cbuf].type!=CHANNEL)
 		{
-			w_buf_print(cbuf, c_err, "View is not a channel!", "/rejoin: ");
+			add_to_buffer(cbuf, c_err, "View is not a channel!", "/rejoin: ");
 		}
 		else if(!(bufs[cbuf].handle && bufs[bufs[cbuf].server].live))
 		{
-			w_buf_print(cbuf, c_err, "Disconnected, can't send", "/rejoin: ");
+			add_to_buffer(cbuf, c_err, "Disconnected, can't send", "/rejoin: ");
 		}
 		else if(bufs[cbuf].live)
 		{
-			w_buf_print(cbuf, c_err, "Already in this channel", "/rejoin: ");
+			add_to_buffer(cbuf, c_err, "Already in this channel", "/rejoin: ");
 		}
 		else
 		{
@@ -989,7 +988,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 	{
 		if(bufs[cbuf].type!=CHANNEL)
 		{
-			w_buf_print(cbuf, c_err, "This view is not a channel!", "/part: ");
+			add_to_buffer(cbuf, c_err, "This view is not a channel!", "/part: ");
 		}
 		else
 		{
@@ -998,7 +997,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 				char partmsg[8+strlen(bufs[cbuf].bname)];
 				sprintf(partmsg, "PART %s", bufs[cbuf].bname);
 				irc_tx(bufs[cbuf].handle, partmsg);
-				w_buf_print(cbuf, c_part[0], "Leaving", "/part: ");
+				add_to_buffer(cbuf, c_part[0], "Leaving", "/part: ");
 			}
 			// when you try to /part a dead tab, interpret it as a /close
 			int parent=bufs[cbuf].server;
@@ -1024,22 +1023,22 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					char nmsg[8+strlen(bufs[bufs[cbuf].server].nick)];
 					sprintf(nmsg, "NICK %s", bufs[bufs[cbuf].server].nick);
 					irc_tx(bufs[cbuf].handle, nmsg);
-					w_buf_print(cbuf, c_status, "Changing nick", "/nick: ");
+					add_to_buffer(cbuf, c_status, "Changing nick", "/nick: ");
 				}
 				else
 				{
-					w_buf_print(cbuf, c_err, "Tab not live, can't send", "/nick: ");
+					add_to_buffer(cbuf, c_err, "Tab not live, can't send", "/nick: ");
 				}
 			}
 			else
 			{
 				nick=strdup(nn);
-				w_buf_print(cbuf, c_status, "Default nick changed", "/nick ");
+				add_to_buffer(cbuf, c_status, "Default nick changed", "/nick ");
 			}
 		}
 		else
 		{
-			w_buf_print(cbuf, c_err, "Must specify a nickname!", "/nick: ");
+			add_to_buffer(cbuf, c_err, "Must specify a nickname!", "/nick: ");
 		}
 		return(0);
 	}
@@ -1059,17 +1058,17 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					}
 					else
 					{
-						w_buf_print(cbuf, c_err, "Tab not live, can't send", "/topic: ");
+						add_to_buffer(cbuf, c_err, "Tab not live, can't send", "/topic: ");
 					}
 				}
 				else
 				{
-					w_buf_print(cbuf, c_err, "Can't send to channel - not connected!", "/topic: ");
+					add_to_buffer(cbuf, c_err, "Can't send to channel - not connected!", "/topic: ");
 				}
 			}
 			else
 			{
-				w_buf_print(cbuf, c_err, "Can't set topic - view is not a channel!", "/topic: ");
+				add_to_buffer(cbuf, c_err, "Can't set topic - view is not a channel!", "/topic: ");
 			}
 		}
 		else
@@ -1086,17 +1085,17 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					}
 					else
 					{
-						w_buf_print(cbuf, c_err, "Tab not live, can't send", "/topic: ");
+						add_to_buffer(cbuf, c_err, "Tab not live, can't send", "/topic: ");
 					}
 				}
 				else
 				{
-					w_buf_print(cbuf, c_err, "Can't send to channel - not connected!", "/topic: ");
+					add_to_buffer(cbuf, c_err, "Can't send to channel - not connected!", "/topic: ");
 				}
 			}
 			else
 			{
-				w_buf_print(cbuf, c_err, "Can't get topic - view is not a channel!", "/topic: ");
+				add_to_buffer(cbuf, c_err, "Can't get topic - view is not a channel!", "/topic: ");
 			}
 		}
 		return(0);
@@ -1105,14 +1104,14 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 	{
 		if(!bufs[cbuf].handle)
 		{
-			w_buf_print(cbuf, c_err, "Must be run in the context of a server!", "/msg: ");
+			add_to_buffer(cbuf, c_err, "Must be run in the context of a server!", "/msg: ");
 		}
 		else if(args)
 		{
 			char *dest=strtok(args, " ");
 			if(!dest)
 			{
-				w_buf_print(cbuf, c_err, "Must specify a recipient!", "/msg: ");
+				add_to_buffer(cbuf, c_err, "Must specify a recipient!", "/msg: ");
 				return(0);
 			}
 			char *text=strtok(NULL, "");
@@ -1144,23 +1143,23 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 						crush(&cnick, maxnlen);
 						char *tag=mktag("<%s> ", cnick);
 						free(cnick);
-						w_buf_print(cbuf, c_msg[0], text, tag);
+						add_to_buffer(cbuf, c_msg[0], text, tag);
 						free(tag);
 					}
 					else
 					{
-						w_buf_print(cbuf, c_err, "Tab not live, can't send", "/msg: ");
+						add_to_buffer(cbuf, c_err, "Tab not live, can't send", "/msg: ");
 					}
 				}
 				else
 				{
-					w_buf_print(cbuf, c_err, "Can't send to channel - not connected!", "/msg: ");
+					add_to_buffer(cbuf, c_err, "Can't send to channel - not connected!", "/msg: ");
 				}
 			}
 		}
 		else
 		{
-			w_buf_print(cbuf, c_err, "Must specify a recipient!", "/msg: ");
+			add_to_buffer(cbuf, c_err, "Must specify a recipient!", "/msg: ");
 		}
 		return(0);
 	}
@@ -1168,7 +1167,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 	{
 		if(!bufs[cbuf].server)
 		{
-			w_buf_print(cbuf, c_err, "Must be run in the context of a server!", "/amsg: ");
+			add_to_buffer(cbuf, c_err, "Must be run in the context of a server!", "/amsg: ");
 		}
 		else if(args)
 		{
@@ -1192,26 +1191,26 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 							free(cnick);
 							bool al=bufs[b2].alert; // save alert status...
 							int hi=bufs[b2].hi_alert;
-							w_buf_print(b2, c_msg[0], args, tag);
+							add_to_buffer(b2, c_msg[0], args, tag);
 							free(tag);
 							bufs[b2].alert=al; // and restore it
 							bufs[b2].hi_alert=hi;
 						}
 						else
 						{
-							w_buf_print(b2, c_err, "Tab not live, can't send", "/amsg: ");
+							add_to_buffer(b2, c_err, "Tab not live, can't send", "/amsg: ");
 						}
 					}
 					else
 					{
-						w_buf_print(b2, c_err, "Can't send to channel - not connected!", "/amsg: ");
+						add_to_buffer(b2, c_err, "Can't send to channel - not connected!", "/amsg: ");
 					}
 				}
 			}
 		}
 		else
 		{
-			w_buf_print(cbuf, c_err, "Must specify a message!", "/amsg: ");
+			add_to_buffer(cbuf, c_err, "Must specify a message!", "/amsg: ");
 		}
 		return(0);
 	}
@@ -1219,7 +1218,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 	{
 		if(!((bufs[cbuf].type==CHANNEL)||(bufs[cbuf].type==PRIVATE)))
 		{
-			w_buf_print(cbuf, c_err, "Can't talk here, not a channel/private chat", "/me: ");
+			add_to_buffer(cbuf, c_err, "Can't talk here, not a channel/private chat", "/me: ");
 		}
 		else if(args)
 		{
@@ -1236,22 +1235,22 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					crush(&cnick, maxnlen);
 					char *tag=mktag("  %s ", cnick);
 					free(cnick);
-					w_buf_print(cbuf, c_actn[0], args, tag);
+					add_to_buffer(cbuf, c_actn[0], args, tag);
 					free(tag);
 				}
 				else
 				{
-					w_buf_print(cbuf, c_err, "Tab not live, can't send", "/me: ");
+					add_to_buffer(cbuf, c_err, "Tab not live, can't send", "/me: ");
 				}
 			}
 			else
 			{
-				w_buf_print(cbuf, c_err, "Can't send to channel - not connected!", "/msg: ");
+				add_to_buffer(cbuf, c_err, "Can't send to channel - not connected!", "/msg: ");
 			}
 		}
 		else
 		{
-			w_buf_print(cbuf, c_err, "Must specify an action!", "/me: ");
+			add_to_buffer(cbuf, c_err, "Must specify an action!", "/me: ");
 		}
 		return(0);
 	}
@@ -1259,7 +1258,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 	{
 		if(!args)
 		{
-			w_buf_print(cbuf, c_err, "Must specify a tab!", "/tab: ");
+			add_to_buffer(cbuf, c_err, "Must specify a tab!", "/tab: ");
 		}
 		else
 		{
@@ -1276,12 +1275,12 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 				}
 				else
 				{
-					w_buf_print(cbuf, c_err, "No such tab!", "/tab: ");
+					add_to_buffer(cbuf, c_err, "No such tab!", "/tab: ");
 				}
 			}
 			else
 			{
-				w_buf_print(cbuf, c_err, "Must specify a tab!", "/tab: ");
+				add_to_buffer(cbuf, c_err, "Must specify a tab!", "/tab: ");
 			}
 		}
 		return(0);
@@ -1310,7 +1309,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		}
 		if(buf!=nbufs)
 		{
-			w_buf_print(cbuf, c_err, "Internal error (bad count)", "/sort: ");
+			add_to_buffer(cbuf, c_err, "Internal error (bad count)", "/sort: ");
 			return(0);
 		}
 		int serv=0;
@@ -1328,7 +1327,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 	{
 		if(cbuf<2)
 		{
-			w_buf_print(cbuf, c_err, "Can't move (status) tab!", "/left: ");
+			add_to_buffer(cbuf, c_err, "Can't move (status) tab!", "/left: ");
 		}
 		else
 		{
@@ -1355,11 +1354,11 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 	{
 		if(!cbuf)
 		{
-			w_buf_print(cbuf, c_err, "Can't move (status) tab!", "/right: ");
+			add_to_buffer(cbuf, c_err, "Can't move (status) tab!", "/right: ");
 		}
 		else if(cbuf==nbufs-1)
 		{
-			w_buf_print(cbuf, c_err, "Nowhere to move to!", "/right: ");
+			add_to_buffer(cbuf, c_err, "Nowhere to move to!", "/right: ");
 		}
 		else
 		{
@@ -1386,7 +1385,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 	{
 		if(!args)
 		{
-			w_buf_print(cbuf, c_err, "Missing arguments!", "/ignore: ");
+			add_to_buffer(cbuf, c_err, "Missing arguments!", "/ignore: ");
 		}
 		else
 		{
@@ -1432,11 +1431,11 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					{
 						if(i_cull(&bufs[cbuf].ilist, arg))
 						{
-							w_buf_print(cbuf, c_status, "Entries deleted", "/ignore -d: ");
+							add_to_buffer(cbuf, c_status, "Entries deleted", "/ignore -d: ");
 						}
 						else
 						{
-							w_buf_print(cbuf, c_err, "No entries deleted", "/ignore -d: ");
+							add_to_buffer(cbuf, c_err, "No entries deleted", "/ignore -d: ");
 						}
 					}
 					else if(regex)
@@ -1444,7 +1443,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 						name *new=n_add(&bufs[cbuf].ilist, arg, bufs[cbuf].casemapping);
 						if(new)
 						{
-							w_buf_print(cbuf, c_status, "Entry added", "/ignore: ");
+							add_to_buffer(cbuf, c_status, "Entry added", "/ignore: ");
 							new->icase=icase;
 							new->pms=pms;
 						}
@@ -1464,7 +1463,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 						name *new=n_add(&bufs[cbuf].ilist, expr, bufs[cbuf].casemapping);
 						if(new)
 						{
-							w_buf_print(cbuf, c_status, "Entry added", "/ignore: ");
+							add_to_buffer(cbuf, c_status, "Entry added", "/ignore: ");
 							new->icase=icase;
 							new->pms=pms;
 						}
@@ -1480,7 +1479,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 	{
 		if(!bufs[cbuf].handle)
 		{
-			w_buf_print(cbuf, c_err, "Must be run in the context of a server!", "/cmd: ");
+			add_to_buffer(cbuf, c_err, "Must be run in the context of a server!", "/cmd: ");
 		}
 		else
 		{
@@ -1494,11 +1493,11 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 			if(force||LIVE(cbuf))
 			{
 				irc_tx(bufs[cbuf].handle, args);
-				w_buf_print(cbuf, c_status, args, "/cmd: ");
+				add_to_buffer(cbuf, c_status, args, "/cmd: ");
 			}
 			else
 			{
-				w_buf_print(cbuf, c_err, "Tab not live, can't send", "/cmd: ");
+				add_to_buffer(cbuf, c_err, "Tab not live, can't send", "/cmd: ");
 			}
 		}
 		return(0);
@@ -1506,7 +1505,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 	if(!cmd) cmd="";
 	char dstr[8+strlen(cmd)];
 	sprintf(dstr, "/%s: ", cmd);
-	w_buf_print(cbuf, c_err, "Unrecognised command!", dstr);
+	add_to_buffer(cbuf, c_err, "Unrecognised command!", dstr);
 	return(0);
 }
 

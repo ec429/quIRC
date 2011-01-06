@@ -26,7 +26,7 @@ int irc_connect(char *server, char *portno, fd_set *master, int *fdmax)
 	if((rv = getaddrinfo(server, portno, &hints, &servinfo)) != 0)
 	{
 		char *err=(char *)gai_strerror(rv);
-		w_buf_print(0, c_err, err, "getaddrinfo: ");
+		add_to_buffer(0, c_err, err, "getaddrinfo: ");
 		return(0); // 0 indicates failure as rv is new serverhandle value
 	}
 	char sip[INET_ADDRSTRLEN];
@@ -37,13 +37,13 @@ int irc_connect(char *server, char *portno, fd_set *master, int *fdmax)
 		inet_ntop(p->ai_family, &(((struct sockaddr_in*)p->ai_addr)->sin_addr), sip, sizeof(sip));
 		if((serverhandle = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1)
 		{
-			w_buf_print(0, c_err, strerror(errno), "socket: ");
+			add_to_buffer(0, c_err, strerror(errno), "socket: ");
 			continue;
 		}
 		if(fcntl(serverhandle, F_SETFD, O_NONBLOCK) == -1)
 		{
 			close(serverhandle);
-			w_buf_print(0, c_err, strerror(errno), "fcntl: ");
+			add_to_buffer(0, c_err, strerror(errno), "fcntl: ");
 			continue;
 		}
 		if(connect(serverhandle, p->ai_addr, p->ai_addrlen) == -1)
@@ -51,7 +51,7 @@ int irc_connect(char *server, char *portno, fd_set *master, int *fdmax)
 			if(errno!=EINPROGRESS)
 			{
 				close(serverhandle);
-				w_buf_print(0, c_err, strerror(errno), "connect: ");
+				add_to_buffer(0, c_err, strerror(errno), "connect: ");
 				continue;
 			}
 		}
@@ -62,12 +62,12 @@ int irc_connect(char *server, char *portno, fd_set *master, int *fdmax)
 	{
 		char cmsg[16+strlen(sip)];
 		sprintf(cmsg, "fd=%d, ip=%s", serverhandle, sip);
-		w_buf_print(0, c_status, cmsg, "DBG connect: ");
+		add_to_buffer(0, c_status, cmsg, "DBG connect: ");
 	}
 #endif // HAVE_DEBUG
 	if (p == NULL)
 	{
-		w_buf_print(0, c_err, "failed to connect to server", "/connect: ");
+		add_to_buffer(0, c_err, "failed to connect to server", "/connect: ");
 		return(0); // 0 indicates failure as rv is new serverhandle value
 	}
 	freeaddrinfo(servinfo); // don't need this any more
@@ -82,7 +82,7 @@ int irc_conn_rest(int b, char *nick, char *username, char *fullname)
 #ifdef HAVE_DEBUG
 	if(debug)
 	{
-		w_buf_print(0, c_status, "", "DBG connect rest");
+		add_to_buffer(0, c_status, "", "DBG connect rest");
 	}
 #endif // HAVE_DEBUG
 	bufs[b].live=true; // mark it as live
@@ -110,9 +110,7 @@ int autoconnect(fd_set *master, int *fdmax, servlist *serv)
 	settitle(cstr);
 	sprintf(cstr, "Connecting to %s on port %s...", serv->name, serv->portno);
 	setcolour(c_status);
-	printf(CLA "\n");
-	printf(LOCATE, height-2, 1);
-	printf("%s" CLR "\n", cstr);
+	add_to_buffer(0, c_status, cstr, "auto: ");
 	resetcol();
 	printf(CLA "\n");
 	int serverhandle=irc_connect(serv->name, serv->portno, master, fdmax);
@@ -127,7 +125,7 @@ int autoconnect(fd_set *master, int *fdmax, servlist *serv)
 		if(serv) bufs[cbuf].ilist=serv->igns;
 		bufs[cbuf].server=cbuf;
 		bufs[cbuf].conninpr=true;
-		add_to_buffer(cbuf, c_status, cstr);
+		add_to_buffer(cbuf, c_status, cstr, "auto: ");
 		sprintf(cstr, "quIRC - connecting to %s", serv->name);
 		settitle(cstr);
 	}
@@ -159,7 +157,7 @@ int irc_tx(int fd, char * packet)
 		{
 			char tmsg[32+strlen(pq)];
 			sprintf(tmsg, "%d, %lu bytes: %s", fd, p, pq);
-			w_buf_print(0, c_status, tmsg, "DBG SIGPIPE tx: ");
+			add_to_buffer(0, c_status, tmsg, "DBG SIGPIPE tx: ");
 		}
 	#endif // HAVE_DEBUG
 		sigpipe=0;
@@ -171,7 +169,7 @@ int irc_tx(int fd, char * packet)
 	{
 		char tmsg[32+strlen(pq)];
 		sprintf(tmsg, "%d, %lu bytes: %s", fd, l, pq);
-		w_buf_print(0, c_status, tmsg, "DBG tx: ");
+		add_to_buffer(0, c_status, tmsg, "DBG tx: ");
 	}
 #endif // HAVE_DEBUG
 	if(sigpipe)
@@ -210,7 +208,7 @@ int irc_rx(int fd, char ** data)
 			{
 				if((fd==bufs[b].handle) && (bufs[b].type==SERVER))
 				{
-					w_buf_print(b, c_err, strerror(errno), "irc_rx: recv:");
+					add_to_buffer(b, c_err, strerror(errno), "irc_rx: recv:");
 					bufs[b].live=false;
 				}
 			}
@@ -224,7 +222,7 @@ int irc_rx(int fd, char ** data)
 	{
 		char rmsg[32+strlen(buf)];
 		sprintf(rmsg, "%d, %lu bytes: %s", fd, l, buf);
-		w_buf_print(0, c_status, rmsg, sigpipe?"DBG SIGPIPE rx: ":"DBG rx: ");
+		add_to_buffer(0, c_status, rmsg, sigpipe?"DBG SIGPIPE rx: ":"DBG rx: ");
 	}
 #endif // HAVE_DEBUG
 	if(sigpipe)
@@ -530,7 +528,7 @@ int irc_numeric(message pkt, int b)
 				{
 					char isup[strlen(rest)+(value?strlen(value):0)+3];
 					sprintf(isup, "%s%s%s%s", min?"-":"", rest, value?"=":"", value?value:"");
-					w_buf_print(b, c_unn, isup, "RPL_ISUPPORT: ");
+					add_to_buffer(b, c_unn, isup, "RPL_ISUPPORT: ");
 				}
 			}
 		break;
@@ -582,7 +580,7 @@ int irc_numeric(message pkt, int b)
 					bufs[b2].namreply=false;
 					char lmsg[32+strlen(pkt.args[1])];
 					sprintf(lmsg, "NAMES list received for %s", pkt.args[1]);
-					w_buf_print(b2, c_status, lmsg, "");
+					add_to_buffer(b2, c_status, lmsg, "");
 				}
 			}
 		break;
@@ -594,7 +592,7 @@ int irc_numeric(message pkt, int b)
 				e_buf_print(b, c_err, pkt, num==RPL_MOTD?"RPL_MOTD: Not enough arguments: ":num==RPL_MOTDSTART?"RPL_MOTDSTART: Not enough arguments: ":num==RPL_ENDOFMOTD?"RPL_ENDOFMOTD: Not enough arguments: ":"RPL_MOTD???: Not enough arguments: ");
 				break;
 			}
-			w_buf_print(b, c_notice[1], pkt.args[1], "");
+			add_to_buffer(b, c_notice[1], pkt.args[1], "");
 		break;
 		case ERR_NOMOTD: // 422 <dest> :MOTD File is missing
 			if(pkt.nargs<2)
@@ -602,7 +600,7 @@ int irc_numeric(message pkt, int b)
 				e_buf_print(b, c_err, pkt, "ERR_NOMOTD: Not enough arguments: ");
 				break;
 			}
-			w_buf_print(b, c_notice[1], pkt.args[1], "");
+			add_to_buffer(b, c_notice[1], pkt.args[1], "");
 		break;
 		case RPL_TOPIC: // 332 dest <channel> :<topic>
 			if(pkt.nargs<3)
@@ -616,7 +614,7 @@ int irc_numeric(message pkt, int b)
 				{
 					char tmsg[32+strlen(pkt.args[1])];
 					sprintf(tmsg, "Topic for %s is ", pkt.args[1]);
-					w_buf_print(b2, c_notice[1], pkt.args[2], tmsg);
+					add_to_buffer(b2, c_notice[1], pkt.args[2], tmsg);
 					if(bufs[b2].topic) free(bufs[b2].topic);
 					bufs[b2].topic=strdup(pkt.args[2]);
 				}
@@ -634,7 +632,7 @@ int irc_numeric(message pkt, int b)
 				{
 					char tmsg[32+strlen(pkt.args[1])];
 					sprintf(tmsg, "No topic is set for %s", pkt.args[1]);
-					w_buf_print(b2, c_notice[1], tmsg, "");
+					add_to_buffer(b2, c_notice[1], tmsg, "");
 					if(bufs[b2].topic) free(bufs[b2].topic);
 				}
 			}
@@ -656,7 +654,7 @@ int irc_numeric(message pkt, int b)
 					size_t tslen = strftime(ts, sizeof(ts), "%H:%M:%S GMT on %a, %d %b %Y", tm); // TODO options controlling date format (eg. ISO 8601)
 					char tmsg[32+strlen(pkt.args[2])+tslen];
 					sprintf(tmsg, "Topic was set by %s at %s", pkt.args[2], ts);
-					w_buf_print(b2, c_status, tmsg, "");
+					add_to_buffer(b2, c_status, tmsg, "");
 				}
 			}
 		break;
@@ -667,7 +665,7 @@ int irc_numeric(message pkt, int b)
 				e_buf_print(b, c_err, pkt, num==RPL_LUSERCLIENT?"RPL_LUSERCLIENT: Not enough arguments: ":num==RPL_LUSERME?"RPL_LUSERME: Not enough arguments: ":"RPL_LUSER???: Not enough arguments: ");
 				break;
 			}
-			w_buf_print(b, c_status, pkt.args[1], ": ");
+			add_to_buffer(b, c_status, pkt.args[1], ": ");
 		break;
 		case RPL_LUSEROP: // 252 <dest> <integer> :operator(s) online
 		case RPL_LUSERUNKNOWN: // 253 <dest> <integer> :unknown connection(s)
@@ -681,7 +679,7 @@ int irc_numeric(message pkt, int b)
 			{
 				char lmsg[2+strlen(pkt.args[1])+strlen(pkt.args[2])];
 				sprintf(lmsg, "%s %s", pkt.args[1], pkt.args[2]);
-				w_buf_print(b, c_status, lmsg, ": ");
+				add_to_buffer(b, c_status, lmsg, ": ");
 			}
 		break;
 		case RPL_X_LOCALUSERS: // 265 <dest> :Current Local Users: <integer>\tMax: <integer>
@@ -691,7 +689,7 @@ int irc_numeric(message pkt, int b)
 				e_buf_print(b, c_err, pkt, num==RPL_X_LOCALUSERS?"RPL_X_LOCALUSERS: Not enough arguments: ":num==RPL_X_GLOBALUSERS?"RPL_X_GLOBALUSERS: Not enough arguments: ":"RPL_???USERS: Not enough arguments: ");
 				break;
 			}
-			w_buf_print(b, c_status, pkt.args[1], ": ");
+			add_to_buffer(b, c_status, pkt.args[1], ": ");
 		break;
 		case ERR_NOSUCHNICK: // 401 <dest> <nick> :No such nick/channel
 			if(pkt.nargs<2)
@@ -702,7 +700,7 @@ int irc_numeric(message pkt, int b)
 			int b2=findptab(b, pkt.args[1]);
 			if(b2<0)
 				b2=b;
-			w_buf_print(b2, c_err, pkt.args[1], "No such nick/channel: ");
+			add_to_buffer(b2, c_err, pkt.args[1], "No such nick/channel: ");
 		break;
 		default:
 			e_buf_print(b, c_unn, pkt, "Unknown numeric: ");
@@ -740,7 +738,7 @@ int rx_mode(int b)
 			irc_tx(fd, joinmsg);
 			char jmsg[16+strlen(curr->name)];
 			sprintf(jmsg, "auto-Joining %s", curr->name);
-			w_buf_print(b, c_join[0], jmsg, "");
+			add_to_buffer(b, c_join[0], jmsg, "");
 			curr=curr->next;
 		}
 		serv->join=true;
@@ -766,7 +764,7 @@ int rx_kill(message pkt, int b, fd_set *master)
 		{
 			if((bufs[b2].server==b) || (bufs[b2].server==0))
 			{
-				w_buf_print(b2, c_quit[0], pkt.nargs<2?"":pkt.args[1], "KILLed: ");
+				add_to_buffer(b2, c_quit[0], pkt.nargs<2?"":pkt.args[1], "KILLed: ");
 				bufs[b2].live=false;
 				bufs[b2].hi_alert=5;
 				bufs[b2].handle=0;
@@ -787,13 +785,13 @@ int rx_kill(message pkt, int b, fd_set *master)
 					{
 						char kmsg[24+strlen(pkt.args[0])+strlen(bufs[b].bname)];
 						sprintf(kmsg, "=%s= has left %s (Killed)", pkt.args[0], bufs[b].bname);
-						w_buf_print(b2, c_quit[1], kmsg, "");
+						add_to_buffer(b2, c_quit[1], kmsg, "");
 					}
 					else
 					{
 						char kmsg[28+strlen(pkt.args[0])+strlen(pkt.args[1])+strlen(bufs[b].bname)];
 						sprintf(kmsg, "=%s= has left %s (Killed: %s)", pkt.args[0], bufs[b].bname, pkt.args[1]);
-						w_buf_print(b2, c_quit[1], kmsg, "");
+						add_to_buffer(b2, c_quit[1], kmsg, "");
 					}
 				}
 			}
@@ -818,7 +816,7 @@ int rx_kick(message pkt, int b)
 		{
 			if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(pkt.args[0], bufs[b2].bname, bufs[b].casemapping)==0))
 			{
-				w_buf_print(b2, c_quit[0], pkt.nargs<3?"(No reason)":pkt.args[2], "Kicked: ");
+				add_to_buffer(b2, c_quit[0], pkt.nargs<3?"(No reason)":pkt.args[2], "Kicked: ");
 				bufs[b2].live=false;
 				bufs[b2].hi_alert=5;
 			}
@@ -838,13 +836,13 @@ int rx_kick(message pkt, int b)
 					{
 						char kmsg[32+strlen(pkt.args[1])];
 						sprintf(kmsg, "=%s= was kicked.  (No reason)", pkt.args[1]);
-						w_buf_print(b2, c_quit[1], kmsg, "");
+						add_to_buffer(b2, c_quit[1], kmsg, "");
 					}
 					else
 					{
 						char kmsg[32+strlen(pkt.args[1])+strlen(pkt.args[2])];
 						sprintf(kmsg, "=%s= was kicked.  Reason: %s", pkt.args[1], pkt.args[2]);
-						w_buf_print(b2, c_quit[1], kmsg, "");
+						add_to_buffer(b2, c_quit[1], kmsg, "");
 					}
 				}
 			}
@@ -908,7 +906,7 @@ int rx_privmsg(message pkt, int b, bool notice)
 			else
 			{
 				char *tag=mktag("<%s> ", from);
-				w_buf_print(b2, notice?c_notice[1]:c_msg[1], pkt.args[1], tag);
+				add_to_buffer(b2, notice?c_notice[1]:c_msg[1], pkt.args[1], tag);
 				free(tag);
 				if(ha)
 					bufs[b2].hi_alert=5;
@@ -942,7 +940,7 @@ int rx_privmsg(message pkt, int b, bool notice)
 						n_add(&bufs[b2].nlist, src, bufs[b].casemapping);
 					}
 					char *tag=mktag("<%s> ", from);
-					w_buf_print(b2, notice?c_notice[1]:c_msg[1], pkt.args[1], tag);
+					add_to_buffer(b2, notice?c_notice[1]:c_msg[1], pkt.args[1], tag);
 					free(tag);
 					bufs[b2].hi_alert=5;
 				}
@@ -956,7 +954,7 @@ int rx_privmsg(message pkt, int b, bool notice)
 				else
 				{
 					char *tag=mktag("(from %s) ", from);
-					w_buf_print(b, notice?c_notice[1]:c_msg[1], pkt.args[1], tag);
+					add_to_buffer(b, notice?c_notice[1]:c_msg[1], pkt.args[1], tag);
 					free(tag);
 				}
 			}
@@ -991,7 +989,7 @@ int rx_topic(message pkt, int b)
 		{
 			if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(pkt.args[0], bufs[b2].bname, bufs[b].casemapping)==0))
 			{
-				w_buf_print(b2, c_notice[1], "removed the Topic", tag);
+				add_to_buffer(b2, c_notice[1], "removed the Topic", tag);
 				match=true;
 				if(bufs[b2].topic) free(bufs[b2].topic);
 				bufs[b2].topic=NULL;
@@ -1008,7 +1006,7 @@ int rx_topic(message pkt, int b)
 		{
 			if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(pkt.args[0], bufs[b2].bname, bufs[b].casemapping)==0))
 			{
-				w_buf_print(b2, c_notice[1], pkt.args[1], tag);
+				add_to_buffer(b2, c_notice[1], pkt.args[1], tag);
 				match=true;
 				if(bufs[b2].topic) free(bufs[b2].topic);
 				bufs[b2].topic=strdup(pkt.args[1]);
@@ -1053,7 +1051,7 @@ int rx_join(message pkt, int b)
 			cbuf=nbufs-1;
 			bufs[cbuf].server=bufs[b].server;
 		}
-		w_buf_print(cbuf, c_join[0], dstr, "");
+		add_to_buffer(cbuf, c_join[0], dstr, "");
 		bufs[cbuf].handle=bufs[bufs[cbuf].server].handle;
 		bufs[cbuf].live=true;
 	}
@@ -1072,7 +1070,7 @@ int rx_join(message pkt, int b)
 				match=true;
 				char dstr[16+strlen(pkt.args[0])];
 				sprintf(dstr, "has joined %s", pkt.args[0]);
-				w_buf_print(b2, c_join[1], dstr, tag);
+				add_to_buffer(b2, c_join[1], dstr, tag);
 				n_add(&bufs[b2].nlist, src, bufs[b].casemapping);
 			}
 		}
@@ -1131,13 +1129,13 @@ int rx_part(message pkt, int b)
 				{
 					char dstr[16+strlen(pkt.args[0])];
 					sprintf(dstr, "has left %s", pkt.args[0]);
-					w_buf_print(b2, c_part[1], dstr, tag);
+					add_to_buffer(b2, c_part[1], dstr, tag);
 				}
 				else
 				{
 					char dstr[24+strlen(pkt.args[0])+strlen(pkt.args[1])];
 					sprintf(dstr, "has left %s (Part: %s)", pkt.args[0], pkt.args[1]);
-					w_buf_print(b2, c_part[1], dstr, tag);
+					add_to_buffer(b2, c_part[1], dstr, tag);
 				}
 				n_cull(&bufs[b2].nlist, src, bufs[b].casemapping);
 			}
@@ -1176,7 +1174,7 @@ int rx_quit(message pkt, int b)
 				{
 					char dstr[24+strlen(bufs[b].bname)+strlen(reason)];
 					sprintf(dstr, "has left %s (%s)", bufs[b].bname, reason);
-					w_buf_print(b2, c_quit[1], dstr, tag);
+					add_to_buffer(b2, c_quit[1], dstr, tag);
 				}
 			}
 		}
@@ -1204,7 +1202,7 @@ int rx_nick(message pkt, int b)
 		{
 			if(bufs[b2].server==b)
 			{
-				w_buf_print(b2, c_nick[1], dstr, "");
+				add_to_buffer(b2, c_nick[1], dstr, "");
 				n_cull(&bufs[b2].nlist, src, bufs[b].casemapping);
 				n_add(&bufs[b2].nlist, pkt.args[0], bufs[b].casemapping);
 			}
@@ -1228,7 +1226,7 @@ int rx_nick(message pkt, int b)
 					n_add(&bufs[b2].nlist, pkt.args[0], bufs[b].casemapping);
 					char dstr[30+strlen(pkt.args[0])];
 					sprintf(dstr, "is now known as %s", pkt.args[0]);
-					w_buf_print(b2, c_nick[1], dstr, tag);
+					add_to_buffer(b2, c_nick[1], dstr, tag);
 				}
 			}
 		}
@@ -1248,7 +1246,7 @@ int ctcp(char *msg, char *from, char *src, int b2, bool ha, bool notice, bool pr
 	{
 		msg[strlen(msg)-1]=0; // remove trailing \001
 		char *tag=mktag("  %s ", from);
-		w_buf_print(b2, c_actn[1], msg+8, tag);
+		add_to_buffer(b2, c_actn[1], msg+8, tag);
 		free(tag);
 		ha=ha||strstr(msg+8, bufs[bufs[b2].server].nick);
 		if(ha)
@@ -1259,7 +1257,7 @@ int ctcp(char *msg, char *from, char *src, int b2, bool ha, bool notice, bool pr
 		if(notice)
 		{
 			char *tag=mktag(priv?"(%s) ":"(from %s) ", from);
-			w_buf_print(b2, c_notice[1], msg, tag);
+			add_to_buffer(b2, c_notice[1], msg, tag);
 			free(tag);
 			if(ha)
 				bufs[b2].hi_alert=5;
@@ -1276,7 +1274,7 @@ int ctcp(char *msg, char *from, char *src, int b2, bool ha, bool notice, bool pr
 		if(notice)
 		{
 			char *tag=mktag(priv?"(%s) ":"(from %s) ", from);
-			w_buf_print(b2, c_notice[1], msg, tag);
+			add_to_buffer(b2, c_notice[1], msg, tag);
 			free(tag);
 			if(ha)
 				bufs[b2].hi_alert=5;
@@ -1293,7 +1291,7 @@ int ctcp(char *msg, char *from, char *src, int b2, bool ha, bool notice, bool pr
 		if(notice)
 		{
 			char *tag=mktag(priv?"(%s) ":"(from %s) ", from);
-			w_buf_print(b2, c_notice[1], msg, tag);
+			add_to_buffer(b2, c_notice[1], msg, tag);
 			free(tag);
 			if(ha)
 				bufs[b2].hi_alert=5;
@@ -1310,7 +1308,7 @@ int ctcp(char *msg, char *from, char *src, int b2, bool ha, bool notice, bool pr
 		if(notice)
 		{
 			char *tag=mktag(priv?"(%s) ":"(from %s) ", from);
-			w_buf_print(b2, c_notice[1], msg, tag);
+			add_to_buffer(b2, c_notice[1], msg, tag);
 			free(tag);
 			if(ha)
 				bufs[b2].hi_alert=5;
@@ -1325,7 +1323,7 @@ int ctcp(char *msg, char *from, char *src, int b2, bool ha, bool notice, bool pr
 	else
 	{
 		char *tag=mktag(priv?"(%s) ":"(from %s) ", from);
-		w_buf_print(b2, c_notice[1], msg, tag);
+		add_to_buffer(b2, c_notice[1], msg, tag);
 		if(ha)
 			bufs[b2].hi_alert=5;
 		char *cmd=msg+1;
@@ -1334,7 +1332,7 @@ int ctcp(char *msg, char *from, char *src, int b2, bool ha, bool notice, bool pr
 			*space=0;
 		char cmsg[32+strlen(cmd)];
 		sprintf(cmsg, "Unrecognised CTCP %s (ignoring)", cmd);
-		w_buf_print(b2, c_unk, cmsg, tag);
+		add_to_buffer(b2, c_unk, cmsg, tag);
 		free(tag);
 		if(!notice)
 		{

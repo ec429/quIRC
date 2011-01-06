@@ -132,7 +132,7 @@ int main(int argc, char *argv[])
 	}
 	if(!servers)
 	{
-		w_buf_print(0, c_status, "Not connected - use /server to connect", "");
+		add_to_buffer(0, c_status, "Not connected - use /server to connect", "");
 	}
 	iline inp={{NULL, 0, 0}, {NULL, 0, 0}};
 	in_update(inp);
@@ -160,7 +160,7 @@ int main(int argc, char *argv[])
 								{
 									close(bufs[b].handle);
 									FD_CLR(bufs[b].handle, &master);
-									w_buf_print(b, c_err, "Outbound ping timeout", "Disconnected: ");
+									add_to_buffer(b, c_err, "Outbound ping timeout", "Disconnected: ");
 								}
 								bufs[b].alert=true;
 								bufs[b].hi_alert=5;
@@ -179,7 +179,7 @@ int main(int argc, char *argv[])
 					else if(!bufs[bufs[b].server].live)
 					{
 						bufs[b].live=false;
-						w_buf_print(b, c_err, "Connection to server lost", "Disconnected: ");
+						add_to_buffer(b, c_err, "Connection to server lost", "Disconnected: ");
 					}
 				}
 			}
@@ -255,7 +255,7 @@ int main(int argc, char *argv[])
 										close(fd);
 										FD_CLR(fd, &master);
 										bufs[b].live=false;
-										w_buf_print(0, c_err, emsg, "error: ");
+										add_to_buffer(0, c_err, emsg, "error: ");
 										redraw_buffer();
 									}
 									else if(packet)
@@ -346,7 +346,7 @@ int main(int argc, char *argv[])
 									close(fd);
 									FD_CLR(fd, &master);
 									bufs[b].live=false;
-									w_buf_print(0, c_err, emsg, "error: read on a dead tab: ");
+									add_to_buffer(0, c_err, emsg, "error: read on a dead tab: ");
 									redraw_buffer();
 								}
 								in_update(inp);
@@ -357,7 +357,7 @@ int main(int argc, char *argv[])
 						{
 							char fmsg[48];
 							sprintf(fmsg, "select() returned data on unknown fd %d!", fd);
-							w_buf_print(0, c_err, fmsg, "main loop:");
+							add_to_buffer(0, c_err, fmsg, "main loop:");
 							FD_CLR(fd, &master); // prevent it from happening again
 						}
 					}
@@ -400,22 +400,22 @@ int main(int argc, char *argv[])
 									crush(&cnick, maxnlen);
 									char *tag=mktag("<%s> ", cnick);
 									free(cnick);
-									w_buf_print(cbuf, c_msg[0], iinput, tag);
+									add_to_buffer(cbuf, c_msg[0], iinput, tag);
 									free(tag);
 								}
 								else
 								{
-									w_buf_print(cbuf, c_err, "Can't talk - tab is not live!", "");
+									add_to_buffer(cbuf, c_err, "Can't talk - tab is not live!", "");
 								}
 							}
 							else
 							{
-								w_buf_print(cbuf, c_err, "Can't talk - tab is disconnected!", "");
+								add_to_buffer(cbuf, c_err, "Can't talk - tab is disconnected!", "");
 							}
 						}
 						else
 						{
-							w_buf_print(cbuf, c_err, "Can't talk - view is not a channel!", "");
+							add_to_buffer(cbuf, c_err, "Can't talk - view is not a channel!", "");
 						}
 						free(iinput);iinput=NULL;
 						state=0;
