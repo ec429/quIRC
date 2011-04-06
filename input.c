@@ -847,6 +847,29 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		}
 		return(0);
 	}
+	bool aalloc=false;
+	if(strcmp(cmd, "afk")==0)
+	{
+		const char *afm="afk";
+		if(args)
+			afm=strtok(args, " ");
+		const char *p=bufs[bufs[cbuf].server].nick;
+		int n=strcspn(p, "|");
+		char *nargs=malloc(n+strlen(afm)+2);
+		if(nargs)
+		{
+			cmd="nick";
+			strncpy(nargs, p, n);
+			nargs[n]=0;
+			if(strcmp(afm, "-"))
+			{
+				strcat(nargs, "|");
+				strcat(nargs, afm);
+			}
+			args=nargs;
+			aalloc=true;
+		}
+	}
 	if(strcmp(cmd, "nick")==0)
 	{
 		if(args)
@@ -869,14 +892,21 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 			}
 			else
 			{
-				nick=strdup(nn);
-				if(!quiet) add_to_buffer(cbuf, c_status, "Default nick changed", "/nick ");
+				if(cbuf)
+					add_to_buffer(cbuf, c_err, "Tab not live, can't send", "/nick: ");
+				else
+				{
+					bufs[0].nick=strdup(nn);
+					nick=strdup(nn);
+					if(!quiet) add_to_buffer(cbuf, c_status, "Default nick changed", "/nick ");
+				}
 			}
 		}
 		else
 		{
 			add_to_buffer(cbuf, c_err, "Must specify a nickname!", "/nick: ");
 		}
+		if(aalloc) free(args);
 		return(0);
 	}
 	if(strcmp(cmd, "topic")==0)
