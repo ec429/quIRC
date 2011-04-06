@@ -139,6 +139,18 @@ the default being 256.  Larger values will, of course, increase memory consumpti
 will turn on Full-Width-Colour (makes coloured backgrounds for lines (eg. /me) run all the way across the terminal), Highlight-Tab-Strip (gives the tab strip a magenta background, to make it more visible) and Top-Status-Bar (uses the top line of the terminal for some status information).  To turn them off prefix them with <small>no-</small>, like<br />
 <tt>no-hts</tt><br />
 By default fwc and hts are turned off; tsb is turned on.</p>
+<p>You can control the timestamping settings:<br />
+<tt>ts <em>ts-level</em></tt><br />
+<tt>utc</tt><br />
+The timestamping levels are:
+<table><tr><td style="padding-left:1em;padding-right:1em;">ts-level</td><td>Meaning</td></tr>
+<tr><td style="text-align:center;">0</td><td>No timestamps will be displayed</td></tr>
+<tr><td style="text-align:center;">1</td><td>Display timestamps in the form [HH:MM]</td></tr>
+<tr><td style="text-align:center;">2</td><td>Display timestamps in the form [HH:MM:SS]</td></tr>
+<tr><td style="text-align:center;">3</td><td>Display timestamps in the form [HH:MM:SS +hhmm], where <em>+hhmm</em> is the time zone offset</td></tr>
+<tr><td style="text-align:center;">4</td><td>Pointlessly, display timestamps as seconds since the Epoch</td></tr>
+</table>
+If utc is enabled, timestamps will be displayed as UTC instead of local time, and <em>+hhmm</em> will be replaced by <em>UTC</em>.</p>
 <p>These settings and others can be overridden at runtime with commandline options.  For details run &quot;quirc --help&quot;.</p>
 <p>You can also customise the colours quIRC uses.  A custom colour line starts with &apos;%&apos;, followed optionally by &apos;S&apos; or &apos;R&apos; (only use this colour when Sending or Receiving respectively), followed by an identifier, then space or tab, then four space-separated numbers.  Like this:<br />
 <tt>%[S|R]<em>ident</em>	<em>fore</em> <em>back</em> <em>hi</em> <em>ul</em></tt></p>

@@ -144,6 +144,19 @@ line of the terminal for some status information). To turn them off prefix them
 with no-, like
 no-hts
 By default fwc and hts are turned off; tsb is turned on.
+You can control the timestamping settings:
+ts ts-level
+utc
+The timestamping levels are:
+ts-level Meaning
+0        No timestamps will be displayed
+1        Display timestamps in the form [HH:MM]
+2        Display timestamps in the form [HH:MM:SS]
+3        Display timestamps in the form [HH:MM:SS +hhmm], where +hhmm is the
+         time zone offset
+4        Pointlessly, display timestamps as seconds since the Epoch
+If utc is enabled, timestamps will be displayed as UTC instead of local time,
+and +hhmm will be replaced by UTC.
 These settings and others can be overridden at runtime with commandline
 options. For details run &quot;quirc --help&quot;.
 You can also customise the colours quIRC uses. A custom colour line starts with
