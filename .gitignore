@@ -6,4 +6,4 @@ quirc
 *.tgz
 genconfig
 version.h
-version
+

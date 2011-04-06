@@ -5,7 +5,7 @@ read MAJOR MINOR REVS GIT <<< ${VERSION//[-.]/ }
 
 CCVER=$(cc -v 2>&1 | tail -n 1)
 
-cat >version.h <<_EOM
+cat >version.h2 <<_EOM
 /*
 	quIRC - simple terminal-based IRC client
 	Copyright (C) 2010-11 Edward Cree

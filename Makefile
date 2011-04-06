@@ -6,10 +6,10 @@ AWK ?= gawk
 VERSION := `git describe --tags`
 PREFIX ?= /usr/local
 LIBS := ttyraw.o ttyesc.o irc.o bits.o colour.o buffer.o names.o config.o input.o
-INCLUDE := ttyraw.h ttyesc.h irc.h bits.h colour.h buffer.h names.h config.h input.h version.h
+INCLUDE := ttyraw.h ttyesc.h irc.h bits.h colour.h buffer.h names.h config.h input.h quirc.h version.h
 DEFINES ?= -DHAVE_DEBUG
 
-all: quirc
+all: quirc doc
 
 install: all
 	install -D quirc $(PREFIX)/bin/quirc
@@ -20,52 +20,72 @@ uninstall:
 quirc: quirc.c $(LIBS) $(INCLUDE)
 	$(CC) $(CFLAGS) $(CPPFLAGS) -o $@ $< $(LIBS) -lm $(DEFINES)
 
+quirc.h: config.h version.h
+	touch quirc.h
+
 clean:
-	rm *.o quirc
+	-rm *.o quirc genconfig
 
 realclean: clean
-	rm c_init.c README version.h config_*
+	-rm c_init.c README version.h config_*
 
 doc: README
 
 README: readme.htm
-	html2text -nobs -o README < readme.htm
+	-html2text -nobs -o README < readme.htm
 
 # funky make cleverness to generate object files; a %.o /always/ depends on its %.h as well as its %.c
 
 %.o: %.c %.h
 	$(CC) -c $(CFLAGS) $(CPPFLAGS) $< -o $@ $(DEFINES)
 
-ttyesc.o: bits.h
+ttyesc.o: ttyesc.c ttyesc.h bits.h
 
-irc.o: irc.c irc.h bits.h buffer.h colour.h config.h names.h numeric.h
+irc.o: irc.c irc.h bits.h buffer.h colour.h names.h numeric.h
 
-bits.o: bits.c bits.h ttyesc.h colour.h config.h
+irc.h: config.h
+	touch irc.h
+
+bits.o: bits.c bits.h ttyesc.h colour.h
+
+bits.h: config.h
+	touch bits.h
 
 colour.o: colour.c colour.h c_init.c ttyesc.h
 
-buffer.o: buffer.c buffer.h ttyesc.h colour.h bits.h names.h text.h irc.h config.h version.h input.h
+buffer.o: buffer.c buffer.h ttyesc.h colour.h bits.h names.h text.h irc.h version.h input.h
 
-config.o: config.c config_check.c config_def.c config_need.c config_rcread.c config_pargs.c config.h config_globals.h names.h bits.h colour.h text.h version.h
+buffer.h: config.h version.h
+	touch buffer.h
 
-config_%.c: config.cdl genconfig
-	./genconfig $@ < config.cdl > $@ || (rm $@ && false)
+config.o: config.c config.h names.h bits.h colour.h text.h version.h
 
-config_%.h: config.cdl genconfig
+config.c: config_check.c config_def.c config_need.c config_rcread.c config_pargs.c
+	touch config.c
+
+config.h: config_globals.h version.h
+	touch config.h
+
+config_%: config.cdl genconfig
 	./genconfig $@ < config.cdl > $@ || (rm $@ && false)
 
 genconfig: genconfig.c
 
-input.o: input.c config_set.c input.h ttyesc.h names.h buffer.h irc.h bits.h
+input.o: input.c input.h ttyesc.h names.h buffer.h irc.h bits.h
+
+input.c: config_set.c
+	touch input.c
 
 names.o: names.c names.h buffer.h irc.h
 
 c_init.c: colour.d c_init.awk
 	$(AWK) -f c_init.awk colour.d > c_init.c
 
-# version is touched by a git-commit hook
-version.h: version
+FORCE:
+version.h: FORCE
 	./gitversion
+	if ! cmp version.h version.h2; then mv version.h2 version.h; fi
+	-rm version.h2
 
 dist: all doc
 	-mkdir quirc_$(VERSION)
