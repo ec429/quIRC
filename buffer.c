@@ -331,9 +331,9 @@ int redraw_buffer(void)
 		if(row<0) break;
 		setcolour(bufs[cbuf].lc[uline]);
 		if(full_width_colour)
-			printf(LOCATE "%.*s"CLR"", row, 0, width, bufs[cbuf].lpt[uline][pline]);
+			printf(LOCATE "%s"CLR, row, 0, bufs[cbuf].lpt[uline][pline]);
 		else
-			printf(LOCATE "%.*s", row, 0, width, bufs[cbuf].lpt[uline][pline]);
+			printf(LOCATE "%s", row, 0, bufs[cbuf].lpt[uline][pline]);
 		row--;
 	}
 	resetcol();
