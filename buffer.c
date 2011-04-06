@@ -295,6 +295,10 @@ int redraw_buffer(void)
 		}
 		pline+=bufs[cbuf].lpl[uline];
 	}
+	if(uline==bufs[cbuf].ptr)
+	{
+		pline=0;
+	}
 	while(pline>=bufs[cbuf].lpl[uline])
 	{
 		pline-=bufs[cbuf].lpl[uline];
@@ -321,7 +325,6 @@ int redraw_buffer(void)
 	bufs[cbuf].scroll=uline;
 	bufs[cbuf].ascroll=pline;
 	int row=height-2;
-	bool first=true;
 	while(row>(tsb?1:0))
 	{
 		pline--;
@@ -335,16 +338,15 @@ int redraw_buffer(void)
 				else
 				{
 					row=-1;
+					pline=0;
 					break;
 				}
 			}
-			if(!first)
+			if(uline==bufs[cbuf].ptr)
 			{
 				row=-1;
 				break;
 			}
-			if(uline==bufs[cbuf].ptr)
-				first=false;
 			pline+=bufs[cbuf].lpl[uline];
 		}
 		if(row<0) break;

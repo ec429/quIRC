@@ -14,7 +14,7 @@ Proper handling of Unicode in character-based things like cursor-movement, backs
 
 Fix issue with line that just reaches the RHS causing a line break.
 
-Fix scrolling bug (End, Down) when *Home is multi-line.
+Fix screen not being redrawn on some cbuf changes.
 
 Logging & Persistent backscroll.
 
