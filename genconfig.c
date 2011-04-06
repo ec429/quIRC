@@ -426,13 +426,21 @@ int main(int argc, char **argv)
 							printf("\t\t\t\t\tadd_to_buffer(cbuf, c_status, smsg, \"/set: \");\n");
 						break;
 					}
+					printf("\t\t\t\t\tint buf;\n");
+					printf("\t\t\t\t\tfor(buf=0;buf<nbufs;buf++)\n");
+					printf("\t\t\t\t\t\tbufs[buf].dirty=true;\n");
+					printf("\t\t\t\t\tredraw_buffer();\n");
 					printf("\t\t\t\t}\n");
 					if((ents[i].set_type==BOOLEAN)||(ents[i].set_type==LEVEL))
 					{
 						printf("\t\t\t\telse if(strcmp(opt, \"no-%s\")==0)\n", ents[i].set_name);
 						printf("\t\t\t\t{\n");
 						printf("\t\t\t\t\t%s=0;\n", ents[i].cname);
-						printf("\t\t\t\t\t\tadd_to_buffer(cbuf, c_status, \"%s disabled\", \"/set: \");\n", ents[i].set_msg);
+						printf("\t\t\t\t\tadd_to_buffer(cbuf, c_status, \"%s disabled\", \"/set: \");\n", ents[i].set_msg);
+						printf("\t\t\t\t\tint buf;\n");
+						printf("\t\t\t\t\tfor(buf=0;buf<nbufs;buf++)\n");
+						printf("\t\t\t\t\t\tbufs[buf].dirty=true;\n");
+						printf("\t\t\t\t\tredraw_buffer();\n");
 						printf("\t\t\t\t}\n");
 					}
 				}

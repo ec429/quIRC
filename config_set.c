@@ -12,6 +12,10 @@
 					char smsg[37];
 					sprintf(smsg, "display width set to %u", width);
 					add_to_buffer(cbuf, c_status, smsg, "/set: ");
+					int buf;
+					for(buf=0;buf<nbufs;buf++)
+						bufs[buf].dirty=true;
+					redraw_buffer();
 				}
 				else if(strcmp(opt, "height")==0)
 				{
@@ -26,6 +30,10 @@
 					char smsg[38];
 					sprintf(smsg, "display height set to %u", height);
 					add_to_buffer(cbuf, c_status, smsg, "/set: ");
+					int buf;
+					for(buf=0;buf<nbufs;buf++)
+						bufs[buf].dirty=true;
+					redraw_buffer();
 				}
 				else if(strcmp(opt, "mcc")==0)
 				{
@@ -45,11 +53,19 @@
 					}
 					else
 						add_to_buffer(cbuf, c_status, "mirc colour compatibility disabled", "/set: ");
+					int buf;
+					for(buf=0;buf<nbufs;buf++)
+						bufs[buf].dirty=true;
+					redraw_buffer();
 				}
 				else if(strcmp(opt, "no-mcc")==0)
 				{
 					mirc_colour_compat=0;
-						add_to_buffer(cbuf, c_status, "mirc colour compatibility disabled", "/set: ");
+					add_to_buffer(cbuf, c_status, "mirc colour compatibility disabled", "/set: ");
+					int buf;
+					for(buf=0;buf<nbufs;buf++)
+						bufs[buf].dirty=true;
+					redraw_buffer();
 				}
 				else if(strcmp(opt, "fred")==0)
 				{
@@ -69,11 +85,19 @@
 					}
 					else
 						add_to_buffer(cbuf, c_status, "force-redraw disabled", "/set: ");
+					int buf;
+					for(buf=0;buf<nbufs;buf++)
+						bufs[buf].dirty=true;
+					redraw_buffer();
 				}
 				else if(strcmp(opt, "no-fred")==0)
 				{
 					force_redraw=0;
-						add_to_buffer(cbuf, c_status, "force-redraw disabled", "/set: ");
+					add_to_buffer(cbuf, c_status, "force-redraw disabled", "/set: ");
+					int buf;
+					for(buf=0;buf<nbufs;buf++)
+						bufs[buf].dirty=true;
+					redraw_buffer();
 				}
 				else if(strcmp(opt, "buf")==0)
 				{
@@ -88,6 +112,10 @@
 					char smsg[36];
 					sprintf(smsg, "buffer lines set to %u", buflines);
 					add_to_buffer(cbuf, c_status, smsg, "/set: ");
+					int buf;
+					for(buf=0;buf<nbufs;buf++)
+						bufs[buf].dirty=true;
+					redraw_buffer();
 				}
 				else if(strcmp(opt, "mnln")==0)
 				{
@@ -102,6 +130,10 @@
 					char smsg[39];
 					sprintf(smsg, "max nick length set to %u", maxnlen);
 					add_to_buffer(cbuf, c_status, smsg, "/set: ");
+					int buf;
+					for(buf=0;buf<nbufs;buf++)
+						bufs[buf].dirty=true;
+					redraw_buffer();
 				}
 				else if(strcmp(opt, "fwc")==0)
 				{
@@ -117,11 +149,19 @@
 						add_to_buffer(cbuf, c_status, "full width colour enabled", "/set: ");
 					else
 						add_to_buffer(cbuf, c_status, "full width colour disabled", "/set: ");
+					int buf;
+					for(buf=0;buf<nbufs;buf++)
+						bufs[buf].dirty=true;
+					redraw_buffer();
 				}
 				else if(strcmp(opt, "no-fwc")==0)
 				{
 					full_width_colour=0;
-						add_to_buffer(cbuf, c_status, "full width colour disabled", "/set: ");
+					add_to_buffer(cbuf, c_status, "full width colour disabled", "/set: ");
+					int buf;
+					for(buf=0;buf<nbufs;buf++)
+						bufs[buf].dirty=true;
+					redraw_buffer();
 				}
 				else if(strcmp(opt, "hts")==0)
 				{
@@ -137,11 +177,19 @@
 						add_to_buffer(cbuf, c_status, "highlight tabstrip enabled", "/set: ");
 					else
 						add_to_buffer(cbuf, c_status, "highlight tabstrip disabled", "/set: ");
+					int buf;
+					for(buf=0;buf<nbufs;buf++)
+						bufs[buf].dirty=true;
+					redraw_buffer();
 				}
 				else if(strcmp(opt, "no-hts")==0)
 				{
 					hilite_tabstrip=0;
-						add_to_buffer(cbuf, c_status, "highlight tabstrip disabled", "/set: ");
+					add_to_buffer(cbuf, c_status, "highlight tabstrip disabled", "/set: ");
+					int buf;
+					for(buf=0;buf<nbufs;buf++)
+						bufs[buf].dirty=true;
+					redraw_buffer();
 				}
 				else if(strcmp(opt, "tsb")==0)
 				{
@@ -157,11 +205,19 @@
 						add_to_buffer(cbuf, c_status, "top status bar enabled", "/set: ");
 					else
 						add_to_buffer(cbuf, c_status, "top status bar disabled", "/set: ");
+					int buf;
+					for(buf=0;buf<nbufs;buf++)
+						bufs[buf].dirty=true;
+					redraw_buffer();
 				}
 				else if(strcmp(opt, "no-tsb")==0)
 				{
 					tsb=0;
-						add_to_buffer(cbuf, c_status, "top status bar disabled", "/set: ");
+					add_to_buffer(cbuf, c_status, "top status bar disabled", "/set: ");
+					int buf;
+					for(buf=0;buf<nbufs;buf++)
+						bufs[buf].dirty=true;
+					redraw_buffer();
 				}
 				else if(strcmp(opt, "tping")==0)
 				{
@@ -176,4 +232,68 @@
 					char smsg[42];
 					sprintf(smsg, "outbound ping time set to %u", tping);
 					add_to_buffer(cbuf, c_status, smsg, "/set: ");
+					int buf;
+					for(buf=0;buf<nbufs;buf++)
+						bufs[buf].dirty=true;
+					redraw_buffer();
+				}
+				else if(strcmp(opt, "ts")==0)
+				{
+					if(val)
+					{
+						unsigned int value;
+						sscanf(val, "%u", &value);
+						ts=value;
+					}
+					else
+						ts=1;
+					if(ts)
+					{
+						char lmsg[44];
+						sprintf(lmsg, "timestamping level %u enabled", ts);
+						add_to_buffer(cbuf, c_status, lmsg, "/set: ");
+					}
+					else
+						add_to_buffer(cbuf, c_status, "timestamping disabled", "/set: ");
+					int buf;
+					for(buf=0;buf<nbufs;buf++)
+						bufs[buf].dirty=true;
+					redraw_buffer();
+				}
+				else if(strcmp(opt, "no-ts")==0)
+				{
+					ts=0;
+					add_to_buffer(cbuf, c_status, "timestamping disabled", "/set: ");
+					int buf;
+					for(buf=0;buf<nbufs;buf++)
+						bufs[buf].dirty=true;
+					redraw_buffer();
+				}
+				else if(strcmp(opt, "utc")==0)
+				{
+					if(val)
+					{
+						unsigned int value;
+						sscanf(val, "%u", &value);
+						utc=value;
+					}
+					else
+						utc=-1;
+					if(utc)
+						add_to_buffer(cbuf, c_status, "UTC timestamps enabled", "/set: ");
+					else
+						add_to_buffer(cbuf, c_status, "UTC timestamps disabled", "/set: ");
+					int buf;
+					for(buf=0;buf<nbufs;buf++)
+						bufs[buf].dirty=true;
+					redraw_buffer();
+				}
+				else if(strcmp(opt, "no-utc")==0)
+				{
+					utc=0;
+					add_to_buffer(cbuf, c_status, "UTC timestamps disabled", "/set: ");
+					int buf;
+					for(buf=0;buf<nbufs;buf++)
+						bufs[buf].dirty=true;
+					redraw_buffer();
 				}

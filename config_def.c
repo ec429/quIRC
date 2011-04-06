@@ -9,3 +9,5 @@
 	hilite_tabstrip=-1;
 	tsb=-1;
 	tping=30;
+	ts=1;
+	utc=-1;

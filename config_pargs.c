@@ -25,3 +25,9 @@
 			tsb=false;
 		else if(strncmp(argv[arg], "--tping=", 8)==0)
 			sscanf(argv[arg]+8, "%u", &tping);
+		else if(strncmp(argv[arg], "--timestamps=", 13)==0)
+			sscanf(argv[arg]+13, "%u", &ts);
+		else if(strcmp(argv[arg], "--utc")==0)
+			utc=true;
+		else if(strcmp(argv[arg], "--no-utc")==0)
+			utc=false;

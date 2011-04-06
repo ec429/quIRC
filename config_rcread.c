@@ -88,3 +88,26 @@
 					asb_failsafe(c_err, rest);
 				}
 			}
+			else if(strcmp(cmd, "no-ts")==0)
+				ts=false;
+			else if(strcmp(cmd, "ts")==0)
+			{
+				unsigned int value;
+				if(rest&&sscanf(rest, "%u", &value))
+					ts=value;
+				else
+				{
+					asb_failsafe(c_err, "Malformed rc entry for ts (value not numeric)");
+					asb_failsafe(c_err, rest);
+				}
+			}
+			else if(strcmp(cmd, "no-utc")==0)
+				utc=false;
+			else if(strcmp(cmd, "utc")==0)
+			{
+				unsigned int value;
+				if(rest&&sscanf(rest, "%u", &value))
+					utc=value;
+				else
+					utc=true;
+			}

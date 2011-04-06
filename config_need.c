@@ -14,3 +14,7 @@
 			if(strcmp(cmd, "tsb")==0) need=false;
 			if(strcmp(cmd, "no-tsb")==0) need=false;
 			if(strcmp(cmd, "tping")==0) need=false;
+			if(strcmp(cmd, "ts")==0) need=false;
+			if(strcmp(cmd, "no-ts")==0) need=false;
+			if(strcmp(cmd, "utc")==0) need=false;
+			if(strcmp(cmd, "no-utc")==0) need=false;

@@ -418,7 +418,32 @@ int render_line(int buf, int uline)
 	}
 	char *proc;int l,i;
 	init_char(&proc, &l, &i);
-	int x=wordline(bufs[buf].ltag[uline], 0, &proc, &l, &i, bufs[buf].lc[uline]);
+	char stamp[32];
+	struct tm *td=(utc?gmtime:localtime)(&bufs[buf].ts[uline]);
+	switch(ts)
+	{
+		case 1:
+			strftime(stamp, 32, "[%H:%M] ", td);
+		break;
+		case 2:
+			strftime(stamp, 32, "[%H:%M:%S] ", td);
+		break;
+		case 3:
+			if(utc)
+				strftime(stamp, 32, "[%H:%M:%S UTC] ", td);
+			else
+				strftime(stamp, 32, "[%H:%M:%S %z] ", td);
+		break;
+		case 4:
+			snprintf(stamp, 32, "[u+%lu] ", (unsigned long)bufs[buf].ts[uline]);
+		break;
+		case 0: // no timestamps
+		default:
+			stamp[0]=0;
+		break;
+	}
+	int x=wordline(stamp, 0, &proc, &l, &i, (colour){.fore=7, .back=0, .hi=false, .ul=false});
+	x=wordline(bufs[buf].ltag[uline], x, &proc, &l, &i, bufs[buf].lc[uline]);
 	wordline(bufs[buf].lt[uline], x, &proc, &l, &i, bufs[buf].lc[uline]);
 	bufs[buf].lpl[uline]=0;
 	bufs[buf].lpt[uline]=NULL;
