@@ -12,8 +12,6 @@ Proper handling of Unicode in character-based things like cursor-movement, backs
 
 /dump command.  Pipes a screendump (or better still, unprocessed text) into program of choice.
 
-Fix issue with line that just reaches the RHS causing a line break.
-
 Logging & Persistent backscroll.
 
 Runtime buffer resizing.
