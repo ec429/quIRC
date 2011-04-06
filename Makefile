@@ -12,7 +12,7 @@ DEFINES ?= -DHAVE_DEBUG
 all: quirc doc
 
 install: all
-	install -D quirc $(PREFIX)/bin/quirc
+	sudo install -D quirc $(PREFIX)/bin/quirc
 
 uninstall:
 	rm $(PREFIX)/bin/quirc
