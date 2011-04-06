@@ -32,7 +32,7 @@ realclean: clean
 doc: README
 
 README: readme.htm
-	-html2text -nobs -o README < readme.htm
+	-sed -e "s/&apos;/'/g" -e "s/&quot;/\"/g" < readme.htm | html2text -nobs -o README
 
 # funky make cleverness to generate object files; a %.o /always/ depends on its %.h as well as its %.c
 
