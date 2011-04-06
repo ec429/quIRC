@@ -737,7 +737,7 @@ int rx_mode(int b)
 			sprintf(joinmsg, "JOIN %s %s", curr->name, curr->key?curr->key:"");
 			irc_tx(fd, joinmsg);
 			char jmsg[16+strlen(curr->name)];
-			sprintf(jmsg, "auto-Joining %s", curr->name);
+			sprintf(jmsg, "auto: Joining %s", curr->name);
 			add_to_buffer(b, c_join[0], jmsg, "");
 			curr=curr->next;
 		}
