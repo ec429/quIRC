@@ -60,7 +60,7 @@ buffer.h: config.h version.h
 
 config.o: config.c config.h names.h bits.h colour.h text.h version.h
 
-config.c: config_check.c config_def.c config_need.c config_rcread.c config_pargs.c
+config.c: config_check.c config_def.c config_need.c config_rcread.c config_pargs.c config_help.c
 	touch config.c
 
 config.h: config_globals.h version.h

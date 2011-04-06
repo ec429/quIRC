@@ -54,6 +54,8 @@ int main(int argc, char **argv)
 		otype=5;
 	else if(strcmp(argv[1], "config_need.c")==0)
 		otype=6;
+	else if(strcmp(argv[1], "config_help.c")==0)
+		otype=7;
 	else
 	{
 		fprintf(stderr, "genconfig: unrecognised outtype '%s'\n", argv[1]);
@@ -449,6 +451,35 @@ int main(int argc, char **argv)
 				printf("\t\t\tif(strcmp(cmd, \"%s\")==0) need=false;\n", ents[i].rc_name);
 				if((ents[i].set_type==BOOLEAN)||(ents[i].set_type==LEVEL))
 					printf("\t\t\tif(strcmp(cmd, \"no-%s\")==0) need=false;\n", ents[i].rc_name);
+			break;
+			case 7:
+				if(ents[i].cmdline_name)
+				{
+					int j;
+					switch(ents[i].type)
+					{
+						case BOOL:
+							printf("\t\t\tfprintf(stderr, \"\\t--[no-]%s", ents[i].cmdline_name);
+							for(j=strlen(ents[i].cmdline_name);j<25;j++)
+								putchar(' ');
+						break;
+						case INT:
+							if((ents[i].min!=-1)&&(ents[i].max!=-1))
+							{
+								printf("\t\t\tfprintf(stderr, \"\\t--%s=<%d to %d>", ents[i].cmdline_name, ents[i].min, ents[i].max);
+								for(j=strlen(ents[i].cmdline_name);j<21;j++)
+									putchar(' ');
+							}
+							else
+							{
+								printf("\t\t\tfprintf(stderr, \"\\t--%s=<numeric>", ents[i].cmdline_name);
+								for(j=strlen(ents[i].cmdline_name);j<20;j++)
+									putchar(' ');
+							}
+						break;
+					}
+					printf(": %s\\n\");", ents[i].set_msg);
+				}
 			break;
 			default:
 				fprintf(stderr, "genconfig: otype %d not implemented!\n", otype);

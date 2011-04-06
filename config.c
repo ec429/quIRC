@@ -304,6 +304,8 @@ signed int pargs(int argc, char *argv[])
 		if((strcmp(argv[arg], "--help")==0)||(strcmp(argv[arg], "-h")==0))
 		{
 			fprintf(stderr, USAGE_MSG);
+			fprintf(stderr, "options:\n");
+#include "config_help.c"
 			return(0);
 		}
 		else if((strcmp(argv[arg], "--version")==0)||(strcmp(argv[arg], "-V")==0)||(strcmp(argv[arg], "-v")==0)) // allow -v as we did in old versions; depr
