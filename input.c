@@ -847,6 +847,73 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		}
 		return(0);
 	}
+	if(strcmp(cmd, "unaway")==0)
+	{
+		cmd="away";
+		args="-";
+	}
+	if(strcmp(cmd, "away")==0)
+	{
+		const char *am="Gone away, gone away, was it one of you took it away?";
+		if(args)
+			am=args;
+		if(bufs[cbuf].handle)
+		{
+			if(LIVE(cbuf))
+			{
+				if(strcmp(am, "-"))
+				{
+					char nmsg[8+strlen(am)];
+					sprintf(nmsg, "AWAY :%s", am);
+					irc_tx(bufs[cbuf].handle, nmsg);
+				}
+				else
+				{
+					irc_tx(bufs[cbuf].handle, "AWAY"); // unmark away
+				}
+			}
+			else
+			{
+				add_to_buffer(cbuf, c_err, "Tab not live, can't send", "/away: ");
+			}
+		}
+		else
+		{
+			if(cbuf)
+				add_to_buffer(cbuf, c_err, "Tab not live, can't send", "/away: ");
+			else
+			{
+				int b;
+				for(b=0;b<nbufs;b++)
+				{
+					if(bufs[b].type==SERVER)
+					{
+						if(bufs[b].handle)
+						{
+							if(LIVE(b))
+							{
+								if(strcmp(am, "-"))
+								{
+									char nmsg[8+strlen(am)];
+									sprintf(nmsg, "AWAY :%s", am);
+									irc_tx(bufs[b].handle, nmsg);
+								}
+								else
+								{
+									irc_tx(bufs[b].handle, "AWAY"); // unmark away
+								}
+							}
+							else
+								add_to_buffer(b, c_err, "Tab not live, can't send", "/away: ");
+						}
+						else
+							add_to_buffer(b, c_err, "Tab not live, can't send", "/away: ");
+					}
+				}
+			}
+		}
+		return(0);
+	}
 	bool aalloc=false;
 	if(strcmp(cmd, "afk")==0)
 	{

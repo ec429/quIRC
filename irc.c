@@ -679,6 +679,39 @@ int irc_numeric(message pkt, int b)
 				if(!quiet) add_to_buffer(b, c_status, lmsg, ": ");
 			}
 		break;
+		case RPL_AWAY: // 301 <dest> <nick> :<away message>
+			if(pkt.nargs<2)
+			{
+				if(!quiet) e_buf_print(b, c_err, pkt, "RPL_AWAY: Not enough arguments: ");
+				break;
+			}
+			else
+			{
+				int b2;
+				for(b2=0;b2<nbufs;b2++)
+				{
+					if((bufs[b2].server==b)&&(bufs[b2].type==PRIVATE)&&(irc_strcasecmp(pkt.args[1], bufs[b2].bname, bufs[b].casemapping)==0))
+					{
+						char *tag=mktag("(%s away) ", pkt.args[1]);
+						add_to_buffer(b2, c_notice[1], pkt.nargs>2?pkt.args[2]:"no message set", tag);
+						free(tag);
+						break;
+					}
+				}
+				if(b2==nbufs)
+				{
+					char *tag=mktag("(%s away) ", pkt.args[1]);
+					add_to_buffer(b, c_notice[1], pkt.nargs>2?pkt.args[2]:"no message set", tag);
+					free(tag);
+				}
+			}
+		break;
+		case RPL_NOWAWAY: // 306 <dest> :You have been marked as being away
+			if(!quiet) add_to_buffer(b, c_status, pkt.nargs>1?pkt.args[1]:"You have been marked as being away", "/away: ");
+		break;
+		case RPL_UNAWAY: // 305 <dest> :You are no longer marked as being away
+			if(!quiet) add_to_buffer(b, c_status, pkt.nargs>1?pkt.args[1]:"You are no longer marked as being away", "/unaway: ");
+		break;
 		case RPL_X_LOCALUSERS: // 265 <dest> :Current Local Users: <integer>\tMax: <integer>
 		case RPL_X_GLOBALUSERS: // 266 <dest> :Current Global Users: <integer>\tMax: <integer>
 			if(pkt.nargs<2)
