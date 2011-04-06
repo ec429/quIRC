@@ -1155,26 +1155,35 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		}
 		else if(args)
 		{
+			bool no_tab=false;
 			char *dest=strtok(args, " ");
+			if(strcmp(dest, "-n")==0)
+			{
+				no_tab=true;
+				dest=strtok(NULL, " ");
+			}
 			if(!dest)
 			{
 				add_to_buffer(cbuf, c_err, "Must specify a recipient!", "/msg: ");
 				return(0);
 			}
 			char *text=strtok(NULL, "");
-			int b2=findptab(bufs[cbuf].server, dest);
-			if(b2<0)
+			if(!no_tab)
 			{
-				bufs=(buffer *)realloc(bufs, ++nbufs*sizeof(buffer));
-				init_buffer(nbufs-1, PRIVATE, dest, buflines);
-				b2=nbufs-1;
-				bufs[b2].server=bufs[cbuf].server;
-				bufs[b2].handle=bufs[bufs[b2].server].handle;
-				bufs[b2].live=true;
-				if(bufs[bufs[b2].server].nick) n_add(&bufs[b2].nlist, bufs[bufs[b2].server].nick, bufs[bufs[b2].server].casemapping);
-				n_add(&bufs[b2].nlist, dest, bufs[bufs[b2].server].casemapping);
+				int b2=findptab(bufs[cbuf].server, dest);
+				if(b2<0)
+				{
+					bufs=(buffer *)realloc(bufs, ++nbufs*sizeof(buffer));
+					init_buffer(nbufs-1, PRIVATE, dest, buflines);
+					b2=nbufs-1;
+					bufs[b2].server=bufs[cbuf].server;
+					bufs[b2].handle=bufs[bufs[b2].server].handle;
+					bufs[b2].live=true;
+					if(bufs[bufs[b2].server].nick) n_add(&bufs[b2].nlist, bufs[bufs[b2].server].nick, bufs[bufs[b2].server].casemapping);
+					n_add(&bufs[b2].nlist, dest, bufs[bufs[b2].server].casemapping);
+				}
+				cbuf=b2;
 			}
-			cbuf=b2;
 			if(text)
 			{
 				if(bufs[cbuf].handle)
@@ -1184,14 +1193,17 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 						char privmsg[12+strlen(dest)+strlen(text)];
 						sprintf(privmsg, "PRIVMSG %s :%s", dest, text);
 						irc_tx(bufs[cbuf].handle, privmsg);
-						while(text[strlen(text)-1]=='\n')
-							text[strlen(text)-1]=0; // stomp out trailing newlines, they break things
-						char *cnick=strdup(bufs[bufs[cbuf].server].nick);
-						crush(&cnick, maxnlen);
-						char *tag=mktag("<%s> ", cnick);
-						free(cnick);
-						add_to_buffer(cbuf, c_msg[0], text, tag);
-						free(tag);
+						if(!no_tab)
+						{
+							while(text[strlen(text)-1]=='\n')
+								text[strlen(text)-1]=0; // stomp out trailing newlines, they break things
+							char *cnick=strdup(bufs[bufs[cbuf].server].nick);
+							crush(&cnick, maxnlen);
+							char *tag=mktag("<%s> ", cnick);
+							free(cnick);
+							add_to_buffer(cbuf, c_msg[0], text, tag);
+							free(tag);
+						}
 					}
 					else
 					{
