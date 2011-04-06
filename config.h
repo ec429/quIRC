@@ -41,24 +41,17 @@ servlist;
 #include "buffer.h"
 
 // global settings & state
-unsigned int width, height; // term size
-unsigned int mirc_colour_compat;
-unsigned int force_redraw;
-unsigned int buflines;
-unsigned int maxnlen;
-bool full_width_colour;
-bool hilite_tabstrip;
-bool tsb; // top status bar
+#include "config_globals.h"
 bool autojoin;
 char *username, *fname, *nick, *portno;
 servlist *servs;
 name *igns;
-unsigned int tping; // ping timeout
 #ifdef HAVE_DEBUG
 unsigned int debug;
 #endif // HAVE_DEBUG
 char version[16+strlen(VERSION_TXT)];
 
+int conf_check(void); // writes diagnostics to start-buffer
 int def_config(void); // set these to their defaults
 int rcread(FILE *rcfp); // read & parse the rc file.
 signed int pargs(int argc, char *argv[]); // parse the cmdline args.  If return is >=0, main should return it also

@@ -1,0 +1,12 @@
+== spec for config description language, config.cdl ==
+
+colon-separated values, the following fields:
+	type (int or bool)
+	C name
+	default value
+	min & max value
+	rc name
+	cmdline name
+	/set name
+	/set type (S[ET], L[EVEL] or B[OOLEAN])
+	/set message (also used for comments)

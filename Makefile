@@ -18,18 +18,13 @@ uninstall:
 	rm $(PREFIX)/bin/quirc
 
 quirc: quirc.c $(LIBS) $(INCLUDE)
-	$(CC) $(CFLAGS) $(CPPFLAGS) -o quirc quirc.c $(LIBS) -lm $(DEFINES)
-
-mtrace: quirc-mtrace
-
-quirc-mtrace: quirc.c $(LIBS) $(INCLUDE)
-	$(CC) $(CFLAGS) $(CPPFLAGS) -o quirc-mtrace quirc.c $(LIBS) -lm -g -DUSE_MTRACE $(DEFINES)
+	$(CC) $(CFLAGS) $(CPPFLAGS) -o $@ $< $(LIBS) -lm $(DEFINES)
 
 clean:
 	rm *.o quirc
 
 realclean: clean
-	rm c_init.c README version.h
+	rm c_init.c README version.h config_*
 
 doc: README
 
@@ -51,9 +46,17 @@ colour.o: colour.c colour.h c_init.c ttyesc.h
 
 buffer.o: buffer.c buffer.h ttyesc.h colour.h bits.h names.h text.h irc.h config.h version.h input.h
 
-config.o: config.c config.h names.h bits.h colour.h text.h version.h
+config.o: config.c config_check.c config_def.c config_need.c config_rcread.c config_pargs.c config.h config_globals.h names.h bits.h colour.h text.h version.h
 
-input.o: input.c input.h ttyesc.h names.h buffer.h irc.h bits.h
+config_%.c: config.cdl genconfig
+	./genconfig $@ < config.cdl > $@ || (rm $@ && false)
+
+config_%.h: config.cdl genconfig
+	./genconfig $@ < config.cdl > $@ || (rm $@ && false)
+
+genconfig: genconfig.c
+
+input.o: input.c config_set.c input.h ttyesc.h names.h buffer.h irc.h bits.h
 
 names.o: names.c names.h buffer.h irc.h
 

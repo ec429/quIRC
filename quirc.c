@@ -96,6 +96,8 @@ int main(int argc, char *argv[])
 		return(e);
 	}
 	
+	conf_check();
+	
 	e=ttyraw(STDOUT_FILENO);
 	if(e)
 	{

@@ -4,5 +4,6 @@ quirc
 *.tar
 *.tar.gz
 *.tgz
+genconfig
 version.h
 version

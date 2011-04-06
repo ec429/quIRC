@@ -8,31 +8,15 @@
 
 #include "config.h"
 
+#include "config_check.c"
+
 int def_config(void)
 {
-	buflines=256;
-	mirc_colour_compat=1; // silently strip
-	force_redraw=2;
-	full_width_colour=false;
-	hilite_tabstrip=false;
-	tsb=true; // show top status bar
+#include "config_def.c"
 	autojoin=true;
 	char *cols=getenv("COLUMNS"), *rows=getenv("LINES");
 	if(cols) sscanf(cols, "%u", &width);
 	if(rows) sscanf(rows, "%u", &height);
-	if(!width) width=80;
-	if(!height) height=24;
-	if(width<30)
-	{
-		width=30;
-		printf("width set to minimum 30\n");
-	}
-	if(height<5)
-	{
-		height=5;
-		printf("height set to minimum 5\n");
-	}
-	maxnlen=16;
 	servs=NULL;
 	igns=NULL;
 	portno=strdup("6667");
@@ -41,7 +25,6 @@ int def_config(void)
 	nick=strdup("ac");
 	sprintf(fname, "quIRC %hhu.%hhu.%hhu%s%s : http://github.com/ec429/quIRC", VERSION_MAJ, VERSION_MIN, VERSION_REV, VERSION_TXT[0]?"-":"", VERSION_TXT);
 	sprintf(version, "%hhu.%hhu.%hhu%s%s", VERSION_MAJ, VERSION_MIN, VERSION_REV, VERSION_TXT[0]?"-":"", VERSION_TXT);
-	tping=30;
 	#ifdef HAVE_DEBUG
 		debug=0;
 	#endif // HAVE_DEBUG
@@ -140,7 +123,9 @@ int rcread(FILE *rcfp)
 		else
 		{
 			char *rest=strtok(NULL, "");
-			if(!rest)
+			bool need=true;
+#include "config_need.c"
+			if(need&&!rest)
 			{
 				char msg[40+strlen(cmd)];
 				sprintf(msg, "rc: Command (%s) without argument", cmd);
@@ -292,34 +277,7 @@ int rcread(FILE *rcfp)
 				new->igns=NULL;
 				servs->chans=new;
 			}
-			else if(strcmp(cmd, "mnln")==0)
-				sscanf(rest, "%u", &maxnlen);
-			else if(strcmp(cmd, "mcc")==0)
-				sscanf(rest, "%u", &mirc_colour_compat);
-			else if(strcmp(cmd, "fwc")==0)
-			{
-				unsigned int fwc;
-				sscanf(rest, "%u", &fwc);
-				full_width_colour=fwc;
-			}
-			else if(strcmp(cmd, "hts")==0)
-			{
-				unsigned int hts;
-				sscanf(rest, "%u", &hts);
-				hilite_tabstrip=hts;
-			}
-			else if(strcmp(cmd, "tsb")==0)
-			{
-				unsigned int ntsb;
-				sscanf(rest, "%u", &ntsb);
-				tsb=ntsb;
-			}
-			else if(strcmp(cmd, "fred")==0)
-				sscanf(rest, "%u", &force_redraw);
-			else if(strcmp(cmd, "buf")==0)
-				sscanf(rest, "%u", &buflines);
-			else if(strcmp(cmd, "tping")==0)
-				sscanf(rest, "%u", &tping);
+#include "config_rcread.c"
 		#ifdef HAVE_DEBUG
 			else if(strcmp(cmd, "debug")==0)
 				sscanf(rest, "%u", &debug);
@@ -352,64 +310,6 @@ signed int pargs(int argc, char *argv[])
 		{
 			fprintf(stderr, VERSION_MSG);
 			return(0);
-		}
-		else if(strncmp(argv[arg], "--width=", 8)==0) // just in case you need to force them
-		{
-			sscanf(argv[arg]+8, "%u", &width);
-			if(width<30)
-			{
-				width=30;
-				asb_failsafe(c_status, "pargs: width set to minimum 30");
-			}
-		}
-		else if(strncmp(argv[arg], "--height=", 9)==0)
-		{
-			sscanf(argv[arg]+9, "%u", &height);
-			if(height<5)
-			{
-				height=5;
-				asb_failsafe(c_status, "pargs: height set to minimum 5");
-			}
-		}
-		else if(strncmp(argv[arg], "--maxnicklen=", 13)==0)
-		{
-			sscanf(argv[arg]+13, "%u", &maxnlen);
-		}
-		else if(strncmp(argv[arg], "--mcc=", 6)==0)
-		{
-			sscanf(argv[arg]+6, "%u", &mirc_colour_compat);
-		}
-		else if(strcmp(argv[arg], "--fwc")==0)
-		{
-			full_width_colour=true;
-		}
-		else if(strcmp(argv[arg], "--no-fwc")==0)
-		{
-			full_width_colour=false;
-		}
-		else if(strcmp(argv[arg], "--hts")==0)
-		{
-			hilite_tabstrip=true;
-		}
-		else if(strcmp(argv[arg], "--no-hts")==0)
-		{
-			hilite_tabstrip=false;
-		}
-		else if(strcmp(argv[arg], "--tsb")==0)
-		{
-			tsb=true;
-		}
-		else if(strcmp(argv[arg], "--no-tsb")==0)
-		{
-			tsb=false;
-		}
-		else if(strncmp(argv[arg], "--force-redraw=", 15)==0)
-		{
-			sscanf(argv[arg]+15, "%u", &force_redraw);
-		}
-		else if(strncmp(argv[arg], "--buf-lines=", 12)==0)
-		{
-			sscanf(argv[arg]+12, "%u", &buflines);
 		}
 		else if((strcmp(argv[arg], "--no-server")==0)||(strcmp(argv[arg], "--no-auto-connect")==0)) // the "-auto" forms are from older versions; depr
 		{
@@ -467,14 +367,13 @@ signed int pargs(int argc, char *argv[])
 			new->igns=NULL;
 			servs->chans=new;
 		}
-		else if(strncmp(argv[arg], "--tping=", 8)==0)
-			sscanf(argv[arg]+8, "%u", &tping);
 	#ifdef HAVE_DEBUG
 		else if(strncmp(argv[arg], "--debug=", 8)==0)
 			sscanf(argv[arg]+8, "%u", &debug);
 		else if(strcmp(argv[arg], "--debug")==0)
 			debug=1;
 	#endif // HAVE_DEBUG
+#include "config_pargs.c"
 		else
 		{
 			char msg[40+strlen(argv[arg])];

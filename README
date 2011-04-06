@@ -134,14 +134,16 @@ buf buf-lines
 the default being 256. Larger values will, of course, increase memory
 consumption.
 You can turn on a few display options too;
-fwc 1
-hts 1
-tsb 1
+fwc
+hts
+tsb
 will turn on Full-Width-Colour (makes coloured backgrounds for lines (eg. /me)
 run all the way across the terminal), Highlight-Tab-Strip (gives the tab strip
 a magenta background, to make it more visible) and Top-Status-Bar (uses the top
-line of the terminal for some status information). To turn them off replace the
-1 with a 0. By default fwc and hts are turned off; tsb is turned on.
+line of the terminal for some status information). To turn them off prefix them
+with no-, like
+no-hts
+By default fwc and hts are turned off; tsb is turned on.
 These settings and others can be overridden at runtime with commandline
 options. For details run &quot;quirc --help&quot;.
 You can also customise the colours quIRC uses. A custom colour line starts with
