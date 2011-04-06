@@ -12,8 +12,6 @@ Fix possible issue with CTCP.  Funny stuff (including random characters) happene
 
 Proper handling of Unicode in character-based things like cursor-movement, backspace.
 
-Automate config handling.  Generated code?
-
 /dump command.  Pipes a screendump (or better still, unprocessed text) into program of choice.
 
 Fix issue with line that just reaches the RHS causing a line break.
