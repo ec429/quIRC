@@ -5,10 +5,10 @@
 	force_redraw=2;
 	buflines=256;
 	maxnlen=16;
-	full_width_colour=-1;
-	hilite_tabstrip=-1;
-	tsb=-1;
+	full_width_colour=0;
+	hilite_tabstrip=0;
+	tsb=1;
 	tping=30;
 	ts=1;
-	utc=-1;
-	quiet=-1;
+	utc=0;
+	quiet=0;

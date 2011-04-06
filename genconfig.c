@@ -121,7 +121,20 @@ int main(int argc, char **argv)
 			}
 			strncpy(value, p, tocolon);
 			value[tocolon]=0;
-			if(!sscanf(value, "%d", &ents[nent].value)) ents[nent].value=-1;
+			switch(ents[nent].type)
+			{
+				case INT:
+					if(!sscanf(value, "%d", &ents[nent].value)) ents[nent].value=-1;
+				break;
+				case BOOL:
+					if(strcmp(value, "true")==0)
+						ents[nent].value=1;
+					else if(strcmp(value, "false")==0)
+						ents[nent].value=0;
+					else if(!sscanf(value, "%d", &ents[nent].value))
+						ents[nent].value=1; // default to true
+				break;
+			}
 			free(value);
 			p+=tocolon;
 		}

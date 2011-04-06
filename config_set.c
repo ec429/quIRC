@@ -162,7 +162,7 @@
 						full_width_colour=value;
 					}
 					else
-						full_width_colour=-1;
+						full_width_colour=0;
 					if(!quiet)
 					{
 						if(full_width_colour)
@@ -193,7 +193,7 @@
 						hilite_tabstrip=value;
 					}
 					else
-						hilite_tabstrip=-1;
+						hilite_tabstrip=0;
 					if(!quiet)
 					{
 						if(hilite_tabstrip)
@@ -224,7 +224,7 @@
 						tsb=value;
 					}
 					else
-						tsb=-1;
+						tsb=1;
 					if(!quiet)
 					{
 						if(tsb)
@@ -311,7 +311,7 @@
 						utc=value;
 					}
 					else
-						utc=-1;
+						utc=0;
 					if(!quiet)
 					{
 						if(utc)
@@ -342,7 +342,7 @@
 						quiet=value;
 					}
 					else
-						quiet=-1;
+						quiet=0;
 					if(!quiet)
 					{
 						if(quiet)
