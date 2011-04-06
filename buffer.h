@@ -27,7 +27,6 @@
 #include "text.h"
 #include "version.h"
 
-#define PBUFSIZ	128		// size of processed-text buffer, in physical lines.  can be adjusted for optimisation
 #define LIVE(buf)	(bufs[buf].live && bufs[bufs[buf].server].live)	// Check liveness
 
 typedef enum
@@ -52,19 +51,16 @@ typedef struct _buf
 	char *topic; // used for CHANNELs
 	int nlines; // number of lines allocated
 	int ptr; // pointer to current unproc line
-	int start; // unproc line of current pstart
-	int astart; // physical line within [start] (0 is last, 1 is penultimate etc)
-	int scroll; // unproc line of screen bottom
+	int scroll; // unproc line of screen bottom (which is one physical line below the last displayed text)
 	int ascroll; // physical line within [scroll]
 	colour *lc; // array of colours for lines
 	char **lt; // array of (unprocessed) text for lines
 	char **ltag; // array of (unprocessed) tag text for lines
 	time_t *ts; // array of timestamps for unproc lines (not used now, but there ready for eg. mergebuffers)
 	bool filled; // buffer has filled up and looped? (the buffers are circular in nature)
-	char *lpt[PBUFSIZ]; // array of processed lines; offsets don't necessarily match the unprocessed arrays'.  unfilled-ness denoted by NULLs
-	int pstart; // lpt index of start of lpt buffer
-	int pscrbot; // lpt index of screen bottom in lpt buffer
-	bool rendered; // is proc text up-to-date?
+	bool dirty; // processed lines are out of date? (TODO: make this indicate /which/ are out of date and only re-render those)
+	int *lpl; // count of processed lines for each line
+	char ***lpt; // array of processed lines for each line
 	bool alert; // tab has new messages?
 	int hi_alert; // high-level alert status: 0 = none; 1: on (if alert then flashing else single flash); 2: off (flashing)
 	int ping; // ping/idleness status (SERVER)
@@ -82,7 +78,6 @@ buffer;
 int nbufs;
 int cbuf;
 buffer *bufs;
-int exdata,exdatb,exdatc,exdatd;
 
 struct
 {

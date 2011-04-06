@@ -21,13 +21,10 @@ char * fgetl(FILE *fp)
 
 int wordline(const char *msg, unsigned int x, char **out, int *l, int *i, colour lc)
 {
+	if(!msg) return(x);
 	unsigned int tabx=x;
-	if((!tabx) || (tabx*2>width))
-	{
+	if(tabx*2>width)
 		tabx=8;
-		while(x++<tabx)
-			append_char(out, l, i, ' ');
-	}
 	int l2,i2;
 	char *word;
 	const char *ptr=msg;

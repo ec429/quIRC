@@ -7,8 +7,8 @@
 	ttyesc: ANSI Terminal Escape Sequences
 */
 
-#define CLS			"\033[2J"		// You might recognise these two names...
-#define LOCATE		"\033[%d;%dH"	// as being very similar to some basic keywords... :p
+#define CLS			"\033[2J"		// CLear Screen
+#define LOCATE		"\033[%d;%dH"	// Set cursor position (y,x)
 #define CLR			"\033[K"		// CLear Line to right
 #define CLA			"\033[2K"		// Clear Line All
 #define SAVEPOS		"\033[s"		// Save cursor position

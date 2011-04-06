@@ -153,16 +153,40 @@ int inputchar(iline *inp, int *state)
 			switch(d)
 			{
 				case 'A': // ^[[A
-				case 'B': // ^[[B
+				case 'B':; // ^[[B
+					bool gone=false;
 					if(d=='A') // Up
 					{
+						int old=bufs[cbuf].input.scroll;
 						bufs[cbuf].input.scroll=min(bufs[cbuf].input.scroll+1, bufs[cbuf].input.filled?bufs[cbuf].input.nlines-1:bufs[cbuf].input.ptr);
+						if(old!=bufs[cbuf].input.scroll) gone=true;
+						if(gone&&!old)
+						{
+							if(inp->left.i||inp->right.i)
+							{
+								char out[inp->left.i+inp->right.i+1];
+								sprintf(out, "%s%s", inp->left.data?inp->left.data:"", inp->right.data?inp->right.data:"");
+								addtoibuf(&bufs[cbuf].input, out);
+								bufs[cbuf].input.scroll=2;
+							}
+						}
 					}
 					else // d=='B' // Down
 					{
+						gone=true;
+						if(!bufs[cbuf].input.scroll)
+						{
+							if(inp->left.i||inp->right.i)
+							{
+								char out[inp->left.i+inp->right.i+1];
+								sprintf(out, "%s%s", inp->left.data?inp->left.data:"", inp->right.data?inp->right.data:"");
+								addtoibuf(&bufs[cbuf].input, out);
+								bufs[cbuf].input.scroll=0;
+							}
+						}
 						bufs[cbuf].input.scroll=max(bufs[cbuf].input.scroll-1, 0);
 					}
-					if(bufs[cbuf].input.ptr||bufs[cbuf].input.filled)
+					if(gone&&(bufs[cbuf].input.ptr||bufs[cbuf].input.filled))
 					{
 						if(bufs[cbuf].input.scroll)
 						{
@@ -244,30 +268,51 @@ int inputchar(iline *inp, int *state)
 								{
 									if(d=='5') // C-PgUp
 									{
-										//bufs[cbuf].scroll=min(bufs[cbuf].scroll+(signed)height-3, bufs[cbuf].filled?bufs[cbuf].nlines-1:bufs[cbuf].ptr-1);
+										bufs[cbuf].ascroll-=height-(tsb?3:2);
 										redraw_buffer();
 									}
 									else // d=='6' // C-PgDn
 									{
-										if(bufs[cbuf].scroll)
-										{
-											//bufs[cbuf].scroll=max(bufs[cbuf].scroll-(height-3), 0);
-											redraw_buffer();
-										}
+										bufs[cbuf].ascroll+=height-(tsb?3:2);
+										redraw_buffer();
 									}
 								}
 							}
 						break;
-						case '~':
+						case '~':;
+							bool gone=false;
 							if(d=='5') // PgUp
 							{
-								bufs[cbuf].input.scroll=min(bufs[cbuf].input.scroll+(signed)height, bufs[cbuf].input.filled?bufs[cbuf].input.nlines-1:bufs[cbuf].input.ptr);
+								int old=bufs[cbuf].input.scroll;
+								bufs[cbuf].input.scroll=min(bufs[cbuf].input.scroll+10, bufs[cbuf].input.filled?bufs[cbuf].input.nlines-1:bufs[cbuf].input.ptr);
+								if(old!=bufs[cbuf].input.scroll) gone=true;
+								if(gone&&!old)
+								{
+									if(inp->left.i||inp->right.i)
+									{
+										char out[inp->left.i+inp->right.i+1];
+										sprintf(out, "%s%s", inp->left.data?inp->left.data:"", inp->right.data?inp->right.data:"");
+										addtoibuf(&bufs[cbuf].input, out);
+										bufs[cbuf].input.scroll=2;
+									}
+								}
 							}
 							else // d=='6' // PgDn
 							{
-								bufs[cbuf].input.scroll=max(bufs[cbuf].input.scroll-height, 0);
+								gone=true;
+								if(!bufs[cbuf].input.scroll)
+								{
+									if(inp->left.i||inp->right.i)
+									{
+										char out[inp->left.i+inp->right.i+1];
+										sprintf(out, "%s%s", inp->left.data?inp->left.data:"", inp->right.data?inp->right.data:"");
+										addtoibuf(&bufs[cbuf].input, out);
+										bufs[cbuf].input.scroll=0;
+									}
+								}
+								bufs[cbuf].input.scroll=max(bufs[cbuf].input.scroll-10, 0);
 							}
-							if(bufs[cbuf].input.ptr||bufs[cbuf].input.filled)
+							if(gone&&(bufs[cbuf].input.ptr||bufs[cbuf].input.filled))
 							{
 								if(bufs[cbuf].input.scroll)
 								{
@@ -303,27 +348,21 @@ int inputchar(iline *inp, int *state)
 									redraw_buffer();
 								break;
 								case 'A': // C-up
-									bufs[cbuf].ascroll++;bufs[cbuf].rendered=false; // TODO: intelligent scrolling so we don't have to fully re-render each time
+									bufs[cbuf].ascroll--;
 									redraw_buffer();
 								break;
 								case 'B': // C-down
-									bufs[cbuf].ascroll--;bufs[cbuf].rendered=false; // TODO: intelligent scrolling so we don't have to fully re-render each time
-									if(bufs[cbuf].ascroll<0) // scroll is from bottom
-									{
-										if(bufs[cbuf].scroll==bufs[cbuf].ptr)
-											bufs[cbuf].ascroll=0; // we were already at bottom
-									}
+									bufs[cbuf].ascroll++;
 									redraw_buffer();
 								break;
 								case 'F': // C-end
-									if(bufs[cbuf].scroll)
-									{
-										//bufs[cbuf].scroll=0;
-										redraw_buffer();
-									}
+									bufs[cbuf].scroll=bufs[cbuf].ptr;
+									bufs[cbuf].ascroll=0;
+									redraw_buffer();
 								break;
 								case 'H': // C-home
-									//bufs[cbuf].scroll=bufs[cbuf].filled?bufs[cbuf].nlines-1:bufs[cbuf].ptr-1;
+									bufs[cbuf].scroll=bufs[cbuf].filled?(bufs[cbuf].ptr+1)%bufs[cbuf].nlines:0;
+									bufs[cbuf].ascroll=0;
 									redraw_buffer();
 								break;
 							}

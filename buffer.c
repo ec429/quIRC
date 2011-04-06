@@ -82,7 +82,7 @@ int free_start_buffer(void)
 
 int initialise_buffers(int buflines)
 {
-	bufs=(buffer *)malloc(sizeof(buffer));
+	bufs=malloc(sizeof(buffer));
 	if(!bufs)
 		return(1);
 	init_buffer(0, STATUS, "status", buflines); // buf 0 is always STATUS
@@ -91,10 +91,7 @@ int initialise_buffers(int buflines)
 	bufs[0].live=true; // STATUS is never dead
 	bufs[0].nick=nick;
 	bufs[0].ilist=igns;
-	add_to_buffer(0, c_status, "Copyright (C) 2010 Edward Cree", "quirc -- ");
-	add_to_buffer(0, c_status, "This program comes with ABSOLUTELY NO WARRANTY.", "");
-	add_to_buffer(0, c_status, "This is free software, and you are welcome to redistribute it under certain conditions.  (GNU GPL v3+)", "");
-	add_to_buffer(0, c_status, "For further details, see the file 'COPYING' in the quirc directory.", "");
+	add_to_buffer(0, c_status, "Copyright (C) 2010 Edward Cree\nThis program comes with ABSOLUTELY NO WARRANTY.\nThis is free software, and you are welcome to redistribute it under certain conditions.  (GNU GPL v3+)\nFor further details, see the file 'COPYING' in the quirc directory.", "quirc -- ");
 	return(0);
 }
 
@@ -110,41 +107,30 @@ int init_buffer(int buf, btype type, char *bname, int nlines)
 	bufs[buf].nick=NULL;
 	bufs[buf].topic=NULL;
 	bufs[buf].nlines=nlines;
-	/*int nlines; // number of lines allocated
-	int ptr; // pointer to current unproc line
-	int scroll; // unproc line of current pscrbot (distance up from ptr)
-	int ascroll; // proc line (lpt offset) of start of [scroll]
-	colour *lc; // array of colours for lines
-	char **lt; // array of (unprocessed) text for lines
-	char **ltag; // array of (unprocessed) tag text for lines
-	time_t *ts; // array of timestamps for unproc lines (not used now, but there ready for eg. mergebuffers)
-	bool filled; // buffer has filled up and looped? (the buffers are circular in nature)
-	char *lpt[128]; // array of processed lines; offsets don't necessarily match the unprocessed arrays'.  size = height * 2.  unfilled-ness denoted by NULLs
-	int pstart; // lpt index of start of lpt buffer
-	int pscrbot; // lpt index of screen bottom in lpt buffer*/
 	bufs[buf].ptr=0;
 	bufs[buf].scroll=0;
 	bufs[buf].ascroll=0;
-	bufs[buf].lc=(colour *)malloc(sizeof(colour[nlines]));
-	bufs[buf].lt=(char **)malloc(sizeof(char *[nlines]));
+	bufs[buf].lc=malloc(nlines*sizeof(colour));
+	bufs[buf].lt=malloc(nlines*sizeof(char *));
 	int i;
 	for(i=0;i<bufs[buf].nlines;i++)
 	{
 		bufs[buf].lt[i]=NULL;
 	}
-	bufs[buf].ltag=(char **)malloc(sizeof(char *[nlines]));
+	bufs[buf].ltag=malloc(nlines*sizeof(char *));
 	for(i=0;i<bufs[buf].nlines;i++)
 	{
 		bufs[buf].ltag[i]=NULL;
 	}
-	for(i=0;i<128;i++)
+	bufs[buf].lpl=malloc(nlines*sizeof(int));
+	bufs[buf].lpt=malloc(nlines*sizeof(char **));
+	for(i=0;i<nlines;i++)
 	{
+		bufs[buf].lpl[i]=0;
 		bufs[buf].lpt[i]=NULL;
 	}
-	bufs[buf].pstart=0;
-	bufs[buf].pscrbot=0;
-	bufs[buf].rendered=true;
-	bufs[buf].ts=(time_t *)malloc(sizeof(time_t[nlines]));
+	bufs[buf].dirty=false;
+	bufs[buf].ts=malloc(nlines*sizeof(time_t));
 	bufs[buf].filled=false;
 	bufs[buf].alert=false;
 	bufs[buf].hi_alert=0;
@@ -190,8 +176,26 @@ int free_buffer(int buf)
 				if(bufs[buf].ltag[l]) free(bufs[buf].ltag[l]);
 			free(bufs[buf].ltag);
 		}
-		for(l=0;l<PBUFSIZ;l++)
-			if(bufs[buf].lpt[l]) free(bufs[buf].lpt[l]);
+		if(bufs[buf].lpt)
+		{
+			for(l=0;l<bufs[buf].nlines;l++)
+			{
+				if(bufs[buf].lpt[l])
+				{
+					if(bufs[buf].lpl)
+					{
+						int p;
+						for(p=0;p<bufs[buf].lpl[l];p++)
+						{
+							if(bufs[buf].lpt[l][p]) free(bufs[buf].lpt[l][p]);
+						}
+					}
+					free(bufs[buf].lpt[l]);
+				}
+			}
+			free(bufs[buf].lpt);
+		}
+		if(bufs[buf].lpl) free(bufs[buf].lpl);
 		if(bufs[buf].ts) free(bufs[buf].ts);
 		freeibuf(&bufs[buf].input);
 		if(cbuf>=buf)
@@ -244,7 +248,7 @@ int add_to_buffer(int buf, colour lc, char *lt, char *ltag)
 	}
 	if(bufs[buf].ptr==0)
 		bufs[buf].filled=true;
-	bufs[buf].rendered=false; // mark tab dirty; TODO be more intelligent about avoiding full re-renders
+	bufs[buf].dirty=true; // mark tab dirty; TODO be more intelligent about avoiding full re-renders
 	if(buf==cbuf)
 	{
 		int e=redraw_buffer();
@@ -259,26 +263,78 @@ int add_to_buffer(int buf, colour lc, char *lt, char *ltag)
 
 int redraw_buffer(void)
 {
-	if(!bufs[cbuf].rendered)
+	if(bufs[cbuf].dirty)
 	{
 		int e=render_buffer(cbuf);
 		if(e) return(e);
-		if(!bufs[cbuf].rendered) return(1);
+		if(bufs[cbuf].dirty) return(1);
 	}
-	int sl=(bufs[cbuf].pscrbot+(tsb?4:3)+PBUFSIZ-height)%PBUFSIZ;
-	int dis=0; // disorder
-	if(bufs[cbuf].pstart>sl) dis++;
-	if(sl>bufs[cbuf].pscrbot) dis++;
-	if(bufs[cbuf].pscrbot>=bufs[cbuf].pstart) dis++;
-	if(dis==2)
-		sl=bufs[cbuf].pstart;
-	printf(CLS LOCATE, height-((bufs[cbuf].pscrbot+PBUFSIZ-sl)%PBUFSIZ)-2, 1);
-	int l;
-	for(l=sl;l!=bufs[cbuf].pscrbot;l=(l+1)%PBUFSIZ)
+	printf(CLS);
+	int uline=bufs[cbuf].scroll;
+	int pline=bufs[cbuf].ascroll;
+	while(pline<0)
 	{
-		printf("%s", bufs[cbuf].lpt[l]);
+		uline--;
+		if(uline<0)
+		{
+			if(bufs[cbuf].filled)
+				uline+=bufs[cbuf].nlines;
+			else
+			{
+				uline=0;
+				pline=0;
+				break;
+			}
+		}
+		pline+=bufs[cbuf].lpl[uline];
 	}
-	printf("%d:%d (%d), %d;%d;%d;%d" CLR "\n", bufs[cbuf].scroll, bufs[cbuf].ascroll, bufs[cbuf].ptr, exdata, exdatb, exdatc, exdatd);
+	while(pline>bufs[cbuf].lpl[uline])
+	{
+		pline-=bufs[cbuf].lpl[uline];
+		if(bufs[cbuf].filled)
+		{
+			uline=(uline+1)%bufs[cbuf].nlines;
+		}
+		else
+		{
+			if(uline>=bufs[cbuf].ptr)
+			{
+				uline=bufs[cbuf].ptr;
+				pline=0;
+				break;
+			}
+			uline++;
+		}
+	}
+	bufs[cbuf].scroll=uline;
+	bufs[cbuf].ascroll=pline;
+	setcolour(bufs[cbuf].lc[uline]);
+	int row=height-2;
+	while(row>=(tsb?1:0))
+	{
+		pline--;
+		while(pline<0)
+		{
+			uline--;
+			if(uline<0)
+			{
+				if(bufs[cbuf].filled)
+					uline+=bufs[cbuf].nlines;
+				else
+				{
+					row=-1;
+					break;
+				}
+			}
+			setcolour(bufs[cbuf].lc[uline]);
+			pline+=bufs[cbuf].lpl[uline];
+		}
+		if(row<0) break;
+		printf(LOCATE "%.*s\n", row, 0, width-2, bufs[cbuf].lpt[uline][pline]);
+		row--;
+	}
+	while(row>=(tsb?1:0))
+		printf(LOCATE CLR, row--, 0);
 	switch(bufs[cbuf].type)
 	{
 		case STATUS:
@@ -315,190 +371,42 @@ int redraw_buffer(void)
 	return(0);
 }
 
-int render_buffer(int buf) // TODO: Fix this XXX XXX may have to rewrite it from scratch XXX XXX
+int render_buffer(int buf)
 {
-	exdata=0;
-	start_render:
-	if(bufs[buf].rendered)
-		return(0); // nothing to do
-	int l=bufs[buf].start;
-	int pl;
-	for(pl=0;pl<PBUFSIZ;pl++)
+	if(!bufs[buf].dirty) return(0); // nothing to do...
+	int uline;
+	for(uline=0;uline<bufs[buf].nlines;uline++)
 	{
-		if(bufs[buf].lpt[pl]) free(bufs[buf].lpt[pl]); 
-		bufs[buf].lpt[pl]=NULL;
+		if(bufs[buf].lpt[uline])
+		{
+			int pline;
+			for(pline=0;pline<bufs[buf].lpl[uline];pline++)
+				if(bufs[buf].lpt[uline][pline]) free(bufs[buf].lpt[uline][pline]);
+			free(bufs[buf].lpt[uline]);
+		}
+		char *proc;int l,i;
+		init_char(&proc, &l, &i);
+		int x=wordline(bufs[buf].ltag[uline], 0, &proc, &l, &i, bufs[buf].lc[uline]);
+		wordline(bufs[buf].lt[uline], x, &proc, &l, &i, bufs[buf].lc[uline]);
+		bufs[buf].lpl[uline]=0;
+		bufs[buf].lpt[uline]=NULL;
+		char *curr=strtok(proc, "\n");
+		while(curr)
+		{
+			int pline=bufs[buf].lpl[uline]++;
+			char **nlpt=realloc(bufs[buf].lpt[uline], bufs[buf].lpl[uline]*sizeof(char *));
+			if(!nlpt)
+			{
+				add_to_buffer(0, c_err, "realloc failed; buffer may be corrupted", "render_buffer: ");
+				free(proc);
+				return(1);
+			}
+			(bufs[buf].lpt[uline]=nlpt)[pline]=strdup(curr);
+			curr=strtok(NULL, "\n");
+		}
+		free(proc);
 	}
-	pl=0;
-	int apl=0;
-	bool bot=false; // passed screen bottom (scroll and ascroll)?
-	int as=bufs[buf].astart;
-	char *curline=NULL, *last=NULL, *n=NULL;
-	bool filled=false;
-	int overfill=0;
-	while(!(bot && (((bufs[buf].pscrbot-(signed)height-(overfill%PBUFSIZ)+2*PBUFSIZ)%PBUFSIZ)>((pl-bufs[buf].pscrbot+PBUFSIZ)%PBUFSIZ))))
-	{
-		if(!curline)
-		{
-			if(last) free(last); last=NULL;
-			int ci,cl;
-			init_char(&curline, &cl, &ci);
-			s_setcolour(bufs[buf].lc[l], &curline, &cl, &ci);
-			append_str(&curline, &cl, &ci, bufs[buf].ltag[l]);
-			wordline(bufs[buf].lt[l], strlen(bufs[buf].ltag[l]), &curline, &cl, &ci, bufs[buf].lc[l]);
-			if(full_width_colour)
-			{
-				append_str(&curline, &cl, &ci, CLR);
-				s_resetcol(&curline, &cl, &ci);
-			}
-			else
-			{
-				s_resetcol(&curline, &cl, &ci);
-				append_str(&curline, &cl, &ci, CLR);
-			}
-			append_char(&curline, &cl, &ci, '\n');
-			n=strchr(curline, '\n');
-			last=curline;
-			apl=0;
-		}
-		if(n&&!*n) n=NULL;
-		char oldc;
-		if(n)
-		{
-			oldc=*++n;
-			*n=0;
-		}
-		if(as)
-		{
-			as--;
-		}
-		else if(*curline)
-		{
-			bufs[buf].lpt[pl]=strdup(curline);
-			pl=(pl+1)%PBUFSIZ;
-			if(filled)
-			{
-				overfill++;
-			}
-			else
-			{
-				if(!pl)
-					filled=true;
-			}
-			apl++;
-		}
-		if(n)
-		{
-			*n=oldc;
-			curline=n;
-			n=strchr(curline, '\n');
-		}
-		else
-		{
-			curline=NULL;
-			if(as)
-			{
-				bufs[buf].astart=as;bufs[buf].start++;
-			}
-			if(l>=bufs[buf].scroll-1)
-			{
-				if(bot)
-				{
-					exdata=256;
-					exdatb=bufs[buf].ascroll;
-					exdatc=apl;
-					if(bufs[buf].ascroll<0)
-					{
-						if(bufs[buf].scroll==bufs[buf].ptr)
-						{
-							bufs[buf].ascroll=0;
-						}
-						else
-						{
-							bufs[buf].ascroll+=apl;
-							bufs[buf].scroll=(bufs[buf].scroll+1)%bufs[buf].nlines;
-						}
-					}
-				}
-				else
-				{
-					bot=true;
-					if(bufs[buf].ascroll>=apl)
-					{
-						exdata=128;
-						exdatb=bufs[buf].ascroll;
-						exdatc=apl;
-						bufs[buf].ascroll-=apl;
-						bufs[buf].scroll--;
-						if(bufs[buf].scroll==(bufs[buf].filled?bufs[buf].ptr:-1))
-						{
-							bufs[buf].scroll++;
-							bufs[buf].ascroll=apl;
-							bufs[buf].pscrbot=0;
-						}
-						else
-						{
-							bufs[buf].scroll=(bufs[buf].scroll+bufs[buf].nlines)%bufs[buf].nlines;
-							exdata=255;
-							goto start_render;
-						}
-					}
-					else
-					{
-						exdata=192+bufs[buf].scroll;
-						exdatb=bufs[buf].ascroll;
-						exdatc=apl;
-						if((bufs[buf].ascroll<0)&&(bufs[buf].scroll==bufs[buf].ptr))
-						{
-							bufs[buf].ascroll=0;
-						}
-						bufs[buf].pscrbot=pl-bufs[buf].ascroll;
-					}
-				}
-			}
-			l=(l+1)%bufs[buf].nlines;
-			if(l==bufs[buf].ptr)
-			{
-				exdatd=bot?64:0;
-				if(!bot)
-				{
-					exdata=64+apl;
-					exdatb=bufs[buf].ascroll;
-					exdatc=bufs[buf].scroll;
-					if(l>=bufs[buf].scroll-1)
-					{
-						bufs[buf].pscrbot=pl-bufs[buf].ascroll;
-						if(bufs[buf].ascroll>=apl)
-						{
-							bufs[buf].scroll--;
-							bufs[buf].ascroll-=apl;
-							goto start_render;
-						}
-					}
-					else
-					{
-						bufs[buf].pscrbot=pl;
-						bufs[buf].scroll=l;
-						bufs[buf].ascroll=0;
-					}
-				}
-				break;
-			}
-		}
-	}
-	if(filled)
-	{
-		bufs[buf].pstart=(pl+1)%PBUFSIZ;
-		if(overfill)
-		{
-			bufs[buf].astart+=overfill; // so at least it'll be less wasteful next time
-		}
-	}
-	else
-	{
-		bufs[buf].pstart=0;
-	}
-	if(last) free(last); last=NULL;
-	bufs[buf].rendered=true;
+	bufs[buf].dirty=false; // mark it clean
 	return(0);
 }
 
@@ -748,24 +656,25 @@ int push_buffer(void)
 {
 	if(!bufs || transfer_start_buffer())
 	{
-		add_to_buffer(0, c_err, "Failed to transfer start_buffer", "init[xsb]: ");
+		if(bufs) add_to_buffer(0, c_err, "Failed to transfer start_buffer", "init[xsb]: ");
 		int i;
 		for(i=0;i<s_buf.nlines;i++)
 		{
 			fprintf(stderr, "init[xsb]: %s\n", s_buf.lt[i]);
 		}
-		char msg[32];
-		sprintf(msg, "%d messages written to stderr", s_buf.nlines);
-		add_to_buffer(0, c_status, msg, "init[xsb]: ");
+		if(bufs)
+		{
+			char msg[32];
+			sprintf(msg, "%d messages written to stderr", s_buf.nlines);
+			add_to_buffer(0, c_status, msg, "init[xsb]: ");
+		}
 	}
-	
-	if(s_buf.errs)
+	if(bufs&&s_buf.errs)
 	{
 		char msg[80];
 		sprintf(msg, "%d messages were written to stderr due to start_buffer errors", s_buf.errs);
 		add_to_buffer(0, c_err, msg, "init[errs]: ");
 	}
-	
 	return(free_start_buffer());
 }
 
