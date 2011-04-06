@@ -65,7 +65,6 @@ int main(int argc, char *argv[])
 		push_buffer();
 		return(1);
 	}
-	settitle("quIRC - not connected");
 	resetcol();
 	char *qmsg=fname;
 	char *rcfile=".quirc";

@@ -106,8 +106,6 @@ int irc_conn_rest(int b, char *nick, char *username, char *fullname)
 int autoconnect(fd_set *master, int *fdmax, servlist *serv)
 {
 	char cstr[36+strlen(serv->name)+strlen(serv->portno)];
-	sprintf(cstr, "quIRC - connecting to %s", serv->name);
-	settitle(cstr);
 	sprintf(cstr, "Connecting to %s on port %s...", serv->name, serv->portno);
 	if(!quiet) add_to_buffer(0, c_status, cstr, "auto: ");
 	int serverhandle=irc_connect(serv->name, serv->portno, master, fdmax);
@@ -124,8 +122,6 @@ int autoconnect(fd_set *master, int *fdmax, servlist *serv)
 		bufs[cbuf].conninpr=true;
 		if(!quiet) add_to_buffer(cbuf, c_status, cstr, "auto: ");
 		if(force_redraw<3) redraw_buffer();
-		sprintf(cstr, "quIRC - connecting to %s", serv->name);
-		settitle(cstr);
 	}
 	return(serverhandle);
 }
@@ -1063,9 +1059,6 @@ int rx_join(message pkt, int b)
 	{
 		char dstr[20+strlen(src)+strlen(pkt.args[0])];
 		sprintf(dstr, "You (%s) have joined %s", src, pkt.args[0]);
-		char cstr[16+strlen(src)+strlen(pkt.args[0])];
-		sprintf(cstr, "quIRC - %s on %s", src, pkt.args[0]);
-		settitle(cstr);
 		int b2;
 		for(b2=1;b2<nbufs;b2++)
 		{
@@ -1135,10 +1128,7 @@ int rx_part(message pkt, int b)
 				if(b2==cbuf)
 				{
 					cbuf=b;
-					char cstr[24+strlen(bufs[b].bname)];
 					if(force_redraw<3) redraw_buffer();
-					sprintf(cstr, "quIRC - connected to %s", bufs[b].bname);
-					settitle(cstr);
 				}
 				bufs[b2].live=false;
 				free_buffer(b2);

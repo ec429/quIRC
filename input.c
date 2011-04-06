@@ -623,9 +623,6 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 			}
 			if(b>=nbufs)
 			{
-				char cstr[24+strlen(server)];
-				sprintf(cstr, "quIRC - connecting to %s", server);
-				settitle(cstr);
 				char dstr[30+strlen(server)+strlen(newport)];
 				sprintf(dstr, "Connecting to %s on port %s...", server, newport);
 				int serverhandle=irc_connect(server, newport, master, fdmax);
@@ -640,8 +637,6 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					bufs[cbuf].conninpr=true;
 					if(!quiet) add_to_buffer(cbuf, c_status, dstr, "/server: ");
 					if(force_redraw<3) redraw_buffer();
-					sprintf(cstr, "quIRC - connected to %s", server);
-					settitle(cstr);
 				}
 			}
 		}
@@ -670,9 +665,6 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 				{
 					newport=portno;
 				}
-				char cstr[24+strlen(bufs[bufs[cbuf].server].bname)];
-				sprintf(cstr, "quIRC - connecting to %s", bufs[bufs[cbuf].server].bname);
-				settitle(cstr);
 				char dstr[30+strlen(bufs[bufs[cbuf].server].bname)+strlen(newport)];
 				sprintf(dstr, "Connecting to %s on port %s...", bufs[bufs[cbuf].server].bname, newport);
 				int serverhandle=irc_connect(bufs[bufs[cbuf].server].bname, newport, master, fdmax);
@@ -690,8 +682,6 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					if(bufs[cbuf].realsname) free(bufs[cbuf].realsname);
 					bufs[cbuf].realsname=NULL;
 					if(!quiet) add_to_buffer(cbuf, c_status, dstr, "/server: ");
-					sprintf(cstr, "quIRC - connected to %s", bufs[bufs[cbuf].server].bname);
-					settitle(cstr);
 				}
 			}
 			else
@@ -838,9 +828,6 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 			free_buffer(cbuf);
 			cbuf=parent;
 			redraw_buffer();
-			char cstr[24+strlen(bufs[cbuf].bname)];
-			sprintf(cstr, "quIRC - connected to %s", bufs[cbuf].bname);
-			settitle(cstr);
 		}
 		return(0);
 	}
