@@ -16,7 +16,7 @@ Automate config handling.  Generated code?
 
 /dump command.  Pipes a screendump (or better still, unprocessed text) into program of choice.
 
-Store both unprocessed /and/ processed text; that way we can eg. resize line lengths when /setting width, /set mcc can act retroactively, etc.
+Fix issue with line that just reaches the RHS causing a line break.
 
 /away.
 

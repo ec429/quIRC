@@ -1,6 +1,6 @@
 /*
 	quIRC - simple terminal-based IRC client
-	Copyright (C) 2010 Edward Cree
+	Copyright (C) 2010-11 Edward Cree
 
 	See quirc.c for license information
 	config: rc file and option parsing

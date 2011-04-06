@@ -8,7 +8,7 @@ CCVER=$(cc -v 2>&1 | tail -n 1)
 cat >version.h <<_EOM
 /*
 	quIRC - simple terminal-based IRC client
-	Copyright (C) 2010 Edward Cree
+	Copyright (C) 2010-11 Edward Cree
 
 	See quirc.c for license information
 	version.h: contains version number (generated from git describe)
