@@ -51,6 +51,10 @@ Then there&apos;s the github page, <a href="http://github.com/ec429/quIRC">http:
 	<dd>Send message to all attached channels on this server.</dd>
 <dt>/topic [<em>message</em>]</dt>
 	<dd>Sets or gets the channel topic.</dd>
+<dt>/away [<em>msg</em>]</dt>
+<dt>/unaway</dt>
+<dt>/away -</dt>
+	<dd>Indicates that you are away, by storing an away message (<em>msg</em>) on the server; it will be sent to anyone who private-messages you.  <small>/away -</small> or <small>/unaway</small> removes any away message you have set.</dd>
 <dt>/afk [<em>msg</em>]</dt>
 <dt>/afk -</dt>
 	<dd>Indicates that you are &apos;away from keyboard&apos; (&apos;afk&apos;) by appending <small>|afk</small> (or <small>|<em>msg</em></small>) to your nick.  <small>/afk -</small> removes any such indications.</dd>

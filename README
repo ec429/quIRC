@@ -41,6 +41,12 @@ the channel (or nick if current tab is a private messaging tab).
       Send message to all attached channels on this server.
   /topic [message]
       Sets or gets the channel topic.
+  /away [msg]
+  /unaway
+  /away -
+      Indicates that you are away, by storing an away message (msg) on the
+      server; it will be sent to anyone who private-messages you. /away - or /
+      unaway removes any away message you have set.
   /afk [msg]
   /afk -
       Indicates that you are 'away from keyboard' ('afk') by appending |afk (or
