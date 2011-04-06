@@ -339,9 +339,12 @@ int main(int argc, char **argv)
 					switch(ents[i].type)
 					{
 						case BOOL:
-							printf("\t\t\telse if(strcmp(cmd, \"no-%s\")==0)\n", ents[i].rc_name);
-							printf("\t\t\t\t%s=false;\n", ents[i].cname);
 						case INT:
+							if((ents[i].set_type==BOOLEAN)||(ents[i].set_type==LEVEL))
+							{
+								printf("\t\t\telse if(strcmp(cmd, \"no-%s\")==0)\n", ents[i].rc_name);
+								printf("\t\t\t\t%s=false;\n", ents[i].cname);
+							}
 							printf("\t\t\telse if(strcmp(cmd, \"%s\")==0)\n", ents[i].rc_name);
 							printf("\t\t\t{\n");
 							printf("\t\t\t\tunsigned int value;\n");
@@ -436,7 +439,7 @@ int main(int argc, char **argv)
 			break;
 			case 6:
 				printf("\t\t\tif(strcmp(cmd, \"%s\")==0) need=false;\n", ents[i].rc_name);
-				if(ents[i].type==BOOL)
+				if((ents[i].set_type==BOOLEAN)||(ents[i].set_type==LEVEL))
 					printf("\t\t\tif(strcmp(cmd, \"no-%s\")==0) need=false;\n", ents[i].rc_name);
 			break;
 			default:

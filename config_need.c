@@ -2,7 +2,9 @@
 			if(strcmp(cmd, "(null)")==0) need=false;
 			if(strcmp(cmd, "(null)")==0) need=false;
 			if(strcmp(cmd, "mcc")==0) need=false;
+			if(strcmp(cmd, "no-mcc")==0) need=false;
 			if(strcmp(cmd, "fred")==0) need=false;
+			if(strcmp(cmd, "no-fred")==0) need=false;
 			if(strcmp(cmd, "buf")==0) need=false;
 			if(strcmp(cmd, "mnln")==0) need=false;
 			if(strcmp(cmd, "fwc")==0) need=false;
