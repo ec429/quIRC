@@ -564,6 +564,9 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					{
 						add_to_buffer(cbuf, c_status, "width set", "/set: ");
 					}
+					int buf;
+					for(buf=0;buf<nbufs;buf++)
+						bufs[buf].dirty=true;
 					if(force_redraw<3)
 					{
 						redraw_buffer();
@@ -655,6 +658,9 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					{
 						add_to_buffer(cbuf, c_status, "mcc disabled", "/set: ");
 					}
+					int buf;
+					for(buf=0;buf<nbufs;buf++)
+						bufs[buf].dirty=true;
 				}
 				else if(strcmp(opt, "fwc")==0)
 				{

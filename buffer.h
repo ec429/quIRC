@@ -99,6 +99,7 @@ int free_buffer(int buf);
 int add_to_buffer(int buf, colour lc, char *lt, char *ltag);
 int redraw_buffer(void);
 int render_buffer(int buf);
+int render_line(int buf, int uline);
 int e_buf_print(int buf, colour lc, message pkt, char *lead);
 int transfer_start_buffer(void);
 int push_buffer(void);

@@ -10,6 +10,7 @@
 
 int setcol(int fore, int back, bool hi, bool ul)
 {
+	resetcol(); // reset it first
 	if((fore<0)||(fore>7))
 		return(1);
 	if((back<0)||(back>7))
@@ -49,12 +50,14 @@ int s_setcol(int fore, int back, bool hi, bool ul, char **rv, int *l, int *i)
 
 int resetcol(void)
 {
-	return(setcol(7, 0, false, false));
+	printf("\033[0;37;40m");
+	return(0);
 }
 
 int s_resetcol(char **rv, int *l, int *i)
 {
-	return(s_setcol(7, 0, false, false, rv, l, i));
+	append_str(rv, l, i, "\033[0;37;40m");
+	return(0);
 }
 
 int settitle(char *newtitle)

@@ -233,6 +233,7 @@ int add_to_buffer(int buf, colour lc, char *lt, char *ltag)
 		}
 		return(1);
 	}
+	int optr=bufs[buf].ptr;
 	bool scrollisptr=(bufs[buf].scroll==bufs[buf].ptr)&&(bufs[buf].ascroll==0);
 	bufs[buf].lc[bufs[buf].ptr]=lc;
 	if(bufs[buf].lt[bufs[buf].ptr]) free(bufs[buf].lt[bufs[buf].ptr]);
@@ -248,7 +249,7 @@ int add_to_buffer(int buf, colour lc, char *lt, char *ltag)
 	}
 	if(bufs[buf].ptr==0)
 		bufs[buf].filled=true;
-	bufs[buf].dirty=true; // mark tab dirty; TODO be more intelligent about avoiding full re-renders
+	render_line(buf, optr);
 	if(buf==cbuf)
 	{
 		int e=redraw_buffer();
@@ -308,9 +309,8 @@ int redraw_buffer(void)
 	}
 	bufs[cbuf].scroll=uline;
 	bufs[cbuf].ascroll=pline;
-	setcolour(bufs[cbuf].lc[uline]);
 	int row=height-2;
-	while(row>=(tsb?1:0))
+	while(row>(tsb?1:0))
 	{
 		pline--;
 		while(pline<0)
@@ -326,14 +326,18 @@ int redraw_buffer(void)
 					break;
 				}
 			}
-			setcolour(bufs[cbuf].lc[uline]);
 			pline+=bufs[cbuf].lpl[uline];
 		}
 		if(row<0) break;
-		printf(LOCATE "%.*s\n", row, 0, width-2, bufs[cbuf].lpt[uline][pline]);
+		setcolour(bufs[cbuf].lc[uline]);
+		if(full_width_colour)
+			printf(LOCATE "%.*s"CLR"", row, 0, width, bufs[cbuf].lpt[uline][pline]);
+		else
+			printf(LOCATE "%.*s", row, 0, width, bufs[cbuf].lpt[uline][pline]);
 		row--;
 	}
-	while(row>=(tsb?1:0))
+	resetcol();
+	while(row>(tsb?1:0))
 		printf(LOCATE CLR, row--, 0);
 	switch(bufs[cbuf].type)
 	{
@@ -374,39 +378,46 @@ int redraw_buffer(void)
 int render_buffer(int buf)
 {
 	if(!bufs[buf].dirty) return(0); // nothing to do...
-	int uline;
+	int uline,e=0;
 	for(uline=0;uline<bufs[buf].nlines;uline++)
 	{
-		if(bufs[buf].lpt[uline])
-		{
-			int pline;
-			for(pline=0;pline<bufs[buf].lpl[uline];pline++)
-				if(bufs[buf].lpt[uline][pline]) free(bufs[buf].lpt[uline][pline]);
-			free(bufs[buf].lpt[uline]);
-		}
-		char *proc;int l,i;
-		init_char(&proc, &l, &i);
-		int x=wordline(bufs[buf].ltag[uline], 0, &proc, &l, &i, bufs[buf].lc[uline]);
-		wordline(bufs[buf].lt[uline], x, &proc, &l, &i, bufs[buf].lc[uline]);
-		bufs[buf].lpl[uline]=0;
-		bufs[buf].lpt[uline]=NULL;
-		char *curr=strtok(proc, "\n");
-		while(curr)
-		{
-			int pline=bufs[buf].lpl[uline]++;
-			char **nlpt=realloc(bufs[buf].lpt[uline], bufs[buf].lpl[uline]*sizeof(char *));
-			if(!nlpt)
-			{
-				add_to_buffer(0, c_err, "realloc failed; buffer may be corrupted", "render_buffer: ");
-				free(proc);
-				return(1);
-			}
-			(bufs[buf].lpt[uline]=nlpt)[pline]=strdup(curr);
-			curr=strtok(NULL, "\n");
-		}
-		free(proc);
+		e|=render_line(buf, uline);
+		if(e) return(e);
 	}
-	bufs[buf].dirty=false; // mark it clean
+	bufs[buf].dirty=e; // mark it clean
+	return(e);
+}
+
+int render_line(int buf, int uline)
+{
+	if(bufs[buf].lpt[uline])
+	{
+		int pline;
+		for(pline=0;pline<bufs[buf].lpl[uline];pline++)
+			if(bufs[buf].lpt[uline][pline]) free(bufs[buf].lpt[uline][pline]);
+		free(bufs[buf].lpt[uline]);
+	}
+	char *proc;int l,i;
+	init_char(&proc, &l, &i);
+	int x=wordline(bufs[buf].ltag[uline], 0, &proc, &l, &i, bufs[buf].lc[uline]);
+	wordline(bufs[buf].lt[uline], x, &proc, &l, &i, bufs[buf].lc[uline]);
+	bufs[buf].lpl[uline]=0;
+	bufs[buf].lpt[uline]=NULL;
+	char *curr=strtok(proc, "\n");
+	while(curr)
+	{
+		int pline=bufs[buf].lpl[uline]++;
+		char **nlpt=realloc(bufs[buf].lpt[uline], bufs[buf].lpl[uline]*sizeof(char *));
+		if(!nlpt)
+		{
+			add_to_buffer(0, c_err, "realloc failed; buffer may be corrupted", "render_buffer: ");
+			free(proc);
+			return(1);
+		}
+		(bufs[buf].lpt[uline]=nlpt)[pline]=strdup(curr);
+		curr=strtok(NULL, "\n");
+	}
+	free(proc);
 	return(0);
 }
 
@@ -680,8 +691,9 @@ int push_buffer(void)
 
 void titlebar(void)
 {
-	printf(LOCATE CLA, 1, 1);
+	printf(LOCATE, 1, 1);
 	setcol(0, 7, true, false);
+	printf(CLA);
 	unsigned int gits;
 	sscanf(VERSION_TXT, "%u", &gits);
 	const char *hashgit=strchr(VERSION_TXT, ' ');
