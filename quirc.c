@@ -132,7 +132,7 @@ int main(int argc, char *argv[])
 		servers |= autoconnect(&master, &fdmax, curr);
 		curr=curr->next;
 	}
-	if(!servers)
+	if((!servers)&&(!quiet))
 	{
 		add_to_buffer(0, c_status, "Not connected - use /server to connect", "");
 	}
@@ -359,7 +359,7 @@ int main(int argc, char *argv[])
 						{
 							char fmsg[48];
 							sprintf(fmsg, "select() returned data on unknown fd %d!", fd);
-							add_to_buffer(0, c_err, fmsg, "main loop:");
+							if(!quiet) add_to_buffer(0, c_err, fmsg, "main loop:");
 							FD_CLR(fd, &master); // prevent it from happening again
 						}
 					}

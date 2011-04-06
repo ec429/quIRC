@@ -109,10 +109,7 @@ int autoconnect(fd_set *master, int *fdmax, servlist *serv)
 	sprintf(cstr, "quIRC - connecting to %s", serv->name);
 	settitle(cstr);
 	sprintf(cstr, "Connecting to %s on port %s...", serv->name, serv->portno);
-	setcolour(c_status);
-	add_to_buffer(0, c_status, cstr, "auto: ");
-	resetcol();
-	printf(CLA "\n");
+	if(!quiet) add_to_buffer(0, c_status, cstr, "auto: ");
 	int serverhandle=irc_connect(serv->name, serv->portno, master, fdmax);
 	if(serverhandle)
 	{
@@ -125,7 +122,7 @@ int autoconnect(fd_set *master, int *fdmax, servlist *serv)
 		if(serv) bufs[cbuf].ilist=serv->igns;
 		bufs[cbuf].server=cbuf;
 		bufs[cbuf].conninpr=true;
-		add_to_buffer(cbuf, c_status, cstr, "auto: ");
+		if(!quiet) add_to_buffer(cbuf, c_status, cstr, "auto: ");
 		sprintf(cstr, "quIRC - connecting to %s", serv->name);
 		settitle(cstr);
 	}
@@ -528,7 +525,7 @@ int irc_numeric(message pkt, int b)
 				{
 					char isup[strlen(rest)+(value?strlen(value):0)+3];
 					sprintf(isup, "%s%s%s%s", min?"-":"", rest, value?"=":"", value?value:"");
-					add_to_buffer(b, c_unn, isup, "RPL_ISUPPORT: ");
+					if(!quiet) add_to_buffer(b, c_unn, isup, "RPL_ISUPPORT: ");
 				}
 			}
 		break;
@@ -536,7 +533,7 @@ int irc_numeric(message pkt, int b)
 			// 353 dest {=|/|\*|@} #chan :([@|\+]nick)+
 			if(pkt.nargs<3)
 			{
-				e_buf_print(b, c_err, pkt, "RPL_NAMREPLY: Not enough arguments: ");
+				if(!quiet) e_buf_print(b, c_err, pkt, "RPL_NAMREPLY: Not enough arguments: ");
 				break;
 			}
 			char *plist=bufs[bufs[b].server].prefixes?strchr(bufs[bufs[b].server].prefixes, ')'):NULL;
@@ -570,7 +567,7 @@ int irc_numeric(message pkt, int b)
 			// 366 dest #chan :End of /NAMES list
 			if(pkt.nargs<1)
 			{
-				e_buf_print(b, c_err, pkt, "RPL_ENDOFNAMES: Not enough arguments: ");
+				if(!quiet) e_buf_print(b, c_err, pkt, "RPL_ENDOFNAMES: Not enough arguments: ");
 				break;
 			}
 			for(b2=0;b2<nbufs;b2++)
@@ -580,7 +577,7 @@ int irc_numeric(message pkt, int b)
 					bufs[b2].namreply=false;
 					char lmsg[32+strlen(pkt.args[1])];
 					sprintf(lmsg, "NAMES list received for %s", pkt.args[1]);
-					add_to_buffer(b2, c_status, lmsg, "");
+					if(!quiet) add_to_buffer(b2, c_status, lmsg, "");
 				}
 			}
 		break;
@@ -589,7 +586,7 @@ int irc_numeric(message pkt, int b)
 		case RPL_MOTD: // 372 dest :- <text>
 			if(pkt.nargs<2)
 			{
-				e_buf_print(b, c_err, pkt, num==RPL_MOTD?"RPL_MOTD: Not enough arguments: ":num==RPL_MOTDSTART?"RPL_MOTDSTART: Not enough arguments: ":num==RPL_ENDOFMOTD?"RPL_ENDOFMOTD: Not enough arguments: ":"RPL_MOTD???: Not enough arguments: ");
+				if(!quiet) e_buf_print(b, c_err, pkt, num==RPL_MOTD?"RPL_MOTD: Not enough arguments: ":num==RPL_MOTDSTART?"RPL_MOTDSTART: Not enough arguments: ":num==RPL_ENDOFMOTD?"RPL_ENDOFMOTD: Not enough arguments: ":"RPL_MOTD???: Not enough arguments: ");
 				break;
 			}
 			add_to_buffer(b, c_notice[1], pkt.args[1], "");
@@ -597,7 +594,7 @@ int irc_numeric(message pkt, int b)
 		case ERR_NOMOTD: // 422 <dest> :MOTD File is missing
 			if(pkt.nargs<2)
 			{
-				e_buf_print(b, c_err, pkt, "ERR_NOMOTD: Not enough arguments: ");
+				if(!quiet) e_buf_print(b, c_err, pkt, "ERR_NOMOTD: Not enough arguments: ");
 				break;
 			}
 			add_to_buffer(b, c_notice[1], pkt.args[1], "");
@@ -605,7 +602,7 @@ int irc_numeric(message pkt, int b)
 		case RPL_TOPIC: // 332 dest <channel> :<topic>
 			if(pkt.nargs<3)
 			{
-				e_buf_print(b, c_err, pkt, "RPL_TOPIC: Not enough arguments: ");
+				if(!quiet) e_buf_print(b, c_err, pkt, "RPL_TOPIC: Not enough arguments: ");
 				break;
 			}
 			for(b2=0;b2<nbufs;b2++)
@@ -623,7 +620,7 @@ int irc_numeric(message pkt, int b)
 		case RPL_NOTOPIC: // 331 dest <channel> :No topic is set
 			if(pkt.nargs<2)
 			{
-				e_buf_print(b, c_err, pkt, "RPL_NOTOPIC: Not enough arguments: ");
+				if(!quiet) e_buf_print(b, c_err, pkt, "RPL_NOTOPIC: Not enough arguments: ");
 				break;
 			}
 			for(b2=0;b2<nbufs;b2++)
@@ -640,7 +637,7 @@ int irc_numeric(message pkt, int b)
 		case RPL_X_TOPICWASSET: // 331 dest <channel> <nick> <time>
 			if(pkt.nargs<3)
 			{
-				e_buf_print(b, c_err, pkt, "RPL_X_TOPICWASSET: Not enough arguments: ");
+				if(!quiet) e_buf_print(b, c_err, pkt, "RPL_X_TOPICWASSET: Not enough arguments: ");
 				break;
 			}
 			for(b2=0;b2<nbufs;b2++)
@@ -662,48 +659,48 @@ int irc_numeric(message pkt, int b)
 		case RPL_LUSERME: // 255 <dest> ":I have <integer> clients and <integer> servers
 			if(pkt.nargs<2)
 			{
-				e_buf_print(b, c_err, pkt, num==RPL_LUSERCLIENT?"RPL_LUSERCLIENT: Not enough arguments: ":num==RPL_LUSERME?"RPL_LUSERME: Not enough arguments: ":"RPL_LUSER???: Not enough arguments: ");
+				if(!quiet) e_buf_print(b, c_err, pkt, num==RPL_LUSERCLIENT?"RPL_LUSERCLIENT: Not enough arguments: ":num==RPL_LUSERME?"RPL_LUSERME: Not enough arguments: ":"RPL_LUSER???: Not enough arguments: ");
 				break;
 			}
-			add_to_buffer(b, c_status, pkt.args[1], ": ");
+			if(!quiet) add_to_buffer(b, c_status, pkt.args[1], ": ");
 		break;
 		case RPL_LUSEROP: // 252 <dest> <integer> :operator(s) online
 		case RPL_LUSERUNKNOWN: // 253 <dest> <integer> :unknown connection(s)
 		case RPL_LUSERCHANNELS: // 254 <dest> <integer> :channels formed
 			if(pkt.nargs<3)
 			{
-				e_buf_print(b, c_err, pkt, num==RPL_LUSEROP?"RPL_LUSEROP: Not enough arguments: ":num==RPL_LUSERUNKNOWN?"RPL_LUSERUNKNOWN: Not enough arguments: ":num==RPL_LUSERCHANNELS?"RPL_LUSERCHANNELS: Not enough arguments: ":"RPL_LUSER???: Not enough arguments: ");
+				if(!quiet) e_buf_print(b, c_err, pkt, num==RPL_LUSEROP?"RPL_LUSEROP: Not enough arguments: ":num==RPL_LUSERUNKNOWN?"RPL_LUSERUNKNOWN: Not enough arguments: ":num==RPL_LUSERCHANNELS?"RPL_LUSERCHANNELS: Not enough arguments: ":"RPL_LUSER???: Not enough arguments: ");
 				break;
 			}
 			else
 			{
 				char lmsg[2+strlen(pkt.args[1])+strlen(pkt.args[2])];
 				sprintf(lmsg, "%s %s", pkt.args[1], pkt.args[2]);
-				add_to_buffer(b, c_status, lmsg, ": ");
+				if(!quiet) add_to_buffer(b, c_status, lmsg, ": ");
 			}
 		break;
 		case RPL_X_LOCALUSERS: // 265 <dest> :Current Local Users: <integer>\tMax: <integer>
 		case RPL_X_GLOBALUSERS: // 266 <dest> :Current Global Users: <integer>\tMax: <integer>
 			if(pkt.nargs<2)
 			{
-				e_buf_print(b, c_err, pkt, num==RPL_X_LOCALUSERS?"RPL_X_LOCALUSERS: Not enough arguments: ":num==RPL_X_GLOBALUSERS?"RPL_X_GLOBALUSERS: Not enough arguments: ":"RPL_???USERS: Not enough arguments: ");
+				if(!quiet) e_buf_print(b, c_err, pkt, num==RPL_X_LOCALUSERS?"RPL_X_LOCALUSERS: Not enough arguments: ":num==RPL_X_GLOBALUSERS?"RPL_X_GLOBALUSERS: Not enough arguments: ":"RPL_???USERS: Not enough arguments: ");
 				break;
 			}
-			add_to_buffer(b, c_status, pkt.args[1], ": ");
+			if(!quiet) add_to_buffer(b, c_status, pkt.args[1], ": ");
 		break;
 		case ERR_NOSUCHNICK: // 401 <dest> <nick> :No such nick/channel
 			if(pkt.nargs<2)
 			{
-				e_buf_print(b, c_err, pkt, "ERR_NOSUCHNICK: Not enough arguments: ");
+				if(!quiet) e_buf_print(b, c_err, pkt, "ERR_NOSUCHNICK: Not enough arguments: ");
 				break;
 			}
 			int b2=findptab(b, pkt.args[1]);
 			if(b2<0)
 				b2=b;
-			add_to_buffer(b2, c_err, pkt.args[1], "No such nick/channel: ");
+			if(!quiet) add_to_buffer(b2, c_err, pkt.args[1], "No such nick/channel: ");
 		break;
 		default:
-			e_buf_print(b, c_unn, pkt, "Unknown numeric: ");
+			if(!quiet) e_buf_print(b, c_unn, pkt, "Unknown numeric: ");
 		break;
 	}
 	return(num);
@@ -714,7 +711,7 @@ int rx_ping(message pkt, int b)
 	// PING <sender>
 	if(pkt.nargs<1)
 	{
-		e_buf_print(b, c_err, pkt, "Not enough arguments: ");
+		if(!quiet) e_buf_print(b, c_err, pkt, "Not enough arguments: ");
 		return(0);
 	}
 	char pong[8+strlen(username)+strlen(pkt.args[0])];
@@ -738,7 +735,7 @@ int rx_mode(int b)
 			irc_tx(fd, joinmsg);
 			char jmsg[16+strlen(curr->name)];
 			sprintf(jmsg, "auto: Joining %s", curr->name);
-			add_to_buffer(b, c_join[0], jmsg, "");
+			if(!quiet) add_to_buffer(b, c_join[0], jmsg, "");
 			curr=curr->next;
 		}
 		serv->join=true;
@@ -751,7 +748,7 @@ int rx_kill(message pkt, int b, fd_set *master)
 	// KILL <nick> <comment>
 	if(pkt.nargs<1)
 	{
-		e_buf_print(b, c_err, pkt, "Not enough arguments: ");
+		if(!quiet) e_buf_print(b, c_err, pkt, "Not enough arguments: ");
 		return(0);
 	}
 	int fd=bufs[b].handle;
@@ -806,7 +803,7 @@ int rx_kick(message pkt, int b)
 	// From RFC2812: "The server MUST NOT send KICK messages with multiple channels or users to clients.  This is necessarily to maintain backward compatibility with old client software."
 	if(pkt.nargs<2)
 	{
-		e_buf_print(b, c_err, pkt, "Not enough arguments: ");
+		if(!quiet) e_buf_print(b, c_err, pkt, "Not enough arguments: ");
 		return(0);
 	}
 	if(irc_strcasecmp(pkt.args[1], bufs[b].nick, bufs[b].casemapping)==0) // if it's us, generate a message and de-live the channel
@@ -878,7 +875,7 @@ int rx_privmsg(message pkt, int b, bool notice)
 	// :nick[[!user]@host] NOTICE msgtarget text
 	if(pkt.nargs<2)
 	{
-		e_buf_print(b, c_err, pkt, "Not enough arguments: ");
+		if(!quiet) e_buf_print(b, c_err, pkt, "Not enough arguments: ");
 		return(0);
 	}
 	char *src, *user, *host;
@@ -961,7 +958,7 @@ int rx_privmsg(message pkt, int b, bool notice)
 		}
 		else
 		{
-			e_buf_print(b, c_err, pkt, "Bad destination: ");
+			if(!quiet) e_buf_print(b, c_err, pkt, "Bad destination: ");
 		}
 	}
 	free(from);
@@ -973,7 +970,7 @@ int rx_topic(message pkt, int b)
 	// TOPIC <dest> [<topic>]
 	if(pkt.nargs<1)
 	{
-		e_buf_print(b, c_err, pkt, "Not enough arguments: ");
+		if(!quiet) e_buf_print(b, c_err, pkt, "Not enough arguments: ");
 		return(0);
 	}
 	char *src, *user, *host;
@@ -1023,7 +1020,7 @@ int rx_join(message pkt, int b)
 	// :nick[[!user]@host] JOIN #chan
 	if(pkt.nargs<1)
 	{
-		e_buf_print(b, c_err, pkt, "Not enough arguments: ");
+		if(!quiet) e_buf_print(b, c_err, pkt, "Not enough arguments: ");
 		return(0);
 	}
 	char *src, *user, *host;
@@ -1077,7 +1074,7 @@ int rx_join(message pkt, int b)
 		free(tag);
 		if(!match)
 		{
-			e_buf_print(b, c_err, pkt, "Bad destination: ");
+			if(!quiet) e_buf_print(b, c_err, pkt, "Bad destination: ");
 		}
 	}
 	return(0);
@@ -1088,7 +1085,7 @@ int rx_part(message pkt, int b)
 	// :nick[[!user]@host] PART #chan message
 	if(pkt.nargs<1)
 	{
-		e_buf_print(b, c_err, pkt, "Not enough arguments: ");
+		if(!quiet) e_buf_print(b, c_err, pkt, "Not enough arguments: ");
 		return(0);
 	}
 	char *src, *user, *host;
@@ -1143,7 +1140,7 @@ int rx_part(message pkt, int b)
 		free(tag);
 		if(!match)
 		{
-			e_buf_print(b, c_err, pkt, "Bad destination: ");
+			if(!quiet) e_buf_print(b, c_err, pkt, "Bad destination: ");
 		}
 	}
 	return(0);
@@ -1157,7 +1154,7 @@ int rx_quit(message pkt, int b)
 	char *reason=pkt.nargs>0?pkt.args[0]:"";
 	if(strcmp(src, bufs[b].nick)==0) // this shouldn't happen
 	{
-		e_buf_print(b, c_err, pkt, "Should not be from us: ");
+		if(!quiet) e_buf_print(b, c_err, pkt, "Should not be from us: ");
 	}
 	else
 	{
@@ -1188,7 +1185,7 @@ int rx_nick(message pkt, int b)
 	// :nick[[!user]@host] NICK newnick
 	if(pkt.nargs<1)
 	{
-		e_buf_print(b, c_err, pkt, "Not enough arguments: ");
+		if(!quiet) e_buf_print(b, c_err, pkt, "Not enough arguments: ");
 		return(0);
 	}
 	char *src, *user, *host;
@@ -1233,7 +1230,7 @@ int rx_nick(message pkt, int b)
 		free(tag);
 		if(!match)
 		{
-			e_buf_print(b, c_err, pkt, "Bad destination: ");
+			if(!quiet) e_buf_print(b, c_err, pkt, "Bad destination: ");
 		}
 	}
 	return(0);
@@ -1332,7 +1329,7 @@ int ctcp(char *msg, char *from, char *src, int b2, bool ha, bool notice, bool pr
 			*space=0;
 		char cmsg[32+strlen(cmd)];
 		sprintf(cmsg, "Unrecognised CTCP %s (ignoring)", cmd);
-		add_to_buffer(b2, c_unk, cmsg, tag);
+		if(!quiet) add_to_buffer(b2, c_unk, cmsg, tag);
 		free(tag);
 		if(!notice)
 		{

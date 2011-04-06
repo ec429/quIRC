@@ -404,30 +404,33 @@ int main(int argc, char **argv)
 					printf("\t\t\t\t\t}\n");
 					printf("\t\t\t\t\telse\n");
 					printf("\t\t\t\t\t\t%s=%d;\n", ents[i].cname, ents[i].value);
+					printf("\t\t\t\t\tif(!quiet)\n");
+					printf("\t\t\t\t\t{\n");
 					switch(ents[i].set_type)
 					{
 						case BOOLEAN:
-							printf("\t\t\t\t\tif(%s)\n", ents[i].cname);
-							printf("\t\t\t\t\t\tadd_to_buffer(cbuf, c_status, \"%s enabled\", \"/set: \");\n", ents[i].set_msg);
-							printf("\t\t\t\t\telse\n");
-							printf("\t\t\t\t\t\tadd_to_buffer(cbuf, c_status, \"%s disabled\", \"/set: \");\n", ents[i].set_msg);
+							printf("\t\t\t\t\t\tif(%s)\n", ents[i].cname);
+							printf("\t\t\t\t\t\t\tadd_to_buffer(cbuf, c_status, \"%s enabled\", \"/set: \");\n", ents[i].set_msg);
+							printf("\t\t\t\t\t\telse\n");
+							printf("\t\t\t\t\t\t\tadd_to_buffer(cbuf, c_status, \"%s disabled\", \"/set: \");\n", ents[i].set_msg);
 						break;
 						case LEVEL:
-							printf("\t\t\t\t\tif(%s)\n", ents[i].cname);
-							printf("\t\t\t\t\t{\n");
-							printf("\t\t\t\t\t\tchar lmsg[%u];\n", strlen(ents[i].set_msg)+32);
-							printf("\t\t\t\t\t\tsprintf(lmsg, \"%s level %%u enabled\", %s);\n", ents[i].set_msg, ents[i].cname);
-							printf("\t\t\t\t\t\tadd_to_buffer(cbuf, c_status, lmsg, \"/set: \");\n");
-							printf("\t\t\t\t\t}\n");
-							printf("\t\t\t\t\telse\n");
-							printf("\t\t\t\t\t\tadd_to_buffer(cbuf, c_status, \"%s disabled\", \"/set: \");\n", ents[i].set_msg);
+							printf("\t\t\t\t\t\tif(%s)\n", ents[i].cname);
+							printf("\t\t\t\t\t\t{\n");
+							printf("\t\t\t\t\t\t\tchar lmsg[%u];\n", strlen(ents[i].set_msg)+32);
+							printf("\t\t\t\t\t\t\tsprintf(lmsg, \"%s level %%u enabled\", %s);\n", ents[i].set_msg, ents[i].cname);
+							printf("\t\t\t\t\t\t\tadd_to_buffer(cbuf, c_status, lmsg, \"/set: \");\n");
+							printf("\t\t\t\t\t\t}\n");
+							printf("\t\t\t\t\t\telse\n");
+							printf("\t\t\t\t\t\t\tadd_to_buffer(cbuf, c_status, \"%s disabled\", \"/set: \");\n", ents[i].set_msg);
 						break;
 						case SET:
-							printf("\t\t\t\t\tchar smsg[%u];\n", strlen(ents[i].set_msg)+24);
-							printf("\t\t\t\t\tsprintf(smsg, \"%s set to %%u\", %s);\n", ents[i].set_msg, ents[i].cname);
-							printf("\t\t\t\t\tadd_to_buffer(cbuf, c_status, smsg, \"/set: \");\n");
+							printf("\t\t\t\t\t\tchar smsg[%u];\n", strlen(ents[i].set_msg)+24);
+							printf("\t\t\t\t\t\tsprintf(smsg, \"%s set to %%u\", %s);\n", ents[i].set_msg, ents[i].cname);
+							printf("\t\t\t\t\t\tadd_to_buffer(cbuf, c_status, smsg, \"/set: \");\n");
 						break;
 					}
+					printf("\t\t\t\t\t}\n");
 					printf("\t\t\t\t\tint buf;\n");
 					printf("\t\t\t\t\tfor(buf=0;buf<nbufs;buf++)\n");
 					printf("\t\t\t\t\t\tbufs[buf].dirty=true;\n");
@@ -438,7 +441,7 @@ int main(int argc, char **argv)
 						printf("\t\t\t\telse if(strcmp(opt, \"no-%s\")==0)\n", ents[i].set_name);
 						printf("\t\t\t\t{\n");
 						printf("\t\t\t\t\t%s=0;\n", ents[i].cname);
-						printf("\t\t\t\t\tadd_to_buffer(cbuf, c_status, \"%s disabled\", \"/set: \");\n", ents[i].set_msg);
+						printf("\t\t\t\t\tif(!quiet) add_to_buffer(cbuf, c_status, \"%s disabled\", \"/set: \");\n", ents[i].set_msg);
 						printf("\t\t\t\t\tint buf;\n");
 						printf("\t\t\t\t\tfor(buf=0;buf<nbufs;buf++)\n");
 						printf("\t\t\t\t\t\tbufs[buf].dirty=true;\n");

@@ -11,3 +11,4 @@ bool tsb; // top status bar
 unsigned int tping; // outbound ping time
 unsigned int ts; // timestamping
 bool utc; // UTC timestamps
+bool quiet; // quiet mode

@@ -137,13 +137,15 @@ You can turn on a few display options too;
 fwc
 hts
 tsb
+quiet
 will turn on Full-Width-Colour (makes coloured backgrounds for lines (eg. /me)
 run all the way across the terminal), Highlight-Tab-Strip (gives the tab strip
-a magenta background, to make it more visible) and Top-Status-Bar (uses the top
-line of the terminal for some status information). To turn them off prefix them
-with no-, like
+a magenta background, to make it more visible), Top-Status-Bar (uses the top
+line of the terminal for some status information), and Quiet Mode (many
+informational messages, including unrecognised IRC traffic, are suppressed). To
+turn them off prefix them with no-, like
 no-hts
-By default fwc and hts are turned off; tsb is turned on.
+By default fwc, hts and quiet are turned off; tsb is turned on.
 You can control the timestamping settings:
 ts ts-level
 utc

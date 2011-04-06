@@ -31,3 +31,7 @@
 			utc=true;
 		else if(strcmp(argv[arg], "--no-utc")==0)
 			utc=false;
+		else if(strcmp(argv[arg], "--quiet")==0)
+			quiet=true;
+		else if(strcmp(argv[arg], "--no-quiet")==0)
+			quiet=false;

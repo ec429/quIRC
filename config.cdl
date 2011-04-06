@@ -10,3 +10,4 @@ bool:tsb:true:::tsb:tsb:tsb:B:top status bar
 int:tping:30:15::tping:tping:tping:S:outbound ping time
 int:ts:1:0:4:ts:timestamps:ts:L:timestamping
 bool:utc:false:::utc:utc:utc:B:UTC timestamps
+bool:quiet:false:::quiet:quiet:quiet:B:quiet mode

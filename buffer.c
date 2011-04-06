@@ -91,7 +91,7 @@ int initialise_buffers(int buflines)
 	bufs[0].live=true; // STATUS is never dead
 	bufs[0].nick=nick;
 	bufs[0].ilist=igns;
-	add_to_buffer(0, c_status, GPL_TAIL, "quirc -- ");
+	if(!quiet) add_to_buffer(0, c_status, GPL_TAIL, "quirc -- ");
 	return(0);
 }
 
@@ -672,6 +672,7 @@ char *highlight(char *src)
 
 int e_buf_print(int buf, colour lc, message pkt, char *lead)
 {
+	if(quiet) return(0);
 	int arg;
 	int len=(pkt.prefix?strlen(pkt.prefix):0)+strlen(pkt.cmd)+8;
 	for(arg=0;arg<pkt.nargs;arg++)
@@ -699,6 +700,7 @@ int e_buf_print(int buf, colour lc, message pkt, char *lead)
 
 int transfer_start_buffer(void)
 {
+	if(quiet) return(0);
 	int i,e=0;
 	for(i=0;i<s_buf.nlines;i++)
 	{

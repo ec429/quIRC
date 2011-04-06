@@ -560,6 +560,8 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					if(debug)
 					{
 						add_to_buffer(cbuf, c_status, "Debugging mode enabled", "/set: ");
+						if(quiet) add_to_buffer(cbuf, c_status, "Quiet mode disabled", "/set: ");
+						quiet=false;
 					}
 					else
 					{
@@ -623,11 +625,6 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 				settitle(cstr);
 				char dstr[30+strlen(server)+strlen(newport)];
 				sprintf(dstr, "Connecting to %s on port %s...", server, newport);
-				setcolour(c_status);
-				printf(LOCATE, height-2, 1);
-				printf("%s" CLR "\n", dstr);
-				resetcol();
-				printf(CLA "\n");
 				int serverhandle=irc_connect(server, newport, master, fdmax);
 				if(serverhandle)
 				{
@@ -638,7 +635,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					bufs[cbuf].nick=strdup(nick);
 					bufs[cbuf].server=cbuf;
 					bufs[cbuf].conninpr=true;
-					add_to_buffer(cbuf, c_status, dstr, "/server: ");
+					if(!quiet) add_to_buffer(cbuf, c_status, dstr, "/server: ");
 					sprintf(cstr, "quIRC - connected to %s", server);
 					settitle(cstr);
 				}
@@ -674,11 +671,6 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 				settitle(cstr);
 				char dstr[30+strlen(bufs[bufs[cbuf].server].bname)+strlen(newport)];
 				sprintf(dstr, "Connecting to %s on port %s...", bufs[bufs[cbuf].server].bname, newport);
-				setcolour(c_status);
-				printf(LOCATE, height-2, 1);
-				printf("%s" CLR "\n", dstr);
-				resetcol();
-				printf(CLA "\n");
 				int serverhandle=irc_connect(bufs[bufs[cbuf].server].bname, newport, master, fdmax);
 				if(serverhandle)
 				{
@@ -693,7 +685,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					bufs[cbuf].conninpr=true;
 					if(bufs[cbuf].realsname) free(bufs[cbuf].realsname);
 					bufs[cbuf].realsname=NULL;
-					add_to_buffer(cbuf, c_status, dstr, "/server: ");
+					if(!quiet) add_to_buffer(cbuf, c_status, dstr, "/server: ");
 					sprintf(cstr, "quIRC - connected to %s", bufs[bufs[cbuf].server].bname);
 					settitle(cstr);
 				}
@@ -867,7 +859,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					char nmsg[8+strlen(bufs[bufs[cbuf].server].nick)];
 					sprintf(nmsg, "NICK %s", bufs[bufs[cbuf].server].nick);
 					irc_tx(bufs[cbuf].handle, nmsg);
-					add_to_buffer(cbuf, c_status, "Changing nick", "/nick: ");
+					if(!quiet) add_to_buffer(cbuf, c_status, "Changing nick", "/nick: ");
 				}
 				else
 				{
@@ -877,7 +869,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 			else
 			{
 				nick=strdup(nn);
-				add_to_buffer(cbuf, c_status, "Default nick changed", "/nick ");
+				if(!quiet) add_to_buffer(cbuf, c_status, "Default nick changed", "/nick ");
 			}
 		}
 		else
@@ -992,7 +984,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 						irc_tx(bufs[cbuf].handle, privmsg);
 						if(no_tab)
 						{
-							add_to_buffer(cbuf, c_status, "sent", "/msg -n: ");
+							if(!quiet) add_to_buffer(cbuf, c_status, "sent", "/msg -n: ");
 						}
 						else
 						{
@@ -1169,7 +1161,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		}
 		if(buf!=nbufs)
 		{
-			add_to_buffer(cbuf, c_err, "Internal error (bad count)", "/sort: ");
+			if(!quiet) add_to_buffer(cbuf, c_err, "Internal error (bad count)", "/sort: ");
 			return(0);
 		}
 		int serv=0;
@@ -1291,7 +1283,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					{
 						if(i_cull(&bufs[cbuf].ilist, arg))
 						{
-							add_to_buffer(cbuf, c_status, "Entries deleted", "/ignore -d: ");
+							if(!quiet) add_to_buffer(cbuf, c_status, "Entries deleted", "/ignore -d: ");
 						}
 						else
 						{
@@ -1303,7 +1295,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 						name *new=n_add(&bufs[cbuf].ilist, arg, bufs[cbuf].casemapping);
 						if(new)
 						{
-							add_to_buffer(cbuf, c_status, "Entry added", "/ignore: ");
+							if(!quiet) add_to_buffer(cbuf, c_status, "Entry added", "/ignore: ");
 							new->icase=icase;
 							new->pms=pms;
 						}
@@ -1323,7 +1315,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 						name *new=n_add(&bufs[cbuf].ilist, expr, bufs[cbuf].casemapping);
 						if(new)
 						{
-							add_to_buffer(cbuf, c_status, "Entry added", "/ignore: ");
+							if(!quiet) add_to_buffer(cbuf, c_status, "Entry added", "/ignore: ");
 							new->icase=icase;
 							new->pms=pms;
 						}
