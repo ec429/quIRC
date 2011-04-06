@@ -33,6 +33,7 @@ doc: README
 
 README: readme.htm
 	-html2text -nobs -o README < readme.htm
+	-sed -i README -e "s/&apos;/'/g" -e "s/&quot;/\"/g"
 
 # funky make cleverness to generate object files; a %.o /always/ depends on its %.h as well as its %.c
 
