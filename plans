@@ -14,7 +14,7 @@ Proper handling of Unicode in character-based things like cursor-movement, backs
 
 Fix issue with line that just reaches the RHS causing a line break.
 
-Fix screen not being redrawn on some cbuf changes.
+Move all settitle() calls into redraw_buffer().
 
 Logging & Persistent backscroll.
 

@@ -123,6 +123,7 @@ int autoconnect(fd_set *master, int *fdmax, servlist *serv)
 		bufs[cbuf].server=cbuf;
 		bufs[cbuf].conninpr=true;
 		if(!quiet) add_to_buffer(cbuf, c_status, cstr, "auto: ");
+		if(force_redraw<3) redraw_buffer();
 		sprintf(cstr, "quIRC - connecting to %s", serv->name);
 		settitle(cstr);
 	}
@@ -1084,6 +1085,7 @@ int rx_join(message pkt, int b)
 		add_to_buffer(cbuf, c_join[0], dstr, "");
 		bufs[cbuf].handle=bufs[bufs[cbuf].server].handle;
 		bufs[cbuf].live=true;
+		if(force_redraw<3) redraw_buffer();
 	}
 	else
 	{
@@ -1134,6 +1136,7 @@ int rx_part(message pkt, int b)
 				{
 					cbuf=b;
 					char cstr[24+strlen(bufs[b].bname)];
+					if(force_redraw<3) redraw_buffer();
 					sprintf(cstr, "quIRC - connected to %s", bufs[b].bname);
 					settitle(cstr);
 				}
