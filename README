@@ -33,10 +33,10 @@ be sent to the channel (or nick if current tab is a private messaging tab).
       Joins the given channel (will open in a new tab).
   /me action
       Sends an &apos;action&apos; to the channel.
-  /msg recipient [message]
+  /msg [-n] recipient [message]
       Private message; sends the message to the given recipient. Will open a
-      private messaging tab if one is not already open for that recipient. If
-      message is omitted, just opens the tab.
+      private messaging tab if one is not already open for that recipient
+      (suppress with -n). If message is omitted, just opens the tab.
   /amsg message
       Send message to all attached channels on this server.
   /topic [message]
