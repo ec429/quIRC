@@ -335,7 +335,8 @@ int inputchar(iline *inp, int *state)
 				case '1': // ^[[1
 					if(getchar()==';')
 					{
-						if(getchar()=='5')
+						unsigned char e=getchar();
+						if((e=='5')||(e=='3')) // 3 is Alt- instead of C-
 						{
 							switch(getchar())
 							{
