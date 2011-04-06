@@ -91,7 +91,7 @@ int initialise_buffers(int buflines)
 	bufs[0].live=true; // STATUS is never dead
 	bufs[0].nick=nick;
 	bufs[0].ilist=igns;
-	add_to_buffer(0, c_status, "Copyright (C) 2010-11 Edward Cree\nThis program comes with ABSOLUTELY NO WARRANTY.\nThis is free software, and you are welcome to redistribute it under certain conditions.  (GNU GPL v3+)\nFor further details, see the file 'COPYING' in the quirc directory.", "quirc -- ");
+	add_to_buffer(0, c_status, GPL_TAIL, "quirc -- ");
 	return(0);
 }
 
