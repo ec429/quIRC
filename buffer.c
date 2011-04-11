@@ -212,6 +212,7 @@ int free_buffer(int buf)
 			{
 				bufs[b].server=0; // orphaned; should not happen
 				bufs[b].live=false;
+				bufs[b].handle=0; // just in case
 			}
 			else if(bufs[b].server>buf)
 			{

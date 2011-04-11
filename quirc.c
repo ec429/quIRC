@@ -160,6 +160,7 @@ int main(int argc, char *argv[])
 								if(bufs[b].handle)
 								{
 									close(bufs[b].handle);
+									bufs[b].handle=0; // de-bind fd
 									FD_CLR(bufs[b].handle, &master);
 									add_to_buffer(b, c_err, "Outbound ping timeout", "Disconnected: ");
 								}
@@ -180,6 +181,7 @@ int main(int argc, char *argv[])
 					else if(!bufs[bufs[b].server].live)
 					{
 						bufs[b].live=false;
+						bufs[b].handle=0; // just in case
 						add_to_buffer(b, c_err, "Connection to server lost", "Disconnected: ");
 					}
 				}
@@ -254,6 +256,7 @@ int main(int argc, char *argv[])
 										char emsg[64];
 										sprintf(emsg, "irc_rx(%d, &%p): %d", fd, packet, e);
 										close(fd);
+										bufs[b].handle=0; // de-bind fd
 										FD_CLR(fd, &master);
 										bufs[b].live=false;
 										add_to_buffer(0, c_err, emsg, "error: ");
@@ -345,6 +348,7 @@ int main(int argc, char *argv[])
 									char emsg[32];
 									sprintf(emsg, "buf %d, fd %d", b, fd);
 									close(fd);
+									bufs[b].handle=0; // de-bind fd
 									FD_CLR(fd, &master);
 									bufs[b].live=false;
 									add_to_buffer(0, c_err, emsg, "error: read on a dead tab: ");
