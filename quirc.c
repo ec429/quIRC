@@ -67,10 +67,29 @@ int main(int argc, char *argv[])
 	}
 	resetcol();
 	char *qmsg=fname;
-	char *rcfile=".quirc";
 	char *home=getenv("HOME");
-	if(home) chdir(home);
-	FILE *rcfp=fopen(rcfile, "r");
+	if(home)
+	{
+		char *qfld=malloc(strlen(home)+8);
+		if(qfld)
+		{
+			sprintf(qfld, "%s/.quirc", home);
+			chdir(qfld);
+			free(qfld);
+		}
+		else
+		{
+			perror("Failed to allocate space for 'qfld'");
+			push_buffer();
+			return(1);
+		}
+	}
+	else
+	{
+		fprintf(stderr, "Environment variable $HOME not set!  Exiting\n");
+		return(1);
+	}
+	FILE *rcfp=fopen("rc", "r");
 	int rc_err=0;
 	if(rcfp)
 	{
@@ -79,13 +98,13 @@ int main(int argc, char *argv[])
 		if(rc_err)
 		{
 			char msg[32];
-			sprintf(msg, "%d errors in ~/.quirc", rc_err);
+			sprintf(msg, "%d errors in ~/.quirc/rc", rc_err);
 			asb_failsafe(c_status, msg);
 		}
 	}
 	else
 	{
-		asb_failsafe(c_status, "no config file found.  Install one at ~/.quirc");
+		asb_failsafe(c_status, "no config file found.  Install one at ~/.quirc/rc");
 	}
 	
 	signed int e=pargs(argc, argv);

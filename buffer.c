@@ -219,7 +219,7 @@ int free_buffer(int buf)
 				bufs[b].server--;
 			}
 		}
-		if(force_redraw<3) redraw_buffer();
+		if(nbufs && (force_redraw<3)) redraw_buffer();
 		return(0);
 	}
 }

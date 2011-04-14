@@ -19,6 +19,25 @@ char * fgetl(FILE *fp)
 	return(lout);
 }
 
+char *slurp(FILE *fp)
+{
+	char *fout;
+	int l,i;
+	init_char(&fout, &l, &i);
+	signed int c;
+	while(!feof(fp))
+	{
+		c=fgetc(fp);
+		if(c==EOF)
+			break;
+		if(c!=0)
+		{
+			append_char(&fout, &l, &i, c);
+		}
+	}
+	return(fout);
+}
+
 int wordline(const char *msg, unsigned int x, char **out, int *l, int *i, colour lc)
 {
 	if(!msg) return(x);

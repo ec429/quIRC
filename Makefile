@@ -78,6 +78,8 @@ input.c: config_set.c
 
 names.o: names.c names.h buffer.h irc.h
 
+script.o: script.c script.h bits.h buffer.h
+
 c_init.c: colour.d c_init.awk
 	$(AWK) -f c_init.awk colour.d > c_init.c
 

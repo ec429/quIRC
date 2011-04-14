@@ -23,7 +23,8 @@
 char *strndup(const char *s, size_t size);
 #endif
 
-char * fgetl(FILE *); // gets a line of string data; returns a malloc-like pointer
+char *fgetl(FILE *); // gets a line of string data; returns a malloc-like pointer
+char *slurp(FILE *); // gets an entire file of string data; returns a malloc-like pointer
 int wordline(const char *msg, unsigned int x, char **out, int *l, int *i, colour lc); // prepares a string for printing, breaking lines in between words; returns new x
 void init_char(char **buf, int *l, int *i); // initialises a string buffer in heap.  *buf becomes a malloc-like pointer
 void append_char(char **buf, int *l, int *i, char c); // adds a character to a string buffer in heap (and realloc()s if needed)
