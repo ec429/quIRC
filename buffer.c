@@ -550,55 +550,91 @@ void in_update(iline inp)
 	printf(CLR);
 	resetcol();
 	printf("\n");
+	unsigned int wwidth=width;
+	char stamp[32];
+	stamp[0]=0;
+	if(its)
+	{
+		time_t t=time(NULL);
+		struct tm *td=(utc?gmtime:localtime)(&t);
+		switch(ts)
+		{
+			case 1:
+				strftime(stamp, 32, "[%H:%M] ", td);
+			break;
+			case 2:
+				strftime(stamp, 32, "[%H:%M:%S] ", td);
+			break;
+			case 3:
+				if(utc)
+					strftime(stamp, 32, "[%H:%M:%S UTC] ", td);
+				else
+					strftime(stamp, 32, "[%H:%M:%S %z] ", td);
+			break;
+			case 4:
+				snprintf(stamp, 32, "[u+%lu] ", (unsigned long)t);
+			break;
+			case 0: // no timestamps
+			default:
+			break;
+		}
+		if(strlen(stamp)+25>wwidth)
+		{
+			stamp[0]=0;
+			its=false;
+			add_to_buffer(0, c_status, "disabled due to insufficient display width", "its: ");
+		}
+		wwidth-=strlen(stamp);
+	}
 	// input
-	if((unsigned)inp.left.i+(unsigned)inp.right.i+1<width)
+	if((unsigned)inp.left.i+(unsigned)inp.right.i+1<wwidth)
 	{
 		char *lh=highlight(inp.left.data?inp.left.data:"");
 		char *rh=highlight(inp.right.data?inp.right.data:"");
-		printf("%s" SAVEPOS "%s" CLR RESTPOS, lh, rh);
+		printf("%s%s" SAVEPOS "%s" CLR RESTPOS, stamp, lh, rh);
 		free(lh);
 		free(rh);
 	}
 	else
 	{
-		if(inp.left.i<width*0.75)
+		if(inp.left.i<wwidth*0.75)
 		{
 			char *lh=highlight(inp.left.data?inp.left.data:"");
-			char rl[width-inp.left.i-3-max(3, (width-inp.left.i)/4)];
-			snprintf(rl, width-inp.left.i-3-max(3, (width-inp.left.i)/4), "%s", inp.right.data);
+			char rl[wwidth-inp.left.i-3-max(3, (wwidth-inp.left.i)/4)];
+			snprintf(rl, wwidth-inp.left.i-3-max(3, (wwidth-inp.left.i)/4), "%s", inp.right.data);
 			char *rlh=highlight(rl);
-			char *rrh=highlight(inp.right.data+inp.right.i-max(3, (width-inp.left.i)/4));
-			printf("%s" SAVEPOS "%s...%s" CLR RESTPOS, lh, rlh, rrh);
+			char *rrh=highlight(inp.right.data+inp.right.i-max(3, (wwidth-inp.left.i)/4));
+			printf("%s%s" SAVEPOS "%s...%s" CLR RESTPOS, stamp, lh, rlh, rrh);
 			free(lh);
 			free(rlh);
 			free(rrh);
 		}
-		else if(inp.right.i<width*0.75)
+		else if(inp.right.i<wwidth*0.75)
 		{
-			char ll[max(3, (width-inp.right.i)/4)];
-			snprintf(ll, max(3, (width-inp.right.i)/4), "%s", inp.left.data);
+			char ll[max(3, (wwidth-inp.right.i)/4)];
+			snprintf(ll, max(3, (wwidth-inp.right.i)/4), "%s", inp.left.data);
 			char *llh=highlight(ll);
-			char *lrh=highlight(inp.left.data+inp.left.i-width+3+inp.right.i+max(3, (width-inp.right.i)/4));
+			char *lrh=highlight(inp.left.data+inp.left.i-wwidth+3+inp.right.i+max(3, (wwidth-inp.right.i)/4));
 			char *rh=highlight(inp.right.data?inp.right.data:"");
-			printf("%s...%s" SAVEPOS "%s" CLR RESTPOS, llh, lrh, rh);
+			printf("%s%s...%s" SAVEPOS "%s" CLR RESTPOS, stamp, llh, lrh, rh);
 			free(llh);
 			free(lrh);
 			free(rh);
 		}
 		else
 		{
-			int torem=floor((width/4.0)*floor(((inp.left.i-(width/2.0))*4.0/width)+0.5));
+			int torem=floor((wwidth/4.0)*floor(((inp.left.i-(wwidth/2.0))*4.0/wwidth)+0.5));
 			torem=min(torem, inp.left.i-3);
 			int c=inp.left.i+4-torem;
 			char ll[max(3, c/4)+1];
 			snprintf(ll, max(3, c/4)+1, "%s", inp.left.data);
 			char *llh=highlight(ll);
 			char *lrh=highlight(inp.left.data+torem+max(3, c/4));
-			char rl[width-c-2-max(3, (width-c)/4)];
-			snprintf(rl, width-c-2-max(3, (width-c)/4), "%s", inp.right.data);
+			char rl[wwidth-c-2-max(3, (wwidth-c)/4)];
+			snprintf(rl, wwidth-c-2-max(3, (wwidth-c)/4), "%s", inp.right.data);
 			char *rlh=highlight(rl);
-			char *rrh=highlight(inp.right.data+inp.right.i-max(3, (width-c)/4));
-			printf("%s...%s" SAVEPOS "%s...%s" CLR RESTPOS, llh, lrh, rlh, rrh);
+			char *rrh=highlight(inp.right.data+inp.right.i-max(3, (wwidth-c)/4));
+			printf("%s%s...%s" SAVEPOS "%s...%s" CLR RESTPOS, stamp, llh, lrh, rlh, rrh);
 			free(llh);
 			free(lrh);
 			free(rlh);

@@ -157,12 +157,27 @@
 				{
 					if(val)
 					{
-						unsigned int value;
-						sscanf(val, "%u", &value);
-						full_width_colour=value;
+						if(isdigit(*val))
+						{
+							unsigned int value;
+							sscanf(val, "%u", &value);
+							full_width_colour=value;
+						}
+						else if(strcmp(val, "+")==0)
+						{
+							full_width_colour=true;
+						}
+						else if(strcmp(val, "-")==0)
+						{
+							full_width_colour=false;
+						}
+						else
+						{
+							add_to_buffer(cbuf, c_err, "option 'fwc' is boolean, use only 0/1 or -/+ to set", "/set: ");
+						}
 					}
 					else
-						full_width_colour=0;
+						full_width_colour=true;
 					if(!quiet)
 					{
 						if(full_width_colour)
@@ -188,12 +203,27 @@
 				{
 					if(val)
 					{
-						unsigned int value;
-						sscanf(val, "%u", &value);
-						hilite_tabstrip=value;
+						if(isdigit(*val))
+						{
+							unsigned int value;
+							sscanf(val, "%u", &value);
+							hilite_tabstrip=value;
+						}
+						else if(strcmp(val, "+")==0)
+						{
+							hilite_tabstrip=true;
+						}
+						else if(strcmp(val, "-")==0)
+						{
+							hilite_tabstrip=false;
+						}
+						else
+						{
+							add_to_buffer(cbuf, c_err, "option 'hts' is boolean, use only 0/1 or -/+ to set", "/set: ");
+						}
 					}
 					else
-						hilite_tabstrip=0;
+						hilite_tabstrip=true;
 					if(!quiet)
 					{
 						if(hilite_tabstrip)
@@ -219,12 +249,27 @@
 				{
 					if(val)
 					{
-						unsigned int value;
-						sscanf(val, "%u", &value);
-						tsb=value;
+						if(isdigit(*val))
+						{
+							unsigned int value;
+							sscanf(val, "%u", &value);
+							tsb=value;
+						}
+						else if(strcmp(val, "+")==0)
+						{
+							tsb=true;
+						}
+						else if(strcmp(val, "-")==0)
+						{
+							tsb=false;
+						}
+						else
+						{
+							add_to_buffer(cbuf, c_err, "option 'tsb' is boolean, use only 0/1 or -/+ to set", "/set: ");
+						}
 					}
 					else
-						tsb=1;
+						tsb=true;
 					if(!quiet)
 					{
 						if(tsb)
@@ -306,12 +351,27 @@
 				{
 					if(val)
 					{
-						unsigned int value;
-						sscanf(val, "%u", &value);
-						utc=value;
+						if(isdigit(*val))
+						{
+							unsigned int value;
+							sscanf(val, "%u", &value);
+							utc=value;
+						}
+						else if(strcmp(val, "+")==0)
+						{
+							utc=true;
+						}
+						else if(strcmp(val, "-")==0)
+						{
+							utc=false;
+						}
+						else
+						{
+							add_to_buffer(cbuf, c_err, "option 'utc' is boolean, use only 0/1 or -/+ to set", "/set: ");
+						}
 					}
 					else
-						utc=0;
+						utc=true;
 					if(!quiet)
 					{
 						if(utc)
@@ -333,16 +393,77 @@
 						bufs[buf].dirty=true;
 					redraw_buffer();
 				}
+				else if(strcmp(opt, "its")==0)
+				{
+					if(val)
+					{
+						if(isdigit(*val))
+						{
+							unsigned int value;
+							sscanf(val, "%u", &value);
+							its=value;
+						}
+						else if(strcmp(val, "+")==0)
+						{
+							its=true;
+						}
+						else if(strcmp(val, "-")==0)
+						{
+							its=false;
+						}
+						else
+						{
+							add_to_buffer(cbuf, c_err, "option 'its' is boolean, use only 0/1 or -/+ to set", "/set: ");
+						}
+					}
+					else
+						its=true;
+					if(!quiet)
+					{
+						if(its)
+							add_to_buffer(cbuf, c_status, "input clock enabled", "/set: ");
+						else
+							add_to_buffer(cbuf, c_status, "input clock disabled", "/set: ");
+					}
+					int buf;
+					for(buf=0;buf<nbufs;buf++)
+						bufs[buf].dirty=true;
+					redraw_buffer();
+				}
+				else if(strcmp(opt, "no-its")==0)
+				{
+					its=0;
+					if(!quiet) add_to_buffer(cbuf, c_status, "input clock disabled", "/set: ");
+					int buf;
+					for(buf=0;buf<nbufs;buf++)
+						bufs[buf].dirty=true;
+					redraw_buffer();
+				}
 				else if(strcmp(opt, "quiet")==0)
 				{
 					if(val)
 					{
-						unsigned int value;
-						sscanf(val, "%u", &value);
-						quiet=value;
+						if(isdigit(*val))
+						{
+							unsigned int value;
+							sscanf(val, "%u", &value);
+							quiet=value;
+						}
+						else if(strcmp(val, "+")==0)
+						{
+							quiet=true;
+						}
+						else if(strcmp(val, "-")==0)
+						{
+							quiet=false;
+						}
+						else
+						{
+							add_to_buffer(cbuf, c_err, "option 'quiet' is boolean, use only 0/1 or -/+ to set", "/set: ");
+						}
 					}
 					else
-						quiet=0;
+						quiet=true;
 					if(!quiet)
 					{
 						if(quiet)

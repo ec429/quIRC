@@ -111,6 +111,16 @@
 				else
 					utc=true;
 			}
+			else if(strcmp(cmd, "no-its")==0)
+				its=false;
+			else if(strcmp(cmd, "its")==0)
+			{
+				unsigned int value;
+				if(rest&&sscanf(rest, "%u", &value))
+					its=value;
+				else
+					its=true;
+			}
 			else if(strcmp(cmd, "no-quiet")==0)
 				quiet=false;
 			else if(strcmp(cmd, "quiet")==0)

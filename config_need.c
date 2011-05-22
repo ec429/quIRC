@@ -18,5 +18,7 @@
 			if(strcmp(cmd, "no-ts")==0) need=false;
 			if(strcmp(cmd, "utc")==0) need=false;
 			if(strcmp(cmd, "no-utc")==0) need=false;
+			if(strcmp(cmd, "its")==0) need=false;
+			if(strcmp(cmd, "no-its")==0) need=false;
 			if(strcmp(cmd, "quiet")==0) need=false;
 			if(strcmp(cmd, "no-quiet")==0) need=false;

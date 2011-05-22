@@ -407,16 +407,45 @@ int main(int argc, char **argv)
 					printf("\t\t\t\t");
 					if(!first) printf("else ");
 					first=false;
-					printf(        "if(strcmp(opt, \"%s\")==0)\n", ents[i].set_name);
+					printf("if(strcmp(opt, \"%s\")==0)\n", ents[i].set_name);
 					printf("\t\t\t\t{\n");
-					printf("\t\t\t\t\tif(val)\n");
-					printf("\t\t\t\t\t{\n");
-					printf("\t\t\t\t\t\tunsigned int value;\n");
-					printf("\t\t\t\t\t\tsscanf(val, \"%%u\", &value);\n");
-					printf("\t\t\t\t\t\t%s=value;\n", ents[i].cname);
-					printf("\t\t\t\t\t}\n");
-					printf("\t\t\t\t\telse\n");
-					printf("\t\t\t\t\t\t%s=%d;\n", ents[i].cname, ents[i].value);
+					if(ents[i].set_type==BOOLEAN)
+					{
+						printf("\t\t\t\t\tif(val)\n");
+						printf("\t\t\t\t\t{\n");
+						printf("\t\t\t\t\t\tif(isdigit(*val))\n");
+						printf("\t\t\t\t\t\t{\n");
+						printf("\t\t\t\t\t\t\tunsigned int value;\n");
+						printf("\t\t\t\t\t\t\tsscanf(val, \"%%u\", &value);\n");
+						printf("\t\t\t\t\t\t\t%s=value;\n", ents[i].cname);
+						printf("\t\t\t\t\t\t}\n");
+						printf("\t\t\t\t\t\telse if(strcmp(val, \"+\")==0)\n");
+						printf("\t\t\t\t\t\t{\n");
+						printf("\t\t\t\t\t\t\t%s=true;\n", ents[i].cname);
+						printf("\t\t\t\t\t\t}\n");
+						printf("\t\t\t\t\t\telse if(strcmp(val, \"-\")==0)\n");
+						printf("\t\t\t\t\t\t{\n");
+						printf("\t\t\t\t\t\t\t%s=false;\n", ents[i].cname);
+						printf("\t\t\t\t\t\t}\n");
+						printf("\t\t\t\t\t\telse\n");
+						printf("\t\t\t\t\t\t{\n");
+						printf("\t\t\t\t\t\t\tadd_to_buffer(cbuf, c_err, \"option '%s' is boolean, use only 0/1 or -/+ to set\", \"/set: \");\n", ents[i].set_name);
+						printf("\t\t\t\t\t\t}\n");
+						printf("\t\t\t\t\t}\n");
+						printf("\t\t\t\t\telse\n");
+						printf("\t\t\t\t\t\t%s=true;\n", ents[i].cname);
+					}
+					else
+					{
+						printf("\t\t\t\t\tif(val)\n");
+						printf("\t\t\t\t\t{\n");
+						printf("\t\t\t\t\t\tunsigned int value;\n");
+						printf("\t\t\t\t\t\tsscanf(val, \"%%u\", &value);\n");
+						printf("\t\t\t\t\t\t%s=value;\n", ents[i].cname);
+						printf("\t\t\t\t\t}\n");
+						printf("\t\t\t\t\telse\n");
+						printf("\t\t\t\t\t\t%s=%d;\n", ents[i].cname, ents[i].value);
+					}
 					printf("\t\t\t\t\tif(!quiet)\n");
 					printf("\t\t\t\t\t{\n");
 					switch(ents[i].set_type)

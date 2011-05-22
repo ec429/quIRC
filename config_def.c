@@ -11,4 +11,5 @@
 	tping=30;
 	ts=1;
 	utc=0;
+	its=0;
 	quiet=0;
