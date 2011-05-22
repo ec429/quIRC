@@ -10,8 +10,6 @@ Fix possible issue with CTCP.  Funny stuff (including random characters) happene
 
 Proper handling of Unicode in character-based things like cursor-movement, backspace.
 
-Generate a rc/set reference document with genconfig.
-
 Improve the parsing of mirc-colour-codes (to fix things like \003124 which currently gets eaten entirely).  The relevant code is in bits.c.
 
 /dump command.  Pipes a screendump (or better still, unprocessed text) into program of choice.

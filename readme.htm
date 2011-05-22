@@ -63,6 +63,7 @@ Then there&apos;s the github page, <a href="http://github.com/ec429/quIRC">http:
 	<ul>
 		<li>The options &apos;height&apos; and &apos;width&apos; are used to tell quIRC how many rows and columns your terminal has (for cursor-positioning).  quIRC will try to deduce these values (from environment variables $LINES and $COLUMNS, using defaults of 80x24 if these env vars are not found), but you can override those guesses here or on the command line.</li>
 	</ul>
+	For full details see <a href="config_ref.htm">config_ref.htm</a>.
 	</dd>
 <dt>/ignore [-ipd] <em>user</em>[@<em>host</em>]</dt>
 <dt>/ignore [-ipd] -r <em>regex</em></dt>
@@ -117,7 +118,7 @@ Then there&apos;s the github page, <a href="http://github.com/ec429/quIRC">http:
 </div><!--#commands-->
 <div id="configuration">
 <h2>Configuration</h2>
-<p>quIRC can be configured through an &quot;rc file&quot; as follows.</p>
+<p>quIRC can be configured through an &quot;rc file&quot; as follows.  (For a compact reference table see <a href="config_ref.htm">config_ref.htm</a>)</p>
 <p>In your home directory (/home/username), create a file called &quot;.quirc&quot;, and open it in your editor.</p>
 <p>In this file you can set servers, nick and channels to automatically use:<br />
 <tt>nick <em>global-nickname</em></tt><br />
@@ -135,7 +136,7 @@ where 0 doesn&apos;t scan for mirc-colours, 1 silently strips them out, and 2 di
 <p>Another setting here is force-redraw, with<br />
 <tt>fred <em>force-redraw</em></tt><br />
 which will redraw the whole screen when things change; the number controls how often.<br />
-0 won't redraw at all, while 3 will redraw every 0.25 seconds.  The default is 2, which redraws whenever any buffer is written to or input is entered.</p>
+0 won't redraw at all, while 3 will redraw every 0.25 seconds.  The default is now 0 (it used to be 2, which redraws whenever any buffer is written to or input is entered).  Since some improvements were made to the drawing code, fred's assistance should no longer be needed, but we've kept him around just in case.</p>
 <p>The size of each scrollback buffer, in lines, can be set with<br />
 <tt>buf <em>buf-lines</em></tt><br />
 the default being 256.  Larger values will, of course, increase memory consumption.</p>

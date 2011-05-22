@@ -29,7 +29,7 @@ clean:
 realclean: clean
 	-rm c_init.c README version.h config_*
 
-doc: README
+doc: README config_ref.htm
 
 README: readme.htm
 	-sed -e "s/&apos;/'/g" -e "s/&quot;/\"/g" < readme.htm | html2text -nobs -o README

@@ -85,7 +85,7 @@
 						force_redraw=value;
 					}
 					else
-						force_redraw=2;
+						force_redraw=0;
 					if(!quiet)
 					{
 						if(force_redraw)

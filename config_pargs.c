@@ -31,9 +31,9 @@
 			utc=true;
 		else if(strcmp(argv[arg], "--no-utc")==0)
 			utc=false;
-		else if(strcmp(argv[arg], "--input clock")==0)
+		else if(strcmp(argv[arg], "--its")==0)
 			its=true;
-		else if(strcmp(argv[arg], "--no-input clock")==0)
+		else if(strcmp(argv[arg], "--no-its")==0)
 			its=false;
 		else if(strcmp(argv[arg], "--quiet")==0)
 			quiet=true;
