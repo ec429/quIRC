@@ -179,8 +179,8 @@ int main(int argc, char *argv[])
 								if(bufs[b].handle)
 								{
 									close(bufs[b].handle);
-									bufs[b].handle=0; // de-bind fd
 									FD_CLR(bufs[b].handle, &master);
+									bufs[b].handle=0; // de-bind fd
 									add_to_buffer(b, c_err, "Outbound ping timeout", "Disconnected: ");
 								}
 								bufs[b].alert=true;
@@ -212,8 +212,7 @@ int main(int argc, char *argv[])
 		readfds=master;
 		if(select(fdmax+1, &readfds, NULL, NULL, &timeout)==-1)
 		{
-			perror("\nselect");
-			state=1;
+			add_to_buffer(0, c_err, strerror(errno), "select: ");
 		}
 		else
 		{
