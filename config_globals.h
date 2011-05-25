@@ -13,3 +13,4 @@ unsigned int ts; // timestamping
 bool utc; // UTC timestamps
 bool its; // input clock
 bool quiet; // quiet mode
+bool debug; // debugging

@@ -547,29 +547,6 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 			{
 				char *val=strtok(NULL, " ");
 #include "config_set.c"
-			#ifdef HAVE_DEBUG
-				else if(strcmp(opt, "debug")==0)
-				{
-					if(val)
-					{
-						sscanf(val, "%u", &debug);
-					}
-					else
-					{
-						debug=1;
-					}
-					if(debug)
-					{
-						add_to_buffer(cbuf, c_status, "Debugging mode enabled", "/set: ");
-						if(quiet) add_to_buffer(cbuf, c_status, "Quiet mode disabled", "/set: ");
-						quiet=false;
-					}
-					else
-					{
-						add_to_buffer(cbuf, c_status, "Debugging mode disabled", "/set: ");
-					}
-				}
-			#endif // HAVE_DEBUG
 				else
 				{
 					add_to_buffer(cbuf, c_err, "No such option!", "/set: ");

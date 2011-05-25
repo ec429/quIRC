@@ -13,3 +13,4 @@
 			fprintf(stderr, "\t--[no-]utc                      : UTC timestamps\n");
 			fprintf(stderr, "\t--[no-]its                      : input clock\n");
 			fprintf(stderr, "\t--[no-]quiet                    : quiet mode\n");
+			fprintf(stderr, "\t--[no-]debug                    : debugging\n");

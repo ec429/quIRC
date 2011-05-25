@@ -12,3 +12,4 @@ int:ts:1:0:4:ts:timestamps:ts:L:timestamping
 bool:utc:false:::utc:utc:utc:B:UTC timestamps
 bool:its:false:::its:its:its:B:input clock
 bool:quiet:false:::quiet:quiet:quiet:B:quiet mode
+bool:debug:false:::debug:debug:debug:B:debugging

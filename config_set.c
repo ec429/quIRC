@@ -485,3 +485,49 @@
 						bufs[buf].dirty=true;
 					redraw_buffer();
 				}
+				else if(strcmp(opt, "debug")==0)
+				{
+					if(val)
+					{
+						if(isdigit(*val))
+						{
+							unsigned int value;
+							sscanf(val, "%u", &value);
+							debug=value;
+						}
+						else if(strcmp(val, "+")==0)
+						{
+							debug=true;
+						}
+						else if(strcmp(val, "-")==0)
+						{
+							debug=false;
+						}
+						else
+						{
+							add_to_buffer(cbuf, c_err, "option 'debug' is boolean, use only 0/1 or -/+ to set", "/set: ");
+						}
+					}
+					else
+						debug=true;
+					if(!quiet)
+					{
+						if(debug)
+							add_to_buffer(cbuf, c_status, "debugging enabled", "/set: ");
+						else
+							add_to_buffer(cbuf, c_status, "debugging disabled", "/set: ");
+					}
+					int buf;
+					for(buf=0;buf<nbufs;buf++)
+						bufs[buf].dirty=true;
+					redraw_buffer();
+				}
+				else if(strcmp(opt, "no-debug")==0)
+				{
+					debug=0;
+					if(!quiet) add_to_buffer(cbuf, c_status, "debugging disabled", "/set: ");
+					int buf;
+					for(buf=0;buf<nbufs;buf++)
+						bufs[buf].dirty=true;
+					redraw_buffer();
+				}

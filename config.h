@@ -46,9 +46,6 @@ bool autojoin;
 char *username, *fname, *nick, *portno;
 servlist *servs;
 name *igns;
-#ifdef HAVE_DEBUG
-unsigned int debug;
-#endif // HAVE_DEBUG
 char version[16+strlen(VERSION_TXT)];
 
 int conf_check(void); // writes diagnostics to start-buffer

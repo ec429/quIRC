@@ -7,7 +7,6 @@ VERSION := `git describe --tags`
 PREFIX ?= /usr/local
 LIBS := ttyraw.o ttyesc.o irc.o bits.o colour.o buffer.o names.o config.o input.o
 INCLUDE := ttyraw.h ttyesc.h irc.h bits.h colour.h buffer.h names.h config.h input.h quirc.h version.h
-DEFINES ?= -DHAVE_DEBUG
 
 all: quirc doc
 

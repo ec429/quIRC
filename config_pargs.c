@@ -39,3 +39,7 @@
 			quiet=true;
 		else if(strcmp(argv[arg], "--no-quiet")==0)
 			quiet=false;
+		else if(strcmp(argv[arg], "--debug")==0)
+			debug=true;
+		else if(strcmp(argv[arg], "--no-debug")==0)
+			debug=false;

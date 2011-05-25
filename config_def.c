@@ -13,3 +13,4 @@
 	utc=0;
 	its=0;
 	quiet=0;
+	debug=0;

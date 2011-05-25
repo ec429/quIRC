@@ -25,9 +25,6 @@ int def_config(void)
 	nick=strdup("ac");
 	sprintf(fname, "quIRC %hhu.%hhu.%hhu%s%s : http://github.com/ec429/quIRC", VERSION_MAJ, VERSION_MIN, VERSION_REV, VERSION_TXT[0]?"-":"", VERSION_TXT);
 	sprintf(version, "%hhu.%hhu.%hhu%s%s", VERSION_MAJ, VERSION_MIN, VERSION_REV, VERSION_TXT[0]?"-":"", VERSION_TXT);
-	#ifdef HAVE_DEBUG
-		debug=0;
-	#endif // HAVE_DEBUG
 	return(0);
 }
 
@@ -278,10 +275,6 @@ int rcread(FILE *rcfp)
 				servs->chans=new;
 			}
 #include "config_rcread.c"
-		#ifdef HAVE_DEBUG
-			else if(strcmp(cmd, "debug")==0)
-				sscanf(rest, "%u", &debug);
-		#endif // HAVE_DEBUG
 			else
 			{
 				char msg[48+strlen(cmd)];
@@ -369,12 +362,6 @@ signed int pargs(int argc, char *argv[])
 			new->igns=NULL;
 			servs->chans=new;
 		}
-	#ifdef HAVE_DEBUG
-		else if(strncmp(argv[arg], "--debug=", 8)==0)
-			sscanf(argv[arg]+8, "%u", &debug);
-		else if(strcmp(argv[arg], "--debug")==0)
-			debug=1;
-	#endif // HAVE_DEBUG
 #include "config_pargs.c"
 		else
 		{

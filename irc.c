@@ -57,14 +57,12 @@ int irc_connect(char *server, char *portno, fd_set *master, int *fdmax)
 		}
 		break;
 	}
-#ifdef HAVE_DEBUG
 	if(debug)
 	{
 		char cmsg[16+strlen(sip)];
 		sprintf(cmsg, "fd=%d, ip=%s", serverhandle, sip);
 		add_to_buffer(0, c_status, cmsg, "DBG connect: ");
 	}
-#endif // HAVE_DEBUG
 	if (p == NULL)
 	{
 		add_to_buffer(0, c_err, "failed to connect to server", "/connect: ");
@@ -79,12 +77,10 @@ int irc_connect(char *server, char *portno, fd_set *master, int *fdmax)
 
 int irc_conn_rest(int b, char *nick, char *username, char *fullname)
 {
-#ifdef HAVE_DEBUG
 	if(debug)
 	{
 		add_to_buffer(0, c_status, "", "DBG connect rest");
 	}
-#endif // HAVE_DEBUG
 	bufs[b].live=true; // mark it as live
 	bufs[b].conninpr=false;
 	bufs[b].ping=0;
@@ -146,26 +142,22 @@ int irc_tx(int fd, char * packet)
 	}
 	if(sigpipe)
 	{
-	#ifdef HAVE_DEBUG
 		if(debug)
 		{
 			char tmsg[32+strlen(pq)];
 			sprintf(tmsg, "%d, %lu bytes: %s", fd, p, pq);
 			add_to_buffer(0, c_status, tmsg, "DBG SIGPIPE tx: ");
 		}
-	#endif // HAVE_DEBUG
 		sigpipe=0;
 		return(-1);
 	}
 	send(fd, "\n", 1, 0);
-#ifdef HAVE_DEBUG
 	if(debug)
 	{
 		char tmsg[32+strlen(pq)];
 		sprintf(tmsg, "%d, %lu bytes: %s", fd, l, pq);
 		add_to_buffer(0, c_status, tmsg, "DBG tx: ");
 	}
-#endif // HAVE_DEBUG
 	if(sigpipe)
 	{
 		sigpipe=0;
@@ -212,14 +204,12 @@ int irc_rx(int fd, char ** data)
 		}
 	}
 	*data=strdup(buf);
-#ifdef HAVE_DEBUG
 	if(debug && *buf)
 	{
 		char rmsg[32+strlen(buf)];
 		sprintf(rmsg, "%d, %lu bytes: %s", fd, l, buf);
 		add_to_buffer(0, c_status, rmsg, sigpipe?"DBG SIGPIPE rx: ":"DBG rx: ");
 	}
-#endif // HAVE_DEBUG
 	if(sigpipe)
 	{
 		sigpipe=0;

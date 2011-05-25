@@ -131,3 +131,13 @@
 				else
 					quiet=true;
 			}
+			else if(strcmp(cmd, "no-debug")==0)
+				debug=false;
+			else if(strcmp(cmd, "debug")==0)
+			{
+				unsigned int value;
+				if(rest&&sscanf(rest, "%u", &value))
+					debug=value;
+				else
+					debug=true;
+			}
