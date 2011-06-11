@@ -477,75 +477,87 @@ void in_update(iline inp)
 	printf(LOCATE, height-1, 1);
 	// tab strip
 	int mbw = (width-1)/nbufs;
-	int b;
-	for(b=0;b<nbufs;b++)
+	if(mbw)
 	{
-		colour c={7, hilite_tabstrip?5:0, false, false};
-		setcolour(c);
-		putchar(' ');
-		// (status) {server} [channel] <user>
-		char brack[2]={'!', '!'};
-		switch(bufs[b].type)
+		int b;
+		for(b=0;b<nbufs;b++)
 		{
-			case STATUS:
-				brack[0]='(';brack[1]=')';
-			break;
-			case SERVER:
-				brack[0]='{';brack[1]='}';
-			break;
-			case CHANNEL:
-				brack[0]='[';brack[1]=']';
-			break;
-			case PRIVATE:
-				brack[0]='<';brack[1]='>';
-			break;
+			colour c={7, hilite_tabstrip?5:0, false, false};
+			setcolour(c);
+			putchar(' ');
+			// (status) {server} [channel] <user>
+			char brack[2]={'!', '!'};
+			switch(bufs[b].type)
+			{
+				case STATUS:
+					brack[0]='(';brack[1]=')';
+				break;
+				case SERVER:
+					brack[0]='{';brack[1]='}';
+				break;
+				case CHANNEL:
+					brack[0]='[';brack[1]=']';
+				break;
+				case PRIVATE:
+					brack[0]='<';brack[1]='>';
+				break;
+			}
+			if(b==cbuf)
+			{
+				c.back=2; // green
+				c.hi=true;
+			}
+			else if(b==bufs[cbuf].server)
+			{
+				c.back=4; // blue
+				c.ul=true;
+			}
+			if(bufs[b].hi_alert%2)
+			{
+				c.fore=6; // cyan
+				c.hi=true;
+				c.ul=false; // can't have both at once: it's not really a bitmask
+			}
+			else if(bufs[b].alert)
+			{
+				c.fore=1; // red
+				c.hi=true;
+				c.ul=false; // can't have both at once: it's not really a bitmask
+			}
+			if((!LIVE(b)) && (c.fore!=6))
+			{
+				c.fore=3; // yellow
+				c.hi=true;
+				c.ul=false; // can't have both at once: it's not really a bitmask
+			}
+			setcolour(c);
+			putchar(brack[0]);
+			if(mbw>3)
+			{
+				char *tab=strdup(bufs[b].bname);
+				if(bufs[b].type==SERVER)
+				{
+					scrush(&tab, mbw-3);
+				}
+				else
+				{
+					crush(&tab, mbw-3);
+				}
+				printf("%s", tab);
+				free(tab);
+			}
+			if(mbw>2)
+				putchar(brack[1]);
+			c.fore=7;
+			c.back=hilite_tabstrip?5:0;
+			c.hi=c.ul=false;
+			setcolour(c);
 		}
-		if(b==cbuf)
-		{
-			c.back=2; // green
-			c.hi=true;
-		}
-		else if(b==bufs[cbuf].server)
-		{
-			c.back=4; // blue
-			c.ul=true;
-		}
-		if(bufs[b].hi_alert%2)
-		{
-			c.fore=6; // cyan
-			c.hi=true;
-			c.ul=false; // can't have both at once: it's not really a bitmask
-		}
-		else if(bufs[b].alert)
-		{
-			c.fore=1; // red
-			c.hi=true;
-			c.ul=false; // can't have both at once: it's not really a bitmask
-		}
-		if((!LIVE(b)) && (c.fore!=6))
-		{
-			c.fore=3; // yellow
-			c.hi=true;
-			c.ul=false; // can't have both at once: it's not really a bitmask
-		}
-		setcolour(c);
-		putchar(brack[0]);
-		char *tab=strdup(bufs[b].bname);
-		if(bufs[b].type==SERVER)
-		{
-			scrush(&tab, mbw-3);
-		}
-		else
-		{
-			crush(&tab, mbw-3);
-		}
-		printf("%s", tab);
-		free(tab);
-		putchar(brack[1]);
-		c.fore=7;
-		c.back=hilite_tabstrip?5:0;
-		c.hi=c.ul=false;
-		setcolour(c);
+	}
+	else
+	{
+		setcolour((colour){.fore=0, .back=1, .hi=true, .ul=false});
+		printf("buf %u [0 to %u]", cbuf, nbufs-1);
 	}
 	printf(CLR);
 	resetcol();
