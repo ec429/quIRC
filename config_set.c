@@ -9,6 +9,8 @@
 					}
 					else
 						width=80;
+					if(width<30)
+						width=30;
 					if(!quiet)
 					{
 						char smsg[37];
@@ -30,6 +32,8 @@
 					}
 					else
 						height=24;
+					if(height<5)
+						height=5;
 					if(!quiet)
 					{
 						char smsg[38];
@@ -51,6 +55,8 @@
 					}
 					else
 						mirc_colour_compat=1;
+					if(mirc_colour_compat>2)
+						mirc_colour_compat=2;
 					if(!quiet)
 					{
 						if(mirc_colour_compat)
@@ -86,6 +92,8 @@
 					}
 					else
 						force_redraw=0;
+					if(force_redraw>3)
+						force_redraw=3;
 					if(!quiet)
 					{
 						if(force_redraw)
@@ -121,6 +129,8 @@
 					}
 					else
 						buflines=256;
+					if(buflines<32)
+						buflines=32;
 					if(!quiet)
 					{
 						char smsg[36];
@@ -142,6 +152,8 @@
 					}
 					else
 						maxnlen=16;
+					if(maxnlen<4)
+						maxnlen=4;
 					if(!quiet)
 					{
 						char smsg[39];
@@ -301,6 +313,8 @@
 					}
 					else
 						tping=30;
+					if(tping<15)
+						tping=15;
 					if(!quiet)
 					{
 						char smsg[42];
@@ -322,6 +336,8 @@
 					}
 					else
 						ts=1;
+					if(ts>4)
+						ts=4;
 					if(!quiet)
 					{
 						if(ts)
