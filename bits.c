@@ -249,7 +249,7 @@ void scrush(char **buf, unsigned int len)
 				dot=n;
 				n=strchr(n+1, '.');
 			}
-			*dot=0;
+			if(dot) *dot=0;
 			crush(buf, len);
 		}
 	}

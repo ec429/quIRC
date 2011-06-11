@@ -477,7 +477,7 @@ void in_update(iline inp)
 	printf(LOCATE, height-1, 1);
 	// tab strip
 	int mbw = (width-1)/nbufs;
-	if(mbw)
+	if(mbw>1)
 	{
 		int b;
 		for(b=0;b<nbufs;b++)
