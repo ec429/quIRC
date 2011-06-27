@@ -412,13 +412,13 @@ int main(int argc, char *argv[])
 					{
 						if((bufs[cbuf].type==CHANNEL)||(bufs[cbuf].type==PRIVATE))
 						{
-							if(bufs[cbuf].handle)
+							if(bufs[bufs[cbuf].server].handle)
 							{
 								if(LIVE(cbuf))
 								{
 									char pmsg[12+strlen(bufs[cbuf].bname)+strlen(iinput)];
 									sprintf(pmsg, "PRIVMSG %s :%s", bufs[cbuf].bname, iinput);
-									irc_tx(bufs[cbuf].handle, pmsg);
+									irc_tx(bufs[bufs[cbuf].server].handle, pmsg);
 									char *cnick=strdup(bufs[bufs[cbuf].server].nick);
 									crush(&cnick, maxnlen);
 									char *tag=mktag("<%s> ", cnick);
