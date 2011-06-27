@@ -1028,6 +1028,7 @@ int rx_topic(message pkt, int b)
 		free(tag);
 	}
 	free(from);
+	if(match) titlebar();
 	return(match?0:1);
 }
 

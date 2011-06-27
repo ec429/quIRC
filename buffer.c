@@ -799,7 +799,7 @@ void titlebar(void)
 		hashgit++;
 	char *cserv=strdup(bufs[bufs[cbuf].server].bname?bufs[bufs[cbuf].server].bname:"");
 	char *cnick=strdup(bufs[bufs[cbuf].server].nick?bufs[bufs[cbuf].server].nick:"");
-	char *cchan=(bufs[cbuf].type==CHANNEL)?strdup(bufs[cbuf].bname?bufs[cbuf].bname:""):strdup("");
+	char *cchan=strdup(((bufs[cbuf].type==CHANNEL)||(bufs[cbuf].type==PRIVATE))&&bufs[cbuf].bname?bufs[cbuf].bname:"");
 	char *topic=(bufs[cbuf].type==CHANNEL)?bufs[cbuf].topic:NULL;
 	scrush(&cserv, 16);
 	crush(&cnick, 16);
