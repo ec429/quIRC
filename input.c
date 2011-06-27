@@ -710,7 +710,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 	}
 	if(strcmp(cmd, "join")==0)
 	{
-		if(!bufs[cbuf].handle)
+		if(!bufs[bufs[cbuf].server].handle)
 		{
 			add_to_buffer(cbuf, c_err, "Must be run in the context of a server!", "/join: ");
 		}
@@ -731,7 +731,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 				if(!pass) pass="";
 				char joinmsg[8+strlen(chan)+strlen(pass)];
 				sprintf(joinmsg, "JOIN %s %s", chan, pass);
-				irc_tx(bufs[cbuf].handle, joinmsg);
+				irc_tx(bufs[bufs[cbuf].server].handle, joinmsg);
 			}
 		}
 		else
@@ -744,7 +744,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 	{
 		if(bufs[cbuf].type==PRIVATE)
 		{
-			if(!(bufs[cbuf].handle && bufs[bufs[cbuf].server].live))
+			if(!(bufs[bufs[cbuf].server].handle && bufs[bufs[cbuf].server].live))
 			{
 				add_to_buffer(cbuf, c_err, "Disconnected, can't send", "/rejoin: ");
 			}
@@ -761,7 +761,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		{
 			add_to_buffer(cbuf, c_err, "View is not a channel!", "/rejoin: ");
 		}
-		else if(!(bufs[cbuf].handle && bufs[bufs[cbuf].server].live))
+		else if(!(bufs[bufs[cbuf].server].handle && bufs[bufs[cbuf].server].live))
 		{
 			add_to_buffer(cbuf, c_err, "Disconnected, can't send", "/rejoin: ");
 		}
@@ -776,7 +776,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 			if(!pass) pass="";
 			char joinmsg[8+strlen(chan)+strlen(pass)];
 			sprintf(joinmsg, "JOIN %s %s", chan, pass);
-			irc_tx(bufs[cbuf].handle, joinmsg);
+			irc_tx(bufs[bufs[cbuf].server].handle, joinmsg);
 			if(force_redraw<3)
 			{
 				redraw_buffer();
@@ -792,11 +792,11 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		}
 		else
 		{
-			if(LIVE(cbuf) && bufs[cbuf].handle)
+			if(LIVE(cbuf) && bufs[bufs[cbuf].server].handle)
 			{
 				char partmsg[8+strlen(bufs[cbuf].bname)];
 				sprintf(partmsg, "PART %s", bufs[cbuf].bname);
-				irc_tx(bufs[cbuf].handle, partmsg);
+				irc_tx(bufs[bufs[cbuf].server].handle, partmsg);
 				add_to_buffer(cbuf, c_part[0], "Leaving", "/part: ");
 			}
 			// when you try to /part a dead tab, interpret it as a /close
@@ -818,7 +818,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		const char *am="Gone away, gone away, was it one of you took it away?";
 		if(args)
 			am=args;
-		if(bufs[cbuf].handle)
+		if(bufs[bufs[cbuf].server].handle)
 		{
 			if(LIVE(cbuf))
 			{
@@ -826,11 +826,11 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 				{
 					char nmsg[8+strlen(am)];
 					sprintf(nmsg, "AWAY :%s", am);
-					irc_tx(bufs[cbuf].handle, nmsg);
+					irc_tx(bufs[bufs[cbuf].server].handle, nmsg);
 				}
 				else
 				{
-					irc_tx(bufs[cbuf].handle, "AWAY"); // unmark away
+					irc_tx(bufs[bufs[cbuf].server].handle, "AWAY"); // unmark away
 				}
 			}
 			else
@@ -903,14 +903,14 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		if(args)
 		{
 			char *nn=strtok(args, " ");
-			if(bufs[cbuf].handle)
+			if(bufs[bufs[cbuf].server].handle)
 			{
 				if(LIVE(cbuf))
 				{
 					bufs[bufs[cbuf].server].nick=strdup(nn);
 					char nmsg[8+strlen(bufs[bufs[cbuf].server].nick)];
 					sprintf(nmsg, "NICK %s", bufs[bufs[cbuf].server].nick);
-					irc_tx(bufs[cbuf].handle, nmsg);
+					irc_tx(bufs[bufs[cbuf].server].handle, nmsg);
 					if(!quiet) add_to_buffer(cbuf, c_status, "Changing nick", "/nick: ");
 				}
 				else
@@ -943,13 +943,13 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		{
 			if(bufs[cbuf].type==CHANNEL)
 			{
-				if(bufs[cbuf].handle)
+				if(bufs[bufs[cbuf].server].handle)
 				{
 					if(LIVE(cbuf))
 					{
 						char tmsg[10+strlen(bufs[cbuf].bname)+strlen(args)];
 						sprintf(tmsg, "TOPIC %s :%s", bufs[cbuf].bname, args);
-						irc_tx(bufs[cbuf].handle, tmsg);
+						irc_tx(bufs[bufs[cbuf].server].handle, tmsg);
 					}
 					else
 					{
@@ -970,13 +970,13 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		{
 			if(bufs[cbuf].type==CHANNEL)
 			{
-				if(bufs[cbuf].handle)
+				if(bufs[bufs[cbuf].server].handle)
 				{
 					if(LIVE(cbuf))
 					{
 						char tmsg[8+strlen(bufs[cbuf].bname)];
 						sprintf(tmsg, "TOPIC %s", bufs[cbuf].bname);
-						irc_tx(bufs[cbuf].handle, tmsg);
+						irc_tx(bufs[bufs[cbuf].server].handle, tmsg);
 					}
 					else
 					{
@@ -997,7 +997,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 	}
 	if(strcmp(cmd, "msg")==0)
 	{
-		if(!bufs[cbuf].handle)
+		if(!bufs[bufs[cbuf].server].handle)
 		{
 			add_to_buffer(cbuf, c_err, "Must be run in the context of a server!", "/msg: ");
 		}
@@ -1035,13 +1035,13 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 			}
 			if(text)
 			{
-				if(bufs[cbuf].handle)
+				if(bufs[bufs[cbuf].server].handle)
 				{
 					if(LIVE(cbuf))
 					{
 						char privmsg[12+strlen(dest)+strlen(text)];
 						sprintf(privmsg, "PRIVMSG %s :%s", dest, text);
-						irc_tx(bufs[cbuf].handle, privmsg);
+						irc_tx(bufs[bufs[cbuf].server].handle, privmsg);
 						if(no_tab)
 						{
 							if(!quiet) add_to_buffer(cbuf, c_status, "sent", "/msg -n: ");
@@ -1134,13 +1134,13 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		}
 		else if(args)
 		{
-			if(bufs[cbuf].handle)
+			if(bufs[bufs[cbuf].server].handle)
 			{
 				if(LIVE(cbuf))
 				{
 					char privmsg[32+strlen(bufs[cbuf].bname)+strlen(args)];
 					sprintf(privmsg, "PRIVMSG %s :\001ACTION %s\001", bufs[cbuf].bname, args);
-					irc_tx(bufs[cbuf].handle, privmsg);
+					irc_tx(bufs[bufs[cbuf].server].handle, privmsg);
 					while(args[strlen(args)-1]=='\n')
 						args[strlen(args)-1]=0; // stomp out trailing newlines, they break things
 					char *cnick=strdup(bufs[bufs[cbuf].server].nick);
@@ -1389,7 +1389,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 	}
 	if(strcmp(cmd, "cmd")==0)
 	{
-		if(!bufs[cbuf].handle)
+		if(!bufs[bufs[cbuf].server].handle)
 		{
 			add_to_buffer(cbuf, c_err, "Must be run in the context of a server!", "/cmd: ");
 		}
@@ -1404,7 +1404,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 			}
 			if(force||LIVE(cbuf))
 			{
-				irc_tx(bufs[cbuf].handle, args);
+				irc_tx(bufs[bufs[cbuf].server].handle, args);
 				add_to_buffer(cbuf, c_status, args, "/cmd: ");
 			}
 			else

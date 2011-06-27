@@ -196,6 +196,7 @@ int irc_rx(int fd, char ** data)
 				{
 					add_to_buffer(b, c_err, strerror(errno), "irc_rx: recv:");
 					bufs[b].live=false;
+					close(bufs[b].handle);
 					bufs[b].handle=0; // de-bind fd
 				}
 			}
@@ -784,6 +785,7 @@ int rx_kill(message pkt, int b, fd_set *master)
 			{
 				add_to_buffer(b2, c_quit[0], pkt.nargs<2?"":pkt.args[1], "KILLed: ");
 				bufs[b2].live=false;
+				close(bufs[b2].handle);
 				bufs[b2].handle=0; // de-bind fd
 				bufs[b2].hi_alert=5;
 			}
@@ -836,7 +838,6 @@ int rx_kick(message pkt, int b)
 			{
 				add_to_buffer(b2, c_quit[0], pkt.nargs<3?"(No reason)":pkt.args[2], "Kicked: ");
 				bufs[b2].live=false;
-				bufs[b2].handle=0; // just in case
 				bufs[b2].hi_alert=5;
 			}
 		}
@@ -884,6 +885,7 @@ int rx_error(message pkt, int b, fd_set *master)
 		{
 			e_buf_print(b2, c_quit[0], pkt, "Disconnected: ");
 			bufs[b2].live=false;
+			close(bufs[b2].handle);
 			bufs[b2].handle=0; // de-bind fd
 			bufs[b2].hi_alert=5;
 		}
@@ -953,7 +955,6 @@ int rx_privmsg(message pkt, int b, bool notice)
 						init_buffer(nbufs-1, PRIVATE, src, buflines);
 						b2=nbufs-1;
 						bufs[b2].server=bufs[b].server;
-						bufs[b2].handle=bufs[bufs[b2].server].handle;
 						bufs[b2].live=true;
 						n_add(&bufs[b2].nlist, bufs[bufs[b2].server].nick, bufs[b].casemapping);
 						n_add(&bufs[b2].nlist, src, bufs[b].casemapping);
@@ -1068,7 +1069,6 @@ int rx_join(message pkt, int b)
 			bufs[cbuf].server=bufs[b].server;
 		}
 		add_to_buffer(cbuf, c_join[0], dstr, "");
-		bufs[cbuf].handle=bufs[bufs[cbuf].server].handle;
 		bufs[cbuf].live=true;
 		if(force_redraw<3) redraw_buffer();
 	}

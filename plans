@@ -14,9 +14,9 @@ Improve the parsing of mirc-colour-codes (to fix things like \003124 which curre
 
 /dump command.  Pipes a screendump (or better still, unprocessed text) into program of choice.
 
-Fix /rejoin on dead tabs (eg KICKed).
-
 Correct TSB in PRIVATE tabs.
+
+Update the Topic in TSB when it changes.
 
 /clear command.
 
