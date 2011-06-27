@@ -22,8 +22,6 @@ Update the Topic in TSB when it changes.
 
 Short commands (sufficient-prefix matching, like /cle).
 
-Make PRIVATE CTCP ACTIONs go to the right tab.
-
 Logging & Persistent backscroll.
 
 Runtime buffer resizing.

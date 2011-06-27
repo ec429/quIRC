@@ -940,13 +940,13 @@ int rx_privmsg(message pkt, int b, bool notice)
 			return(0);
 		if((irc_strcasecmp(pkt.args[0], bufs[b].nick, bufs[b].casemapping)==0) || (irc_strcasecmp(pkt.args[0], "AUTH", bufs[b].casemapping)==0) || (irc_strcasecmp(pkt.args[0], "Global", bufs[b].casemapping)==0))
 		{
-			if(!notice)
+			if(*pkt.args[1]==1) // CTCP TODO: proper CTCP handling of embedded messages
 			{
-				if(*pkt.args[1]==1) // CTCP TODO: proper CTCP handling of embedded messages
-				{
-					ctcp(pkt.args[1], from, src, b, true, notice, true);
-				}
-				else
+				ctcp(pkt.args[1], from, src, b, true, notice, true);
+			}
+			else
+			{
+				if(!notice)
 				{
 					int b2=findptab(b, src);
 					if(b2<0)
@@ -963,13 +963,6 @@ int rx_privmsg(message pkt, int b, bool notice)
 					add_to_buffer(b2, notice?c_notice[1]:c_msg[1], pkt.args[1], tag);
 					free(tag);
 					bufs[b2].hi_alert=5;
-				}
-			}
-			else
-			{
-				if(*pkt.args[1]==1) // CTCP TODO: proper CTCP handling of embedded messages
-				{
-					ctcp(pkt.args[1], from, src, b, true, notice, true);
 				}
 				else
 				{
@@ -1260,6 +1253,21 @@ int ctcp(char *msg, char *from, char *src, int b2, bool ha, bool notice, bool pr
 	if(strncmp(msg, "\001ACTION ", 8)==0)
 	{
 		msg[strlen(msg)-1]=0; // remove trailing \001
+		if(priv) // TODO: this bit is actually copypasted far too many times.  I need to find a better solution (probably proper CTCP handling generally)
+		{
+			int b=b2;
+			b2=findptab(b, src);
+			if(b2<0)
+			{
+				bufs=(buffer *)realloc(bufs, ++nbufs*sizeof(buffer));
+				init_buffer(nbufs-1, PRIVATE, src, buflines);
+				b2=nbufs-1;
+				bufs[b2].server=bufs[b].server;
+				bufs[b2].live=true;
+				n_add(&bufs[b2].nlist, bufs[bufs[b2].server].nick, bufs[b].casemapping);
+				n_add(&bufs[b2].nlist, src, bufs[b].casemapping);
+			}
+		}
 		char *tag=mktag("  %s ", from);
 		add_to_buffer(b2, c_actn[1], msg+8, tag);
 		free(tag);
@@ -1271,6 +1279,21 @@ int ctcp(char *msg, char *from, char *src, int b2, bool ha, bool notice, bool pr
 	{
 		if(notice)
 		{
+			if(priv)
+			{
+				int b=b2;
+				b2=findptab(b, src);
+				if(b2<0)
+				{
+					bufs=(buffer *)realloc(bufs, ++nbufs*sizeof(buffer));
+					init_buffer(nbufs-1, PRIVATE, src, buflines);
+					b2=nbufs-1;
+					bufs[b2].server=bufs[b].server;
+					bufs[b2].live=true;
+					n_add(&bufs[b2].nlist, bufs[bufs[b2].server].nick, bufs[b].casemapping);
+					n_add(&bufs[b2].nlist, src, bufs[b].casemapping);
+				}
+			}
 			char *tag=mktag(priv?"(%s) ":"(from %s) ", from);
 			add_to_buffer(b2, c_notice[1], msg, tag);
 			free(tag);
@@ -1288,6 +1311,21 @@ int ctcp(char *msg, char *from, char *src, int b2, bool ha, bool notice, bool pr
 	{
 		if(notice)
 		{
+			if(priv)
+			{
+				int b=b2;
+				b2=findptab(b, src);
+				if(b2<0)
+				{
+					bufs=(buffer *)realloc(bufs, ++nbufs*sizeof(buffer));
+					init_buffer(nbufs-1, PRIVATE, src, buflines);
+					b2=nbufs-1;
+					bufs[b2].server=bufs[b].server;
+					bufs[b2].live=true;
+					n_add(&bufs[b2].nlist, bufs[bufs[b2].server].nick, bufs[b].casemapping);
+					n_add(&bufs[b2].nlist, src, bufs[b].casemapping);
+				}
+			}
 			char *tag=mktag(priv?"(%s) ":"(from %s) ", from);
 			add_to_buffer(b2, c_notice[1], msg, tag);
 			free(tag);
@@ -1305,6 +1343,21 @@ int ctcp(char *msg, char *from, char *src, int b2, bool ha, bool notice, bool pr
 	{
 		if(notice)
 		{
+			if(priv)
+			{
+				int b=b2;
+				b2=findptab(b, src);
+				if(b2<0)
+				{
+					bufs=(buffer *)realloc(bufs, ++nbufs*sizeof(buffer));
+					init_buffer(nbufs-1, PRIVATE, src, buflines);
+					b2=nbufs-1;
+					bufs[b2].server=bufs[b].server;
+					bufs[b2].live=true;
+					n_add(&bufs[b2].nlist, bufs[bufs[b2].server].nick, bufs[b].casemapping);
+					n_add(&bufs[b2].nlist, src, bufs[b].casemapping);
+				}
+			}
 			char *tag=mktag(priv?"(%s) ":"(from %s) ", from);
 			add_to_buffer(b2, c_notice[1], msg, tag);
 			free(tag);
@@ -1322,6 +1375,21 @@ int ctcp(char *msg, char *from, char *src, int b2, bool ha, bool notice, bool pr
 	{
 		if(notice)
 		{
+			if(priv)
+			{
+				int b=b2;
+				b2=findptab(b, src);
+				if(b2<0)
+				{
+					bufs=(buffer *)realloc(bufs, ++nbufs*sizeof(buffer));
+					init_buffer(nbufs-1, PRIVATE, src, buflines);
+					b2=nbufs-1;
+					bufs[b2].server=bufs[b].server;
+					bufs[b2].live=true;
+					n_add(&bufs[b2].nlist, bufs[bufs[b2].server].nick, bufs[b].casemapping);
+					n_add(&bufs[b2].nlist, src, bufs[b].casemapping);
+				}
+			}
 			char *tag=mktag(priv?"(%s) ":"(from %s) ", from);
 			add_to_buffer(b2, c_notice[1], msg, tag);
 			free(tag);
@@ -1337,6 +1405,21 @@ int ctcp(char *msg, char *from, char *src, int b2, bool ha, bool notice, bool pr
 	}
 	else
 	{
+		if(priv)
+		{
+			int b=b2;
+			b2=findptab(b, src);
+			if(b2<0)
+			{
+				bufs=(buffer *)realloc(bufs, ++nbufs*sizeof(buffer));
+				init_buffer(nbufs-1, PRIVATE, src, buflines);
+				b2=nbufs-1;
+				bufs[b2].server=bufs[b].server;
+				bufs[b2].live=true;
+				n_add(&bufs[b2].nlist, bufs[bufs[b2].server].nick, bufs[b].casemapping);
+				n_add(&bufs[b2].nlist, src, bufs[b].casemapping);
+			}
+		}
 		char *tag=mktag(priv?"(%s) ":"(from %s) ", from);
 		add_to_buffer(b2, c_notice[1], msg, tag);
 		if(ha)
