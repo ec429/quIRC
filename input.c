@@ -574,10 +574,19 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 						}
 						else
 							bufs[cbuf].conf=true;
+						if(!quiet)
+						{
+							if(bufs[cbuf].conf)
+								add_to_buffer(cbuf, c_status, "conference mode enabled for this channel", "/set: ");
+							else
+								add_to_buffer(cbuf, c_status, "conference mode disabled for this channel", "/set: ");
+						}
+						bufs[cbuf].dirty=true;
+						redraw_buffer();
 					}
 					else
 					{
-						add_to_buffer(cbuf, c_err, "Not a channel!", "/set conf:");
+						add_to_buffer(cbuf, c_err, "Not a channel!", "/set conf: ");
 					}
 				}
 				else

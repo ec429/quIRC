@@ -10,6 +10,8 @@ Fix possible issue with CTCP.  Funny stuff (including random characters) happene
 
 Fix bug with /sort.  cbuf goes to the wrong place.
 
+Make hidden lines (quiet mode, conference mode, etc.) be stored in scrollback.  Filter on render; that way changes are retroactive.
+
 Modes.  It's really about time I got those sorted out.
 
 Proper handling of Unicode in character-based things like cursor-movement, backspace.
