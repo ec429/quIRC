@@ -102,11 +102,11 @@ int main(int argc, char **argv)
 				printf("#define KEY_%s\t%d\n", keys[i].name, i);
 			}
 			printf("#define KEY_F(n)\t((int[12]){");
-			for(int i=1;i<12;i++)
+			for(int i=1;i<=12;i++)
 			{
 				printf("KEY_F%d,", i);
 			}
-			printf("}[n])\n");
+			printf("}[n-1])\n");
 		break;
 	}
 	return(0);

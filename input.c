@@ -180,7 +180,7 @@ int inputchar(iline *inp, int *state)
 	else if(mod>=0)
 	{
 		bool gone=false;
-		for(int n=1;n<12;n++)
+		for(int n=1;n<=12;n++)
 		{
 			if(mod==KEY_F(n))
 			{
