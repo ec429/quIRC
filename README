@@ -1,13 +1,13 @@
 
 ****** quIRC: readme ******
-** quIRC is a simple terminal-based IRC (Internet Relay Chat) client. It is
-written in C. **
+** quIRC is a lightweight terminal-based IRC client. It is written in C. **
 ***** Contents *****
     * Further_Help
     * Commands
     * Configuration
     * Input_Controls
     * Other_Controls
+    * Keymapping
     * Tab_strip
     * Troubleshooting
 ***** Further Help *****
@@ -116,11 +116,13 @@ the channel (or nick if current tab is a private messaging tab).
       Sorts the tab list into an intuitive order (grouping channels after their
       parent servers; maintaining the order of the servers and of each server's
       channels).
+  //[msg]
+      Sends /msg to the channel.
 ***** Configuration *****
 quIRC can be configured through an "rc file" as follows. (For a compact
 reference table see config_ref.htm)
-In your home directory (/home/username), create a file called ".quirc", and
-open it in your editor.
+In your home directory (/home/username), create a folder called ".quirc", a
+file within that folder called "rc", and open it in your editor.
 In this file you can set servers, nick and channels to automatically use:
 nick global-nickname
 ignore -options global-ignore
@@ -254,8 +256,27 @@ These are based, broadly, on bash's controls.
   Ctrl-left
   Ctrl-right
       Change tab.
-  Alt-[#], where [#] is a number key
-      Equivalent to /tab [#]
+  F1 through F12
+      Equivalent to /tab #, except that F12 is /tab 0.
+***** Keymapping *****
+quIRC's mapping of function and other special keys defaults to a VT100 mapping,
+such as used by xterm and rxvt. However, this mapping can be changed with a
+file /home/username/.quirc/keys.
+To change key mappings, add lines of the form MODNAME hex. The MODNAMEs
+expected are those which appear in the "keys" file in the quIRC source
+directory; at present, these are:
+BS, UP, DOWN, LEFT, RIGHT, HOME, END, DELETE, PGUP, PGDN, CUP, AUP, CDOWN,
+ADOWN, CLEFT, ALEFT, CRIGHT, ARIGHT, CHOME, AHOME, CEND, AEND, CPGUP, APGUP,
+CPGDN, APGDN, F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, and F12.
+The prefix 'C' refers to Ctrl, and 'A' to Alt.
+If, for instance, your terminal sends Ctrl-Left as ^[OD, you would add the
+following line:
+CLEFT 1b4f44
+Similarly, if your terminal sends backspace as ^H, you would add:
+BS 08
+You can find out what sequences your terminal sends for various keys by running
+a hex-dump program such as xxd or hd, pressing the key, and noting the output.
+(You will usually need to press first the key, then enter/return, then ^D)
 ***** Tab strip *****
 The strip of tabs along the bottom of the screen has various indicators.
 The parens bracketing the name tell you what kind of tab it is:
@@ -285,3 +306,7 @@ turns yellow.
       positioning). For details see your terminal emulator's documentation; it
       is known that xterm works out-of-the-box, and that PuTTY has an option to
       enable VT100 support.
+  The control keys/cursor keys/function keys don't do anything!
+      This probably means your terminal isn't sending VT100 (ANSI) escape
+      sequences, but rather some other set of sequences. See the section
+      "Keymapping", above.

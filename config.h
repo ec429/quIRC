@@ -39,6 +39,7 @@ servlist;
 #include "text.h"
 #include "version.h"
 #include "buffer.h"
+#include "keymod.h"
 
 // global settings & state
 #include "config_globals.h"
@@ -47,7 +48,11 @@ char *username, *fname, *nick, *portno;
 servlist *servs;
 name *igns;
 char *version;
+int nkeys;
+keymod *kmap;
 
+int initkeys(void);
+void loadkeys(FILE *);
 int conf_check(void); // writes diagnostics to start-buffer
 int def_config(void); // set these to their defaults
 int rcread(FILE *rcfp); // read & parse the rc file.

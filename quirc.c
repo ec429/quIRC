@@ -53,7 +53,13 @@ int main(int argc, char *argv[])
 			asb_failsafe(c_status, msg);
 		}
 	}
-	if(c_init()!=0) // should be impossible
+	if(initkeys())
+	{
+		fprintf(stderr, "Failed to initialise keymapping\n");
+		push_buffer();
+		return(1);
+	}
+	if(c_init()) // should be impossible
 	{
 		fprintf(stderr, "Failed to initialise colours\n");
 		push_buffer();
@@ -111,7 +117,12 @@ int main(int argc, char *argv[])
 	{
 		asb_failsafe(c_status, "no config file found.  Install one at ~/.quirc/rc");
 	}
-	
+	FILE *keyfp=fopen("keys", "r");
+	if(keyfp)
+	{
+		loadkeys(keyfp);
+		fclose(keyfp);
+	}
 	signed int e=pargs(argc, argv);
 	if(e>=0)
 	{

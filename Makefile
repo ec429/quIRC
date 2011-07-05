@@ -60,10 +60,10 @@ buffer.h: config.h version.h
 
 config.o: config.c config.h names.h bits.h colour.h text.h version.h
 
-config.c: config_check.c config_def.c config_need.c config_rcread.c config_pargs.c config_help.c
+config.c: config_check.c config_def.c config_need.c config_rcread.c config_pargs.c config_help.c keymap.c
 	touch config.c
 
-config.h: config_globals.h version.h
+config.h: config_globals.h version.h keymod.h
 	touch config.h
 
 config_%: config.cdl genconfig
@@ -71,7 +71,10 @@ config_%: config.cdl genconfig
 
 genconfig: genconfig.c
 
-input.o: input.c input.h ttyesc.h names.h buffer.h irc.h bits.h
+input.h: keymod.h
+	touch input.h
+
+input.o: input.c input.h ttyesc.h names.h buffer.h irc.h bits.h config.h
 
 input.c: config_set.c
 	touch input.c
@@ -82,6 +85,14 @@ script.o: script.c script.h bits.h buffer.h
 
 c_init.c: colour.d c_init.awk
 	$(AWK) -f c_init.awk colour.d > c_init.c
+
+genkeymap: genkeymap.c
+
+keymod.h: keys genkeymap
+	./genkeymap h < keys > $@ || (rm $@ && false)
+
+keymap.c: keys genkeymap
+	./genkeymap c < keys > $@ || (rm $@ && false)
 
 FORCE:
 version.h: FORCE

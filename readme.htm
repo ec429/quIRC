@@ -11,7 +11,7 @@
 <body>
 <div id="title">
 <h1>quIRC: readme</h1>
-<h5>quIRC is a simple terminal-based IRC (Internet Relay Chat) client.  It is written in C.</h5>
+<h5>quIRC is a lightweight terminal-based <acronym title="Internet Relay Chat">IRC</acronym> client.  It is written in C.</h5>
 </div><!--#title-->
 <div id="contents">
 <h2>Contents</h2>
@@ -21,6 +21,7 @@
 <li><a href="#configuration">Configuration</a></li>
 <li><a href="#inputcontrols">Input Controls</a></li>
 <li><a href="#othercontrols">Other Controls</a></li>
+<li><a href="#keymapping">Keymapping</a></li>
 <li><a href="#tabstrip">Tab strip</a></li>
 <li><a href="#trouble">Troubleshooting</a></li>
 </ul>
@@ -122,7 +123,7 @@ Then there&apos;s the github page, <a href="http://github.com/ec429/quIRC">http:
 <div id="configuration">
 <h2>Configuration</h2>
 <p>quIRC can be configured through an &quot;rc file&quot; as follows.  (For a compact reference table see <a href="config_ref.htm">config_ref.htm</a>)</p>
-<p>In your home directory (/home/username), create a file called &quot;.quirc&quot;, and open it in your editor.</p>
+<p>In your home directory (/home/<em>username</em>), create a folder called &quot;.quirc&quot;, a file within that folder called &quot;rc&quot;, and open it in your editor.</p>
 <p>In this file you can set servers, nick and channels to automatically use:<br />
 <tt>nick <em>global-nickname</em></tt><br />
 <tt>ignore -<em>options</em> <em>global-ignore</em></tt><br />
@@ -241,10 +242,22 @@ The default setting is ts-level 1, no-utc, no-its.</p>
 <dt>Ctrl-left</dt>
 <dt>Ctrl-right</dt>
 	<dd>Change tab.</dd>
-<dt>Alt-<em>[#]</em>, where <em>[#]</em> is a number key</dt>
-	<dd>Equivalent to <small>/tab <em>[#]</em></small></dd>
+<dt>F1 through F12</dt>
+	<dd>Equivalent to <small>/tab <em>#</em></small>, except that F12 is /tab 0.</dd>
 </dl>
-</div><!--#scrollcontrols-->
+</div><!--#othercontrols-->
+<div id="keymapping">
+<h2>Keymapping</h2>
+<p>quIRC's mapping of function and other special keys defaults to a VT100 mapping, such as used by <small>xterm</small> and <small>rxvt</small>.  However, this mapping can be changed with a file <small>/home/<em>username</em>/.quirc/keys</small>.</p>
+<p>To change key mappings, add lines of the form <small><em>MODNAME</em> <em>hex</em></small>.  The <em>MODNAME</em>s expected are those which appear in the &quot;<small>keys</small>&quot; file in the quIRC source directory; at present, these are:<br />
+<small>BS</small>, <small>UP</small>, <small>DOWN</small>, <small>LEFT</small>, <small>RIGHT</small>, <small>HOME</small>, <small>END</small>, <small>DELETE</small>, <small>PGUP</small>, <small>PGDN</small>, <small>CUP</small>, <small>AUP</small>, <small>CDOWN</small>, <small>ADOWN</small>, <small>CLEFT</small>, <small>ALEFT</small>, <small>CRIGHT</small>, <small>ARIGHT</small>, <small>CHOME</small>, <small>AHOME</small>, <small>CEND</small>, <small>AEND</small>, <small>CPGUP</small>, <small>APGUP</small>, <small>CPGDN</small>, <small>APGDN</small>, <small>F1</small>, <small>F2</small>, <small>F3</small>, <small>F4</small>, <small>F5</small>, <small>F6</small>, <small>F7</small>, <small>F8</small>, <small>F9</small>, <small>F10</small>, <small>F11</small>, and <small>F12</small>.<br />
+The prefix &apos;C&apos; refers to Ctrl, and &apos;A&apos; to Alt.</p>
+<p>If, for instance, your terminal sends Ctrl-Left as ^[OD, you would add the following line:<br />
+<tt>CLEFT 1b4f44</tt><br />
+Similarly, if your terminal sends backspace as ^H, you would add:<br />
+<tt>BS 08</tt></p>
+<p>You can find out what sequences your terminal sends for various keys by running a hex-dump program such as <small>xxd</small> or <small>hd</small>, pressing the key, and noting the output.  <em>(You will usually need to press first the key, then enter/return, then ^D)</em></p>
+</div><!--#keymapping-->
 <div id="tabstrip">
 <h2>Tab strip</h2>
 <p>The strip of tabs along the bottom of the screen has various indicators.</p>
@@ -263,6 +276,8 @@ The default setting is ts-level 1, no-utc, no-its.</p>
 <dl>
 <dt>I get several copies of the status line scrolling up my screen!</dt>
 <dd><p>One possible cause of this is that your terminal size is not what quIRC thinks it is.  You may need to /set height and width, or export the environment variables $LINES and $COLUMNS from your shell (typically you would also add this to your shell's .rc file), or as a last resort resize your terminal to 80x24.</p><p>Another possibility is that your terminal emulator isn't recognising VT100 escape sequences (which quIRC uses heavily for eg. cursor positioning).  For details see your terminal emulator's documentation; it is known that xterm works out-of-the-box, and that PuTTY has an option to enable VT100 support.</p></dd>
+<dt>The control keys/cursor keys/function keys don't do anything!</dt>
+<dd><p>This probably means your terminal isn't sending VT100 (ANSI) escape sequences, but rather some other set of sequences.  See the section &quot;<a href="#keymapping">Keymapping</a>&quot;, above.</p></dd>
 </dl>
 </div><!--#trouble-->
 </body>

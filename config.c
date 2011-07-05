@@ -8,6 +8,100 @@
 
 #include "config.h"
 
+#include "keymap.c"
+
+void loadkeys(FILE *fp)
+{
+	if(!fp) return;
+	while(!feof(fp))
+	{
+		char *line=fgetl(fp);
+		if(line)
+		{
+			if((*line)&&(*line!='#'))
+			{
+				keymod new;
+				new.name=strtok(line, " \t");
+				char *mod=strtok(NULL, " \t");
+				if(!mod)
+				{
+					char msg[32+strlen(new.name)];
+					sprintf(msg, "keys: missing mod in %s", new.name);
+					asb_failsafe(c_err, msg);
+					free(line);
+					continue;
+				}
+				off_t o=strlen(mod);
+				if(o&1)
+				{
+					char msg[32+strlen(new.name)];
+					sprintf(msg, "keys: odd mod length in %s", new.name);
+					asb_failsafe(c_err, msg);
+					free(line);
+					continue;
+				}
+				new.mod=malloc((o>>1)+1);
+				if(!new.mod)
+				{
+					char msg[32+strlen(new.name)];
+					sprintf(msg, "keys: malloc failure in %s", new.name);
+					asb_failsafe(c_err, msg);
+					free(line);
+					continue;
+				}
+				bool cont=false;
+				for(int i=0;i<o;i+=2)
+				{
+					if(!(isxdigit(mod[i])&&isxdigit(mod[i+1])))
+					{
+						char msg[32+strlen(new.name)];
+						sprintf(msg, "keys: bad mod (not hex) in %s", new.name);
+						asb_failsafe(c_err, msg);
+						free(line);
+						cont=true;
+						break;
+					}
+					char buf[3];buf[0]=mod[i];buf[1]=mod[i+1];buf[2]=0;
+					unsigned int c;
+					if(sscanf(buf, "%x", &c)!=1)
+					{
+						char msg[32+strlen(new.name)];
+						sprintf(msg, "keys: sscanf failed in %s", new.name);
+						asb_failsafe(c_err, msg);
+						free(line);
+						cont=true;
+						break;
+					}
+					new.mod[i>>1]=c;
+				}
+				if(cont) continue;
+				new.mod[o>>1]=0;
+				bool match=false;
+				for(int i=0;i<nkeys;i++)
+				{
+					if(strcmp(new.name, kmap[i].name)==0)
+					{
+						free(kmap[i].mod);
+						kmap[i].mod=strdup(new.mod);
+						match=true;
+					}
+				}
+				if(!match)
+				{
+					char msg[32+strlen(new.name)];
+					sprintf(msg, "keys: unrecognised name %s", new.name);
+					asb_failsafe(c_err, msg);
+				}
+				free(new.mod);
+			}
+		free(line);
+		}
+		else
+			break;
+	}
+	return;
+}
+
 #include "config_check.c"
 
 int def_config(void)
