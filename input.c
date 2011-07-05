@@ -1263,15 +1263,17 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 			if(!quiet) add_to_buffer(cbuf, c_err, "Internal error (bad count)", "/sort: ");
 			return(0);
 		}
-		int serv=0;
+		int serv=0, cb=0;
 		for(b=0;b<nbufs;b++)
 		{
 			bufs[b]=bi[newbufs[b]];
 			if(bufs[b].type==SERVER)
 				serv=b;
 			bufs[b].server=serv;
+			if(newbufs[b]==cbuf)
+				cb=b;
 		}
-		cbuf=newbufs[cbuf];
+		cbuf=cb;
 		if(force_redraw<3) redraw_buffer();
 		return(0);
 	}
