@@ -91,20 +91,20 @@ struct
 s_buf;
 
 int init_start_buffer(void);
-int add_to_start_buffer(colour lc, char *lt);
-int asb_failsafe(colour lc, char *lt);
+int add_to_start_buffer(colour lc, const char *lt);
+int asb_failsafe(colour lc, const char *lt);
 int free_start_buffer(void);
 int initialise_buffers(int buflines);
-int init_buffer(int buf, btype type, char *bname, int nlines);
+int init_buffer(int buf, btype type, const char *bname, int nlines);
 int free_buffer(int buf);
-int add_to_buffer(int buf, colour lc, char *lt, char *ltag);
+int add_to_buffer(int buf, colour lc, const char *lt, const char *ltag);
 int redraw_buffer(void);
 int render_buffer(int buf);
 int render_line(int buf, int uline);
-int e_buf_print(int buf, colour lc, message pkt, char *lead);
+int e_buf_print(int buf, colour lc, message pkt, const char *lead);
 int transfer_start_buffer(void);
 int push_buffer(void);
 void in_update(iline inp);
-char *highlight(char *src); // use ANSI-colours to highlight \escapes.  Returns a malloc-like pointer
+char *highlight(const char *src); // use ANSI-colours to highlight \escapes.  Returns a malloc-like pointer
 void titlebar(void);
-int findptab(int b, char *src);
+int findptab(int b, const char *src);

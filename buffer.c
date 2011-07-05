@@ -18,7 +18,7 @@ int init_start_buffer(void)
 	return(0);
 }
 
-int add_to_start_buffer(colour lc, char *lt)
+int add_to_start_buffer(colour lc, const char *lt)
 {
 	s_buf.nlines++;
 	char **nlt;colour *nlc;time_t *nts;
@@ -52,7 +52,7 @@ int add_to_start_buffer(colour lc, char *lt)
 	return(0);
 }
 
-int asb_failsafe(colour lc, char *lt)
+int asb_failsafe(colour lc, const char *lt)
 {
 	int e=0;
 	if((e=add_to_start_buffer(lc, lt)))
@@ -95,7 +95,7 @@ int initialise_buffers(int buflines)
 	return(0);
 }
 
-int init_buffer(int buf, btype type, char *bname, int nlines)
+int init_buffer(int buf, btype type, const char *bname, int nlines)
 {
 	bufs[buf].type=type;
 	bufs[buf].bname=strdup(bname);
@@ -224,7 +224,7 @@ int free_buffer(int buf)
 	}
 }
 
-int add_to_buffer(int buf, colour lc, char *lt, char *ltag)
+int add_to_buffer(int buf, colour lc, const char *lt, const char *ltag)
 {
 	if(buf>=nbufs)
 	{
@@ -656,7 +656,7 @@ void in_update(iline inp)
 	fflush(stdout);
 }
 
-char *highlight(char *src)
+char *highlight(const char *src)
 {
 	int l,i;char *rv;
 	init_char(&rv, &l, &i);
@@ -722,7 +722,7 @@ char *highlight(char *src)
 	return(rv);
 }
 
-int e_buf_print(int buf, colour lc, message pkt, char *lead)
+int e_buf_print(int buf, colour lc, message pkt, const char *lead)
 {
 	if(quiet) return(0);
 	int arg;
@@ -912,7 +912,7 @@ void titlebar(void)
 	printf(LOCATE, height-1, 1);
 }
 
-int findptab(int b, char *src)
+int findptab(int b, const char *src)
 {
 	int b2;
 	for(b2=0;b2<nbufs;b2++)

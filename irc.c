@@ -424,7 +424,7 @@ char irc_to_lower(char c, cmap casemapping)
 	return(c);
 }
 
-int irc_strcasecmp(char *c1, char *c2, cmap casemapping)
+int irc_strcasecmp(const char *c1, const char *c2, cmap casemapping)
 {
 	char t1,t2;
 	while(*c1||*c2)
@@ -438,7 +438,7 @@ int irc_strcasecmp(char *c1, char *c2, cmap casemapping)
 	return(0);
 }
 
-int irc_strncasecmp(char *c1, char *c2, int n, cmap casemapping)
+int irc_strncasecmp(const char *c1, const char *c2, int n, cmap casemapping)
 {
 	int i=0;
 	char t1,t2;

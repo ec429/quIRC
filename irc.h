@@ -68,8 +68,8 @@ char * low_dequote(char *buf);
 
 char irc_to_upper(char c, cmap casemapping);
 char irc_to_lower(char c, cmap casemapping);
-int irc_strcasecmp(char *c1, char *c2, cmap casemapping);
-int irc_strncasecmp(char *c1, char *c2, int n, cmap casemapping);
+int irc_strcasecmp(const char *c1, const char *c2, cmap casemapping);
+int irc_strncasecmp(const char *c1, const char *c2, int n, cmap casemapping);
 
 // Send an IRC PRIVMSG (ie. ordinary talking)
 int talk(char *iinput);
