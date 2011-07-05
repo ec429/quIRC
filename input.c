@@ -63,8 +63,7 @@ int inputchar(iline *inp, int *state)
 				sp--;
 			name *curr=bufs[cbuf].nlist;
 			name *found=NULL;
-			int count=0;
-			int mlen;
+			int count=0, mlen=0;
 			while(curr)
 			{
 				if((inp->left.i==sp) || (irc_strncasecmp(inp->left.data+sp, curr->data, inp->left.i-sp, bufs[cbuf].casemapping)==0))

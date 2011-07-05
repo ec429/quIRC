@@ -16,37 +16,36 @@ void handle_sigpipe(int sig)
 
 int irc_connect(char *server, char *portno, fd_set *master, int *fdmax)
 {
-	int serverhandle;
+	int serverhandle=0;
 	struct addrinfo hints, *servinfo;
 	// Look up server
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family=AF_INET;
 	hints.ai_socktype = SOCK_STREAM; // TCP stream sockets
 	int rv;
-	if((rv = getaddrinfo(server, portno, &hints, &servinfo)) != 0)
+	if((rv=getaddrinfo(server, portno, &hints, &servinfo))!=0)
 	{
-		char *err=(char *)gai_strerror(rv);
-		add_to_buffer(0, c_err, err, "getaddrinfo: ");
+		add_to_buffer(0, c_err, (char *)gai_strerror(rv), "getaddrinfo: ");
 		return(0); // 0 indicates failure as rv is new serverhandle value
 	}
 	char sip[INET_ADDRSTRLEN];
 	struct addrinfo *p;
 	// loop through all the results and connect to the first we can
-	for(p = servinfo; p != NULL; p = p->ai_next)
+	for(p=servinfo;p;p=p->ai_next)
 	{
 		inet_ntop(p->ai_family, &(((struct sockaddr_in*)p->ai_addr)->sin_addr), sip, sizeof(sip));
-		if((serverhandle = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1)
+		if((serverhandle=socket(p->ai_family, p->ai_socktype, p->ai_protocol))==-1)
 		{
 			add_to_buffer(0, c_err, strerror(errno), "socket: ");
 			continue;
 		}
-		if(fcntl(serverhandle, F_SETFD, O_NONBLOCK) == -1)
+		if(fcntl(serverhandle, F_SETFD, O_NONBLOCK)==-1)
 		{
 			close(serverhandle);
 			add_to_buffer(0, c_err, strerror(errno), "fcntl: ");
 			continue;
 		}
-		if(connect(serverhandle, p->ai_addr, p->ai_addrlen) == -1)
+		if(connect(serverhandle, p->ai_addr, p->ai_addrlen)==-1)
 		{
 			if(errno!=EINPROGRESS)
 			{
@@ -63,12 +62,12 @@ int irc_connect(char *server, char *portno, fd_set *master, int *fdmax)
 		sprintf(cmsg, "fd=%d, ip=%s", serverhandle, sip);
 		add_to_buffer(0, c_status, cmsg, "DBG connect: ");
 	}
-	if (p == NULL)
+	if(!p)
 	{
 		add_to_buffer(0, c_err, "failed to connect to server", "/connect: ");
 		return(0); // 0 indicates failure as rv is new serverhandle value
 	}
-	freeaddrinfo(servinfo); // don't need this any more
+	freeaddrinfo(servinfo);
 	
 	FD_SET(serverhandle, master);
 	*fdmax=max(*fdmax, serverhandle);

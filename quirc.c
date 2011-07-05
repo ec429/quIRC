@@ -74,7 +74,12 @@ int main(int argc, char *argv[])
 		if(qfld)
 		{
 			sprintf(qfld, "%s/.quirc", home);
-			chdir(qfld);
+			if(chdir(qfld))
+			{
+				fprintf(stderr, "Failed to change directory into %s: %s", qfld, strerror(errno));
+				push_buffer();
+				return(1);
+			}
 			free(qfld);
 		}
 		else

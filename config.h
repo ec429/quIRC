@@ -46,7 +46,7 @@ bool autojoin;
 char *username, *fname, *nick, *portno;
 servlist *servs;
 name *igns;
-char version[16+strlen(VERSION_TXT)];
+char *version;
 
 int conf_check(void); // writes diagnostics to start-buffer
 int def_config(void); // set these to their defaults
