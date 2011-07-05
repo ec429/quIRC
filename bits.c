@@ -72,9 +72,11 @@ int wordline(const char *msg, unsigned int x, char **out, int *l, int *i, colour
 						append_char(out, l, i, ' ');
 				}
 			break;
-			case '\t':
-				while(x%8)
+			case '\t':;
+				bool dx=true;
+				while(dx||(x%8))
 				{
+					dx=false;
 					if(++x<width)
 					{
 						append_char(out, l, i, ' ');
