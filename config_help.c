@@ -14,3 +14,4 @@
 			fprintf(stderr, "\t--[no-]its                      : input clock\n");
 			fprintf(stderr, "\t--[no-]quiet                    : quiet mode\n");
 			fprintf(stderr, "\t--[no-]debug                    : debugging\n");
+			fprintf(stderr, "\t--[no-]conf                     : conference mode (default)\n");

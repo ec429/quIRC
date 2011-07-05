@@ -14,3 +14,4 @@
 	its=0;
 	quiet=0;
 	debug=0;
+	conf=0;

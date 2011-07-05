@@ -10,11 +10,7 @@ Fix possible issue with CTCP.  Funny stuff (including random characters) happene
 
 Fix bug with /sort.  cbuf goes to the wrong place.
 
-Fix gitless source tarball (version.h2 weirdness).
-
 Modes.  It's really about time I got those sorted out.
-
-Conference Mode.  Hide joins, parts, quits, and /nicks.
 
 Proper handling of Unicode in character-based things like cursor-movement, backspace.
 

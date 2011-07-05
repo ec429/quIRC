@@ -141,3 +141,13 @@
 				else
 					debug=true;
 			}
+			else if(strcmp(cmd, "no-conf")==0)
+				conf=false;
+			else if(strcmp(cmd, "conf")==0)
+			{
+				unsigned int value;
+				if(rest&&sscanf(rest, "%u", &value))
+					conf=value;
+				else
+					conf=true;
+			}

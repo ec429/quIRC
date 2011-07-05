@@ -547,6 +547,39 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 			{
 				char *val=strtok(NULL, " ");
 #include "config_set.c"
+				else if(strcmp(opt, "conf")==0)
+				{
+					if(bufs[cbuf].type==CHANNEL)
+					{
+						if(val)
+						{
+							if(isdigit(*val))
+							{
+								unsigned int value;
+								sscanf(val, "%u", &value);
+								bufs[cbuf].conf=value;
+							}
+							else if(strcmp(val, "+")==0)
+							{
+								bufs[cbuf].conf=true;
+							}
+							else if(strcmp(val, "-")==0)
+							{
+								bufs[cbuf].conf=false;
+							}
+							else
+							{
+								add_to_buffer(cbuf, c_err, "option 'conf' is boolean, use only 0/1 or -/+ to set", "/set: ");
+							}
+						}
+						else
+							bufs[cbuf].conf=true;
+					}
+					else
+					{
+						add_to_buffer(cbuf, c_err, "Not a channel!", "/set conf:");
+					}
+				}
 				else
 				{
 					add_to_buffer(cbuf, c_err, "No such option!", "/set: ");

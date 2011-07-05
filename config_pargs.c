@@ -43,3 +43,7 @@
 			debug=true;
 		else if(strcmp(argv[arg], "--no-debug")==0)
 			debug=false;
+		else if(strcmp(argv[arg], "--conf")==0)
+			conf=true;
+		else if(strcmp(argv[arg], "--no-conf")==0)
+			conf=false;

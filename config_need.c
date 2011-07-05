@@ -24,3 +24,5 @@
 			if(strcmp(cmd, "no-quiet")==0) need=false;
 			if(strcmp(cmd, "debug")==0) need=false;
 			if(strcmp(cmd, "no-debug")==0) need=false;
+			if(strcmp(cmd, "conf")==0) need=false;
+			if(strcmp(cmd, "no-conf")==0) need=false;

@@ -72,6 +72,7 @@ typedef struct _buf
 	cmap casemapping; // the SERVER's value is authoritative; the CHANNEL's value is ignored.  STATUS's value is irrelevant.  Set by ISUPPORT
 	char *prefixes; // ^^
 	servlist * autoent; // if this was opened by autoconnect(), this is filled in to point to the server's servlist entry
+	bool conf; // Conference Mode (hides joins, parts, quits, and /nicks)
 }
 buffer;
 
