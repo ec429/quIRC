@@ -12,6 +12,8 @@ Make hidden lines (quiet mode, conference mode, etc.) be stored in scrollback.  
 
 Const-correctness.  There are a lot of functions taking a char * that should take a const char *.
 
+Remember channel keys for /rejoin.  An argument to /rejoin overrides (but doesn't overwrite unless the /rejoin succeeds).
+
 Modes.  It's really about time I got those sorted out.
 
 Proper handling of Unicode in character-based things like cursor-movement, backspace.

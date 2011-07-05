@@ -29,7 +29,7 @@ the channel (or nick if current tab is a private messaging tab).
   /nick nickname
       Sets your nickname. Scope is server-wide (or, in (status) tab, sets
       default for new /servers).
-  /join channel
+  /join channel [key]
       Joins the given channel (will open in a new tab).
   /me action
       Sends an 'action' to the channel.
@@ -60,6 +60,10 @@ the channel (or nick if current tab is a private messaging tab).
             and $COLUMNS, using defaults of 80x24 if these env vars are not
             found), but you can override those guesses here or on the command
             line.
+          * The option 'conf' can be /set for each channel (the rc and cmdline
+            versions control the default setting). In Conference Mode (/set
+            conf +), joins, parts, quits, nick changes etc. will not be
+            displayed. This can be useful in busy channels.
       For full details see config_ref.htm.
   /ignore [-ipd] user[@host]
   /ignore [-ipd] -r regex
@@ -79,7 +83,7 @@ the channel (or nick if current tab is a private messaging tab).
             are not given (or begin with *), they are replaced with [^@]*
         -l
             Instead of adding a rule, list rules which apply to this tab
-  /rejoin
+  /rejoin [key]
       Rejoins a channel tab which is dead (eg after losing server connection).
   /reconnect
       Reconnects to a server from which you have become disconnected.

@@ -41,7 +41,7 @@ Then there&apos;s the github page, <a href="http://github.com/ec429/quIRC">http:
 	<dd>Connects to the given server (will open in a new tab).</dd>
 <dt>/nick <em>nickname</em></dt>
 	<dd>Sets your nickname.  Scope is server-wide (or, in (status) tab, sets default for new /servers).</dd>
-<dt>/join <em>channel</em></dt>
+<dt>/join <em>channel</em> [<em>key</em>]</dt>
 	<dd>Joins the given channel (will open in a new tab).</dd>
 <dt>/me <em>action</em></dt>
 	<dd>Sends an &apos;action&apos; to the channel.</dd>
@@ -62,6 +62,7 @@ Then there&apos;s the github page, <a href="http://github.com/ec429/quIRC">http:
 	<dd>Sets configuration options; the options are analogous to those in .quirc, with one or two extras.
 	<ul>
 		<li>The options &apos;height&apos; and &apos;width&apos; are used to tell quIRC how many rows and columns your terminal has (for cursor-positioning).  quIRC will try to deduce these values (from environment variables $LINES and $COLUMNS, using defaults of 80x24 if these env vars are not found), but you can override those guesses here or on the command line.</li>
+		<li>The option &apos;conf&apos; can be /set for each channel (the rc and cmdline versions control the default setting).  In Conference Mode (<small>/set conf +</small>), joins, parts, quits, nick changes etc. will not be displayed.  This can be useful in busy channels.</li>
 	</ul>
 	For full details see <a href="config_ref.htm">config_ref.htm</a>.
 	</dd>
@@ -82,7 +83,7 @@ Then there&apos;s the github page, <a href="http://github.com/ec429/quIRC">http:
 			<dd>Instead of adding a rule, list rules which apply to this tab</dd>
 	</dl>
 	</dd>
-<dt>/rejoin</dt>
+<dt>/rejoin [<em>key</em>]</dt>
 	<dd>Rejoins a channel tab which is dead (eg after losing server connection).</dd>
 <dt>/reconnect</dt>
 	<dd>Reconnects to a server from which you have become disconnected.</dd>
