@@ -1,15 +1,14 @@
-# Makefile for quIRC
+# gitless Makefile for quIRC
 
 CC ?= gcc
 OPTFLAGS = -g
 CFLAGS ?= -Wall -Wextra -Werror -pedantic -std=gnu99 $(OPTFLAGS)
 AWK ?= gawk
-VERSION := `git describe --tags`
 PREFIX ?= /usr/local
 LIBS := ttyraw.o ttyesc.o irc.o bits.o colour.o buffer.o names.o config.o input.o
 INCLUDE := ttyraw.h ttyesc.h irc.h bits.h colour.h buffer.h names.h config.h input.h quirc.h version.h
 
-all: quirc doc
+all: quirc
 
 install: all
 	install -D -m0755 quirc $(PREFIX)/bin/quirc
@@ -82,30 +81,4 @@ script.o: script.c script.h bits.h buffer.h
 
 c_init.c: colour.d c_init.awk
 	$(AWK) -f c_init.awk colour.d > c_init.c
-
-FORCE:
-version.h: FORCE
-	./gitversion
-	if ! cmp version.h version.h2; then mv version.h2 version.h; fi
-	-rm version.h2
-
-dist: all doc
-	-mkdir quirc_$(VERSION)
-	for p in $$(ls); do cp $$p quirc_$(VERSION)/$$p; done;
-	-rm quirc_$(VERSION)/*.tar.gz
-	mv quirc_$(VERSION)/distMakefile quirc_$(VERSION)/Makefile
-	tar -cvvf quirc_$(VERSION).tar quirc_$(VERSION)/
-	gzip quirc_$(VERSION).tar
-	rm -r quirc_$(VERSION)
-
-dists: c_init.c config.c config.h doc
-	-mkdir quirc_$(VERSION)_src
-	for p in $$(ls); do cp $$p quirc_$(VERSION)_src/$$p; done;
-	-rm quirc_$(VERSION)_src/*.tar.gz
-	rm quirc_$(VERSION)_src/*.o
-	rm quirc_$(VERSION)_src/quirc
-	mv quirc_$(VERSION)_src/distMakefile quirc_$(VERSION)_src/Makefile
-	tar -cvvf quirc_$(VERSION)_src.tar quirc_$(VERSION)_src/
-	gzip quirc_$(VERSION)_src.tar
-	rm -r quirc_$(VERSION)_src
 

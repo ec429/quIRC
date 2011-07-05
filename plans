@@ -8,7 +8,15 @@ PASS (auto-send during connect time).  Also need to fix the problem of the conn_
 
 Fix possible issue with CTCP.  Funny stuff (including random characters) happened when eg spike1 sent a CTCP PONG to the channel.
 
+Fix bug with wordline() and horizontal tabs.  Sometimes they come out as having zero length.
+
 Fix bug with /sort.  cbuf goes to the wrong place.
+
+Fix gitless source tarball (version.h2 weirdness).
+
+Modes.  It's really about time I got those sorted out.
+
+Conference Mode.  Hide joins, parts, quits, and /nicks.
 
 Proper handling of Unicode in character-based things like cursor-movement, backspace.
 
@@ -17,6 +25,8 @@ Improve the parsing of mirc-colour-codes (to fix things like \003124 which curre
 /dump command.  Pipes a screendump (or better still, unprocessed text) into program of choice.
 
 /clear command.
+
+//text sends message /text (then /// sends //, etc).
 
 Short commands (sufficient-prefix matching, like /cle).
 
