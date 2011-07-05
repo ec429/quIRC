@@ -494,6 +494,8 @@ char * slash_dequote(char *inp)
 int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=3; return new state
 {
 	char *cmd=inp+1;
+	if(*cmd=='/') //msg sends /msg
+		return(talk(cmd));
 	char *args=strchr(cmd, ' ');
 	if(args) *args++=0;
 	if(strcmp(cmd, "close")==0)

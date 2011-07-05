@@ -20,8 +20,6 @@ Improve the parsing of mirc-colour-codes (to fix things like \003124 which curre
 
 /clear command.
 
-//text sends message /text (then /// sends //, etc).
-
 Short commands (sufficient-prefix matching, like /cle).
 
 Logging & Persistent backscroll.

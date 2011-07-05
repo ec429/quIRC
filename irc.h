@@ -71,6 +71,9 @@ char irc_to_lower(char c, cmap casemapping);
 int irc_strcasecmp(char *c1, char *c2, cmap casemapping);
 int irc_strncasecmp(char *c1, char *c2, int n, cmap casemapping);
 
+// Send an IRC PRIVMSG (ie. ordinary talking)
+int talk(char *iinput);
+
 // Received-IRC message handlers
 int irc_numeric(message pkt, int b);
 int rx_ping(message pkt, int b);

@@ -1453,3 +1453,38 @@ int ctcp(char *msg, char *from, char *src, int b2, bool ha, bool notice, bool pr
 	}
 	return(0);
 }
+
+int talk(char *iinput)
+{
+	if((bufs[cbuf].type==CHANNEL)||(bufs[cbuf].type==PRIVATE))
+	{
+		if(bufs[bufs[cbuf].server].handle)
+		{
+			if(LIVE(cbuf))
+			{
+				char pmsg[12+strlen(bufs[cbuf].bname)+strlen(iinput)];
+				sprintf(pmsg, "PRIVMSG %s :%s", bufs[cbuf].bname, iinput);
+				irc_tx(bufs[bufs[cbuf].server].handle, pmsg);
+				char *cnick=strdup(bufs[bufs[cbuf].server].nick);
+				crush(&cnick, maxnlen);
+				char *tag=mktag("<%s> ", cnick);
+				free(cnick);
+				add_to_buffer(cbuf, c_msg[0], iinput, tag);
+				free(tag);
+			}
+			else
+			{
+				add_to_buffer(cbuf, c_err, "Can't talk - tab is not live!", "");
+			}
+		}
+		else
+		{
+			add_to_buffer(cbuf, c_err, "Can't talk - tab is disconnected!", "");
+		}
+	}
+	else
+	{
+		add_to_buffer(cbuf, c_err, "Can't talk - view is not a channel!", "");
+	}
+	return(0);
+}

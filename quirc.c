@@ -406,43 +406,13 @@ int main(int argc, char *argv[])
 					if(*iinput=='/')
 					{
 						state=cmd_handle(iinput, &qmsg, &master, &fdmax);
-						free(iinput);iinput=NULL;
 					}
 					else
 					{
-						if((bufs[cbuf].type==CHANNEL)||(bufs[cbuf].type==PRIVATE))
-						{
-							if(bufs[bufs[cbuf].server].handle)
-							{
-								if(LIVE(cbuf))
-								{
-									char pmsg[12+strlen(bufs[cbuf].bname)+strlen(iinput)];
-									sprintf(pmsg, "PRIVMSG %s :%s", bufs[cbuf].bname, iinput);
-									irc_tx(bufs[bufs[cbuf].server].handle, pmsg);
-									char *cnick=strdup(bufs[bufs[cbuf].server].nick);
-									crush(&cnick, maxnlen);
-									char *tag=mktag("<%s> ", cnick);
-									free(cnick);
-									add_to_buffer(cbuf, c_msg[0], iinput, tag);
-									free(tag);
-								}
-								else
-								{
-									add_to_buffer(cbuf, c_err, "Can't talk - tab is not live!", "");
-								}
-							}
-							else
-							{
-								add_to_buffer(cbuf, c_err, "Can't talk - tab is disconnected!", "");
-							}
-						}
-						else
-						{
-							add_to_buffer(cbuf, c_err, "Can't talk - view is not a channel!", "");
-						}
-						free(iinput);iinput=NULL;
+						talk(iinput);
 						state=0;
 					}
+					free(iinput);iinput=NULL;
 				}
 				else
 				{
