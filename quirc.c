@@ -187,12 +187,16 @@ int main(int argc, char *argv[])
 		{
 			if(winch)
 			{
-				const char *lines=getenv("LINES"), *cols=getenv("COLUMNS");
-				int l=0, c=0;
-				if(lines && (sscanf(lines, "%d", &l)==1) && (l>0))
+				int l, c;
+				if(termsize(STDIN_FILENO, &c, &l))
+				{
+					add_to_buffer(0, c_err, strerror(errno), "termsize: ioctl: ");
+				}
+				else
+				{
 					height=max(l, 5);
-				if(cols && (sscanf(cols, "%d", &c)==1) && (c>0))
 					width=max(c, 30);
+				}
 			}
 			sigwinch=0;
 		}

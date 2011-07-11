@@ -69,3 +69,12 @@ int settitle(char *newtitle)
 	}
 	return(0);
 }
+
+int termsize(int fd, int *x, int *y)
+{
+	struct winsize ws;
+	if(ioctl(fd, TIOCGWINSZ, &ws)) return(1);
+	if(x) *x=ws.ws_col;
+	if(y) *y=ws.ws_row;
+	return(0);
+}
