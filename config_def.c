@@ -16,3 +16,4 @@
 	debug=0;
 	conf=0;
 	titles=1;
+	winch=1;

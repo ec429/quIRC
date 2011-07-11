@@ -161,3 +161,13 @@
 				else
 					titles=true;
 			}
+			else if(strcmp(cmd, "no-winch")==0)
+				winch=false;
+			else if(strcmp(cmd, "winch")==0)
+			{
+				unsigned int value;
+				if(rest&&sscanf(rest, "%u", &value))
+					winch=value;
+				else
+					winch=true;
+			}

@@ -29,14 +29,21 @@ int main(int argc, char *argv[])
 	init_start_buffer();
 	
 	sigpipe=0;
-    struct sigaction sa;
-    sa.sa_handler = handle_sigpipe;
-    sa.sa_flags=0;
-    sigemptyset(&sa.sa_mask);
+	struct sigaction sa;
+	sa.sa_handler=handle_sigpipe;
+	sa.sa_flags=0;
+	sigemptyset(&sa.sa_mask);
 	
 	if(sigaction(SIGPIPE, &sa, NULL)==-1)
 	{
 		fprintf(stderr, "Failed to set SIGPIPE handler\n");
+		perror("sigaction");
+		push_buffer();
+		return(1);
+	}
+	if(sigaction(SIGWINCH, &sa, NULL)==-1)
+	{
+		fprintf(stderr, "Failed to set SIGWINCH handler\n");
 		perror("sigaction");
 		push_buffer();
 		return(1);
@@ -176,6 +183,19 @@ int main(int argc, char *argv[])
 	int state=0; // odd-numbered states are fatal
 	while(!(state%2))
 	{
+		if(sigwinch)
+		{
+			if(winch)
+			{
+				const char *lines=getenv("LINES"), *cols=getenv("COLUMNS");
+				int l=0, c=0;
+				if(lines && (sscanf(lines, "%d", &l)==1) && (l>0))
+					height=max(l, 5);
+				if(cols && (sscanf(cols, "%d", &c)==1) && (c>0))
+					width=max(c, 30);
+			}
+			sigwinch=0;
+		}
 		// propagate liveness values into dependent tabs, and ping idle connections
 		{
 			time_t now=time(NULL);

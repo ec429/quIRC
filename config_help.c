@@ -16,3 +16,4 @@
 			fprintf(stderr, "\t--[no-]debug                    : debugging\n");
 			fprintf(stderr, "\t--[no-]conf                     : conference mode (default)\n");
 			fprintf(stderr, "\t--[no-]titles                   : xterm title\n");
+			fprintf(stderr, "\t--[no-]winch                    : react to SIGWINCH (window change)\n");

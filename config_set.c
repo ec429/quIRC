@@ -593,3 +593,49 @@
 						bufs[buf].dirty=true;
 					redraw_buffer();
 				}
+				else if(strcmp(opt, "winch")==0)
+				{
+					if(val)
+					{
+						if(isdigit(*val))
+						{
+							unsigned int value;
+							sscanf(val, "%u", &value);
+							winch=value;
+						}
+						else if(strcmp(val, "+")==0)
+						{
+							winch=true;
+						}
+						else if(strcmp(val, "-")==0)
+						{
+							winch=false;
+						}
+						else
+						{
+							add_to_buffer(cbuf, c_err, "option 'winch' is boolean, use only 0/1 or -/+ to set", "/set: ");
+						}
+					}
+					else
+						winch=true;
+					if(!quiet)
+					{
+						if(winch)
+							add_to_buffer(cbuf, c_status, "react to SIGWINCH (window change) enabled", "/set: ");
+						else
+							add_to_buffer(cbuf, c_status, "react to SIGWINCH (window change) disabled", "/set: ");
+					}
+					int buf;
+					for(buf=0;buf<nbufs;buf++)
+						bufs[buf].dirty=true;
+					redraw_buffer();
+				}
+				else if(strcmp(opt, "no-winch")==0)
+				{
+					winch=0;
+					if(!quiet) add_to_buffer(cbuf, c_status, "react to SIGWINCH (window change) disabled", "/set: ");
+					int buf;
+					for(buf=0;buf<nbufs;buf++)
+						bufs[buf].dirty=true;
+					redraw_buffer();
+				}

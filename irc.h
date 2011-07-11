@@ -49,9 +49,9 @@ message;
 
 #define MQUOTE	'\020'
 
-volatile sig_atomic_t sigpipe;
+volatile sig_atomic_t sigpipe, sigwinch;
 
-void handle_sigpipe(int);
+void handle_sigpipe(int); // handles both sigpipe and sigwinch
 
 int irc_connect(char *server, char *portno, fd_set *master, int *fdmax); // non-blocking
 int irc_conn_rest(int b, char *nick, char *username, char *fullname); // call this when the non-blocking connect() has finished

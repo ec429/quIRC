@@ -15,3 +15,4 @@ bool:quiet:false:::quiet:quiet:quiet:B:quiet mode
 bool:debug:false:::debug:debug:debug:B:debugging
 bool:conf:false:::conf:conf::B:conference mode (default)
 bool:titles:true:::titles:titles:titles:B:xterm title
+bool:winch:true:::winch:winch:winch:B:react to SIGWINCH (window change)

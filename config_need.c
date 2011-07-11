@@ -28,3 +28,5 @@
 			if(strcmp(cmd, "no-conf")==0) need=false;
 			if(strcmp(cmd, "titles")==0) need=false;
 			if(strcmp(cmd, "no-titles")==0) need=false;
+			if(strcmp(cmd, "winch")==0) need=false;
+			if(strcmp(cmd, "no-winch")==0) need=false;

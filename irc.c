@@ -12,6 +12,8 @@ void handle_sigpipe(int sig)
 {
 	if(sig==SIGPIPE)
 		sigpipe=1;
+	else if(sig==SIGWINCH)
+		sigwinch=1;
 }
 
 int irc_connect(char *server, char *portno, fd_set *master, int *fdmax)

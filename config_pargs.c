@@ -51,3 +51,7 @@
 			titles=true;
 		else if(strcmp(argv[arg], "--no-titles")==0)
 			titles=false;
+		else if(strcmp(argv[arg], "--winch")==0)
+			winch=true;
+		else if(strcmp(argv[arg], "--no-winch")==0)
+			winch=false;

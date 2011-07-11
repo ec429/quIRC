@@ -16,3 +16,4 @@ bool quiet; // quiet mode
 bool debug; // debugging
 bool conf; // conference mode (default)
 bool titles; // xterm title
+bool winch; // react to SIGWINCH (window change)
