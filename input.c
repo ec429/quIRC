@@ -1154,34 +1154,27 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 			{
 				if((bufs[b2].server==bufs[cbuf].server) && (bufs[b2].type==CHANNEL))
 				{
-					if(bufs[b2].handle)
+					if(LIVE(b2))
 					{
-						if(LIVE(b2))
-						{
-							char privmsg[12+strlen(bufs[b2].bname)+strlen(args)];
-							sprintf(privmsg, "PRIVMSG %s :%s", bufs[b2].bname, args);
-							irc_tx(bufs[b2].handle, privmsg);
-							while(args[strlen(args)-1]=='\n')
-								args[strlen(args)-1]=0; // stomp out trailing newlines, they break things
-							char *cnick=strdup(bufs[bufs[b2].server].nick);
-							crush(&cnick, maxnlen);
-							char *tag=mktag("<%s> ", cnick);
-							free(cnick);
-							bool al=bufs[b2].alert; // save alert status...
-							int hi=bufs[b2].hi_alert;
-							add_to_buffer(b2, c_msg[0], args, tag);
-							free(tag);
-							bufs[b2].alert=al; // and restore it
-							bufs[b2].hi_alert=hi;
-						}
-						else
-						{
-							add_to_buffer(b2, c_err, "Tab not live, can't send", "/amsg: ");
-						}
+						char privmsg[12+strlen(bufs[b2].bname)+strlen(args)];
+						sprintf(privmsg, "PRIVMSG %s :%s", bufs[b2].bname, args);
+						irc_tx(bufs[b2].handle, privmsg);
+						while(args[strlen(args)-1]=='\n')
+							args[strlen(args)-1]=0; // stomp out trailing newlines, they break things
+						char *cnick=strdup(bufs[bufs[b2].server].nick);
+						crush(&cnick, maxnlen);
+						char *tag=mktag("<%s> ", cnick);
+						free(cnick);
+						bool al=bufs[b2].alert; // save alert status...
+						int hi=bufs[b2].hi_alert;
+						add_to_buffer(b2, c_msg[0], args, tag);
+						free(tag);
+						bufs[b2].alert=al; // and restore it
+						bufs[b2].hi_alert=hi;
 					}
 					else
 					{
-						add_to_buffer(b2, c_err, "Can't send to channel - not connected!", "/amsg: ");
+						add_to_buffer(b2, c_err, "Tab not live, can't send", "/amsg: ");
 					}
 				}
 			}
