@@ -255,7 +255,8 @@ int main(int argc, char *argv[])
 		readfds=master;
 		if(select(fdmax+1, &readfds, NULL, NULL, &timeout)==-1)
 		{
-			add_to_buffer(0, c_err, strerror(errno), "select: ");
+			if(errno!=EINTR) // nobody cares if select() was interrupted by a signal
+				add_to_buffer(0, c_err, strerror(errno), "select: ");
 		}
 		else
 		{
