@@ -196,6 +196,9 @@ int main(int argc, char *argv[])
 				{
 					height=max(l, 5);
 					width=max(c, 30);
+					for(int buf=0;buf<nbufs;buf++)
+						bufs[buf].dirty=true;
+					redraw_buffer();
 				}
 			}
 			sigwinch=0;
