@@ -151,3 +151,13 @@
 				else
 					conf=true;
 			}
+			else if(strcmp(cmd, "no-titles")==0)
+				titles=false;
+			else if(strcmp(cmd, "titles")==0)
+			{
+				unsigned int value;
+				if(rest&&sscanf(rest, "%u", &value))
+					titles=value;
+				else
+					titles=true;
+			}

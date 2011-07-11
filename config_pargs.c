@@ -47,3 +47,7 @@
 			conf=true;
 		else if(strcmp(argv[arg], "--no-conf")==0)
 			conf=false;
+		else if(strcmp(argv[arg], "--titles")==0)
+			titles=true;
+		else if(strcmp(argv[arg], "--no-titles")==0)
+			titles=false;

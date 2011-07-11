@@ -15,3 +15,4 @@ bool its; // input clock
 bool quiet; // quiet mode
 bool debug; // debugging
 bool conf; // conference mode (default)
+bool titles; // xterm title

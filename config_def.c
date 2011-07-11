@@ -15,3 +15,4 @@
 	quiet=0;
 	debug=0;
 	conf=0;
+	titles=1;

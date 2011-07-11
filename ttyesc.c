@@ -62,7 +62,10 @@ int s_resetcol(char **rv, int *l, int *i)
 
 int settitle(char *newtitle)
 {
-	printf("\033]0;%s\007", newtitle);
-	fflush(stdout);
+	if(titles)
+	{
+		printf("\033]0;%s\007", newtitle);
+		fflush(stdout);
+	}
 	return(0);
 }

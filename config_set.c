@@ -547,3 +547,49 @@
 						bufs[buf].dirty=true;
 					redraw_buffer();
 				}
+				else if(strcmp(opt, "titles")==0)
+				{
+					if(val)
+					{
+						if(isdigit(*val))
+						{
+							unsigned int value;
+							sscanf(val, "%u", &value);
+							titles=value;
+						}
+						else if(strcmp(val, "+")==0)
+						{
+							titles=true;
+						}
+						else if(strcmp(val, "-")==0)
+						{
+							titles=false;
+						}
+						else
+						{
+							add_to_buffer(cbuf, c_err, "option 'titles' is boolean, use only 0/1 or -/+ to set", "/set: ");
+						}
+					}
+					else
+						titles=true;
+					if(!quiet)
+					{
+						if(titles)
+							add_to_buffer(cbuf, c_status, "xterm title enabled", "/set: ");
+						else
+							add_to_buffer(cbuf, c_status, "xterm title disabled", "/set: ");
+					}
+					int buf;
+					for(buf=0;buf<nbufs;buf++)
+						bufs[buf].dirty=true;
+					redraw_buffer();
+				}
+				else if(strcmp(opt, "no-titles")==0)
+				{
+					titles=0;
+					if(!quiet) add_to_buffer(cbuf, c_status, "xterm title disabled", "/set: ");
+					int buf;
+					for(buf=0;buf<nbufs;buf++)
+						bufs[buf].dirty=true;
+					redraw_buffer();
+				}
