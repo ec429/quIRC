@@ -86,7 +86,7 @@ int main(int argc, char **argv)
 			for(int i=0;i<nkeys;i++)
 			{
 				printf("\tkmap[%d].name=\"%s\";\n", i, keys[i].name);
-				printf("\tkmap[%d].mod=malloc(%d);\n", i, strlen(keys[i].mod)+1);
+				printf("\tkmap[%d].mod=malloc(%zu);\n", i, strlen(keys[i].mod)+1);
 				for(unsigned int j=0;j<=strlen(keys[i].mod);j++)
 				{
 					printf("\tkmap[%d].mod[%d]=%hhd;\n", i, j, keys[i].mod[j]);
