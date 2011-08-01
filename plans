@@ -10,6 +10,8 @@ Fix possible issue with CTCP.  Funny stuff (including random characters) happene
 
 Make hidden lines (quiet mode, conference mode, etc.) be stored in scrollback.  Filter on render; that way changes are retroactive.
 
+Store nicks uncrushed in unproc.  Makes '/set mnln' retroactive.
+
 Const-correctness.  There are a lot of functions taking a char * that should take a const char *.
 
 Remember channel keys for /rejoin.  An argument to /rejoin overrides (but doesn't overwrite unless the /rejoin succeeds).
