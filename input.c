@@ -992,7 +992,8 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 				{
 					bufs[0].nick=strdup(nn);
 					nick=strdup(nn);
-					if(!quiet) add_to_buffer(cbuf, c_status, "Default nick changed", "/nick ");
+					defnick=false;
+					if(!quiet) add_to_buffer(cbuf, c_status, "Default nick changed", "/nick: ");
 				}
 			}
 		}

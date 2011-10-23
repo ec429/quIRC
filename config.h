@@ -45,6 +45,7 @@ servlist;
 #include "config_globals.h"
 bool autojoin;
 char *username, *fname, *nick, *portno;
+bool defnick;
 servlist *servs;
 name *igns;
 char *version;
