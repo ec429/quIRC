@@ -64,6 +64,8 @@ the channel (or nick if current tab is a private messaging tab).
             versions control the default setting). In Conference Mode (/set
             conf +), joins, parts, quits, nick changes etc. will not be
             displayed. This can be useful in busy channels.
+          * The options 'uname', 'fname' and 'pass' are analogous to the --
+            uname, --fname and --pass commandline options.
       For full details see config_ref.htm.
   /ignore [-ipd] user[@host]
   /ignore [-ipd] -r regex
@@ -125,10 +127,12 @@ In your home directory (/home/username), create a folder called ".quirc", a
 file within that folder called "rc", and open it in your editor.
 In this file you can set servers, nick and channels to automatically use:
 nick global-nickname
+pass global-password
 ignore -options global-ignore
 server url
 *chan channel-on-that-server
 *nick nick-on-that-server
+*pass password-for-that-server
 *ignore -options ignore-on-that-server
 where the options to [*]ignore are those for the /ignore command (except for l
 and d), and must not be separated by whitespace. You can however combine
