@@ -10,8 +10,6 @@ Fix possible issue with CTCP.  Funny stuff (including random characters) happene
 
 Fix issue with an infinite loop in irc_rx of bytes==0 from recv().  Don't fully understand what causes it.
 
-/set uname (and fname) at runtime.
-
 Make hidden lines (quiet mode, conference mode, etc.) be stored in scrollback.  Filter on render; that way changes are retroactive.
 
 Find a way to make getaddrinfo() calls asynch.  They currently block everything on connect, which means that /server can cause existing connections to ping off.

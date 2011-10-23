@@ -569,7 +569,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 			char *opt=strtok(args, " ");
 			if(opt)
 			{
-				char *val=strtok(NULL, " ");
+				char *val=strtok(NULL, "");
 #include "config_set.c"
 				else if(strcmp(opt, "conf")==0)
 				{
@@ -612,6 +612,41 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					{
 						add_to_buffer(cbuf, c_err, "Not a channel!", "/set conf: ");
 					}
+				}
+				else if(strcmp(opt, "uname")==0)
+				{
+					if(val)
+					{
+						free(username);
+						username=strdup(val);
+						if(!quiet) add_to_buffer(cbuf, c_status, username, "/set uname ");
+					}
+					else
+						add_to_buffer(cbuf, c_err, "Non-null value required for uname", "/set uname: ");
+				}
+				else if(strcmp(opt, "fname")==0)
+				{
+					if(val)
+					{
+						free(fname);
+						fname=strdup(val);
+						if(!quiet) add_to_buffer(cbuf, c_status, fname, "/set fname ");
+					}
+					else
+						add_to_buffer(cbuf, c_err, "Non-null value required for fname", "/set fname: ");
+				}
+				else if(strcmp(opt, "pass")==0)
+				{
+					if(val)
+					{
+						free(pass);
+						pass=strdup(val);
+						char *p=val;
+						while(*p) *p++='*';
+						if(!quiet) add_to_buffer(cbuf, c_status, val, "/set pass ");
+					}
+					else
+						add_to_buffer(cbuf, c_err, "Non-null value required for pass", "/set pass: ");
 				}
 				else
 				{
