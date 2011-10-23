@@ -403,7 +403,7 @@ int main(int argc, char *argv[])
 								}
 								else if(bufs[b].conninpr)
 								{
-									irc_conn_rest(b, nick, username, fname);
+									irc_conn_rest(b, nick, username, pass, fname);
 								}
 								else
 								{

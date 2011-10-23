@@ -17,4 +17,4 @@
  There is NO WARRANTY, to the extent permitted by law.\n\
  Compiler was %s\n", "quirc", VERSION_MAJ, VERSION_MIN, VERSION_REV, VERSION_TXT[0]?"-":"", VERSION_TXT, CC_VERSION
 
-#define USAGE_MSG "quirc [--no-server] [--no-chan] [--check] [--server=<server>] [--uname=<uname>]\n    [--fname=<fname>] [--nick=<nick>] [--chan=<chan>] [--port=<port>] [options]\nquirc {-h|--help|-V|--version}\n"
+#define USAGE_MSG "quirc [--no-server] [--no-chan] [--check] [--server=<server>] [--uname=<uname>]\n    [--fname=<fname>] [--nick=<nick>] [--chan=<chan>] [--port=<port>]\n    [--pass=<pass>] [options]\nquirc {-h|--help|-V|--version}\n"

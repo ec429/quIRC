@@ -76,7 +76,7 @@ int irc_connect(char *server, char *portno, fd_set *master, int *fdmax)
 	return(serverhandle);
 }
 
-int irc_conn_rest(int b, char *nick, char *username, char *fullname)
+int irc_conn_rest(int b, char *nick, char *username, char *passwd, char *fullname)
 {
 	if(debug)
 	{
@@ -88,7 +88,14 @@ int irc_conn_rest(int b, char *nick, char *username, char *fullname)
 	bufs[b].last=time(NULL);
 	if(bufs[b].autoent && bufs[b].autoent->nick)
 		nick=bufs[b].autoent->nick;
-	// TODO: Optionally send a PASS message before the NICK/USER
+	if(bufs[b].autoent && bufs[b].autoent->pass)
+		passwd=bufs[b].autoent->pass;
+	if(passwd) // Optionally send a PASS message before the NICK/USER
+	{
+		char passmsg[6+strlen(passwd)];
+		sprintf(passmsg, "PASS %s", passwd); // PASS <password>
+		irc_tx(bufs[b].handle, passmsg);
+	}
 	char nickmsg[6+strlen(nick)];
 	sprintf(nickmsg, "NICK %s", nick); // NICK <nickname>
 	irc_tx(bufs[b].handle, nickmsg);

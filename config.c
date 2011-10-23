@@ -108,6 +108,12 @@ int def_config(void)
 {
 #include "config_def.c"
 	autojoin=true;
+	int l, c;
+	if(!termsize(STDIN_FILENO, &c, &l))
+	{
+		height=max(l, 5);
+		width=max(c, 30);
+	}
 	char *cols=getenv("COLUMNS"), *rows=getenv("LINES");
 	if(cols) sscanf(cols, "%u", &width);
 	if(rows) sscanf(rows, "%u", &height);
@@ -119,6 +125,7 @@ int def_config(void)
 	fname=malloc(64+strlen(VERSION_TXT));
 	nick=strdup(eu?eu:"ac");
 	defnick=true;
+	pass=NULL;
 	snprintf(fname, 64+strlen(VERSION_TXT), "quIRC %hhu.%hhu.%hhu%s%s : http://github.com/ec429/quIRC", VERSION_MAJ, VERSION_MIN, VERSION_REV, VERSION_TXT[0]?"-":"", VERSION_TXT);
 	version=malloc(16+strlen(VERSION_TXT));
 	snprintf(version, 16+strlen(VERSION_TXT), "%hhu.%hhu.%hhu%s%s", VERSION_MAJ, VERSION_MIN, VERSION_REV, VERSION_TXT[0]?"-":"", VERSION_TXT);
@@ -233,6 +240,7 @@ int rcread(FILE *rcfp)
 				new->name=strdup(rest);
 				new->nick=strdup(nick);
 				new->portno=strdup(portno);
+				new->pass=pass?strdup(pass):NULL;
 				new->join=false;
 				new->chans=NULL;
 				new->igns=NULL;
@@ -240,11 +248,24 @@ int rcread(FILE *rcfp)
 			}
 			else if(servs && (strcmp(cmd, "*port")==0))
 			{
-				if(servs->portno) free(servs->portno);
+				free(servs->portno);
 				servs->portno=strdup(rest);
 			}
 			else if(strcmp(cmd, "port")==0)
+			{
+				free(portno);
 				portno=strdup(rest);
+			}
+			else if(strcmp(cmd, "pass")==0)
+			{
+				free(pass);
+				pass=strdup(rest);
+			}
+			else if(servs && (strcmp(cmd, "*pass")==0))
+			{
+				free(servs->pass);
+				servs->pass=strdup(rest);
+			}
 			else if(strcmp(cmd, "uname")==0)
 			{
 				username=strdup(rest);
@@ -255,14 +276,18 @@ int rcread(FILE *rcfp)
 				}
 			}
 			else if(strcmp(cmd, "fname")==0)
+			{
+				free(fname);
 				fname=strdup(rest);
+			}
 			else if(servs && (strcmp(cmd, "*nick")==0))
 			{
-				if(servs->nick) free(servs->nick);
+				free(servs->nick);
 				servs->nick=strdup(rest);
 			}
 			else if(strcmp(cmd, "nick")==0)
 			{
+				free(nick);
 				nick=strdup(rest);
 				defnick=false;
 			}
@@ -441,6 +466,11 @@ signed int pargs(int argc, char *argv[])
 		{
 			free(portno);
 			portno=strdup(argv[arg]+7);
+		}
+		else if(strncmp(argv[arg], "--pass=", 7)==0)
+		{
+			free(pass);
+			pass=strdup(argv[arg]+7);
 		}
 		else if(strncmp(argv[arg], "--uname=", 8)==0)
 		{

@@ -26,6 +26,7 @@ typedef struct _servlist
 	char *name;
 	char *portno;
 	char *nick;
+	char *pass;
 	bool join;
 	chanlist *chans;
 	struct _servlist *next;
@@ -44,7 +45,7 @@ servlist;
 // global settings & state
 #include "config_globals.h"
 bool autojoin;
-char *username, *fname, *nick, *portno;
+char *username, *fname, *nick, *pass, *portno;
 bool defnick;
 servlist *servs;
 name *igns;

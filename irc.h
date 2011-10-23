@@ -54,7 +54,7 @@ volatile sig_atomic_t sigpipe, sigwinch;
 void handle_sigpipe(int); // handles both sigpipe and sigwinch
 
 int irc_connect(char *server, char *portno, fd_set *master, int *fdmax); // non-blocking
-int irc_conn_rest(int b, char *nick, char *username, char *fullname); // call this when the non-blocking connect() has finished
+int irc_conn_rest(int b, char *nick, char *username, char *passwd, char *fullname); // call this when the non-blocking connect() has finished
 int autoconnect(fd_set *master, int *fdmax, servlist *serv);
 int irc_tx(int fd, char * packet);
 int irc_rx(int fd, char ** data);
