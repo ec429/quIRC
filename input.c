@@ -757,7 +757,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 							bufs[b2].handle=serverhandle;
 					}
 					bufs[cbuf].conninpr=true;
-					if(bufs[cbuf].realsname) free(bufs[cbuf].realsname);
+					free(bufs[cbuf].realsname);
 					bufs[cbuf].realsname=NULL;
 					if(!quiet) add_to_buffer(cbuf, c_status, dstr, "/server: ");
 				}
@@ -1573,8 +1573,8 @@ char back_ichar(ichar *buf)
 
 void ifree(iline *buf)
 {
-	if(buf->left.data) free(buf->left.data);
-	if(buf->right.data) free(buf->right.data);
+	free(buf->left.data);
+	free(buf->right.data);
 	buf->left.data=NULL;
 	buf->right.data=NULL;
 	buf->left.i=buf->left.l=0;

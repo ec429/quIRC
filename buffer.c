@@ -69,13 +69,13 @@ int free_start_buffer(void)
 	{
 		for(i=0;i<s_buf.nlines;i++)
 		{
-			if(s_buf.lt[i]) free(s_buf.lt[i]);
+			free(s_buf.lt[i]);
 		}
 		free(s_buf.lt);
 		s_buf.lt=NULL;
 	}
-	if(s_buf.lc) free(s_buf.lc);
-	if(s_buf.ts) free(s_buf.ts);
+	free(s_buf.lc);
+	free(s_buf.ts);
 	s_buf.nlines=0;
 	return(0);
 }
@@ -158,25 +158,25 @@ int free_buffer(int buf)
 	}
 	else
 	{
-		if(bufs[buf].bname) free(bufs[buf].bname);
-		if(bufs[buf].realsname) free(bufs[buf].realsname);
+		free(bufs[buf].bname);
+		free(bufs[buf].realsname);
 		n_free(bufs[buf].nlist);
 		bufs[buf].nlist=NULL;
 		n_free(bufs[buf].ilist);
 		bufs[buf].ilist=NULL;
-		if(bufs[buf].lc) free(bufs[buf].lc);
-		if(bufs[buf].topic) free(bufs[buf].topic);
+		free(bufs[buf].lc);
+		free(bufs[buf].topic);
 		int l;
 		if(bufs[buf].lt)
 		{
 			for(l=0;l<bufs[buf].nlines;l++)
-				if(bufs[buf].lt[l]) free(bufs[buf].lt[l]);
+				free(bufs[buf].lt[l]);
 			free(bufs[buf].lt);
 		}
 		if(bufs[buf].ltag)
 		{
 			for(l=0;l<bufs[buf].nlines;l++)
-				if(bufs[buf].ltag[l]) free(bufs[buf].ltag[l]);
+				free(bufs[buf].ltag[l]);
 			free(bufs[buf].ltag);
 		}
 		if(bufs[buf].lpt)
@@ -190,7 +190,7 @@ int free_buffer(int buf)
 						int p;
 						for(p=0;p<bufs[buf].lpl[l];p++)
 						{
-							if(bufs[buf].lpt[l][p]) free(bufs[buf].lpt[l][p]);
+							free(bufs[buf].lpt[l][p]);
 						}
 					}
 					free(bufs[buf].lpt[l]);
@@ -198,8 +198,8 @@ int free_buffer(int buf)
 			}
 			free(bufs[buf].lpt);
 		}
-		if(bufs[buf].lpl) free(bufs[buf].lpl);
-		if(bufs[buf].ts) free(bufs[buf].ts);
+		free(bufs[buf].lpl);
+		free(bufs[buf].ts);
 		freeibuf(&bufs[buf].input);
 		free(bufs[buf].prefixes);
 		if(cbuf>=buf)
@@ -242,9 +242,9 @@ int add_to_buffer(int buf, colour lc, const char *lt, const char *ltag)
 	int optr=bufs[buf].ptr;
 	bool scrollisptr=(bufs[buf].scroll==bufs[buf].ptr)&&(bufs[buf].ascroll==0);
 	bufs[buf].lc[bufs[buf].ptr]=lc;
-	if(bufs[buf].lt[bufs[buf].ptr]) free(bufs[buf].lt[bufs[buf].ptr]);
+	free(bufs[buf].lt[bufs[buf].ptr]);
 	bufs[buf].lt[bufs[buf].ptr]=strdup(lt);
-	if(bufs[buf].ltag[bufs[buf].ptr]) free(bufs[buf].ltag[bufs[buf].ptr]);
+	free(bufs[buf].ltag[bufs[buf].ptr]);
 	bufs[buf].ltag[bufs[buf].ptr]=strdup(ltag);
 	bufs[buf].ts[bufs[buf].ptr]=time(NULL);
 	bufs[buf].ptr=(bufs[buf].ptr+1)%bufs[buf].nlines;
@@ -421,7 +421,7 @@ int render_line(int buf, int uline)
 	{
 		int pline;
 		for(pline=0;pline<bufs[buf].lpl[uline];pline++)
-			if(bufs[buf].lpt[uline][pline]) free(bufs[buf].lpt[uline][pline]);
+			free(bufs[buf].lpt[uline][pline]);
 		free(bufs[buf].lpt[uline]);
 	}
 	char *proc;int l,i;

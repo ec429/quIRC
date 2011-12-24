@@ -496,11 +496,11 @@ int main(int argc, char *argv[])
 	}
 	bufs[0].live=false;
 	free_buffer(0);
-	if(bufs) free(bufs);
-	if(username) free(username);
-	if(fname) free(fname);
-	if(nick) free(nick);
-	if(portno) free(portno);
+	free(bufs);
+	free(username);
+	free(fname);
+	free(nick);
+	free(portno);
 	freeservlist(servs);
 	n_free(igns);
 	ttyreset(STDOUT_FILENO);

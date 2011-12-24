@@ -281,11 +281,11 @@ message irc_breakdown(char *packet)
 
 void message_free(message pkt)
 {
-	if(pkt.prefix) free(pkt.prefix);
-	if(pkt.cmd) free(pkt.cmd);
+	free(pkt.prefix);
+	free(pkt.cmd);
 	int arg;
 	for(arg=0;arg<pkt.nargs;arg++)
-		if(pkt.args[arg]) free(pkt.args[arg]);
+		free(pkt.args[arg]);
 }
 
 void prefix_split(char * prefix, char **src, char **user, char **host)
@@ -657,7 +657,7 @@ int irc_numeric(message pkt, int b)
 					char tmsg[32+strlen(pkt.args[1])];
 					sprintf(tmsg, "Topic for %s is ", pkt.args[1]);
 					add_to_buffer(b2, c_notice[1], pkt.args[2], tmsg);
-					if(bufs[b2].topic) free(bufs[b2].topic);
+					free(bufs[b2].topic);
 					bufs[b2].topic=strdup(pkt.args[2]);
 				}
 			}
@@ -675,7 +675,7 @@ int irc_numeric(message pkt, int b)
 					char tmsg[32+strlen(pkt.args[1])];
 					sprintf(tmsg, "No topic is set for %s", pkt.args[1]);
 					add_to_buffer(b2, c_notice[1], tmsg, "");
-					if(bufs[b2].topic) free(bufs[b2].topic);
+					free(bufs[b2].topic);
 				}
 			}
 		break;
@@ -1060,7 +1060,7 @@ int rx_topic(message pkt, int b)
 			{
 				add_to_buffer(b2, c_notice[1], "removed the Topic", tag);
 				match=true;
-				if(bufs[b2].topic) free(bufs[b2].topic);
+				free(bufs[b2].topic);
 				bufs[b2].topic=NULL;
 			}
 		}
@@ -1077,7 +1077,7 @@ int rx_topic(message pkt, int b)
 			{
 				add_to_buffer(b2, c_notice[1], pkt.args[1], tag);
 				match=true;
-				if(bufs[b2].topic) free(bufs[b2].topic);
+				free(bufs[b2].topic);
 				bufs[b2].topic=strdup(pkt.args[1]);
 			}
 		}

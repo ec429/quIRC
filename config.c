@@ -521,9 +521,9 @@ void freeservlist(servlist * serv)
 {
 	if(serv)
 	{
-		if(serv->name) free(serv->name);
-		if(serv->nick) free(serv->nick);
-		if(serv->portno) free(serv->portno);
+		free(serv->name);
+		free(serv->nick);
+		free(serv->portno);
 		freechanlist(serv->chans);
 		freeservlist(serv->next);
 	}
@@ -533,8 +533,8 @@ void freechanlist(chanlist * chan)
 {
 	if(chan)
 	{
-		if(chan->name) free(chan->name);
-		if(chan->key) free(chan->key);
+		free(chan->name);
+		free(chan->key);
 		if(chan->igns) n_free(chan->igns);
 		freechanlist(chan->next);
 	}
