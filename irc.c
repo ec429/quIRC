@@ -584,25 +584,48 @@ int irc_numeric(message pkt, int b)
 						bufs[b2].namreply=true;
 						n_free(bufs[b2].nlist);
 						bufs[b2].nlist=NULL;
+						bufs[b2].us=NULL;
 					}
 					char *nn=strtok(pkt.args[3], " ");
 					while(nn)
 					{
+						unsigned int plen=0;
 						if(bufs[b].prefixes) // skip over prefix characters
 						{
-							while(*nn)
+							while(nn[plen])
 							{
 								unsigned int i;
 								for(i=0;i<bufs[b].npfx;i++)
 								{
-									if(*nn==bufs[b].prefixes[i].pfx)
+									if(nn[plen]==bufs[b].prefixes[i].pfx)
 										break;
 								}
-								if(i<bufs[b].npfx) nn++;
+								if(i<bufs[b].npfx) plen++;
 								else break;
 							}
 						}
-						n_add(&bufs[b2].nlist, nn, bufs[b].casemapping);
+						name *n=n_add(&bufs[b2].nlist, nn+plen, bufs[b].casemapping);
+						if(n)
+						{
+							if((n->npfx=plen))
+							{
+								n->prefixes=malloc(plen*sizeof(prefix));
+								for(unsigned int i=0;i<plen;i++)
+								{
+									n->prefixes[i]=(prefix){.pfx=nn[i], .letter=0};
+									for(unsigned int j=0;j<bufs[b].npfx;j++)
+									{
+										if(nn[i]==bufs[b].prefixes[i].pfx)
+										{
+											n->prefixes[i].letter=bufs[b].prefixes[i].letter;
+											break;
+										}
+									}
+								}
+							}
+							if(strcmp(nn+plen, bufs[b].nick)==0)
+								bufs[b2].us=n;
+						}
 						nn=strtok(NULL, " ");
 					}
 				}

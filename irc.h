@@ -33,13 +33,6 @@ cmap;
 
 typedef struct
 {
-	char letter;
-	char pfx;
-}
-prefix;
-
-typedef struct
-{
 	char *prefix;
 	char *cmd;
 	int nargs;

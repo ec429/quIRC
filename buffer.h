@@ -44,6 +44,7 @@ typedef struct _buf
 	char *bname; // "status" or serverloc or #channel or @nick (resp. types)
 	char *realsname; // real server name (not the same as bname)
 	name *nlist; // only used for CHANNELs and PRIVATE: linked-list of nicks
+	name *us; // pointer to our entry in the nlist
 	name *ilist; // ignore-list
 	int handle; // used for SERVER: file descriptor
 	int server; // used by CHANNELs and PRIVATE to denote their 'parent' server.  In SERVER||STATUS, points to self.  Is an offset into 'bufs'

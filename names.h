@@ -15,10 +15,19 @@
 #include <sys/types.h>
 #include <regex.h>
 
+typedef struct
+{
+	char letter;
+	char pfx;
+}
+prefix;
+
 typedef struct _name
 {
 	bool icase; // only used for ignore lists; true = case-insensitive
 	bool pms; // only used for ignore lists; true = affect private messages
+	unsigned int npfx;
+	prefix *prefixes;
 	char *data; // is a unique pointer (eg. from strdup()), and must be free()d
 	struct _name *next, *prev;
 }

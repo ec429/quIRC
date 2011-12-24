@@ -31,6 +31,8 @@ name * n_add(name ** list, char *data, cmap casemapping)
 	new->data=strdup(data);
 	new->icase=false;
 	new->pms=false;
+	new->npfx=0;
+	new->prefixes=NULL;
 	if(ptr)
 	{
 		if(last)
@@ -144,7 +146,7 @@ int i_match(name * list, char *nm, bool pm, cmap casemapping)
 				data=strdup(curr->data);
 			}
 			regex_t comp;
-			if(regcomp(&comp, data, REG_EXTENDED|REG_NOSUB|0)==0)
+			if(regcomp(&comp, data, REG_EXTENDED|REG_NOSUB)==0)
 			{
 				if(regexec(&comp, nm, 0, NULL, 0)==0)
 				{
