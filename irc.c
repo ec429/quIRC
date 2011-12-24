@@ -820,11 +820,12 @@ int rx_ping(message pkt, int b)
 	return(irc_tx(bufs[bufs[b].server].handle, pong));
 }
 
-int rx_mode(int b)
+int rx_mode(message pkt, int b)
 {
 	// MODE <nick> ({\+|-}{i|w|o|O|r}*)*
-	// We don't recognise modes yet, other than as a trigger for auto-join
+	// or MODE <channel> {[\+|-]|o|p|s|i|t|n|b|v} [<limit>] [<user>] [<ban mask>]
 	int fd=bufs[b].handle;
+	// If appropriate, trigger auto-join
 	servlist *serv=bufs[b].autoent;
 	if(autojoin && serv && serv->chans && !serv->join)
 	{
@@ -841,6 +842,186 @@ int rx_mode(int b)
 		}
 		serv->join=true;
 	}
+	if(pkt.nargs<2)
+	{
+		if(!quiet) e_buf_print(b, c_err, pkt, "Not enough arguments: ");
+		return(0);
+	}
+	for(int b2=0;b2<nbufs;b2++)
+	{
+		if((bufs[b2].type==CHANNEL)&&(bufs[b2].server==b)&&(irc_strcasecmp(pkt.args[0], bufs[b2].bname, bufs[b].casemapping)==0))
+		{
+			bool plus=false;
+			switch(*pkt.args[1])
+			{
+				case '+':
+					plus=true;
+				case '-':; /* fallthrough */
+					unsigned int i;
+					for(i=0;i<bufs[b].npfx;i++)
+					{
+						if(bufs[b].prefixes[i].letter==pkt.args[1][1])
+						{
+							// user expected
+							if(pkt.nargs<3)
+							{
+								if(!quiet) e_buf_print(b, c_err, pkt, "Not enough arguments: ");
+								return(0);
+							}
+							name *curr=bufs[b2].nlist;
+							while(curr)
+							{
+								if(irc_strcasecmp(curr->data, pkt.args[2], bufs[b].casemapping)==0)
+								{
+									bool found=false;
+									for(unsigned int j=0;j<curr->npfx;j++)
+									{
+										if(curr->prefixes[j].letter==pkt.args[1][1])
+										{
+											if(plus)
+												found=true;
+											else
+											{
+												curr->npfx--;
+												for(unsigned int k=j;k<curr->npfx;k++)
+													curr->prefixes[k]=curr->prefixes[k+1];
+											}
+										}
+									}
+									if(plus&&!found)
+									{
+										unsigned int n=curr->npfx++;
+										prefix *pfx=realloc(curr->prefixes, curr->npfx*sizeof(prefix));
+										if(pfx)
+											(curr->prefixes=pfx)[n]=bufs[b].prefixes[i];
+										else
+											curr->npfx=n;
+									}
+									break;
+								}
+								curr=curr->next;
+							}
+							if(!curr)
+								if(!quiet) e_buf_print(b, c_err, pkt, "No such nick: ");
+							break;
+						}
+					}
+					if(i==bufs[b].npfx)
+					{
+						// it's a channel mode
+						bool found=false;
+						for(i=0;i<bufs[b2].npfx;i++)
+						{
+							if(bufs[b2].prefixes[i].letter==pkt.args[1][1])
+							{
+								if(plus)
+									found=true;
+								else
+								{
+									bufs[b2].npfx--;
+									for(unsigned int j=i;j<bufs[b2].npfx;j++)
+										bufs[b2].prefixes[j]=bufs[b2].prefixes[j+1];
+								}
+							}
+						}
+						if(plus&&!found)
+						{
+							unsigned int n=bufs[b2].npfx++;
+							prefix *pfx=realloc(bufs[b2].prefixes, bufs[b2].npfx*sizeof(prefix));
+							if(pfx)
+								(bufs[b2].prefixes=pfx)[n]=(prefix){.letter=pkt.args[1][1], .pfx=0}; // channel modes don't have associated prefixes
+							else
+								bufs[b2].npfx=n;
+						}
+					}
+				break;
+				default:
+					if(!quiet) e_buf_print(b, c_err, pkt, "Malformed modespec - missing +/-: ");
+				break;
+			}
+		}
+	}
+	if(tsb)
+		titlebar();
+#if 0 // somewhat broken usermode handling (broken in that it writes to places that store /channel/-usermodes)
+	// Find the nick in the nlist and apply the MODE changes
+	bool found=false;
+	for(int b2=0;b2<nbufs;b2++)
+	{
+		if((bufs[b2].type==CHANNEL)&&(bufs[b2].server==b))
+		{
+			name *curr=bufs[b].nlist;
+			while(curr)
+			{
+				if(irc_strcasecmp(curr->data, pkt.args[0], bufs[b].casemapping)==0)
+				{
+					bool malformed=false;
+					for(int i=1;i<pkt.nargs;i++)
+					{
+						const char *ms=pkt.args[i];
+						switch(*ms)
+						{
+							case '+':
+								while(*++ms)
+								{
+									bool found=false;
+									for(unsigned int j=0;j<curr->npfx;j++)
+									{
+										if(*ms==curr->prefixes[j].letter)
+										{
+											found=true;
+											break;
+										}
+									}
+									if(!found)
+									{
+										for(unsigned int j=0;j<bufs[b].npfx;j++)
+										{
+											if(bufs[b].prefixes[j].letter==*ms)
+											{
+												unsigned int n=curr->npfx++;
+												prefix *pfx=realloc(curr->prefixes, curr->npfx*sizeof(prefix));
+												if(pfx)
+													(curr->prefixes=pfx)[n]=bufs[b].prefixes[j];
+												else
+													curr->npfx=n;
+												break;
+											}
+										}
+									}
+								}
+							break;
+							case '-':
+								while(*++ms)
+								{
+									for(unsigned int j=0;j<curr->npfx;j++)
+									{
+										if(*ms==curr->prefixes[j].letter)
+										{
+											curr->npfx--;
+											for(unsigned int k=j;k<curr->npfx;k++)
+												curr->prefixes[k]=curr->prefixes[k+1];
+										}
+									}
+								}
+							break;
+							default:
+								malformed=true;
+							break;
+						}
+					}
+					if(malformed)
+						if(!quiet) e_buf_print(b, c_err, pkt, "Malformed modespec - missing +/-: ");
+					break;
+				}
+				curr=curr->next;
+			}
+			if(curr) found=true;
+		}
+	}
+	if(!found)
+		if(!quiet) e_buf_print(b, c_err, pkt, "No such nick: ");
+#endif
 	return(0);
 }
 
@@ -1298,7 +1479,7 @@ int rx_nick(message pkt, int b)
 			{
 				add_to_buffer(b2, c_nick[1], dstr, "");
 				n_cull(&bufs[b2].nlist, src, bufs[b].casemapping);
-				n_add(&bufs[b2].nlist, pkt.args[0], bufs[b].casemapping);
+				bufs[b2].us=n_add(&bufs[b2].nlist, pkt.args[0], bufs[b].casemapping);
 			}
 		}
 	}

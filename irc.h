@@ -77,7 +77,7 @@ int talk(char *iinput);
 // Received-IRC message handlers
 int irc_numeric(message pkt, int b);
 int rx_ping(message pkt, int b);
-int rx_mode(int b); // the first MODE triggers auto-join.  Apart from using it as a trigger, we don't look at modes just yet
+int rx_mode(message pkt, int b); // the first MODE triggers auto-join
 int rx_kill(message pkt, int b, fd_set *master);
 int rx_kick(message pkt, int b);
 int rx_error(message pkt, int b, fd_set *master);

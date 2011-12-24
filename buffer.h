@@ -71,7 +71,7 @@ typedef struct _buf
 	bool conninpr; // connection in progress? (SERVER only)
 	ibuffer input; // input history
 	cmap casemapping; // the SERVER's value is authoritative; the CHANNEL's value is ignored.  STATUS's value is irrelevant.  Set by ISUPPORT
-	unsigned int npfx;// ^^
+	unsigned int npfx;// the SERVER's value denotes the available list (set by ISUPPORT); the CHANNEL's value lists the modes set on that channel (letter only)
 	prefix *prefixes; // ^^
 	servlist * autoent; // if this was opened by autoconnect(), this is filled in to point to the server's servlist entry
 	bool conf; // Conference Mode (hides joins, parts, quits, and /nicks)

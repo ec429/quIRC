@@ -101,6 +101,7 @@ int init_buffer(int buf, btype type, const char *bname, int nlines)
 	bufs[buf].bname=strdup(bname);
 	bufs[buf].realsname=NULL;
 	bufs[buf].nlist=NULL;
+	bufs[buf].us=NULL;
 	bufs[buf].ilist=NULL;
 	bufs[buf].handle=0;
 	bufs[buf].server=0;
@@ -141,10 +142,18 @@ int init_buffer(int buf, btype type, const char *bname, int nlines)
 	bufs[buf].conninpr=false;
 	initibuf(&bufs[buf].input);
 	bufs[buf].casemapping=RFC1459;
-	bufs[buf].npfx=2;
-	bufs[buf].prefixes=malloc(2*sizeof(prefix));
-	bufs[buf].prefixes[0]=(prefix){.letter='o', .pfx='@'};
-	bufs[buf].prefixes[1]=(prefix){.letter='v', .pfx='+'};
+	if(type==SERVER)
+	{
+		bufs[buf].npfx=2;
+		bufs[buf].prefixes=malloc(2*sizeof(prefix));
+		bufs[buf].prefixes[0]=(prefix){.letter='o', .pfx='@'};
+		bufs[buf].prefixes[1]=(prefix){.letter='v', .pfx='+'};
+	}
+	else
+	{
+		bufs[buf].npfx=0;
+		bufs[buf].prefixes=NULL;
+	}
 	bufs[buf].autoent=NULL;
 	return(0);
 }
@@ -804,27 +813,33 @@ void titlebar(void)
 	char *cserv=strdup(bufs[bufs[cbuf].server].bname?bufs[bufs[cbuf].server].bname:"");
 	char *cnick=strdup(bufs[bufs[cbuf].server].nick?bufs[bufs[cbuf].server].nick:"");
 	char *cchan=strdup(((bufs[cbuf].type==CHANNEL)||(bufs[cbuf].type==PRIVATE))&&bufs[cbuf].bname?bufs[cbuf].bname:"");
+	size_t chanlen=strlen(cchan)+1, nicklen=strlen(cnick)+1;
+	if(bufs[cbuf].type==CHANNEL)
+	{
+		if(bufs[cbuf].npfx) chanlen+=2+bufs[cbuf].npfx;
+		if((bufs[cbuf].us)&&(bufs[cbuf].us->npfx)) nicklen+=2+bufs[cbuf].us->npfx;
+	}
 	char *topic=(bufs[cbuf].type==CHANNEL)?bufs[cbuf].topic:NULL;
 	scrush(&cserv, 16);
 	crush(&cnick, 16);
 	crush(&cchan, 16);
 	char tbar[width];
 	unsigned int wleft=width-1;
-	bool use[8]; // #chan	nick	quIRC	version	gits	ghashgit	server	topic...
+	bool use[8]; // #chan(modes)	nick(modes)	quIRC	version	gits	ghashgit	server	topic...
 	char version[32];
 	sprintf(version, "%hhu.%hhu.%hhu", VERSION_MAJ, VERSION_MIN, VERSION_REV);
 	char vgits[8];
 	sprintf(vgits, "%hhu", gits);
 	memset(use, 0, sizeof(bool[8]));
-	if(*cchan && (wleft>=strlen(cchan)+1))
+	if(*cchan && (wleft>=chanlen))
 	{
 		use[0]=true;
-		wleft-=strlen(cchan)+1;
+		wleft-=chanlen;
 	}
-	if(*cnick && (wleft>=strlen(cnick)+1))
+	if(*cnick && (wleft>=nicklen))
 	{
 		use[1]=true;
-		wleft-=strlen(cnick)+1;
+		wleft-=nicklen;
 	}
 	if(wleft>=6)
 	{
@@ -866,7 +881,7 @@ void titlebar(void)
 		tbar[i]='-';
 	tbar[width]=0;
 	int p=1;
-	// 2quIRC 3version 4gits 5ghashgit 6server 0chan 1nick 7topic
+	// 2quIRC 3version 4gits 5ghashgit 6server 0chan(m) 1nick(m) 7topic
 	// 0#chan	1nick	2quIRC	3version	4gits	5ghashgit	6server	7topic...
 	if(use[2])
 	{
@@ -896,12 +911,28 @@ void titlebar(void)
 	if(use[0])
 	{
 		memcpy(tbar+p, cchan, strlen(cchan));
-		p+=strlen(cchan)+1;
+		p+=strlen(cchan);
+		if((bufs[cbuf].type==CHANNEL)&&(bufs[cbuf].npfx))
+		{
+			tbar[p++]='(';
+			for(unsigned int i=0;i<bufs[cbuf].npfx;i++)
+				tbar[p++]=bufs[cbuf].prefixes[i].letter;
+			tbar[p++]=')';
+		}
+		p++;
 	}
 	if(use[1])
 	{
 		memcpy(tbar+p, cnick, strlen(cnick));
-		p+=strlen(cnick)+1;
+		p+=strlen(cnick);
+		if((bufs[cbuf].type==CHANNEL)&&(bufs[cbuf].us)&&(bufs[cbuf].us->npfx))
+		{
+			tbar[p++]='(';
+			for(unsigned int i=0;i<bufs[cbuf].us->npfx;i++)
+				tbar[p++]=bufs[cbuf].us->prefixes[i].letter;
+			tbar[p++]=')';
+		}
+		p++;
 	}
 	if(use[7])
 	{

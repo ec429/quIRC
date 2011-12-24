@@ -103,8 +103,8 @@ void n_free(name * list)
 	if(list)
 	{
 		n_free(list->next);
-		if(list->data)
-			free(list->data);
+		free(list->data);
+		free(list->prefixes);
 		free(list);
 	}
 }

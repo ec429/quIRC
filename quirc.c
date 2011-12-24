@@ -347,7 +347,7 @@ int main(int argc, char *argv[])
 											}
 											else if(strcmp(pkt.cmd, "MODE")==0)
 											{
-												rx_mode(b);
+												rx_mode(pkt, b);
 											}
 											else if(strcmp(pkt.cmd, "KILL")==0)
 											{
