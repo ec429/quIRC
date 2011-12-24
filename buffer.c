@@ -141,7 +141,10 @@ int init_buffer(int buf, btype type, const char *bname, int nlines)
 	bufs[buf].conninpr=false;
 	initibuf(&bufs[buf].input);
 	bufs[buf].casemapping=RFC1459;
-	bufs[buf].prefixes=NULL;
+	bufs[buf].npfx=2;
+	bufs[buf].prefixes=malloc(2*sizeof(prefix));
+	bufs[buf].prefixes[0]=(prefix){.letter='o', .pfx='@'};
+	bufs[buf].prefixes[1]=(prefix){.letter='v', .pfx='+'};
 	bufs[buf].autoent=NULL;
 	return(0);
 }
@@ -198,6 +201,7 @@ int free_buffer(int buf)
 		if(bufs[buf].lpl) free(bufs[buf].lpl);
 		if(bufs[buf].ts) free(bufs[buf].ts);
 		freeibuf(&bufs[buf].input);
+		free(bufs[buf].prefixes);
 		if(cbuf>=buf)
 			cbuf--;
 		nbufs--;

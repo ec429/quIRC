@@ -6,17 +6,27 @@ curses.  The current hardwired ANSI-escapes code for painting the screen is clum
 
 Need to fix the problem of the conn_rest not getting called for eg worldofspectrum (why is this happening?)
 
+Handle CTCP correctly, on both receive (rx_privmsg()) and send (talk()).
+
 Fix possible issue with CTCP.  Funny stuff (including random characters) happened when eg spike1 sent a CTCP PONG to the channel.
 
 Fix issue with an infinite loop in irc_rx of bytes==0 from recv().  Don't fully understand what causes it.
 
 Make hidden lines (quiet mode, conference mode, etc.) be stored in scrollback.  Filter on render; that way changes are retroactive.
 
-Find a way to make getaddrinfo() calls asynch.  They currently block everything on connect, which means that /server can cause existing connections to ping off.
+Optionally fold runs of the same type of message.  Eg.: =foo=bar=baz= have joined #whatever.
+
+Make getaddrinfo() calls use getaddrinfo_a().  They currently block everything on connect, which means that /server can cause existing connections to ping off.  (However, getaddrinfo_a() is not portable and some 64-bit libc have bugs, so we need a switch to disable its use.)
+
+Handle \ in tab-completion.  It should be expanded to \\.
 
 Make /close on server tabs close the associated channel tabs.  /disconnect the same, presumably.
 
+/realsname cmd to display the real server name (which we already store, anyway).
+
 Store nicks uncrushed in unproc.  Makes '/set mnln' retroactive.
+
+Option for no hanging indent (wordline() tabx=0).
 
 Const-correctness.  There are a lot of functions taking a char * that should take a const char *.
 
@@ -25,6 +35,8 @@ Remember channel keys for /rejoin.  An argument to /rejoin overrides (but doesn'
 Modes.  It's really about time I got those sorted out.
 
 Proper handling of Unicode in character-based things like cursor-movement, backspace.
+
+Use unicode-charmap (somewhere in system i18n) to find out character widths, for wordline().
 
 Improve the parsing of mirc-colour-codes (to fix things like \003124 which currently gets eaten entirely).  The relevant code is in bits.c.
 

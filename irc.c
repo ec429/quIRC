@@ -516,7 +516,49 @@ int irc_numeric(message pkt, int b)
 				}
 				else if(strcmp(rest, "PREFIX")==0)
 				{
-					bufs[b].prefixes=value?strdup(value):NULL;
+					if(value)
+					{
+						if(*value=='(')
+						{
+							char *p=strchr(value, ')');
+							if(p)
+							{
+								unsigned int npfx=p-value-1;
+								prefix *pfxs=malloc(npfx*sizeof(prefix));
+								if(!pfxs)
+									e_buf_print(b, c_err, pkt, "RPL_ISUPPORT: Discarded PREFIX - malloc failure: ");
+								else
+								{
+									unsigned int i;
+									for(i=0;i<npfx;i++)
+									{
+										pfxs[i].letter=value[i+1];
+										if(!(pfxs[i].pfx=p[i+1]))
+										{
+											if(!quiet) e_buf_print(b, c_err, pkt, "RPL_ISUPPORT: Malformed PREFIX - unbalanced parts: ");
+											break;
+										}
+									}
+									if(i==npfx)
+									{
+										free(bufs[b].prefixes);
+										bufs[b].npfx=npfx;
+										bufs[b].prefixes=pfxs;
+									}
+								}
+							}
+							else
+								if(!quiet) e_buf_print(b, c_err, pkt, "RPL_ISUPPORT: Malformed PREFIX - missing ')': ");
+						}
+						else
+							if(!quiet) e_buf_print(b, c_err, pkt, "RPL_ISUPPORT: Malformed PREFIX - missing '(': ");
+					}
+					else
+					{
+						free(bufs[b].prefixes);
+						bufs[b].npfx=0;
+						bufs[b].prefixes=NULL;
+					}
 				}
 				else
 				{
@@ -533,9 +575,6 @@ int irc_numeric(message pkt, int b)
 				if(!quiet) e_buf_print(b, c_err, pkt, "RPL_NAMREPLY: Not enough arguments: ");
 				break;
 			}
-			char *plist=bufs[bufs[b].server].prefixes?strchr(bufs[bufs[b].server].prefixes, ')'):NULL;
-			if(plist)
-				plist++;
 			for(b2=0;b2<nbufs;b2++)
 			{
 				if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(pkt.args[2], bufs[b2].bname, bufs[b].casemapping)==0))
@@ -549,10 +588,19 @@ int irc_numeric(message pkt, int b)
 					char *nn=strtok(pkt.args[3], " ");
 					while(nn)
 					{
-						if(plist) // skip over prefix characters
+						if(bufs[b].prefixes) // skip over prefix characters
 						{
-							while(strchr(plist, *nn))
-								nn++;
+							while(*nn)
+							{
+								unsigned int i;
+								for(i=0;i<bufs[b].npfx;i++)
+								{
+									if(*nn==bufs[b].prefixes[i].pfx)
+										break;
+								}
+								if(i<bufs[b].npfx) nn++;
+								else break;
+							}
 						}
 						n_add(&bufs[b2].nlist, nn, bufs[b].casemapping);
 						nn=strtok(NULL, " ");
