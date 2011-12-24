@@ -151,6 +151,16 @@
 				else
 					conf=true;
 			}
+			else if(strcmp(cmd, "no-prefix")==0)
+				show_prefix=false;
+			else if(strcmp(cmd, "prefix")==0)
+			{
+				unsigned int value;
+				if(rest&&sscanf(rest, "%u", &value))
+					show_prefix=value;
+				else
+					show_prefix=true;
+			}
 			else if(strcmp(cmd, "no-titles")==0)
 				titles=false;
 			else if(strcmp(cmd, "titles")==0)

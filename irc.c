@@ -1186,7 +1186,32 @@ int rx_privmsg(message pkt, int b, bool notice)
 			}
 			else
 			{
-				char *tag=mktag("<%s> ", from);
+				char mk[6]="<%s> ";
+				if(show_prefix)
+				{
+					name *curr=bufs[b2].nlist;
+					while(curr)
+					{
+						if(irc_strcasecmp(src, curr->data, bufs[b].casemapping)==0)
+						{
+							int po=-1;
+							for(unsigned int i=0;i<curr->npfx;i++)
+							{
+								for(unsigned int j=0;j<(po<0?bufs[b].npfx:(unsigned)po);j++)
+								{
+									if(bufs[b].prefixes[j].letter==curr->prefixes[i].letter)
+									{
+										po=j;
+										mk[0]=mk[3]=curr->prefixes[i].pfx;
+									}
+								}
+							}
+							break;
+						}
+						curr=curr->next;
+					}
+				}
+				char *tag=mktag(mk, from);
 				add_to_buffer(b2, notice?c_notice[1]:c_msg[1], pkt.args[1], tag);
 				free(tag);
 				if(ha)

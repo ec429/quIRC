@@ -15,5 +15,6 @@
 	quiet=0;
 	debug=0;
 	conf=0;
+	show_prefix=0;
 	titles=1;
 	winch=1;

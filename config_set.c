@@ -547,6 +547,52 @@
 						bufs[buf].dirty=true;
 					redraw_buffer();
 				}
+				else if(strcmp(opt, "prefix")==0)
+				{
+					if(val)
+					{
+						if(isdigit(*val))
+						{
+							unsigned int value;
+							sscanf(val, "%u", &value);
+							show_prefix=value;
+						}
+						else if(strcmp(val, "+")==0)
+						{
+							show_prefix=true;
+						}
+						else if(strcmp(val, "-")==0)
+						{
+							show_prefix=false;
+						}
+						else
+						{
+							add_to_buffer(cbuf, c_err, "option 'prefix' is boolean, use only 0/1 or -/+ to set", "/set: ");
+						}
+					}
+					else
+						show_prefix=true;
+					if(!quiet)
+					{
+						if(show_prefix)
+							add_to_buffer(cbuf, c_status, "display nick prefixes enabled", "/set: ");
+						else
+							add_to_buffer(cbuf, c_status, "display nick prefixes disabled", "/set: ");
+					}
+					int buf;
+					for(buf=0;buf<nbufs;buf++)
+						bufs[buf].dirty=true;
+					redraw_buffer();
+				}
+				else if(strcmp(opt, "no-prefix")==0)
+				{
+					show_prefix=0;
+					if(!quiet) add_to_buffer(cbuf, c_status, "display nick prefixes disabled", "/set: ");
+					int buf;
+					for(buf=0;buf<nbufs;buf++)
+						bufs[buf].dirty=true;
+					redraw_buffer();
+				}
 				else if(strcmp(opt, "titles")==0)
 				{
 					if(val)

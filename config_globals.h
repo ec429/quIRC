@@ -15,5 +15,6 @@ bool its; // input clock
 bool quiet; // quiet mode
 bool debug; // debugging
 bool conf; // conference mode (default)
+bool show_prefix; // display nick prefixes
 bool titles; // xterm title
 bool winch; // react to SIGWINCH (window change)

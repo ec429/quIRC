@@ -47,6 +47,10 @@
 			conf=true;
 		else if(strcmp(argv[arg], "--no-conf")==0)
 			conf=false;
+		else if(strcmp(argv[arg], "--prefix")==0)
+			show_prefix=true;
+		else if(strcmp(argv[arg], "--no-prefix")==0)
+			show_prefix=false;
 		else if(strcmp(argv[arg], "--titles")==0)
 			titles=true;
 		else if(strcmp(argv[arg], "--no-titles")==0)
