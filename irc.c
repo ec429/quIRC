@@ -615,9 +615,9 @@ int irc_numeric(message pkt, int b)
 									n->prefixes[i]=(prefix){.pfx=nn[i], .letter=0};
 									for(unsigned int j=0;j<bufs[b].npfx;j++)
 									{
-										if(nn[i]==bufs[b].prefixes[i].pfx)
+										if(nn[i]==bufs[b].prefixes[j].pfx)
 										{
-											n->prefixes[i].letter=bufs[b].prefixes[i].letter;
+											n->prefixes[i].letter=bufs[b].prefixes[j].letter;
 											break;
 										}
 									}
