@@ -1484,6 +1484,99 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		}
 		return(0);
 	}
+	if(strcmp(cmd, "mode")==0)
+	{
+		if(!bufs[bufs[cbuf].server].handle)
+		{
+			add_to_buffer(cbuf, c_err, "Must be run in the context of a server!", "/cmd: ");
+		}
+		else
+		{
+			// /mode [{<user>|<banmask>|<limit>} [{\+|-}[[:alpha:]]+]]
+			if(args)
+			{
+				char *user=strtok(args, " ");
+				char *modes=strtok(NULL, "");
+				if(modes)
+				{
+					if(LIVE(cbuf))
+					{
+						if(bufs[cbuf].type==CHANNEL)
+						{
+							char mmsg[8+strlen(bufs[cbuf].bname)+strlen(modes)+strlen(user)];
+							sprintf(mmsg, "MODE %s %s %s", bufs[cbuf].bname, modes, user);
+							irc_tx(bufs[bufs[cbuf].server].handle, mmsg);
+							char mm[12+strlen(modes)+strlen(user)];
+							sprintf(mm, "Set mode %s: %s", modes, user);
+							add_to_buffer(cbuf, c_nick[0], mm, "/mode: ");
+						}
+						else
+							add_to_buffer(cbuf, c_err, "This is not a channel", "/mode: ");
+					}
+					else
+						add_to_buffer(cbuf, c_err, "Tab not live, can't send", "/mode: ");
+				}
+				else
+				{
+					if(bufs[cbuf].type==CHANNEL)
+					{
+						name *curr=bufs[cbuf].nlist;
+						while(curr)
+						{
+							if(irc_strcasecmp(curr->data, user, bufs[bufs[cbuf].server].casemapping)==0)
+							{
+								if(curr==bufs[cbuf].us) goto youmode;
+								char mm[12+strlen(curr->data)+curr->npfx];
+								int mpos=0;
+								sprintf(mm, "%s has mode %n-", curr->data, &mpos);
+								if(mpos)
+								{
+									for(unsigned int i=0;i<curr->npfx;i++)
+										mm[mpos++]=curr->prefixes[i].letter;
+									if(curr->npfx) mm[mpos]=0;
+									add_to_buffer(cbuf, c_nick[1], mm, "/mode: ");
+								}
+								else
+									add_to_buffer(cbuf, c_err, "\"Impossible\" error (mpos==0)", "/mode: ");
+								break;
+							}
+							curr=curr->next;
+						}
+						if(!curr)
+						{
+							char mm[16+strlen(user)];
+							sprintf(mm, "No such nick: %s", user);
+							add_to_buffer(cbuf, c_err, mm, "/mode: ");
+						}
+					}
+					else
+						add_to_buffer(cbuf, c_err, "This is not a channel", "/mode: ");
+				}
+			}
+			else
+			{
+				youmode:
+				if(bufs[cbuf].type==CHANNEL)
+				{
+					char mm[20+strlen(bufs[bufs[cbuf].server].nick)+bufs[cbuf].npfx];
+					int mpos=0;
+					sprintf(mm, "You (%s) have mode %n-", bufs[bufs[cbuf].server].nick, &mpos);
+					if(mpos)
+					{
+						for(unsigned int i=0;i<bufs[cbuf].npfx;i++)
+							mm[mpos++]=bufs[cbuf].prefixes[i].letter;
+						if(bufs[cbuf].npfx) mm[mpos]=0;
+						add_to_buffer(cbuf, c_nick[1], mm, "/mode: ");
+					}
+					else
+						add_to_buffer(cbuf, c_err, "\"Impossible\" error (mpos==0)", "/mode: ");
+				}
+				else
+					add_to_buffer(cbuf, c_err, "This is not a channel", "/mode: ");
+			}
+		}
+		return(0);
+	}
 	if(strcmp(cmd, "cmd")==0)
 	{
 		if(!bufs[bufs[cbuf].server].handle)

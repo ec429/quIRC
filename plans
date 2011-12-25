@@ -26,6 +26,8 @@ Make /close on server tabs close the associated channel tabs.  /disconnect the s
 
 Store nicks uncrushed in unproc.  Makes '/set mnln', '/set prefix' etc. retroactive.
 
+Display something in buffer when a MODE affects us.
+
 Option for no hanging indent (wordline() tabx=0).
 
 Const-correctness.  There are a lot of functions taking a char * that should take a const char *.
