@@ -1555,18 +1555,23 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 				youmode:
 				if(bufs[cbuf].type==CHANNEL)
 				{
-					char mm[20+strlen(bufs[bufs[cbuf].server].nick)+bufs[cbuf].npfx];
-					int mpos=0;
-					sprintf(mm, "You (%s) have mode %n-", bufs[bufs[cbuf].server].nick, &mpos);
-					if(mpos)
+					if(bufs[cbuf].us)
 					{
-						for(unsigned int i=0;i<bufs[cbuf].npfx;i++)
-							mm[mpos++]=bufs[cbuf].prefixes[i].letter;
-						if(bufs[cbuf].npfx) mm[mpos]=0;
-						add_to_buffer(cbuf, c_nick[1], mm, "/mode: ");
+						char mm[20+strlen(bufs[bufs[cbuf].server].nick)+bufs[cbuf].us->npfx];
+						int mpos=0;
+						sprintf(mm, "You (%s) have mode %n-", bufs[bufs[cbuf].server].nick, &mpos);
+						if(mpos)
+						{
+							for(unsigned int i=0;i<bufs[cbuf].us->npfx;i++)
+								mm[mpos++]=bufs[cbuf].us->prefixes[i].letter;
+							if(bufs[cbuf].us->npfx) mm[mpos]=0;
+							add_to_buffer(cbuf, c_nick[1], mm, "/mode: ");
+						}
+						else
+							add_to_buffer(cbuf, c_err, "\"Impossible\" error (mpos==0)", "/mode: ");
 					}
 					else
-						add_to_buffer(cbuf, c_err, "\"Impossible\" error (mpos==0)", "/mode: ");
+						add_to_buffer(cbuf, c_err, "\"Impossible\" error (us==NULL)", "/mode: ");
 				}
 				else
 					add_to_buffer(cbuf, c_err, "This is not a channel", "/mode: ");
