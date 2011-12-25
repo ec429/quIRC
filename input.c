@@ -1506,9 +1506,6 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 							char mmsg[8+strlen(bufs[cbuf].bname)+strlen(modes)+strlen(user)];
 							sprintf(mmsg, "MODE %s %s %s", bufs[cbuf].bname, modes, user);
 							irc_tx(bufs[bufs[cbuf].server].handle, mmsg);
-							char mm[12+strlen(modes)+strlen(user)];
-							sprintf(mm, "Set mode %s: %s", modes, user);
-							add_to_buffer(cbuf, c_nick[0], mm, "/mode: ");
 						}
 						else
 							add_to_buffer(cbuf, c_err, "This is not a channel", "/mode: ");

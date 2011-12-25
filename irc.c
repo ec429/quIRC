@@ -847,6 +847,8 @@ int rx_mode(message pkt, int b)
 		if(!quiet) e_buf_print(b, c_err, pkt, "Not enough arguments: ");
 		return(0);
 	}
+	char *from, *user, *host;
+	prefix_split(pkt.prefix, &from, &user, &host);
 	for(int b2=0;b2<nbufs;b2++)
 	{
 		if((bufs[b2].type==CHANNEL)&&(bufs[b2].server==b)&&(irc_strcasecmp(pkt.args[0], bufs[b2].bname, bufs[b].casemapping)==0))
@@ -885,6 +887,44 @@ int rx_mode(message pkt, int b)
 												curr->npfx--;
 												for(unsigned int k=j;k<curr->npfx;k++)
 													curr->prefixes[k]=curr->prefixes[k+1];
+												if(curr==bufs[b2].us)
+												{
+													char ms[curr->npfx?curr->npfx+1:2];
+													if(curr->npfx)
+													{
+														for(unsigned int i=0;i<curr->npfx;i++)
+															ms[i]=curr->prefixes[i].letter;
+														ms[curr->npfx]=0;
+													}
+													else
+													{
+														ms[0]='-';
+														ms[1]=0;
+													}
+													char mm[24+strlen(curr->data)+strlen(ms)+strlen(from)];
+													sprintf(mm, "You (%s) are now mode %s (%s)", curr->data, ms, from);
+													add_to_buffer(b2, c_nick[1], mm, "");
+												}
+												else
+												{
+													char ms[curr->npfx?curr->npfx+1:2];
+													if(curr->npfx)
+													{
+														for(unsigned int i=0;i<curr->npfx;i++)
+															ms[i]=curr->prefixes[i].letter;
+														ms[curr->npfx]=0;
+													}
+													else
+													{
+														ms[0]='-';
+														ms[1]=0;
+													}
+													char mm[16+strlen(ms)+strlen(from)];
+													char *tag=mktag("=%s= ", curr->data);
+													sprintf(mm, "is now mode %s (%s)", ms, from);
+													add_to_buffer(b2, c_nick[1], mm, tag);
+													free(tag);
+												}
 											}
 										}
 									}
@@ -895,7 +935,45 @@ int rx_mode(message pkt, int b)
 										if(pfx)
 											(curr->prefixes=pfx)[n]=bufs[b].prefixes[i];
 										else
-											curr->npfx=n;
+											curr->npfx=n; // XXX silent fail
+										if(curr==bufs[b2].us)
+										{
+											char ms[curr->npfx?curr->npfx+1:2];
+											if(curr->npfx)
+											{
+												for(unsigned int i=0;i<curr->npfx;i++)
+													ms[i]=curr->prefixes[i].letter;
+												ms[curr->npfx]=0;
+											}
+											else
+											{
+												ms[0]='-';
+												ms[1]=0;
+											}
+											char mm[24+strlen(curr->data)+strlen(ms)+strlen(from)];
+											sprintf(mm, "You (%s) are now mode %s (%s)", curr->data, ms, from);
+											add_to_buffer(b2, c_nick[1], mm, "");
+										}
+										else
+										{
+											char ms[curr->npfx?curr->npfx+1:2];
+											if(curr->npfx)
+											{
+												for(unsigned int i=0;i<curr->npfx;i++)
+													ms[i]=curr->prefixes[i].letter;
+												ms[curr->npfx]=0;
+											}
+											else
+											{
+												ms[0]='-';
+												ms[1]=0;
+											}
+											char mm[16+strlen(ms)+strlen(from)];
+											char *tag=mktag("=%s= ", curr->data);
+											sprintf(mm, "is now mode %s (%s)", ms, from);
+											add_to_buffer(b2, c_nick[1], mm, tag);
+											free(tag);
+										}
 									}
 									break;
 								}
@@ -921,6 +999,21 @@ int rx_mode(message pkt, int b)
 									bufs[b2].npfx--;
 									for(unsigned int j=i;j<bufs[b2].npfx;j++)
 										bufs[b2].prefixes[j]=bufs[b2].prefixes[j+1];
+									char ms[bufs[b2].npfx?bufs[b2].npfx+1:2];
+									if(bufs[b2].npfx)
+									{
+										for(unsigned int i=0;i<bufs[b2].npfx;i++)
+											ms[i]=bufs[b2].prefixes[i].letter;
+										ms[bufs[b2].npfx]=0;
+									}
+									else
+									{
+										ms[0]='-';
+										ms[1]=0;
+									}
+									char mm[16+strlen(ms)+strlen(from)];
+									sprintf(mm, "is now mode %s (%s)", ms, from);
+									add_to_buffer(b2, c_nick[1], mm, bufs[b2].bname);
 								}
 							}
 						}
@@ -931,7 +1024,22 @@ int rx_mode(message pkt, int b)
 							if(pfx)
 								(bufs[b2].prefixes=pfx)[n]=(prefix){.letter=pkt.args[1][1], .pfx=0}; // channel modes don't have associated prefixes
 							else
-								bufs[b2].npfx=n;
+								bufs[b2].npfx=n; // XXX silent fail
+							char ms[bufs[b2].npfx?bufs[b2].npfx+1:2];
+							if(bufs[b2].npfx)
+							{
+								for(unsigned int i=0;i<bufs[b2].npfx;i++)
+									ms[i]=bufs[b2].prefixes[i].letter;
+								ms[bufs[b2].npfx]=0;
+							}
+							else
+							{
+								ms[0]='-';
+								ms[1]=0;
+							}
+							char mm[16+strlen(ms)+strlen(from)];
+							sprintf(mm, "is now mode %s (%s)", ms, from);
+							add_to_buffer(b2, c_nick[1], mm, bufs[b2].bname);
 						}
 					}
 				break;
