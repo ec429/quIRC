@@ -920,7 +920,10 @@ int rx_mode(message pkt, int b)
 														ms[1]=0;
 													}
 													char mm[16+strlen(ms)+strlen(from)];
-													char *tag=mktag("=%s= ", curr->data);
+													char *nick=strdup(curr->data);
+													crush(&nick, maxnlen);
+													char *tag=mktag("=%s= ", nick);
+													free(nick);
 													sprintf(mm, "is now mode %s (%s)", ms, from);
 													add_to_buffer(b2, c_nick[1], mm, tag);
 													free(tag);
@@ -969,7 +972,10 @@ int rx_mode(message pkt, int b)
 												ms[1]=0;
 											}
 											char mm[16+strlen(ms)+strlen(from)];
-											char *tag=mktag("=%s= ", curr->data);
+											char *nick=strdup(curr->data);
+											crush(&nick, maxnlen);
+											char *tag=mktag("=%s= ", nick);
+											free(nick);
 											sprintf(mm, "is now mode %s (%s)", ms, from);
 											add_to_buffer(b2, c_nick[1], mm, tag);
 											free(tag);
