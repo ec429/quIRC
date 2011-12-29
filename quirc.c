@@ -231,8 +231,8 @@ int main(int argc, char *argv[])
 							}
 							else
 							{
-								char pmsg[8+strlen(bufs[b].realsname)];
-								sprintf(pmsg, "PING %s", bufs[b].realsname);
+								char pmsg[8+strlen(bufs[b].realsname?bufs[b].realsname:bufs[b].bname)];
+								sprintf(pmsg, "PING %s", bufs[b].realsname?bufs[b].realsname:bufs[b].bname);
 								irc_tx(bufs[b].handle, pmsg);
 								bufs[b].ping++;
 							}

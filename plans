@@ -24,6 +24,8 @@ Make /close on server tabs close the associated channel tabs.  /disconnect the s
 
 /realsname cmd to display the real server name (which we already store, anyway).
 
+Use the NETWORK parameter of RPL_ISUPPORT as the bname for server buffers.
+
 Store nicks uncrushed in unproc.  Makes '/set mnln', '/set prefix' etc. retroactive.
 
 Display something in buffer when a MODE affects us.
