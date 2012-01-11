@@ -175,17 +175,8 @@ int main(int argc, char *argv[])
 	FD_ZERO(&master);
 	FD_SET(STDIN_FILENO, &master);
 	int fdmax=STDIN_FILENO;
-	int servers=0;
-	servlist *curr=servs;
-	while(curr)
-	{
-		servers |= autoconnect(&master, &fdmax, curr);
-		curr=curr->next;
-	}
-	if((!servers)&&(!quiet))
-	{
+	if((!autoconnect(&master, &fdmax, &servs))&&(!quiet))
 		add_to_buffer(0, c_status, "Not connected - use /server to connect", "");
-	}
 	iline inp={{NULL, 0, 0}, {NULL, 0, 0}};
 	in_update(inp);
 	struct timeval timeout;
@@ -215,9 +206,14 @@ int main(int argc, char *argv[])
 		#if ASYNCH_NL
 		if(sigusr1)
 		{
-			char *server=strdup(nl_details->ar_name);
+			int i;
+			for(i=0;i<nl_nreqs;i++)
+			{
+				if(!gai_error(nl_details[i])) break;
+			}
+			char *server=strdup(nl_details[i]->ar_name);
 			if(!server) server="server";
-			const char *port=nl_details->ar_service;
+			const char *port=nl_details[i]->ar_service;
 			if(!port) port="port";
 			char dstr[32+strlen(server)+strlen(port)];
 			sprintf(dstr, "Found %s, connecting on %s...", server, port);
@@ -225,7 +221,7 @@ int main(int argc, char *argv[])
 			if(force_redraw<3) redraw_buffer();
 			if(nl_reconn_b)
 			{
-				int serverhandle=irc_connect(bufs[nl_reconn_b].bname, port, &master, &fdmax);
+				int serverhandle=irc_conn_found(&master, &fdmax);
 				if(serverhandle)
 				{
 					bufs[nl_reconn_b].handle=serverhandle;
@@ -254,8 +250,8 @@ int main(int argc, char *argv[])
 					bufs[cbuf].server=cbuf;
 					bufs[cbuf].conninpr=true;
 				}
-				free(server);
 			}
+			free(server);
 			sigusr1=0; // there would be a race condition here, but we don't allow concurrent name lookups anyway so it's safe
 		}
 		#endif

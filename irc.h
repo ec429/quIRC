@@ -58,7 +58,9 @@ void handle_signals(int); // handles sigpipe, sigwinch and sigusr1
 
 int irc_connect(char *server, const char *portno, fd_set *master, int *fdmax); // non-blocking
 #if ASYNCH_NL
-struct gaicb *nl_details;
+int nl_nreqs;
+int nl_nsat;
+struct gaicb **nl_details;
 int nl_reconn_b;
 int irc_conn_found(fd_set *master, int *fdmax); // non-blocking; call this when the getaddrinfo_a() has finished
 #endif
