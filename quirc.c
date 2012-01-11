@@ -221,20 +221,41 @@ int main(int argc, char *argv[])
 			if(!port) port="port";
 			char dstr[32+strlen(server)+strlen(port)];
 			sprintf(dstr, "Found %s, connecting on %s...", server, port);
-			if(!quiet) add_to_buffer(cbuf, c_status, dstr, "/connect: ");
+			if(!quiet) add_to_buffer(nl_reconn_b, c_status, dstr, "/connect: ");
 			if(force_redraw<3) redraw_buffer();
-			int serverhandle=irc_conn_found(&master, &fdmax);
-			if(serverhandle)
+			if(nl_reconn_b)
 			{
-				bufs=(buffer *)realloc(bufs, ++nbufs*sizeof(buffer));
-				init_buffer(nbufs-1, SERVER, server, buflines);
-				cbuf=nbufs-1;
-				bufs[cbuf].handle=serverhandle;
-				bufs[cbuf].nick=strdup(nick);
-				bufs[cbuf].server=cbuf;
-				bufs[cbuf].conninpr=true;
+				int serverhandle=irc_connect(bufs[nl_reconn_b].bname, port, &master, &fdmax);
+				if(serverhandle)
+				{
+					bufs[nl_reconn_b].handle=serverhandle;
+					int b2;
+					for(b2=1;b2<nbufs;b2++)
+					{
+						if(bufs[b2].server==nl_reconn_b)
+							bufs[b2].handle=serverhandle;
+					}
+					bufs[cbuf].conninpr=true;
+					free(bufs[cbuf].realsname);
+					bufs[cbuf].realsname=NULL;
+					if(!quiet) add_to_buffer(cbuf, c_status, dstr, "/server: ");
+				}
 			}
-			free(server);
+			else
+			{
+				int serverhandle=irc_conn_found(&master, &fdmax);
+				if(serverhandle)
+				{
+					bufs=(buffer *)realloc(bufs, ++nbufs*sizeof(buffer));
+					init_buffer(nbufs-1, SERVER, server, buflines);
+					cbuf=nbufs-1;
+					bufs[cbuf].handle=serverhandle;
+					bufs[cbuf].nick=strdup(nick);
+					bufs[cbuf].server=cbuf;
+					bufs[cbuf].conninpr=true;
+				}
+				free(server);
+			}
 			sigusr1=0; // there would be a race condition here, but we don't allow concurrent name lookups anyway so it's safe
 		}
 		#endif

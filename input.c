@@ -751,6 +751,12 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 				}
 				char dstr[30+strlen(bufs[bufs[cbuf].server].bname)+strlen(newport)];
 				sprintf(dstr, "Connecting to %s on port %s...", bufs[bufs[cbuf].server].bname, newport);
+				#if ASYNCH_NL
+				irc_connect(bufs[bufs[cbuf].server].bname, newport, master, fdmax);
+				nl_reconn_b=bufs[cbuf].server;
+				if(!quiet) add_to_buffer(bufs[cbuf].server, c_status, dstr, "/server: ");
+				if(force_redraw<3) redraw_buffer();
+				#else /* ASYNCH_NL */
 				int serverhandle=irc_connect(bufs[bufs[cbuf].server].bname, newport, master, fdmax);
 				if(serverhandle)
 				{
@@ -767,6 +773,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					bufs[cbuf].realsname=NULL;
 					if(!quiet) add_to_buffer(cbuf, c_status, dstr, "/server: ");
 				}
+				#endif /* ASYNCH_NL */
 			}
 			else
 			{

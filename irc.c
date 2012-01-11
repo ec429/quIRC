@@ -19,13 +19,14 @@ void handle_signals(int sig)
 }
 
 #if ASYNCH_NL
-int irc_connect(char *server, char *portno, __attribute__((unused)) fd_set *master, __attribute__((unused)) int *fdmax)
+int irc_connect(char *server, const char *portno, __attribute__((unused)) fd_set *master, __attribute__((unused)) int *fdmax)
 {
 	if(nl_details)
 	{
 		add_to_buffer(0, c_err, "DNS lookup already in progress (/nlcancel to cancel)", "/connect: ");
 		return(-1);
 	}
+	nl_reconn_b=0;
 	// Look up server
 	struct addrinfo *hints=malloc(sizeof(struct addrinfo));
 	if(!hints)
@@ -57,7 +58,7 @@ int irc_conn_found(fd_set *master, int *fdmax)
 	int serverhandle=0;
 	struct addrinfo *servinfo=nl_details->ar_result;
 #else /* ASYNCH_NL */
-int irc_connect(char *server, char *portno, fd_set *master, int *fdmax)
+int irc_connect(char *server, const char *portno, fd_set *master, int *fdmax)
 {
 	int serverhandle=0;
 	struct addrinfo hints, *servinfo;
@@ -156,7 +157,7 @@ int irc_conn_rest(int b, char *nick, char *username, char *passwd, char *fullnam
 	return(0);
 }
 
-int autoconnect(fd_set *master, int *fdmax, servlist *serv)
+int autoconnect(fd_set *master, int *fdmax, servlist *serv) // XXX broken in the face of asynch nl
 {
 	char cstr[36+strlen(serv->name)+strlen(serv->portno)];
 	sprintf(cstr, "Connecting to %s on port %s...", serv->name, serv->portno);
