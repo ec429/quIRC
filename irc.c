@@ -8,14 +8,55 @@
 
 #include "irc.h"
 
-void handle_sigpipe(int sig)
+void handle_signals(int sig)
 {
 	if(sig==SIGPIPE)
 		sigpipe=1;
 	else if(sig==SIGWINCH)
 		sigwinch=1;
+	else if(sig==SIGUSR1)
+		sigusr1=1;
 }
 
+#if ASYNCH_NL
+int irc_connect(char *server, char *portno, __attribute__((unused)) fd_set *master, __attribute__((unused)) int *fdmax)
+{
+	if(nl_details)
+	{
+		add_to_buffer(0, c_err, "DNS lookup already in progress (/nlcancel to cancel)", "/connect: ");
+		return(-1);
+	}
+	// Look up server
+	struct addrinfo *hints=malloc(sizeof(struct addrinfo));
+	if(!hints)
+	{
+		add_to_buffer(0, c_err, strerror(errno), "malloc: ");
+		return(-1);
+	}
+	memset(hints, 0, sizeof(*hints));
+	hints->ai_family=AF_INET;
+	hints->ai_socktype = SOCK_STREAM; // TCP stream sockets
+	nl_details=malloc(sizeof(struct gaicb));
+	if(!nl_details)
+	{
+		add_to_buffer(0, c_err, strerror(errno), "malloc: ");
+		return(-1);
+	}
+	*nl_details=(struct gaicb){.ar_name=strdup(server), .ar_service=strdup(portno), .ar_request=hints};
+	getaddrinfo_a( // function call split into lines because it's complicated
+		GAI_NOWAIT,
+		&nl_details,
+		1,
+		&(struct sigevent){.sigev_notify=SIGEV_SIGNAL, .sigev_signo=SIGUSR1, .sigev_value.sival_ptr=strdup(portno)}
+	);
+	return(0);
+}
+
+int irc_conn_found(fd_set *master, int *fdmax)
+{
+	int serverhandle=0;
+	struct addrinfo *servinfo=nl_details->ar_result;
+#else /* ASYNCH_NL */
 int irc_connect(char *server, char *portno, fd_set *master, int *fdmax)
 {
 	int serverhandle=0;
@@ -30,6 +71,7 @@ int irc_connect(char *server, char *portno, fd_set *master, int *fdmax)
 		add_to_buffer(0, c_err, (char *)gai_strerror(rv), "getaddrinfo: ");
 		return(0); // 0 indicates failure as rv is new serverhandle value
 	}
+#endif /* ASYNCH_NL */
 	char sip[INET_ADDRSTRLEN];
 	struct addrinfo *p;
 	// loop through all the results and connect to the first we can
@@ -70,7 +112,14 @@ int irc_connect(char *server, char *portno, fd_set *master, int *fdmax)
 		return(0); // 0 indicates failure as rv is new serverhandle value
 	}
 	freeaddrinfo(servinfo);
-	
+	servinfo=NULL;
+#if ASYNCH_NL
+	free((char *)nl_details->ar_name);
+	free((char *)nl_details->ar_service);
+	free((void *)nl_details->ar_request);
+	free(nl_details);
+	nl_details=NULL;
+#endif
 	FD_SET(serverhandle, master);
 	*fdmax=max(*fdmax, serverhandle);
 	return(serverhandle);

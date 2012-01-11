@@ -2,7 +2,7 @@
 
 Scripting language.  Under development in branch 'script'.
 
-curses.  The current hardwired ANSI-escapes code for painting the screen is clumsy.  However, it's tailored to my needs, and now that it's neatly packaged away, it should be easier to cope with.  So, I may just stick with it.
+termcap (or terminfo) awareness.  The current hardwired ANSI-escapes code for painting the screen is clumsy.  However, it's tailored to my needs, and now that it's neatly packaged away, it should be easier to cope with.  So, I may just stick with it.  (This entry used to say "curses.", but I tried that and found curses' input semantics were insufficiently rich; in particular it didn't like Ctrl-cursor keys)
 
 Need to fix the problem of the conn_rest not getting called for eg worldofspectrum (why is this happening?)
 
@@ -15,8 +15,6 @@ Fix issue with an infinite loop in irc_rx of bytes==0 from recv().  Don't fully 
 Make hidden lines (quiet mode, conference mode, etc.) be stored in scrollback.  Filter on render; that way changes are retroactive.
 
 Optionally fold runs of the same type of message.  Eg.: =foo=bar=baz= have joined #whatever.
-
-Make getaddrinfo() calls use getaddrinfo_a().  They currently block everything on connect, which means that /server can cause existing connections to ping off.  (However, getaddrinfo_a() is not portable and some 64-bit libc have bugs, so we need a switch to disable its use.)
 
 Handle \ in tab-completion.  It should be expanded to \\.
 
@@ -33,6 +31,8 @@ Display something in buffer when a MODE affects us.
 Option for no hanging indent (wordline() tabx=0).
 
 Const-correctness.  There are a lot of functions taking a char * that should take a const char *.
+
+Check the return value of malloc (and realloc) everywhere.  At the moment we're lax, which is fine on overcommitting Linux but not elsewhere.
 
 Remember channel keys for /rejoin.  An argument to /rejoin overrides (but doesn't overwrite unless the /rejoin succeeds).
 

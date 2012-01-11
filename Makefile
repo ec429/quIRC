@@ -1,13 +1,15 @@
 # Makefile for quIRC
 
-CC ?= gcc
-OPTFLAGS = -g
-CFLAGS ?= -Wall -Wextra -Werror -pedantic -std=gnu99 $(OPTFLAGS)
-AWK ?= gawk
+CC := gcc
+OPTFLAGS := -g
+CFLAGS := -Wall -Wextra -Werror -pedantic -std=gnu99 $(OPTFLAGS)
+AWK := gawk
 VERSION := `git describe --tags`
-PREFIX ?= /usr/local
-LIBS := ttyraw.o ttyesc.o irc.o bits.o colour.o buffer.o names.o config.o input.o
-INCLUDE := ttyraw.h ttyesc.h irc.h bits.h colour.h buffer.h names.h config.h input.h quirc.h version.h
+PREFIX := /usr/local
+# -lanl is for ASYNCH_NL
+OPTLIBS := -lanl
+LIBS := ttyraw.o ttyesc.o irc.o bits.o colour.o buffer.o names.o config.o input.o $(OPTLIBS)
+INCLUDE := ttyraw.h ttyesc.h irc.h bits.h colour.h buffer.h names.h config.h input.h quirc.h version.h osconf.h
 
 all: quirc doc
 
@@ -41,7 +43,7 @@ README: readme.htm
 
 ttyesc.o: ttyesc.c ttyesc.h bits.h
 
-irc.o: irc.c irc.h bits.h buffer.h colour.h names.h numeric.h
+irc.o: irc.c irc.h bits.h buffer.h colour.h names.h numeric.h osconf.h
 
 irc.h: config.h
 	touch irc.h

@@ -29,8 +29,10 @@ int main(int argc, char *argv[])
 	init_start_buffer();
 	
 	sigpipe=0;
+	sigwinch=0;
+	sigusr1=0;
 	struct sigaction sa;
-	sa.sa_handler=handle_sigpipe;
+	sa.sa_handler=handle_signals;
 	sa.sa_flags=0;
 	sigemptyset(&sa.sa_mask);
 	
@@ -44,6 +46,13 @@ int main(int argc, char *argv[])
 	if(sigaction(SIGWINCH, &sa, NULL)==-1)
 	{
 		fprintf(stderr, "Failed to set SIGWINCH handler\n");
+		perror("sigaction");
+		push_buffer();
+		return(1);
+	}
+	if(sigaction(SIGUSR1, &sa, NULL)==-1)
+	{
+		fprintf(stderr, "Failed to set SIGUSR1 handler\n");
 		perror("sigaction");
 		push_buffer();
 		return(1);
@@ -203,6 +212,32 @@ int main(int argc, char *argv[])
 			}
 			sigwinch=0;
 		}
+		#if ASYNCH_NL
+		if(sigusr1)
+		{
+			char *server=strdup(nl_details->ar_name);
+			if(!server) server="server";
+			const char *port=nl_details->ar_service;
+			if(!port) port="port";
+			char dstr[32+strlen(server)+strlen(port)];
+			sprintf(dstr, "Found %s, connecting on %s...", server, port);
+			if(!quiet) add_to_buffer(cbuf, c_status, dstr, "/connect: ");
+			if(force_redraw<3) redraw_buffer();
+			int serverhandle=irc_conn_found(&master, &fdmax);
+			if(serverhandle)
+			{
+				bufs=(buffer *)realloc(bufs, ++nbufs*sizeof(buffer));
+				init_buffer(nbufs-1, SERVER, server, buflines);
+				cbuf=nbufs-1;
+				bufs[cbuf].handle=serverhandle;
+				bufs[cbuf].nick=strdup(nick);
+				bufs[cbuf].server=cbuf;
+				bufs[cbuf].conninpr=true;
+			}
+			free(server);
+			sigusr1=0; // there would be a race condition here, but we don't allow concurrent name lookups anyway so it's safe
+		}
+		#endif
 		// propagate liveness values into dependent tabs, and ping idle connections
 		{
 			time_t now=time(NULL);

@@ -8,6 +8,8 @@
 	irc: networking functions
 */
 
+#define _GNU_SOURCE // feature test macro
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -46,14 +48,19 @@ message;
 #include "config.h"
 #include "numeric.h"
 #include "names.h"
+#include "osconf.h"
 
 #define MQUOTE	'\020'
 
-volatile sig_atomic_t sigpipe, sigwinch;
+volatile sig_atomic_t sigpipe, sigwinch, sigusr1;
 
-void handle_sigpipe(int); // handles both sigpipe and sigwinch
+void handle_signals(int); // handles sigpipe, sigwinch and sigusr1
 
 int irc_connect(char *server, char *portno, fd_set *master, int *fdmax); // non-blocking
+#if ASYNCH_NL
+struct gaicb *nl_details;
+int irc_conn_found(fd_set *master, int *fdmax); // non-blocking; call this when the getaddrinfo_a() has finished
+#endif
 int irc_conn_rest(int b, char *nick, char *username, char *passwd, char *fullname); // call this when the non-blocking connect() has finished
 int autoconnect(fd_set *master, int *fdmax, servlist *serv);
 int irc_tx(int fd, char * packet);
