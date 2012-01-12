@@ -209,7 +209,7 @@ int main(int argc, char *argv[])
 			sigusr1=0; // no race condition, because after this point we loop over the whole nl_list
 			int serverhandle;
 			nl_list *list=nl_active;
-			while((serverhandle=irc_conn_found(&list, &master, &fdmax))&&list)
+			while((list=nl_active)&&(serverhandle=irc_conn_found(&list, &master, &fdmax))&&list)
 			{
 				const char *server=list->nl_details->ar_name;
 				if(!server) server="server";
@@ -217,7 +217,6 @@ int main(int argc, char *argv[])
 				if(!port) port="port";
 				char dstr[32+strlen(server)+strlen(port)];
 				sprintf(dstr, "Found %s, connecting on %s...", server, port);
-				if(!quiet) add_to_buffer(list->reconn_b, c_status, dstr, "/server: ");
 				if(force_redraw<3) redraw_buffer();
 				if(list->reconn_b)
 				{
@@ -233,6 +232,7 @@ int main(int argc, char *argv[])
 					bufs[list->reconn_b].realsname=NULL;
 					if(list->autoent)
 						bufs[list->reconn_b].autoent=list->autoent;
+					if(!quiet) add_to_buffer(list->reconn_b, c_status, dstr, "/server: ");
 				}
 				else
 				{
@@ -245,6 +245,7 @@ int main(int argc, char *argv[])
 					bufs[cbuf].conninpr=true;
 					if(list->autoent)
 						bufs[cbuf].autoent=list->autoent;
+					if(!quiet) add_to_buffer(cbuf, c_status, dstr, "/server: ");
 				}
 				free((char *)list->nl_details->ar_name);
 				free((char *)list->nl_details->ar_service);

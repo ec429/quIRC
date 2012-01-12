@@ -97,13 +97,21 @@ int irc_connect(char *server, const char *portno, fd_set *master, int *fdmax)
 			add_to_buffer(0, c_err, strerror(errno), "fcntl: ");
 			continue;
 		}
+		connect_loop:
 		if(connect(serverhandle, p->ai_addr, p->ai_addrlen)==-1)
 		{
 			if(errno!=EINPROGRESS)
 			{
-				close(serverhandle);
-				add_to_buffer(0, c_err, strerror(errno), "connect: ");
-				continue;
+				if(errno==EINTR)
+				{
+					goto connect_loop;
+				}
+				else
+				{
+					close(serverhandle);
+					add_to_buffer(0, c_err, strerror(errno), "connect: ");
+					continue;
+				}
 			}
 		}
 		break;
