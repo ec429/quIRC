@@ -19,54 +19,50 @@ void handle_signals(int sig)
 }
 
 #if ASYNCH_NL
-int irc_connect(char *server, const char *portno, __attribute__((unused)) fd_set *master, __attribute__((unused)) int *fdmax)
+nl_list *irc_connect(char *server, const char *portno)
 {
-	if(nl_nreqs) // TODO handle it anyway, by extending the list
-	{
-		add_to_buffer(0, c_err, "DNS lookup already in progress (/nlcancel to cancel)", "/connect: ");
-		return(-1);
-	}
 	// Look up server
 	struct addrinfo *hints=malloc(sizeof(struct addrinfo));
 	if(!hints)
 	{
 		add_to_buffer(0, c_err, strerror(errno), "malloc: ");
-		return(-1);
+		return(NULL);
 	}
 	memset(hints, 0, sizeof(*hints));
 	hints->ai_family=AF_INET;
 	hints->ai_socktype = SOCK_STREAM; // TCP stream sockets
-	nl_details=malloc(sizeof(struct gaicb *));
+	struct gaicb *nl_details=malloc(sizeof(struct gaicb));
 	if(!nl_details)
 	{
 		add_to_buffer(0, c_err, strerror(errno), "malloc: ");
-		return(-1);
+		return(NULL);
 	}
-	*nl_details=malloc(sizeof(struct gaicb));
-	if(!*nl_details)
+	nl_list *nl=malloc(sizeof(nl_list));
+	if(!nl)
 	{
 		add_to_buffer(0, c_err, strerror(errno), "malloc: ");
 		free(nl_details);
-		return(-1);
+		return(NULL);
 	}
-	**nl_details=(struct gaicb){.ar_name=strdup(server), .ar_service=strdup(portno), .ar_request=hints};
-	nl_nreqs=1;
-	nl_nsat=0;
-	getaddrinfo_a(GAI_NOWAIT, nl_details, 1, &(struct sigevent){.sigev_notify=SIGEV_SIGNAL, .sigev_signo=SIGUSR1});
-	return(0);
+	*nl=(nl_list){.nl_details=nl_details, .autoent=NULL, .reconn_b=0, .next=nl_active, .prev=NULL};
+	*nl_details=(struct gaicb){.ar_name=strdup(server), .ar_service=strdup(portno), .ar_request=hints};
+	if(nl_active) nl_active->prev=nl;
+	nl_active=nl;
+	getaddrinfo_a(GAI_NOWAIT, &nl->nl_details, 1, &(struct sigevent){.sigev_notify=SIGEV_SIGNAL, .sigev_signo=SIGUSR1});
+	return(nl_active);
 }
 
-int irc_conn_found(fd_set *master, int *fdmax)
+int irc_conn_found(nl_list **list, fd_set *master, int *fdmax)
 {
 	int serverhandle=0;
 	struct addrinfo *servinfo;
-	int i;
-	for(i=0;i<nl_nreqs;i++)
+	while(*list)
 	{
-		if(gai_error(nl_details[i])) continue;
-		servinfo=nl_details[i]->ar_result;
-		break;
+		if(gai_error((*list)->nl_details)) *list=(*list)->next;
+		else break;
 	}
+	if(!*list) return(0); // 0 indicates failure as rv is new serverhandle value
+	servinfo=(*list)->nl_details->ar_result;
 	
 #else /* ASYNCH_NL */
 int irc_connect(char *server, const char *portno, fd_set *master, int *fdmax)
@@ -125,17 +121,6 @@ int irc_connect(char *server, const char *portno, fd_set *master, int *fdmax)
 	}
 	freeaddrinfo(servinfo);
 	servinfo=NULL;
-#if ASYNCH_NL
-	free((char *)nl_details[i]->ar_name);
-	free((char *)nl_details[i]->ar_service);
-	free((void *)nl_details[i]->ar_request);
-	if(++nl_nsat>=nl_nreqs)
-	{
-		free(nl_details);
-		nl_details=NULL;
-		nl_nreqs=nl_nsat=0;
-	}
-#endif
 	FD_SET(serverhandle, master);
 	*fdmax=max(*fdmax, serverhandle);
 	return(serverhandle);
@@ -175,13 +160,16 @@ int irc_conn_rest(int b, char *nick, char *username, char *passwd, char *fullnam
 int autoconnect(fd_set *master, int *fdmax, servlist *serv) // XXX broken in the face of asynch nl
 {
 	servlist *curr=serv;
-	nreqs=nsats=0;
-	while(curr)
-	{
-		nreqs++;
-		curr=curr->next;
-	}
-	return(0);
+	if(!curr) return(0);
+	#if ASYNCH_NL
+	char cstr[36+strlen(serv->name)+strlen(serv->portno)];
+	sprintf(cstr, "Connecting to %s on port %s...", serv->name, serv->portno);
+	nl_list *list=irc_connect(serv->name, serv->portno);
+	if(!list) return(autoconnect(master, fdmax, serv->next));
+	if(!quiet) add_to_buffer(0, c_status, cstr, "auto: ");
+	list->reconn_b=0;
+	list->autoent=serv;
+	#else /* ASYNCH_NL */
 	char cstr[36+strlen(serv->name)+strlen(serv->portno)];
 	sprintf(cstr, "Connecting to %s on port %s...", serv->name, serv->portno);
 	if(!quiet) add_to_buffer(0, c_status, cstr, "auto: ");
@@ -200,7 +188,9 @@ int autoconnect(fd_set *master, int *fdmax, servlist *serv) // XXX broken in the
 		if(!quiet) add_to_buffer(cbuf, c_status, cstr, "auto: ");
 		if(force_redraw<3) redraw_buffer();
 	}
-	return(nreqs);
+	#endif /* ASYNCH_NL */
+	autoconnect(master, fdmax, serv->next);
+	return(1);
 }
 
 int irc_tx(int fd, char * packet)

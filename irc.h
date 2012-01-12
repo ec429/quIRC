@@ -56,13 +56,20 @@ volatile sig_atomic_t sigpipe, sigwinch, sigusr1;
 
 void handle_signals(int); // handles sigpipe, sigwinch and sigusr1
 
-int irc_connect(char *server, const char *portno, fd_set *master, int *fdmax); // non-blocking
 #if ASYNCH_NL
-int nl_nreqs;
-int nl_nsat;
-struct gaicb **nl_details;
-int nl_reconn_b;
-int irc_conn_found(fd_set *master, int *fdmax); // non-blocking; call this when the getaddrinfo_a() has finished
+typedef struct _nl_list
+{
+	struct gaicb *nl_details;
+	int reconn_b;
+	servlist *autoent; // filled out by autoconnect
+	struct _nl_list *prev, *next;
+}
+nl_list;
+nl_list *nl_active;
+nl_list *irc_connect(char *server, const char *portno); // non-blocking NL
+int irc_conn_found(nl_list **list, fd_set *master, int *fdmax); // non-blocking; call this when the getaddrinfo_a() has finished
+#else
+int irc_connect(char *server, const char *portno, fd_set *master, int *fdmax); // non-blocking
 #endif
 int irc_conn_rest(int b, char *nick, char *username, char *passwd, char *fullname); // call this when the non-blocking connect() has finished
 int autoconnect(fd_set *master, int *fdmax, servlist *serv);

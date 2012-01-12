@@ -175,7 +175,7 @@ int main(int argc, char *argv[])
 	FD_ZERO(&master);
 	FD_SET(STDIN_FILENO, &master);
 	int fdmax=STDIN_FILENO;
-	if((!autoconnect(&master, &fdmax, &servs))&&(!quiet))
+	if((!autoconnect(&master, &fdmax, servs))&&(!quiet))
 		add_to_buffer(0, c_status, "Not connected - use /server to connect", "");
 	iline inp={{NULL, 0, 0}, {NULL, 0, 0}};
 	in_update(inp);
@@ -206,41 +206,35 @@ int main(int argc, char *argv[])
 		#if ASYNCH_NL
 		if(sigusr1)
 		{
-			int i;
-			for(i=0;i<nl_nreqs;i++)
+			sigusr1=0; // no race condition, because after this point we loop over the whole nl_list
+			int serverhandle;
+			nl_list *list=nl_active;
+			while((serverhandle=irc_conn_found(&list, &master, &fdmax))&&list)
 			{
-				if(!gai_error(nl_details[i])) break;
-			}
-			char *server=strdup(nl_details[i]->ar_name);
-			if(!server) server="server";
-			const char *port=nl_details[i]->ar_service;
-			if(!port) port="port";
-			char dstr[32+strlen(server)+strlen(port)];
-			sprintf(dstr, "Found %s, connecting on %s...", server, port);
-			if(!quiet) add_to_buffer(nl_reconn_b, c_status, dstr, "/connect: ");
-			if(force_redraw<3) redraw_buffer();
-			if(nl_reconn_b)
-			{
-				int serverhandle=irc_conn_found(&master, &fdmax);
-				if(serverhandle)
+				const char *server=list->nl_details->ar_name;
+				if(!server) server="server";
+				const char *port=list->nl_details->ar_service;
+				if(!port) port="port";
+				char dstr[32+strlen(server)+strlen(port)];
+				sprintf(dstr, "Found %s, connecting on %s...", server, port);
+				if(!quiet) add_to_buffer(list->reconn_b, c_status, dstr, "/server: ");
+				if(force_redraw<3) redraw_buffer();
+				if(list->reconn_b)
 				{
-					bufs[nl_reconn_b].handle=serverhandle;
+					bufs[list->reconn_b].handle=serverhandle;
 					int b2;
 					for(b2=1;b2<nbufs;b2++)
 					{
-						if(bufs[b2].server==nl_reconn_b)
+						if(bufs[b2].server==list->reconn_b)
 							bufs[b2].handle=serverhandle;
 					}
-					bufs[cbuf].conninpr=true;
-					free(bufs[cbuf].realsname);
-					bufs[cbuf].realsname=NULL;
-					if(!quiet) add_to_buffer(cbuf, c_status, dstr, "/server: ");
+					bufs[list->reconn_b].conninpr=true;
+					free(bufs[list->reconn_b].realsname);
+					bufs[list->reconn_b].realsname=NULL;
+					if(list->autoent)
+						bufs[list->reconn_b].autoent=list->autoent;
 				}
-			}
-			else
-			{
-				int serverhandle=irc_conn_found(&master, &fdmax);
-				if(serverhandle)
+				else
 				{
 					bufs=(buffer *)realloc(bufs, ++nbufs*sizeof(buffer));
 					init_buffer(nbufs-1, SERVER, server, buflines);
@@ -249,10 +243,17 @@ int main(int argc, char *argv[])
 					bufs[cbuf].nick=strdup(nick);
 					bufs[cbuf].server=cbuf;
 					bufs[cbuf].conninpr=true;
+					if(list->autoent)
+						bufs[cbuf].autoent=list->autoent;
 				}
+				free((char *)list->nl_details->ar_name);
+				free((char *)list->nl_details->ar_service);
+				freeaddrinfo((void *)list->nl_details->ar_request);
+				if(list->prev) list->prev->next=list->next;
+				else nl_active=list->next;
+				if(list->next) list->next->prev=list->prev;
+				free(list);
 			}
-			free(server);
-			sigusr1=0; // there would be a race condition here, but we don't allow concurrent name lookups anyway so it's safe
 		}
 		#endif
 		// propagate liveness values into dependent tabs, and ping idle connections

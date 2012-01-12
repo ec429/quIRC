@@ -704,9 +704,14 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 				char dstr[30+strlen(server)+strlen(newport)];
 				sprintf(dstr, "Connecting to %s on port %s...", server, newport);
 				#if ASYNCH_NL
-				irc_connect(server, newport, master, fdmax);
-				if(!quiet) add_to_buffer(0, c_status, dstr, "/server: ");
-				if(force_redraw<3) redraw_buffer();
+				__attribute__((unused)) int *p= fdmax;
+				nl_list *nl=irc_connect(server, newport);
+				if(nl)
+				{
+					nl->reconn_b=0;
+					if(!quiet) add_to_buffer(0, c_status, dstr, "/server: ");
+					if(force_redraw<3) redraw_buffer();
+				}
 				#else
 				int serverhandle=irc_connect(server, newport, master, fdmax);
 				if(serverhandle)
@@ -752,10 +757,18 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 				char dstr[30+strlen(bufs[bufs[cbuf].server].bname)+strlen(newport)];
 				sprintf(dstr, "Connecting to %s on port %s...", bufs[bufs[cbuf].server].bname, newport);
 				#if ASYNCH_NL
-				irc_connect(bufs[bufs[cbuf].server].bname, newport, master, fdmax);
-				nl_reconn_b=bufs[cbuf].server;
-				if(!quiet) add_to_buffer(bufs[cbuf].server, c_status, dstr, "/server: ");
-				if(force_redraw<3) redraw_buffer();
+				nl_list *nl=irc_connect(bufs[bufs[cbuf].server].bname, newport);
+				if(nl)
+				{
+					nl->reconn_b=bufs[cbuf].server;
+					if(!quiet) add_to_buffer(bufs[cbuf].server, c_status, dstr, "/server: ");
+					if(force_redraw<3) redraw_buffer();
+				}
+				else
+				{
+					add_to_buffer(bufs[cbuf].server, c_err, "malloc failure (see status)", "/server: ");
+					if(force_redraw<3) redraw_buffer();
+				}
 				#else /* ASYNCH_NL */
 				int serverhandle=irc_connect(bufs[bufs[cbuf].server].bname, newport, master, fdmax);
 				if(serverhandle)
