@@ -244,7 +244,12 @@ int main(int argc, char *argv[])
 					bufs[cbuf].server=cbuf;
 					bufs[cbuf].conninpr=true;
 					if(list->autoent)
+					{
+						free(bufs[cbuf].nick);
+						bufs[cbuf].nick=strdup(list->autoent->nick);
+						bufs[cbuf].ilist=list->autoent->igns;
 						bufs[cbuf].autoent=list->autoent;
+					}
 					if(!quiet) add_to_buffer(cbuf, c_status, dstr, "/server: ");
 				}
 				free((char *)list->nl_details->ar_name);
