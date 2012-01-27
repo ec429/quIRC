@@ -372,7 +372,7 @@ int main(int argc, char *argv[])
 								{
 									char *packet;
 									int e;
-									if((e=irc_rx(fd, &packet))!=0)
+									if((e=irc_rx(fd, &packet, &master))!=0)
 									{
 										char emsg[64];
 										sprintf(emsg, "irc_rx(%d, &%p): %d", fd, packet, e);

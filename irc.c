@@ -245,7 +245,7 @@ int irc_tx(int fd, char * packet)
 	return(l); // Return the number of bytes sent
 }
 
-int irc_rx(int fd, char ** data)
+int irc_rx(int fd, char ** data, fd_set *master)
 {
 	sigpipe=0;
 	char buf[512];
@@ -264,7 +264,7 @@ int irc_rx(int fd, char ** data)
 			}
 			l++;
 		}
-		else if(bytes<0)
+		else // bytes<=0
 		{
 			if(errno==EINTR)
 				continue;
@@ -279,6 +279,7 @@ int irc_rx(int fd, char ** data)
 					bufs[b].handle=0; // de-bind fd
 				}
 			}
+			FD_CLR(fd, master);
 			cr=true; // just crash out with a partial message
 			buf[l]=0;
 		}

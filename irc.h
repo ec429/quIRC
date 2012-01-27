@@ -74,7 +74,7 @@ int irc_connect(char *server, const char *portno, fd_set *master, int *fdmax); /
 int irc_conn_rest(int b, char *nick, char *username, char *passwd, char *fullname); // call this when the non-blocking connect() has finished
 int autoconnect(fd_set *master, int *fdmax, servlist *serv);
 int irc_tx(int fd, char * packet);
-int irc_rx(int fd, char ** data);
+int irc_rx(int fd, char ** data, fd_set *master);
 
 message irc_breakdown(char *packet);
 void message_free(message pkt);
