@@ -99,16 +99,13 @@ keymap.c: keys genkeymap
 FORCE:
 version.h: FORCE
 	./gitversion
-	if ! cmp version.h version.h2; then mv version.h2 version.h; fi
-	-rm version.h2
 
 dist: all doc
 	-mkdir quirc_$(VERSION)
 	for p in $$(ls); do cp $$p quirc_$(VERSION)/$$p; done;
 	-rm quirc_$(VERSION)/*.tar.gz
 	mv quirc_$(VERSION)/distMakefile quirc_$(VERSION)/Makefile
-	tar -cvvf quirc_$(VERSION).tar quirc_$(VERSION)/
-	gzip quirc_$(VERSION).tar
+	tar -czf quirc_$(VERSION).tar quirc_$(VERSION)/
 	rm -r quirc_$(VERSION)
 
 dists: c_init.c config.c config.h doc
@@ -118,7 +115,6 @@ dists: c_init.c config.c config.h doc
 	rm quirc_$(VERSION)_src/*.o
 	rm quirc_$(VERSION)_src/quirc
 	mv quirc_$(VERSION)_src/distMakefile quirc_$(VERSION)_src/Makefile
-	tar -cvvf quirc_$(VERSION)_src.tar quirc_$(VERSION)_src/
-	gzip quirc_$(VERSION)_src.tar
+	tar -czf quirc_$(VERSION)_src.tar quirc_$(VERSION)_src/
 	rm -r quirc_$(VERSION)_src
 
