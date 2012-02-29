@@ -105,7 +105,7 @@ dist: all doc
 	for p in $$(ls); do cp $$p quirc_$(VERSION)/$$p; done;
 	-rm quirc_$(VERSION)/*.tar.gz
 	mv quirc_$(VERSION)/distMakefile quirc_$(VERSION)/Makefile
-	tar -czf quirc_$(VERSION).tar quirc_$(VERSION)/
+	tar -czf quirc_$(VERSION).tar.gz quirc_$(VERSION)/
 	rm -r quirc_$(VERSION)
 
 dists: c_init.c config.c config.h doc
@@ -115,6 +115,6 @@ dists: c_init.c config.c config.h doc
 	rm quirc_$(VERSION)_src/*.o
 	rm quirc_$(VERSION)_src/quirc
 	mv quirc_$(VERSION)_src/distMakefile quirc_$(VERSION)_src/Makefile
-	tar -czf quirc_$(VERSION)_src.tar quirc_$(VERSION)_src/
+	tar -czf quirc_$(VERSION)_src.tar.gz quirc_$(VERSION)_src/
 	rm -r quirc_$(VERSION)_src
 
