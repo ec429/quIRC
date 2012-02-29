@@ -5,7 +5,7 @@
 	Copyright (C) 2010-11 Edward Cree
 
 	See quirc.c for license information
-	buffer: multiple-buffer control
+	buffer: multiple-buffer control & buffer rendering
 */
 
 #ifndef _GNU_SOURCE
@@ -107,6 +107,6 @@ int e_buf_print(int buf, colour lc, message pkt, const char *lead);
 int transfer_start_buffer(void);
 int push_buffer(void);
 void in_update(iline inp);
-char *highlight(const char *src); // use ANSI-colours to highlight \escapes.  Returns a malloc-like pointer
+char *highlight(const char *src); // use colours to highlight \escapes.  Returns a malloc-like pointer
 void titlebar(void);
 int findptab(int b, const char *src);

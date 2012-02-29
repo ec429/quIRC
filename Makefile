@@ -8,7 +8,7 @@ VERSION := `git describe --tags`
 PREFIX := /usr/local
 # -lanl is for ASYNCH_NL
 OPTLIBS := -lanl
-LIBS := ttyraw.o ttyesc.o irc.o bits.o colour.o buffer.o names.o config.o input.o $(OPTLIBS)
+LIBS := -lncurses ttyraw.o ttyesc.o irc.o bits.o colour.o buffer.o names.o config.o input.o $(OPTLIBS)
 INCLUDE := ttyraw.h ttyesc.h irc.h bits.h colour.h buffer.h names.h config.h input.h quirc.h version.h osconf.h
 
 all: quirc doc

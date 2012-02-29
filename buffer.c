@@ -3,7 +3,7 @@
 	Copyright (C) 2010-11 Edward Cree
 
 	See quirc.c for license information
-	buffer: multiple-buffer control
+	buffer: multiple-buffer control & buffer rendering
 */
 
 #include "buffer.h"
@@ -285,7 +285,7 @@ int redraw_buffer(void)
 		if(e) return(e);
 		if(bufs[cbuf].dirty) return(1);
 	}
-	printf(CLS);
+	cls();
 	int uline=bufs[cbuf].scroll;
 	int pline=bufs[cbuf].ascroll;
 	while(pline<0)
@@ -366,15 +366,17 @@ int redraw_buffer(void)
 		}
 		if(row<0) break;
 		setcolour(bufs[cbuf].lc[uline]);
-		if(full_width_colour)
-			printf(LOCATE "%s"CLR, row, 0, bufs[cbuf].lpt[uline][pline]);
-		else
-			printf(LOCATE "%s", row, 0, bufs[cbuf].lpt[uline][pline]);
+		locate(row, 0);
+		fputs(bufs[cbuf].lpt[uline][pline], stdout);
+		if(full_width_colour) clr();
 		row--;
 	}
 	resetcol();
 	while(row>(tsb?1:0))
-		printf(LOCATE CLR, row--, 0);
+	{
+		locate(row--, 0);
+		clr();
+	}
 	switch(bufs[cbuf].type)
 	{
 		case STATUS:
@@ -487,7 +489,7 @@ void in_update(iline inp)
 	height=max(height, 5); // anything less than this is /silly/
 	width=max(width, 30); // widths less than 30 break things, and are /also silly/
 	resetcol();
-	printf(LOCATE, height-1, 1);
+	locate(height-1, 1);
 	// tab strip
 	int mbw = (width-1)/nbufs;
 	if(mbw>1)
@@ -529,19 +531,16 @@ void in_update(iline inp)
 			{
 				c.fore=6; // cyan
 				c.hi=true;
-				c.ul=false; // can't have both at once: it's not really a bitmask
 			}
 			else if(bufs[b].alert)
 			{
 				c.fore=1; // red
 				c.hi=true;
-				c.ul=false; // can't have both at once: it's not really a bitmask
 			}
 			if((!LIVE(b)) && (c.fore!=6))
 			{
 				c.fore=3; // yellow
 				c.hi=true;
-				c.ul=false; // can't have both at once: it's not really a bitmask
 			}
 			setcolour(c);
 			putchar(brack[0]);
@@ -572,9 +571,9 @@ void in_update(iline inp)
 		setcolour((colour){.fore=0, .back=1, .hi=true, .ul=false});
 		printf("buf %u [0 to %u]", cbuf, nbufs-1);
 	}
-	printf(CLR);
+	clr();
 	resetcol();
-	printf("\n");
+	putchar('\n');
 	unsigned int wwidth=width;
 	char stamp[32];
 	stamp[0]=0;
@@ -616,7 +615,12 @@ void in_update(iline inp)
 	{
 		char *lh=highlight(inp.left.data?inp.left.data:"");
 		char *rh=highlight(inp.right.data?inp.right.data:"");
-		printf("%s%s" SAVEPOS "%s" CLR RESTPOS, stamp, lh, rh);
+		fputs(stamp, stdout);
+		fputs(lh, stdout);
+		savepos();
+		fputs(rh, stdout);
+		clr();
+		restpos();
 		free(lh);
 		free(rh);
 	}
@@ -629,7 +633,12 @@ void in_update(iline inp)
 			snprintf(rl, wwidth-inp.left.i-3-max(3, (wwidth-inp.left.i)/4), "%s", inp.right.data);
 			char *rlh=highlight(rl);
 			char *rrh=highlight(inp.right.data+inp.right.i-max(3, (wwidth-inp.left.i)/4));
-			printf("%s%s" SAVEPOS "%s...%s" CLR RESTPOS, stamp, lh, rlh, rrh);
+			fputs(stamp, stdout);
+			fputs(lh, stdout);
+			savepos();
+			printf("%s...%s", rlh, rrh);
+			clr();
+			restpos();
 			free(lh);
 			free(rlh);
 			free(rrh);
@@ -641,7 +650,11 @@ void in_update(iline inp)
 			char *llh=highlight(ll);
 			char *lrh=highlight(inp.left.data+inp.left.i-wwidth+3+inp.right.i+max(3, (wwidth-inp.right.i)/4));
 			char *rh=highlight(inp.right.data?inp.right.data:"");
-			printf("%s%s...%s" SAVEPOS "%s" CLR RESTPOS, stamp, llh, lrh, rh);
+			fputs(stamp, stdout);
+			printf("%s...%s", llh, lrh);
+			savepos();
+			fputs(rh, stdout);
+			restpos();
 			free(llh);
 			free(lrh);
 			free(rh);
@@ -659,7 +672,12 @@ void in_update(iline inp)
 			snprintf(rl, wwidth-c-2-max(3, (wwidth-c)/4), "%s", inp.right.data);
 			char *rlh=highlight(rl);
 			char *rrh=highlight(inp.right.data+inp.right.i-max(3, (wwidth-c)/4));
-			printf("%s%s...%s" SAVEPOS "%s...%s" CLR RESTPOS, stamp, llh, lrh, rlh, rrh);
+			fputs(stamp, stdout);
+			printf("%s...%s", llh, lrh);
+			savepos();
+			printf("%s...%s", rlh, rrh);
+			clr();
+			restpos();
 			free(llh);
 			free(lrh);
 			free(rlh);
@@ -802,9 +820,9 @@ int push_buffer(void)
 
 void titlebar(void)
 {
-	printf(LOCATE, 1, 1);
+	locate(1, 1);
 	setcol(0, 7, true, false);
-	printf(CLA);
+	clr();
 	unsigned int gits;
 	sscanf(VERSION_TXT, "%u", &gits);
 	const char *hashgit=strchr(VERSION_TXT, ' ');
@@ -944,7 +962,7 @@ void titlebar(void)
 	free(cnick);
 	resetcol();
 	printf("\n");
-	printf(LOCATE, height-1, 1);
+	locate(height-1, 1);
 }
 
 int findptab(int b, const char *src)

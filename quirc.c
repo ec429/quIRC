@@ -149,13 +149,10 @@ int main(int argc, char *argv[])
 	
 	conf_check();
 	
-	e=ttyraw(fileno(stdout));
-	if(e)
+	if(ttyraw(fileno(stdout)))
 	{
-		fprintf(stderr, "Failed to set raw mode on tty\n");
-		perror("ttyraw");
-		push_buffer();
-		return(1);
+		asb_failsafe(c_err, "Failed to set raw mode on tty: ttyraw:");
+		asb_failsafe(c_err, strerror(errno));
 	}
 	
 	unsigned int i;
@@ -564,7 +561,6 @@ int main(int argc, char *argv[])
 	freeservlist(servs);
 	n_free(igns);
 	ttyreset(fileno(stdout));
-	reset_shell_mode();
 	#ifdef	USE_MTRACE
 		muntrace();
 	#endif	// USE_MTRACE
