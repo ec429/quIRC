@@ -58,6 +58,10 @@ int inputchar(iline *inp, int *state)
 	else if((mod<0) && (c<32)) // this also stomps on the newline
 	{
 		back_ichar(&inp->left);
+		if(c==8) // C-h ~= backspace
+		{
+			back_ichar(&inp->left);
+		}
 		if(c==1) // C-a ~= home
 		{
 			i_home(inp);

@@ -42,31 +42,38 @@ int main(int argc, char **argv)
 			{
 				keymod new;
 				new.name=strdup(strtok(line, " \t"));
-				char *mod=strtok(NULL, "");
-				off_t o=strlen(mod);
-				if(o&1)
+				char *mod=strtok(NULL, "\t");
+				if(*mod==':')
 				{
-					fprintf(stderr, "genkeymap: bad line (o&1) %s\t%s\n", new.name, mod);
-					return(EXIT_FAILURE);
+					new.mod=strdup(mod);
 				}
-				new.mod=malloc((o>>1)+1);
-				for(int i=0;i<o;i+=2)
+				else
 				{
-					if(!(isxdigit(mod[i])&&isxdigit(mod[i+1])))
+					off_t o=strlen(mod);
+					if(o&1)
 					{
-						fprintf(stderr, "genkeymap: bad line (not hex) %s\t%s\n", new.name, mod);
+						fprintf(stderr, "genkeymap: bad line (o&1) %s\t%s\n", new.name, mod);
 						return(EXIT_FAILURE);
 					}
-					char buf[3];buf[0]=mod[i];buf[1]=mod[i+1];buf[2]=0;
-					unsigned int c;
-					if(sscanf(buf, "%x", &c)!=1)
+					new.mod=malloc((o>>1)+1);
+					for(int i=0;i<o;i+=2)
 					{
-						fprintf(stderr, "genkeymap: bad line (sscanf) %s\t%s\n", new.name, mod);
-						return(EXIT_FAILURE);
+						if(!(isxdigit(mod[i])&&isxdigit(mod[i+1])))
+						{
+							fprintf(stderr, "genkeymap: bad line (not hex) %s\t%s\n", new.name, mod);
+							return(EXIT_FAILURE);
+						}
+						char buf[3];buf[0]=mod[i];buf[1]=mod[i+1];buf[2]=0;
+						unsigned int c;
+						if(sscanf(buf, "%x", &c)!=1)
+						{
+							fprintf(stderr, "genkeymap: bad line (sscanf) %s\t%s\n", new.name, mod);
+							return(EXIT_FAILURE);
+						}
+						new.mod[i>>1]=c;
 					}
-					new.mod[i>>1]=c;
+					new.mod[o>>1]=0;
 				}
-				new.mod[o>>1]=0;
 				int n=nkeys++;
 				(keys=realloc(keys, nkeys*sizeof(keymod)))[n]=new;
 			}
@@ -86,10 +93,15 @@ int main(int argc, char **argv)
 			for(int i=0;i<nkeys;i++)
 			{
 				printf("\tkmap[%d].name=\"%s\";\n", i, keys[i].name);
-				printf("\tkmap[%d].mod=malloc(%zu);\n", i, strlen(keys[i].mod)+1);
-				for(unsigned int j=0;j<=strlen(keys[i].mod);j++)
+				if(keys[i].mod[0]==':')
+					printf("\tif(key_%s) kmap[%d].mod=key_%s; else kmap[%d].mod=\"\";\n", keys[i].mod+1, i, keys[i].mod+1, i);
+				else
 				{
-					printf("\tkmap[%d].mod[%d]=%hhd;\n", i, j, keys[i].mod[j]);
+					printf("\tkmap[%d].mod=malloc(%zu);\n", i, strlen(keys[i].mod)+1);
+					for(unsigned int j=0;j<=strlen(keys[i].mod);j++)
+					{
+						printf("\tkmap[%d].mod[%d]=%hhd;\n", i, j, keys[i].mod[j]);
+					}
 				}
 			}
 			printf("\treturn(0);\n");
