@@ -26,6 +26,7 @@ int main(int argc, char *argv[])
 	
 	bufs=NULL;
 	
+	setupterm((char *)0, fileno(stdout), (int *)0);
 	init_start_buffer();
 	
 	sigpipe=0;
@@ -58,10 +59,10 @@ int main(int argc, char *argv[])
 		return(1);
 	}
 	
-	int infc=fcntl(STDIN_FILENO, F_GETFD);
+	int infc=fcntl(fileno(stdin), F_GETFD);
 	if(infc>=0)
 	{
-		if(fcntl(STDIN_FILENO, F_SETFD, infc|O_NONBLOCK)==-1)
+		if(fcntl(fileno(stdin), F_SETFD, infc|O_NONBLOCK)==-1)
 		{
 			char *err=strerror(errno);
 			char msg[48+strlen(err)];
@@ -148,7 +149,7 @@ int main(int argc, char *argv[])
 	
 	conf_check();
 	
-	e=ttyraw(STDOUT_FILENO);
+	e=ttyraw(fileno(stdout));
 	if(e)
 	{
 		fprintf(stderr, "Failed to set raw mode on tty\n");
@@ -173,8 +174,8 @@ int main(int argc, char *argv[])
 	
 	fd_set master, readfds;
 	FD_ZERO(&master);
-	FD_SET(STDIN_FILENO, &master);
-	int fdmax=STDIN_FILENO;
+	FD_SET(fileno(stdin), &master);
+	int fdmax=fileno(stdin);
 	if((!autoconnect(&master, &fdmax, servs))&&(!quiet))
 		add_to_buffer(0, c_status, "Not connected - use /server to connect", "");
 	iline inp={{NULL, 0, 0}, {NULL, 0, 0}};
@@ -188,7 +189,7 @@ int main(int argc, char *argv[])
 			if(winch)
 			{
 				int l, c;
-				if(termsize(STDIN_FILENO, &c, &l))
+				if(termsize(fileno(stdin), &c, &l))
 				{
 					add_to_buffer(0, c_err, strerror(errno), "termsize: ioctl: ");
 				}
@@ -341,7 +342,7 @@ int main(int argc, char *argv[])
 			{
 				if(FD_ISSET(fd, &readfds))
 				{
-					if(fd==STDIN_FILENO)
+					if(fd==fileno(stdin))
 					{
 						inputchar(&inp, &state);
 						/* WARNING!  Possibly non-portable code; relies on edge-case behaviour */
@@ -562,7 +563,8 @@ int main(int argc, char *argv[])
 	free(portno);
 	freeservlist(servs);
 	n_free(igns);
-	ttyreset(STDOUT_FILENO);
+	ttyreset(fileno(stdout));
+	reset_shell_mode();
 	#ifdef	USE_MTRACE
 		muntrace();
 	#endif	// USE_MTRACE
