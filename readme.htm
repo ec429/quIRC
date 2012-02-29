@@ -57,6 +57,9 @@ Then there&apos;s the github page, <a href="http://github.com/ec429/quIRC">http:
 	<dd>Send message to all attached channels on this server.</dd>
 <dt>/topic [<em>message</em>]</dt>
 	<dd>Sets or gets the channel topic.</dd>
+<dt>/mode [<em>nick</em> [{+|-}<em>mode</em>]]</dt>
+	<dd>Without a {+|-}<em>mode</em>, queries your mode, or the mode of <em>nick</em> if given.<br />
+	<small>/mode <em>nick</em> +<em>mode</em></small> sets mode <em>mode</em> on <em>nick</em>; <small>/mode <em>nick</em> -<em>mode</em></small> unsets it.</dd>
 <dt>/away [<em>msg</em>]</dt>
 <dt>/unaway</dt>
 <dt>/away -</dt>
@@ -178,7 +181,7 @@ The default setting is ts-level 1, no-utc, no-its.</p>
 <p>These settings and others can be overridden at runtime with commandline options.  For details run &quot;quirc --help&quot;.</p>
 <p>You can also customise the colours quIRC uses.  A custom colour line starts with &apos;%&apos;, followed optionally by &apos;S&apos; or &apos;R&apos; (only use this colour when Sending or Receiving respectively), followed by an identifier, then space or tab, then four space-separated numbers.  Like this:<br />
 <tt>%[S|R]<em>ident</em>	<em>fore</em> <em>back</em> <em>hi</em> <em>ul</em></tt></p>
-<p>Fore and Back set the foreground and background colours (8 colours each, red=1 green=2 blue=4, add for mixtures, eg white=7).  Hi sets bright, Ul sets underline; both are true if nonzero.</p>
+<p>Fore and Back set the foreground and background colours (8 colours each, red=4 green=2 blue=1, add for mixtures, eg white=7).  Hi sets bright, Ul sets underline; both are true if nonzero.</p>
 <p><em>ident</em> can be any of</p>
 <dl>
 <dt>msg</dt>
@@ -228,6 +231,7 @@ The default setting is ts-level 1, no-utc, no-its.</p>
 <dt>Tab</dt>
 <dt>Ctrl-I</dt>
 	<dd>Autocomplete the nickname to the left of the cursor.</dd>
+<dt>Ctrl-H</dt>
 <dt>Backspace</dt>
 	<dd>Delete the character to the left of the cursor.</dd>
 <dt>Ctrl-W</dt>
@@ -256,7 +260,7 @@ The default setting is ts-level 1, no-utc, no-its.</p>
 </div><!--#othercontrols-->
 <div id="keymapping">
 <h2>Keymapping</h2>
-<p>quIRC's mapping of function and other special keys defaults to a VT100 mapping, such as used by <small>xterm</small> and <small>rxvt</small>.  However, this mapping can be changed with a file <small>/home/<em>username</em>/.quirc/keys</small>.</p>
+<p>quIRC's mapping of function and other special keys is derived from <strong>terminfo</strong>, so it&apos;s important to set your <small>$TERM</small> correctly.  For a few key chords that don't have <strong>terminfo</strong> bindings, it defaults to a VT100 mapping, such as used by <small>xterm</small> and <small>rxvt</small>.  However, this mapping can be changed with a file <small>/home/<em>username</em>/.quirc/keys</small>.</p>
 <p>To change key mappings, add lines of the form <small><em>MODNAME</em> <em>hex</em></small>.  The <em>MODNAME</em>s expected are those which appear in the &quot;<small>keys</small>&quot; file in the quIRC source directory; at present, these are:<br />
 <small>BS</small>, <small>UP</small>, <small>DOWN</small>, <small>LEFT</small>, <small>RIGHT</small>, <small>HOME</small>, <small>END</small>, <small>DELETE</small>, <small>PGUP</small>, <small>PGDN</small>, <small>CUP</small>, <small>AUP</small>, <small>CDOWN</small>, <small>ADOWN</small>, <small>CLEFT</small>, <small>ALEFT</small>, <small>CRIGHT</small>, <small>ARIGHT</small>, <small>CHOME</small>, <small>AHOME</small>, <small>CEND</small>, <small>AEND</small>, <small>CPGUP</small>, <small>APGUP</small>, <small>CPGDN</small>, <small>APGDN</small>, <small>F1</small>, <small>F2</small>, <small>F3</small>, <small>F4</small>, <small>F5</small>, <small>F6</small>, <small>F7</small>, <small>F8</small>, <small>F9</small>, <small>F10</small>, <small>F11</small>, and <small>F12</small>.<br />
 The prefix &apos;C&apos; refers to Ctrl, and &apos;A&apos; to Alt.</p>
@@ -283,7 +287,7 @@ Similarly, if your terminal sends backspace as ^H, you would add:<br />
 <h2>Troubleshooting</h2>
 <dl>
 <dt>I get several copies of the status line scrolling up my screen!</dt>
-<dd><p>One possible cause of this is that your terminal size is not what quIRC thinks it is.  You may need to /set height and width, or export the environment variables $LINES and $COLUMNS from your shell (typically you would also add this to your shell's .rc file), or as a last resort resize your terminal to 80x24.</p><p>Another possibility is that your terminal emulator isn't recognising VT100 escape sequences (which quIRC uses heavily for eg. cursor positioning).  For details see your terminal emulator's documentation; it is known that xterm works out-of-the-box, and that PuTTY has an option to enable VT100 support.</p></dd>
+<dd><p>One possible cause of this is that your terminal size is not what quIRC thinks it is.  You may need to /set height and width, or export the environment variables $LINES and $COLUMNS from your shell (typically you would also add this to your shell's .rc file), or as a last resort resize your terminal to 80x24.</p><p>Another possibility is that your terminal emulator isn't recognising terminal escape sequences (which quIRC uses heavily for eg. cursor positioning).  For details see your terminal emulator's documentation; it is known that xterm works out-of-the-box.  In general quIRC relies on your system&apos;s <strong>terminfo</strong> database; if this is inaccurate, or your <small>$TERM</small> is set incorrectly, quIRC will be sending the wrong escape sequences.</p></dd>
 <dt>The control keys/cursor keys/function keys don't do anything!</dt>
 <dd><p>This probably means your terminal isn't sending VT100 (ANSI) escape sequences, but rather some other set of sequences.  See the section &quot;<a href="#keymapping">Keymapping</a>&quot;, above.</p></dd>
 </dl>

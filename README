@@ -45,6 +45,9 @@ the channel (or nick if current tab is a private messaging tab).
       Send message to all attached channels on this server.
   /topic [message]
       Sets or gets the channel topic.
+  /mode [nick [{+|-}mode]]
+      Without a {+|-}mode, queries your mode, or the mode of nick if given.
+      /mode nick +mode sets mode mode on nick; /mode nick -mode unsets it.
   /away [msg]
   /unaway
   /away -
@@ -198,8 +201,8 @@ You can also customise the colours quIRC uses. A custom colour line starts with
 Receiving respectively), followed by an identifier, then space or tab, then
 four space-separated numbers. Like this:
 %[S|R]identfore back hi ul
-Fore and Back set the foreground and background colours (8 colours each, red=1
-green=2 blue=4, add for mixtures, eg white=7). Hi sets bright, Ul sets
+Fore and Back set the foreground and background colours (8 colours each, red=4
+green=2 blue=1, add for mixtures, eg white=7). Hi sets bright, Ul sets
 underline; both are true if nonzero.
 ident can be any of
   msg
@@ -245,6 +248,7 @@ These are based, broadly, on bash's controls.
   Tab
   Ctrl-I
       Autocomplete the nickname to the left of the cursor.
+  Ctrl-H
   Backspace
       Delete the character to the left of the cursor.
   Ctrl-W
@@ -267,9 +271,11 @@ These are based, broadly, on bash's controls.
   F1 through F12
       Equivalent to /tab #, except that F12 is /tab 0.
 ***** Keymapping *****
-quIRC's mapping of function and other special keys defaults to a VT100 mapping,
-such as used by xterm and rxvt. However, this mapping can be changed with a
-file /home/username/.quirc/keys.
+quIRC's mapping of function and other special keys is derived from terminfo, so
+it's important to set your $TERM correctly. For a few key chords that don't
+have terminfo bindings, it defaults to a VT100 mapping, such as used by xterm
+and rxvt. However, this mapping can be changed with a file /home/
+username/.quirc/keys.
 To change key mappings, add lines of the form MODNAME hex. The MODNAMEs
 expected are those which appear in the "keys" file in the quIRC source
 directory; at present, these are:
@@ -310,10 +316,11 @@ turns yellow.
       would also add this to your shell's .rc file), or as a last resort resize
       your terminal to 80x24.
       Another possibility is that your terminal emulator isn't recognising
-      VT100 escape sequences (which quIRC uses heavily for eg. cursor
+      terminal escape sequences (which quIRC uses heavily for eg. cursor
       positioning). For details see your terminal emulator's documentation; it
-      is known that xterm works out-of-the-box, and that PuTTY has an option to
-      enable VT100 support.
+      is known that xterm works out-of-the-box. In general quIRC relies on your
+      system's terminfo database; if this is inaccurate, or your $TERM is set
+      incorrectly, quIRC will be sending the wrong escape sequences.
   The control keys/cursor keys/function keys don't do anything!
       This probably means your terminal isn't sending VT100 (ANSI) escape
       sequences, but rather some other set of sequences. See the section
