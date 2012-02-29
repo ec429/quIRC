@@ -524,22 +524,22 @@ void in_update(iline inp)
 			}
 			else if(b==bufs[cbuf].server)
 			{
-				c.back=4; // blue
+				c.back=1; // blue
 				c.ul=true;
 			}
 			if(bufs[b].hi_alert%2)
 			{
-				c.fore=6; // cyan
+				c.fore=3; // cyan
 				c.hi=true;
 			}
 			else if(bufs[b].alert)
 			{
-				c.fore=1; // red
+				c.fore=4; // red
 				c.hi=true;
 			}
 			if((!LIVE(b)) && (c.fore!=6))
 			{
-				c.fore=3; // yellow
+				c.fore=6; // yellow
 				c.hi=true;
 			}
 			setcolour(c);
