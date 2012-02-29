@@ -1514,7 +1514,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 	{
 		if(!bufs[bufs[cbuf].server].handle)
 		{
-			add_to_buffer(cbuf, c_err, "Must be run in the context of a server!", "/cmd: ");
+			add_to_buffer(cbuf, c_err, "Must be run in the context of a server!", "/mode: ");
 		}
 		else
 		{

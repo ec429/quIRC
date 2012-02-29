@@ -2,8 +2,6 @@
 
 Scripting language.  Under development in branch 'script'.
 
-termcap (or terminfo) awareness.  The current hardwired ANSI-escapes code for painting the screen is clumsy.  However, it's tailored to my needs, and now that it's neatly packaged away, it should be easier to cope with.  So, I may just stick with it.  (This entry used to say "curses.", but I tried that and found curses' input semantics were insufficiently rich; in particular it didn't like Ctrl-cursor keys)
-
 Need to fix the problem of the conn_rest not getting called for eg worldofspectrum (why is this happening?)
 
 Handle CTCP correctly, on both receive (rx_privmsg()) and send (talk()).
