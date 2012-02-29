@@ -712,14 +712,14 @@ char *highlight(const char *src)
 					src++;
 				break;
 				case '\\':
-					s_setcol(3, 0, 1, 0, &rv, &l, &i);
+					s_setcol(6, 0, 1, 0, &rv, &l, &i);
 					append_char(&rv, &l, &i, '\\');
 					append_char(&rv, &l, &i, '\\');
 					s_setcol(7, 0, 0, 0, &rv, &l, &i);
 					src++;
 				break;
 				case 0:
-					s_setcol(4, 0, 1, 0, &rv, &l, &i);
+					s_setcol(1, 0, 1, 0, &rv, &l, &i);
 					append_char(&rv, &l, &i, '\\');
 					s_setcol(7, 0, 0, 0, &rv, &l, &i);
 				break;
@@ -727,7 +727,7 @@ char *highlight(const char *src)
 				case '1':
 				case '2':
 				case '3':
-					s_setcol(6, 0, 1, 0, &rv, &l, &i);
+					s_setcol(3, 0, 1, 0, &rv, &l, &i);
 					append_char(&rv, &l, &i, '\\');
 					append_char(&rv, &l, &i, *++src);
 					int digits=0;
@@ -738,7 +738,7 @@ char *highlight(const char *src)
 					s_setcol(7, 0, 0, 0, &rv, &l, &i);
 				break;
 				default:
-					s_setcol(1, 0, 1, 0, &rv, &l, &i);
+					s_setcol(4, 0, 1, 0, &rv, &l, &i);
 					append_char(&rv, &l, &i, '\\');
 					s_setcol(7, 0, 0, 0, &rv, &l, &i);
 				break;
