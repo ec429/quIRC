@@ -14,7 +14,7 @@ Optionally fold runs of the same type of message.  Eg.: =foo=bar=baz= have joine
 
 Handle \ in tab-completion.  It should be expanded to \\.
 
-Display unprintable characters in input-buffer, with \escapes.  Leave UTF8 bits alone.
+Leave UTF8 alone when escaping unprintables in input buffer.
 
 Tab search, with ^T.  Typing eg ^Tqu<return> should switch to the tab named quirc (assuming no other tabs have names containing "qu").  While entering the search string, all matching tabs should be highlighted on the strip.
 

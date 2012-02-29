@@ -744,6 +744,15 @@ char *highlight(const char *src)
 				break;
 			}
 		}
+		else if(!isprint(*src))
+		{
+			s_setcol(2, 0, 1, 1, &rv, &l, &i);
+			append_char(&rv, &l, &i, '\\');
+			char obuf[16];
+			snprintf(obuf, 16, "%03o", (unsigned char)*src);
+			append_str(&rv, &l, &i, obuf);
+			s_setcol(7, 0, 0, 0, &rv, &l, &i);
+		}
 		else
 		{
 			append_char(&rv, &l, &i, *src);
