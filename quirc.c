@@ -27,6 +27,7 @@ int main(int argc, char *argv[])
 	bufs=NULL;
 	
 	setupterm((char *)0, fileno(stdout), (int *)0);
+	putp(keypad_xmit);
 	init_start_buffer();
 	
 	sigpipe=0;

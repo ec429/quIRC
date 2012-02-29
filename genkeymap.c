@@ -94,7 +94,7 @@ int main(int argc, char **argv)
 			{
 				printf("\tkmap[%d].name=\"%s\";\n", i, keys[i].name);
 				if(keys[i].mod[0]==':')
-					printf("\tif(key_%s) kmap[%d].mod=key_%s; else kmap[%d].mod=\"\";\n", keys[i].mod+1, i, keys[i].mod+1, i);
+					printf("\tif(%s) kmap[%d].mod=%s; else kmap[%d].mod=\"\";\n", keys[i].mod+1, i, keys[i].mod+1, i);
 				else
 				{
 					printf("\tkmap[%d].mod=malloc(%zu);\n", i, strlen(keys[i].mod)+1);

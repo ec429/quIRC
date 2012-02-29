@@ -278,11 +278,8 @@ and rxvt. However, this mapping can be changed with a file /home/
 username/.quirc/keys.
 To change key mappings, add lines of the form MODNAME hex. The MODNAMEs
 expected are those which appear in the "keys" file in the quIRC source
-directory; at present, these are:
-BS, UP, DOWN, LEFT, RIGHT, HOME, END, DELETE, PGUP, PGDN, CUP, AUP, CDOWN,
-ADOWN, CLEFT, ALEFT, CRIGHT, ARIGHT, CHOME, AHOME, CEND, AEND, CPGUP, APGUP,
-CPGDN, APGDN, F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, and F12.
-The prefix 'C' refers to Ctrl, and 'A' to Alt.
+directory.
+The prefix 'C' refers to Ctrl, 'S' to Shift, and 'A' to Alt.
 If, for instance, your terminal sends Ctrl-Left as ^[OD, you would add the
 following line:
 CLEFT 1b4f44

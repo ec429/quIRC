@@ -10,7 +10,6 @@
 
 int inputchar(iline *inp, int *state)
 {
-	//printf("\010\010\010" CLA);
 	int c=getchar();
 	if((c==0)||(c==EOF)) // stdin is set to non-blocking, so this may happen
 		return(0);
@@ -349,12 +348,12 @@ int inputchar(iline *inp, int *state)
 					ifree(inp);
 				}
 			}
-			else if((mod==KEY_CLEFT)||(mod==KEY_ALEFT))
+			else if((mod==KEY_SLEFT)||(mod==KEY_CLEFT)||(mod==KEY_ALEFT))
 			{
 				cbuf=max(cbuf-1, 0);
 				if(force_redraw<3) redraw_buffer();
 			}
-			else if((mod==KEY_CRIGHT)||(mod==KEY_ARIGHT))
+			else if((mod==KEY_SRIGHT)||(mod==KEY_CRIGHT)||(mod==KEY_ARIGHT))
 			{
 				cbuf=min(cbuf+1, nbufs-1);
 				if(force_redraw<3) redraw_buffer();
@@ -369,13 +368,13 @@ int inputchar(iline *inp, int *state)
 				bufs[cbuf].ascroll++;
 				if(force_redraw<3) redraw_buffer();
 			}
-			else if((mod==KEY_CHOME)||(mod==KEY_AHOME))
+			else if((mod==KEY_SHOME)||(mod==KEY_CHOME)||(mod==KEY_AHOME))
 			{
 				bufs[cbuf].scroll=bufs[cbuf].filled?(bufs[cbuf].ptr+1)%bufs[cbuf].nlines:0;
 				bufs[cbuf].ascroll=0;
 				if(force_redraw<3) redraw_buffer();
 			}
-			else if((mod==KEY_CEND)||(mod==KEY_AEND))
+			else if((mod==KEY_SEND)||(mod==KEY_CEND)||(mod==KEY_AEND))
 			{
 				bufs[cbuf].scroll=bufs[cbuf].ptr;
 				bufs[cbuf].ascroll=0;

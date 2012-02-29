@@ -261,9 +261,8 @@ The default setting is ts-level 1, no-utc, no-its.</p>
 <div id="keymapping">
 <h2>Keymapping</h2>
 <p>quIRC's mapping of function and other special keys is derived from <strong>terminfo</strong>, so it&apos;s important to set your <small>$TERM</small> correctly.  For a few key chords that don't have <strong>terminfo</strong> bindings, it defaults to a VT100 mapping, such as used by <small>xterm</small> and <small>rxvt</small>.  However, this mapping can be changed with a file <small>/home/<em>username</em>/.quirc/keys</small>.</p>
-<p>To change key mappings, add lines of the form <small><em>MODNAME</em> <em>hex</em></small>.  The <em>MODNAME</em>s expected are those which appear in the &quot;<small>keys</small>&quot; file in the quIRC source directory; at present, these are:<br />
-<small>BS</small>, <small>UP</small>, <small>DOWN</small>, <small>LEFT</small>, <small>RIGHT</small>, <small>HOME</small>, <small>END</small>, <small>DELETE</small>, <small>PGUP</small>, <small>PGDN</small>, <small>CUP</small>, <small>AUP</small>, <small>CDOWN</small>, <small>ADOWN</small>, <small>CLEFT</small>, <small>ALEFT</small>, <small>CRIGHT</small>, <small>ARIGHT</small>, <small>CHOME</small>, <small>AHOME</small>, <small>CEND</small>, <small>AEND</small>, <small>CPGUP</small>, <small>APGUP</small>, <small>CPGDN</small>, <small>APGDN</small>, <small>F1</small>, <small>F2</small>, <small>F3</small>, <small>F4</small>, <small>F5</small>, <small>F6</small>, <small>F7</small>, <small>F8</small>, <small>F9</small>, <small>F10</small>, <small>F11</small>, and <small>F12</small>.<br />
-The prefix &apos;C&apos; refers to Ctrl, and &apos;A&apos; to Alt.</p>
+<p>To change key mappings, add lines of the form <small><em>MODNAME</em> <em>hex</em></small>.  The <em>MODNAME</em>s expected are those which appear in the &quot;<small>keys</small>&quot; file in the quIRC source directory.<br />
+The prefix &apos;C&apos; refers to Ctrl, &apos;S&apos; to Shift, and &apos;A&apos; to Alt.</p>
 <p>If, for instance, your terminal sends Ctrl-Left as ^[OD, you would add the following line:<br />
 <tt>CLEFT 1b4f44</tt><br />
 Similarly, if your terminal sends backspace as ^H, you would add:<br />
