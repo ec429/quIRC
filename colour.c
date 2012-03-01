@@ -1,6 +1,6 @@
 /*
 	quIRC - simple terminal-based IRC client
-	Copyright (C) 2010-11 Edward Cree
+	Copyright (C) 2010-12 Edward Cree
 
 	See quirc.c for license information
 	colour: defined colours & mirc-colour-compat

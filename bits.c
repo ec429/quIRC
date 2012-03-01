@@ -1,3 +1,11 @@
+/*
+	quIRC - simple terminal-based IRC client
+	Copyright (C) 2010-12 Edward Cree
+
+	See quirc.c for license information
+	bits: general helper functions (chiefly string manipulation)
+*/
+
 #include "bits.h"
 
 char * fgetl(FILE *fp)
