@@ -285,7 +285,6 @@ int redraw_buffer(void)
 		if(e) return(e);
 		if(bufs[cbuf].dirty) return(1);
 	}
-	cls();
 	int uline=bufs[cbuf].scroll;
 	int pline=bufs[cbuf].ascroll;
 	while(pline<0)
@@ -342,6 +341,7 @@ int redraw_buffer(void)
 	int row=height-2;
 	while(row>(tsb?1:0))
 	{
+		bool breakit=false;
 		pline--;
 		while(pline<0)
 		{
@@ -352,23 +352,24 @@ int redraw_buffer(void)
 					uline+=bufs[cbuf].nlines;
 				else
 				{
-					row=-1;
+					breakit=true;
 					pline=0;
 					break;
 				}
 			}
 			if(uline==bufs[cbuf].ptr)
 			{
-				row=-1;
+				breakit=true;
 				break;
 			}
 			pline+=bufs[cbuf].lpl[uline];
 		}
-		if(row<0) break;
+		if(breakit) break;
 		setcolour(bufs[cbuf].lc[uline]);
 		locate(row, 0);
 		fputs(bufs[cbuf].lpt[uline][pline], stdout);
-		if(full_width_colour) clr();
+		if(!full_width_colour) resetcol();
+		clr();
 		row--;
 	}
 	resetcol();
