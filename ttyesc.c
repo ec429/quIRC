@@ -25,9 +25,11 @@ int setcol(int fore, int back, bool hi, bool ul)
 	if(!su) su=enter_standout_mode;
 	if(!su) su="";
 	if(ul) putp(su);
-	const char *f=tparm(set_foreground, fore);
+	const char *f=tparm(set_a_foreground, fore);
+	if(!f) f=tparm(set_foreground, fore);
 	if(f) putp(f);
-	const char *b=tparm(set_background, back);
+	const char *b=tparm(set_a_background, back);
+	if(!f) f=tparm(set_background, back);
 	if(b) putp(b);
 	fflush(stdout);
 	return(0);
@@ -50,9 +52,11 @@ int s_setcol(int fore, int back, bool hi, bool ul, char **rv, int *l, int *i)
 	if(!su) su=enter_standout_mode;
 	if(!su) su="";
 	if(ul) append_str(rv, l, i, su);
-	const char *f=tparm(set_foreground, fore);
+	const char *f=tparm(set_a_foreground, fore);
+	if(!f) f=tparm(set_foreground, fore);
 	if(f) append_str(rv, l, i, f);
-	const char *b=tparm(set_background, back);
+	const char *b=tparm(set_a_background, back);
+	if(!f) f=tparm(set_background, back);
 	if(b) append_str(rv, l, i, b);
 	return(0);
 }

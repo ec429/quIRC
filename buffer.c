@@ -524,22 +524,22 @@ void in_update(iline inp)
 			}
 			else if(b==bufs[cbuf].server)
 			{
-				c.back=1; // blue
+				c.back=4; // blue
 				c.ul=true;
 			}
 			if(bufs[b].hi_alert%2)
 			{
-				c.fore=3; // cyan
+				c.fore=6; // cyan
 				c.hi=true;
 			}
 			else if(bufs[b].alert)
 			{
-				c.fore=4; // red
+				c.fore=1; // red
 				c.hi=true;
 			}
 			if((!LIVE(b)) && (c.fore!=6))
 			{
-				c.fore=6; // yellow
+				c.fore=3; // yellow
 				c.hi=true;
 			}
 			setcolour(c);
@@ -712,14 +712,14 @@ char *highlight(const char *src)
 					src++;
 				break;
 				case '\\':
-					s_setcol(6, 0, 1, 0, &rv, &l, &i);
+					s_setcol(3, 0, 1, 0, &rv, &l, &i);
 					append_char(&rv, &l, &i, '\\');
 					append_char(&rv, &l, &i, '\\');
 					s_setcol(7, 0, 0, 0, &rv, &l, &i);
 					src++;
 				break;
 				case 0:
-					s_setcol(1, 0, 1, 0, &rv, &l, &i);
+					s_setcol(4, 0, 1, 0, &rv, &l, &i);
 					append_char(&rv, &l, &i, '\\');
 					s_setcol(7, 0, 0, 0, &rv, &l, &i);
 				break;
@@ -727,7 +727,7 @@ char *highlight(const char *src)
 				case '1':
 				case '2':
 				case '3':
-					s_setcol(3, 0, 1, 0, &rv, &l, &i);
+					s_setcol(6, 0, 1, 0, &rv, &l, &i);
 					append_char(&rv, &l, &i, '\\');
 					append_char(&rv, &l, &i, *++src);
 					int digits=0;
@@ -738,7 +738,7 @@ char *highlight(const char *src)
 					s_setcol(7, 0, 0, 0, &rv, &l, &i);
 				break;
 				default:
-					s_setcol(4, 0, 1, 0, &rv, &l, &i);
+					s_setcol(1, 0, 1, 0, &rv, &l, &i);
 					append_char(&rv, &l, &i, '\\');
 					s_setcol(7, 0, 0, 0, &rv, &l, &i);
 				break;
