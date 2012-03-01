@@ -29,7 +29,7 @@ int setcol(int fore, int back, bool hi, bool ul)
 	if(!f) f=tparm(set_foreground, fore);
 	if(f) putp(f);
 	const char *b=tparm(set_a_background, back);
-	if(!f) f=tparm(set_background, back);
+	if(!b) b=tparm(set_background, back);
 	if(b) putp(b);
 	fflush(stdout);
 	return(0);
@@ -56,7 +56,7 @@ int s_setcol(int fore, int back, bool hi, bool ul, char **rv, int *l, int *i)
 	if(!f) f=tparm(set_foreground, fore);
 	if(f) append_str(rv, l, i, f);
 	const char *b=tparm(set_a_background, back);
-	if(!f) f=tparm(set_background, back);
+	if(!b) b=tparm(set_background, back);
 	if(b) append_str(rv, l, i, b);
 	return(0);
 }
