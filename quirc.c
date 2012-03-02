@@ -174,7 +174,7 @@ int main(int argc, char *argv[])
 	FD_ZERO(&master);
 	FD_SET(fileno(stdin), &master);
 	int fdmax=fileno(stdin);
-	if((!autoconnect(&master, &fdmax, servs))&&(!quiet))
+	if(!autoconnect(&master, &fdmax, servs))
 		add_to_buffer(0, STA, QUIET, 0, false, "Not connected - use /server to connect", "");
 	iline inp={{NULL, 0, 0}, {NULL, 0, 0}};
 	in_update(inp);

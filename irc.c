@@ -717,7 +717,7 @@ int irc_numeric(message pkt, int b)
 				e_buf_print(b, ERR, pkt, num==RPL_MOTD?"RPL_MOTD: Not enough arguments: ":num==RPL_MOTDSTART?"RPL_MOTDSTART: Not enough arguments: ":num==RPL_ENDOFMOTD?"RPL_ENDOFMOTD: Not enough arguments: ":"RPL_MOTD???: Not enough arguments: ");
 				break;
 			}
-			add_to_buffer(b, NOTICE, NORMAL, 0, false, pkt.args[1], "");
+			add_to_buffer(b, NOTICE, QUIET, 0, false, pkt.args[1], "");
 		break;
 		case ERR_NOMOTD: // 422 <dest> :MOTD File is missing
 			if(pkt.nargs<2)
@@ -725,7 +725,7 @@ int irc_numeric(message pkt, int b)
 				e_buf_print(b, ERR, pkt, "ERR_NOMOTD: Not enough arguments: ");
 				break;
 			}
-			add_to_buffer(b, NOTICE, NORMAL, 0, false, pkt.args[1], "");
+			add_to_buffer(b, NOTICE, QUIET, 0, false, pkt.args[1], "");
 		break;
 		case RPL_TOPIC: // 332 dest <channel> :<topic>
 			if(pkt.nargs<3)
@@ -779,7 +779,7 @@ int irc_numeric(message pkt, int b)
 					size_t tslen = strftime(ts, sizeof(ts), "%H:%M:%S GMT on %a, %d %b %Y", tm); // TODO options controlling date format (eg. ISO 8601)
 					char tmsg[32+strlen(pkt.args[2])+tslen];
 					sprintf(tmsg, "Topic was set by %s at %s", pkt.args[2], ts);
-					add_to_buffer(b2, STA, NORMAL, 0, false, tmsg, "");
+					add_to_buffer(b2, STA, QUIET, 0, false, tmsg, "");
 				}
 			}
 		break;
@@ -980,7 +980,7 @@ int rx_mode(message pkt, int b)
 														ms[1]=0;
 													}
 													char mm[16+strlen(ms)+strlen(from)];
-													sprintf(mm, "is now mode %s (%s)", ms, from);
+													sprintf(mm, " is now mode %s (%s)", ms, from);
 													add_to_buffer(b2, MODE, NORMAL, 0, false, mm, curr->data);
 												}
 											}
@@ -1027,7 +1027,7 @@ int rx_mode(message pkt, int b)
 												ms[1]=0;
 											}
 											char mm[16+strlen(ms)+strlen(from)];
-											sprintf(mm, "is now mode %s (%s)", ms, from);
+											sprintf(mm, " is now mode %s (%s)", ms, from);
 											add_to_buffer(b2, MODE, NORMAL, 0, false, mm, curr->data);
 										}
 									}
@@ -1207,7 +1207,7 @@ int rx_kill(message pkt, int b, fd_set *master)
 		{
 			if((bufs[b2].server==b) || (bufs[b2].server==0))
 			{
-				add_to_buffer(b2, QUIT, NORMAL, 0, false, pkt.nargs<2?"":pkt.args[1], "KILLed: ");
+				add_to_buffer(b2, QUIT_PREFORMAT, NORMAL, 0, false, pkt.nargs<2?"":pkt.args[1], "KILLed: ");
 				bufs[b2].live=false;
 				close(bufs[b2].handle);
 				bufs[b2].handle=0; // de-bind fd
@@ -1260,7 +1260,7 @@ int rx_kick(message pkt, int b)
 		{
 			if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(pkt.args[0], bufs[b2].bname, bufs[b].casemapping)==0))
 			{
-				add_to_buffer(b2, QUIT, NORMAL, 0, false, pkt.nargs<3?"(No reason)":pkt.args[2], "Kicked: ");
+				add_to_buffer(b2, QUIT_PREFORMAT, NORMAL, 0, false, pkt.nargs<3?"(No reason)":pkt.args[2], "Kicked: ");
 				bufs[b2].live=false;
 				bufs[b2].hi_alert=5;
 			}
