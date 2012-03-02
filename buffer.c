@@ -451,6 +451,15 @@ int render_line(int buf, int uline)
 			free(bufs[buf].lpt[uline][pline]);
 		free(bufs[buf].lpt[uline]);
 	}
+	if(bufs[buf].conf)
+	{
+		if((bufs[buf].lm[uline]==JOIN)||(bufs[buf].lm[uline]==PART)||(bufs[buf].lm[uline]==NICK)||(bufs[buf].lm[uline]==MODE)||(bufs[buf].lm[uline]==QUIT))
+		{
+			bufs[buf].lpt[uline]=NULL;
+			bufs[buf].lpl[uline]=0;
+			return(0);
+		}
+	}
 	char *proc;int l,i;
 	init_char(&proc, &l, &i);
 	char stamp[32];
