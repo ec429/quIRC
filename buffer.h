@@ -38,6 +38,24 @@ typedef enum
 }
 btype;
 
+typedef enum
+{
+	MSG,
+	NOTICE,
+	PREFORMAT,
+	ACT,
+	JOIN,
+	PART,
+	QUIT,
+	NICK,
+	MODE,
+	STA,
+	ERR,
+	UNK,
+	UNN,
+}
+mtype;
+
 typedef struct _buf
 {
 	btype type;
@@ -54,13 +72,16 @@ typedef struct _buf
 	int ptr; // pointer to current unproc line
 	int scroll; // unproc line of screen bottom (which is one physical line below the last displayed text)
 	int ascroll; // physical line within [scroll]
-	colour *lc; // array of colours for lines
+	bool *ls; // array of whether line was sent or rxed
+	mtype *lm; // array of message types for lines
+	char *lp; // array of prefix chars (0 for use default)
 	char **lt; // array of (unprocessed) text for lines
-	char **ltag; // array of (unprocessed) tag text for lines
+	char **ltag; // array of (unprocessed, uncrushed) tag text for lines
 	time_t *ts; // array of timestamps for unproc lines (not used now, but there ready for eg. mergebuffers)
 	bool filled; // buffer has filled up and looped? (the buffers are circular in nature)
 	bool dirty; // processed lines are out of date? (TODO: make this indicate /which/ are out of date and only re-render those)
 	int *lpl; // count of processed lines for each line
+	colour *lpc; // array of colours for each line
 	char ***lpt; // array of processed lines for each line
 	bool alert; // tab has new messages?
 	int hi_alert; // high-level alert status: 0 = none; 1: on (if alert then flashing else single flash); 2: off (flashing)
@@ -86,24 +107,25 @@ struct
 {
 	int nlines;
 	char **lt;
-	colour *lc;
+	mtype *lm;
 	time_t *ts;
 	int errs;
 }
 s_buf;
 
 int init_start_buffer(void);
-int add_to_start_buffer(colour lc, const char *lt);
-int asb_failsafe(colour lc, const char *lt);
+int add_to_start_buffer(mtype lm, const char *lt);
+int asb_failsafe(mtype lm, const char *lt);
 int free_start_buffer(void);
 int initialise_buffers(int buflines);
 int init_buffer(int buf, btype type, const char *bname, int nlines);
 int free_buffer(int buf);
-int add_to_buffer(int buf, colour lc, const char *lt, const char *ltag);
+int add_to_buffer(int buf, mtype lm, char lp, bool ls, const char *lt, const char *ltag);
+int mark_buffer_dirty(int buf);
 int redraw_buffer(void);
 int render_buffer(int buf);
 int render_line(int buf, int uline);
-int e_buf_print(int buf, colour lc, message pkt, const char *lead);
+int e_buf_print(int buf, mtype lm, message pkt, const char *lead);
 int transfer_start_buffer(void);
 int push_buffer(void);
 void in_update(iline inp);

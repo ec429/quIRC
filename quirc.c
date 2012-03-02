@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
 			char *err=strerror(errno);
 			char msg[48+strlen(err)];
 			sprintf(msg, "Failed to mark stdin non-blocking: fcntl: %s", err);
-			asb_failsafe(c_status, msg);
+			asb_failsafe(STA, msg);
 		}
 	}
 	if(initkeys())
@@ -128,12 +128,12 @@ int main(int argc, char *argv[])
 		{
 			char msg[32];
 			sprintf(msg, "%d errors in ~/.quirc/rc", rc_err);
-			asb_failsafe(c_status, msg);
+			asb_failsafe(STA, msg);
 		}
 	}
 	else
 	{
-		asb_failsafe(c_status, "no config file found.  Install one at ~/.quirc/rc");
+		asb_failsafe(STA, "no config file found.  Install one at ~/.quirc/rc");
 	}
 	FILE *keyfp=fopen("keys", "r");
 	if(keyfp)
@@ -152,8 +152,8 @@ int main(int argc, char *argv[])
 	
 	if(ttyraw(fileno(stdout)))
 	{
-		asb_failsafe(c_err, "Failed to set raw mode on tty: ttyraw:");
-		asb_failsafe(c_err, strerror(errno));
+		asb_failsafe(ERR, "Failed to set raw mode on tty: ttyraw:");
+		asb_failsafe(ERR, strerror(errno));
 	}
 	
 	unsigned int i;
@@ -175,7 +175,7 @@ int main(int argc, char *argv[])
 	FD_SET(fileno(stdin), &master);
 	int fdmax=fileno(stdin);
 	if((!autoconnect(&master, &fdmax, servs))&&(!quiet))
-		add_to_buffer(0, c_status, "Not connected - use /server to connect", "");
+		add_to_buffer(0, STA, 0, false, "Not connected - use /server to connect", "");
 	iline inp={{NULL, 0, 0}, {NULL, 0, 0}};
 	in_update(inp);
 	struct timeval timeout;
@@ -189,7 +189,7 @@ int main(int argc, char *argv[])
 				int l, c;
 				if(termsize(fileno(stdin), &c, &l))
 				{
-					add_to_buffer(0, c_err, strerror(errno), "termsize: ioctl: ");
+					add_to_buffer(0, ERR, 0, false, strerror(errno), "termsize: ioctl: ");
 				}
 				else
 				{
@@ -231,7 +231,7 @@ int main(int argc, char *argv[])
 					bufs[list->reconn_b].realsname=NULL;
 					if(list->autoent)
 						bufs[list->reconn_b].autoent=list->autoent;
-					if(!quiet) add_to_buffer(list->reconn_b, c_status, dstr, "/server: ");
+					if(!quiet) add_to_buffer(list->reconn_b, STA, 0, false, dstr, "/server: ");
 				}
 				else
 				{
@@ -249,7 +249,7 @@ int main(int argc, char *argv[])
 						bufs[cbuf].ilist=list->autoent->igns;
 						bufs[cbuf].autoent=list->autoent;
 					}
-					if(!quiet) add_to_buffer(cbuf, c_status, dstr, "/server: ");
+					if(!quiet) add_to_buffer(cbuf, STA, 0, false, dstr, "/server: ");
 				}
 				free((char *)list->nl_details->ar_name);
 				free((char *)list->nl_details->ar_service);
@@ -282,7 +282,7 @@ int main(int argc, char *argv[])
 									close(bufs[b].handle);
 									FD_CLR(bufs[b].handle, &master);
 									bufs[b].handle=0; // de-bind fd
-									add_to_buffer(b, c_err, "Outbound ping timeout", "Disconnected: ");
+									add_to_buffer(b, ERR, 0, false, "Outbound ping timeout", "Disconnected: ");
 								}
 								bufs[b].alert=true;
 								bufs[b].hi_alert=5;
@@ -302,7 +302,7 @@ int main(int argc, char *argv[])
 					{
 						bufs[b].live=false;
 						bufs[b].handle=0; // just in case
-						add_to_buffer(b, c_err, "Connection to server lost", "Disconnected: ");
+						add_to_buffer(b, ERR, 0, false, "Connection to server lost", "Disconnected: ");
 					}
 				}
 			}
@@ -314,7 +314,7 @@ int main(int argc, char *argv[])
 		if(select(fdmax+1, &readfds, NULL, NULL, &timeout)==-1)
 		{
 			if(errno!=EINTR) // nobody cares if select() was interrupted by a signal
-				add_to_buffer(0, c_err, strerror(errno), "select: ");
+				add_to_buffer(0, ERR, 0, false, strerror(errno), "select: ");
 		}
 		else
 		{
@@ -379,7 +379,7 @@ int main(int argc, char *argv[])
 										bufs[b].handle=0; // de-bind fd
 										FD_CLR(fd, &master);
 										bufs[b].live=false;
-										add_to_buffer(0, c_err, emsg, "error: ");
+										add_to_buffer(0, ERR, 0, false, emsg, "error: ");
 										redraw_buffer();
 									}
 									else if(packet)
@@ -449,7 +449,7 @@ int main(int argc, char *argv[])
 											}
 											else
 											{
-												e_buf_print(b, c_unk, pkt, "Unrecognised command: ");
+												e_buf_print(b, UNK, pkt, "Unrecognised command: ");
 											}
 											message_free(pkt);
 										}
@@ -471,7 +471,7 @@ int main(int argc, char *argv[])
 									bufs[b].handle=0; // de-bind fd
 									FD_CLR(fd, &master);
 									bufs[b].live=false;
-									add_to_buffer(0, c_err, emsg, "error: read on a dead tab: ");
+									add_to_buffer(0, ERR, 0, false, emsg, "error: read on a dead tab: ");
 									redraw_buffer();
 								}
 								in_update(inp);
@@ -482,7 +482,7 @@ int main(int argc, char *argv[])
 						{
 							char fmsg[48];
 							sprintf(fmsg, "select() returned data on unknown fd %d!", fd);
-							if(!quiet) add_to_buffer(0, c_err, fmsg, "main loop:");
+							if(!quiet) add_to_buffer(0, ERR, 0, false, fmsg, "main loop:");
 							FD_CLR(fd, &master); // prevent it from happening again
 						}
 					}
@@ -536,8 +536,6 @@ int main(int argc, char *argv[])
 			in_update(inp);
 		}
 	}
-	if(state!=0)
-		printf("quirc exiting\n");
 	int b;
 	for(b=1;b<nbufs;b++)
 	{

@@ -18,13 +18,9 @@ Leave UTF8 alone when escaping unprintables in input buffer.
 
 Tab search, with ^T.  Typing eg ^Tqu<return> should switch to the tab named quirc (assuming no other tabs have names containing "qu").  While entering the search string, all matching tabs should be highlighted on the strip.
 
-Make /close on server tabs close the associated channel tabs.  /disconnect the same, presumably.
-
 /realsname cmd to display the real server name (which we already store, anyway).
 
 Use the NETWORK parameter of RPL_ISUPPORT as the bname for server buffers.
-
-Store nicks uncrushed in unproc.  Makes '/set mnln', '/set prefix' etc. retroactive.
 
 Option for no hanging indent (wordline() tabx=0).
 
