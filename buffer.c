@@ -284,6 +284,13 @@ int add_to_buffer(int buf, mtype lm, prio lq, char lp, bool ls, const char *lt, 
 	}
 	else
 	{
+		if(!(
+			(bufs[buf].conf&&((lm==JOIN)||(lm==PART)||(lm==NICK)||(lm==MODE)||(lm==QUIT)))
+			||
+				(quiet&&(lq==QUIET))
+			||
+				(!debug&&(lq==DEBUG))
+			))
 		bufs[buf].alert=true;
 	}
 	return(0);
