@@ -76,19 +76,19 @@ Then there&apos;s the github page, <a href="http://github.com/ec429/quIRC">http:
 	</ul>
 	For full details see <a href="config_ref.htm">config_ref.htm</a>.
 	</dd>
-<dt>/ignore [-ipd] <em>user</em>[@<em>host</em>]</dt>
+<dt>/ignore [-ipd] <em>nick</em>[!<em>user</em>[@<em>host</em>]]</dt>
 <dt>/ignore [-ipd] -r <em>regex</em></dt>
 <dt>/ignore -l</dt>
-	<dd>Adds a user to your &quot;ignore list&quot;, thus preventing messages from that user from appearing.
+	<dd>Adds a nick to your &quot;ignore list&quot;, thus preventing messages from that nick from appearing.
 	<dl>
 		<dt>-i</dt>
 			<dd>Match will be case-insensitive</dd>
 		<dt>-p</dt>
 			<dd>Will also ignore matching <em>private</em> messages</dd>
 		<dt>-d</dt>
-			<dd>Instead of adding a rule, remove all rules matching the given user@host</dd>
+			<dd>Instead of adding a rule, remove all rules matching the given nick!user@host</dd>
 		<dt>-r</dt>
-			<dd>Supply a regular expression match.  The usual form (without -r) generates the regular expression <small>^<em>user</em>[_~]*@<em>host</em>$</small>; if <em>user</em> or <em>host</em> are not given (or begin with *), they are replaced with <small>[^@]*</small></dd>
+			<dd>Supply a regular expression match.  The usual form (without -r) generates the regular expression <small>^<em>nick</em>[_~]*!<em>user</em>@<em>host</em>$</small>; if <em>user</em> or <em>host</em> are not given (or begin with *), they are replaced with <small>[^!@]*</small> resp. <small>[^@]</small></dd>
 		<dt>-l</dt>
 			<dd>Instead of adding a rule, list rules which apply to this tab</dd>
 	</dl>

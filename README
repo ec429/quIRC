@@ -74,22 +74,23 @@ the channel (or nick if current tab is a private messaging tab).
           * The options 'uname', 'fname' and 'pass' are analogous to the --
             uname, --fname and --pass commandline options.
       For full details see config_ref.htm.
-  /ignore [-ipd] user[@host]
+  /ignore [-ipd] nick[!user[@host]]
   /ignore [-ipd] -r regex
   /ignore -l
-      Adds a user to your "ignore list", thus preventing messages from that
-      user from appearing.
+      Adds a nick to your "ignore list", thus preventing messages from that
+      nick from appearing.
         -i
             Match will be case-insensitive
         -p
             Will also ignore matching private messages
         -d
             Instead of adding a rule, remove all rules matching the given
-            user@host
+            nick!user@host
         -r
             Supply a regular expression match. The usual form (without -r)
-            generates the regular expression ^user[_~]*@host$; if user or host
-            are not given (or begin with *), they are replaced with [^@]*
+            generates the regular expression ^nick[_~]*!user@host$; if user or
+            host are not given (or begin with *), they are replaced with [^!@]*
+            resp. [^@]
         -l
             Instead of adding a rule, list rules which apply to this tab
   /rejoin [key]
