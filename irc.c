@@ -1069,7 +1069,7 @@ int rx_mode(message pkt, int b)
 									}
 									char mm[16+strlen(ms)+strlen(from)];
 									sprintf(mm, " is now mode %s (%s)", ms, from);
-									add_to_buffer(b2, MODE, NORMAL, 0, false, mm, bufs[b2].bname);
+									add_to_buffer(b2, MODE, QUIET, 0, false, mm, bufs[b2].bname);
 								}
 							}
 						}
@@ -1095,7 +1095,7 @@ int rx_mode(message pkt, int b)
 							}
 							char mm[16+strlen(ms)+strlen(from)];
 							sprintf(mm, " is now mode %s (%s)", ms, from);
-							add_to_buffer(b2, MODE, NORMAL, 0, false, mm, bufs[b2].bname);
+							add_to_buffer(b2, MODE, QUIET, 0, false, mm, bufs[b2].bname);
 						}
 					}
 				break;
