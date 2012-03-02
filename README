@@ -162,7 +162,7 @@ fred's assistance should no longer be needed, but we've kept him around just in
 case.
 The size of each scrollback buffer, in lines, can be set with
 buf buf-lines
-the default being 256. Larger values will, of course, increase memory
+the default being 1024. Larger values will, of course, increase memory
 consumption.
 You can turn on a few display options too;
 fwc
@@ -188,7 +188,10 @@ ts-level Meaning
 2        Display timestamps in the form [HH:MM:SS]
 3        Display timestamps in the form [HH:MM:SS +hhmm], where +hhmm is the
          time zone offset
-4        Pointlessly, display timestamps as seconds since the Epoch
+4        Display timestamps in the form [Day. HH:MM:SS], where Day is the day
+         of the week
+5        Display timestamps in the form [Day. HH:MM:SS +hhmm]
+6        Pointlessly, display timestamps as seconds since the Epoch
 If utc is enabled, timestamps will be displayed as UTC instead of local time,
 and +hhmm will be replaced by UTC.
 If its is enabled, a clock will be displayed at the left-hand end of the input

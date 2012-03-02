@@ -306,8 +306,8 @@
 					}
 					else
 						ts=1;
-					if(ts>4)
-						ts=4;
+					if(ts>6)
+						ts=6;
 					if(ts)
 					{
 						char lmsg[44];

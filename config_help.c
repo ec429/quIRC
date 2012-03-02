@@ -9,7 +9,7 @@
 			fprintf(stderr, "\t--[no-]hts                      : highlight tabstrip\n");
 			fprintf(stderr, "\t--[no-]tsb                      : top status bar\n");
 			fprintf(stderr, "\t--tping=<numeric>               : outbound ping time\n");
-			fprintf(stderr, "\t--timestamps=<0 to 4>           : timestamping\n");
+			fprintf(stderr, "\t--timestamps=<0 to 6>           : timestamping\n");
 			fprintf(stderr, "\t--[no-]utc                      : UTC timestamps\n");
 			fprintf(stderr, "\t--[no-]its                      : input clock\n");
 			fprintf(stderr, "\t--[no-]quiet                    : quiet mode\n");

@@ -482,24 +482,33 @@ int render_line(int buf, int uline)
 	}
 	char *proc;int l,i;
 	init_char(&proc, &l, &i);
-	char stamp[32];
+	char stamp[40];
 	struct tm *td=(utc?gmtime:localtime)(&bufs[buf].ts[uline]);
 	switch(ts)
 	{
 		case 1:
-			strftime(stamp, 32, "[%H:%M] ", td);
+			strftime(stamp, 40, "[%H:%M] ", td);
 		break;
 		case 2:
-			strftime(stamp, 32, "[%H:%M:%S] ", td);
+			strftime(stamp, 40, "[%H:%M:%S] ", td);
 		break;
 		case 3:
 			if(utc)
-				strftime(stamp, 32, "[%H:%M:%S UTC] ", td);
+				strftime(stamp, 40, "[%H:%M:%S UTC] ", td);
 			else
-				strftime(stamp, 32, "[%H:%M:%S %z] ", td);
+				strftime(stamp, 40, "[%H:%M:%S %z] ", td);
 		break;
 		case 4:
-			snprintf(stamp, 32, "[u+%lu] ", (unsigned long)bufs[buf].ts[uline]);
+			strftime(stamp, 40, "[%a. %H:%M:%S] ", td);
+		break;
+		case 5:
+			if(utc)
+				strftime(stamp, 40, "[%a. %H:%M:%S UTC] ", td);
+			else
+				strftime(stamp, 40, "[%a. %H:%M:%S %z] ", td);
+		break;
+		case 6:
+			snprintf(stamp, 40, "[u+%lu] ", (unsigned long)bufs[buf].ts[uline]);
 		break;
 		case 0: // no timestamps
 		default:
@@ -704,7 +713,7 @@ void in_update(iline inp)
 	resetcol();
 	putchar('\n');
 	unsigned int wwidth=width;
-	char stamp[32];
+	char stamp[40];
 	stamp[0]=0;
 	if(its)
 	{
@@ -713,19 +722,28 @@ void in_update(iline inp)
 		switch(ts)
 		{
 			case 1:
-				strftime(stamp, 32, "[%H:%M] ", td);
+			strftime(stamp, 40, "[%H:%M] ", td);
 			break;
 			case 2:
-				strftime(stamp, 32, "[%H:%M:%S] ", td);
+				strftime(stamp, 40, "[%H:%M:%S] ", td);
 			break;
 			case 3:
 				if(utc)
-					strftime(stamp, 32, "[%H:%M:%S UTC] ", td);
+					strftime(stamp, 40, "[%H:%M:%S UTC] ", td);
 				else
-					strftime(stamp, 32, "[%H:%M:%S %z] ", td);
+					strftime(stamp, 40, "[%H:%M:%S %z] ", td);
 			break;
 			case 4:
-				snprintf(stamp, 32, "[u+%lu] ", (unsigned long)t);
+				strftime(stamp, 40, "[%a. %H:%M:%S] ", td);
+			break;
+			case 5:
+				if(utc)
+					strftime(stamp, 40, "[%a. %H:%M:%S UTC] ", td);
+				else
+					strftime(stamp, 40, "[%a. %H:%M:%S %z] ", td);
+			break;
+			case 6:
+				snprintf(stamp, 40, "[u+%lu] ", (unsigned long)t);
 			break;
 			case 0: // no timestamps
 			default:

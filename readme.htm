@@ -154,7 +154,7 @@ which will redraw the whole screen when things change; the number controls how o
 0 won't redraw at all, while 3 will redraw every 0.25 seconds.  The default is now 0 (it used to be 2, which redraws whenever any buffer is written to or input is entered).  Since some improvements were made to the drawing code, fred's assistance should no longer be needed, but we've kept him around just in case.</p>
 <p>The size of each scrollback buffer, in lines, can be set with<br />
 <tt>buf <em>buf-lines</em></tt><br />
-the default being 256.  Larger values will, of course, increase memory consumption.</p>
+the default being 1024.  Larger values will, of course, increase memory consumption.</p>
 <p>You can turn on a few display options too;<br />
 <tt>fwc</tt><br />
 <tt>hts</tt><br />
@@ -173,7 +173,9 @@ The timestamping levels are:
 <tr><td style="text-align:center;">1</td><td>Display timestamps in the form [HH:MM]</td></tr>
 <tr><td style="text-align:center;">2</td><td>Display timestamps in the form [HH:MM:SS]</td></tr>
 <tr><td style="text-align:center;">3</td><td>Display timestamps in the form [HH:MM:SS +hhmm], where <em>+hhmm</em> is the time zone offset</td></tr>
-<tr><td style="text-align:center;">4</td><td>Pointlessly, display timestamps as seconds since the Epoch</td></tr>
+<tr><td style="text-align:center;">4</td><td>Display timestamps in the form [Day. HH:MM:SS], where <em>Day</em> is the day of the week</td></tr>
+<tr><td style="text-align:center;">5</td><td>Display timestamps in the form [Day. HH:MM:SS +hhmm]</td></tr>
+<tr><td style="text-align:center;">6</td><td>Pointlessly, display timestamps as seconds since the Epoch</td></tr>
 </table>
 If <small>utc</small> is enabled, timestamps will be displayed as UTC instead of local time, and <em>+hhmm</em> will be replaced by <em>UTC</em>.<br>
 If <small>its</small> is enabled, a clock will be displayed at the left-hand end of the input line, using the format specified by the current <small>ts</small> setting.<br>

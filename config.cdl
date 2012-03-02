@@ -8,7 +8,7 @@ bool:full_width_colour:false:::fwc:fwc:fwc:B:full width colour
 bool:hilite_tabstrip:false:::hts:hts:hts:B:highlight tabstrip
 bool:tsb:true:::tsb:tsb:tsb:B:top status bar
 int:tping:30:15::tping:tping:tping:S:outbound ping time
-int:ts:1:0:4:ts:timestamps:ts:L:timestamping
+int:ts:1:0:6:ts:timestamps:ts:L:timestamping
 bool:utc:false:::utc:utc:utc:B:UTC timestamps
 bool:its:false:::its:its:its:B:input clock
 bool:quiet:false:::quiet:quiet:quiet:B:quiet mode

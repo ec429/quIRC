@@ -36,10 +36,10 @@ int conf_check(void)
 		asb_failsafe(STA, "tping set to minimum 15");
 		tping=15;
 	}
-	if(ts>4)
+	if(ts>6)
 	{
-		asb_failsafe(STA, "ts set to maximum 4");
-		ts=4;
+		asb_failsafe(STA, "ts set to maximum 6");
+		ts=6;
 	}
 	return(0);
 }
