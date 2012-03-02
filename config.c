@@ -27,7 +27,7 @@ void loadkeys(FILE *fp)
 				{
 					char msg[32+strlen(new.name)];
 					sprintf(msg, "keys: missing mod in %s", new.name);
-					asb_failsafe(ERR, msg);
+					atr_failsafe(&s_buf, ERR, msg, "init: ");
 					free(line);
 					continue;
 				}
@@ -36,7 +36,7 @@ void loadkeys(FILE *fp)
 				{
 					char msg[32+strlen(new.name)];
 					sprintf(msg, "keys: odd mod length in %s", new.name);
-					asb_failsafe(ERR, msg);
+					atr_failsafe(&s_buf, ERR, msg, "init: ");
 					free(line);
 					continue;
 				}
@@ -45,7 +45,7 @@ void loadkeys(FILE *fp)
 				{
 					char msg[32+strlen(new.name)];
 					sprintf(msg, "keys: malloc failure in %s", new.name);
-					asb_failsafe(ERR, msg);
+					atr_failsafe(&s_buf, ERR, msg, "init: ");
 					free(line);
 					continue;
 				}
@@ -56,7 +56,7 @@ void loadkeys(FILE *fp)
 					{
 						char msg[32+strlen(new.name)];
 						sprintf(msg, "keys: bad mod (not hex) in %s", new.name);
-						asb_failsafe(ERR, msg);
+						atr_failsafe(&s_buf, ERR, msg, "init: ");
 						free(line);
 						cont=true;
 						break;
@@ -67,7 +67,7 @@ void loadkeys(FILE *fp)
 					{
 						char msg[32+strlen(new.name)];
 						sprintf(msg, "keys: sscanf failed in %s", new.name);
-						asb_failsafe(ERR, msg);
+						atr_failsafe(&s_buf, ERR, msg, "init: ");
 						free(line);
 						cont=true;
 						break;
@@ -90,7 +90,7 @@ void loadkeys(FILE *fp)
 				{
 					char msg[32+strlen(new.name)];
 					sprintf(msg, "keys: unrecognised name %s", new.name);
-					asb_failsafe(ERR, msg);
+					atr_failsafe(&s_buf, ERR, msg, "init: ");
 				}
 				free(new.mod);
 			}
@@ -217,7 +217,7 @@ int rcread(FILE *rcfp)
 			{
 				char msg[48+strlen(cmd)];
 				sprintf(msg, "rc: Unrecognised ident in %%colour (%s)", cmd);
-				asb_failsafe(ERR, msg);
+				atr_failsafe(&s_buf, ERR, msg, "init: ");
 				nerrors++;
 			}
 		}
@@ -230,7 +230,7 @@ int rcread(FILE *rcfp)
 			{
 				char msg[40+strlen(cmd)];
 				sprintf(msg, "rc: Command (%s) without argument", cmd);
-				asb_failsafe(ERR, msg);
+				atr_failsafe(&s_buf, ERR, msg, "init: ");
 				nerrors++;
 			}
 			else if(strcmp(cmd, "server")==0)
@@ -296,7 +296,7 @@ int rcread(FILE *rcfp)
 				char *sw=strtok(rest, " \t");
 				if(*sw!='-')
 				{
-					asb_failsafe(ERR, "rc: ignore: need options (use '-' for no options)");
+					atr_failsafe(&s_buf, ERR, "rc: ignore: need options (use '-' for no options)", "init: ");
 					nerrors++;
 				}
 				else
@@ -304,7 +304,7 @@ int rcread(FILE *rcfp)
 					rest=strtok(NULL, "");
 					if(!rest)
 					{
-						asb_failsafe(ERR, "rc: ignore: need options (use '-' for no options)");
+						atr_failsafe(&s_buf, ERR, "rc: ignore: need options (use '-' for no options)", "init: ");
 						nerrors++;
 					}
 					else
@@ -346,7 +346,7 @@ int rcread(FILE *rcfp)
 				char *sw=strtok(rest, " \t");
 				if(*sw!='-')
 				{
-					asb_failsafe(ERR, "rc: *ignore: need options (use '-' for no options)");
+					atr_failsafe(&s_buf, ERR, "rc: *ignore: need options (use '-' for no options)", "init: ");
 					nerrors++;
 				}
 				else
@@ -354,7 +354,7 @@ int rcread(FILE *rcfp)
 					rest=strtok(NULL, "");
 					if(!rest)
 					{
-						asb_failsafe(ERR, "rc: *ignore: need options (use '-' for no options)");
+						atr_failsafe(&s_buf, ERR, "rc: *ignore: need options (use '-' for no options)", "init: ");
 						nerrors++;
 					}
 					else
@@ -411,7 +411,7 @@ int rcread(FILE *rcfp)
 			{
 				char msg[48+strlen(cmd)];
 				sprintf(msg, "rc: Unrecognised cmd %s in .quirc (ignoring)", cmd);
-				asb_failsafe(ERR, msg);
+				atr_failsafe(&s_buf, ERR, msg, "init: ");
 				nerrors++;
 			}
 		}
@@ -510,7 +510,7 @@ signed int pargs(int argc, char *argv[])
 		{
 			char msg[40+strlen(argv[arg])];
 			sprintf(msg, "pargs: Unrecognised argument '%s'", argv[arg]);
-			asb_failsafe(ERR, msg);
+			atr_failsafe(&s_buf, ERR, msg, "init: ");
 		}
 	}
 	if(check) return(0);

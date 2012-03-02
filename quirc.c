@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
 	
 	setupterm((char *)0, fileno(stdout), (int *)0);
 	putp(keypad_xmit);
-	init_start_buffer();
+	init_ring(&s_buf);
 	
 	sigpipe=0;
 	sigwinch=0;
@@ -42,21 +42,21 @@ int main(int argc, char *argv[])
 	{
 		fprintf(stderr, "Failed to set SIGPIPE handler\n");
 		perror("sigaction");
-		push_buffer();
+		push_ring(&s_buf, QUIET);
 		return(1);
 	}
 	if(sigaction(SIGWINCH, &sa, NULL)==-1)
 	{
 		fprintf(stderr, "Failed to set SIGWINCH handler\n");
 		perror("sigaction");
-		push_buffer();
+		push_ring(&s_buf, QUIET);
 		return(1);
 	}
 	if(sigaction(SIGUSR1, &sa, NULL)==-1)
 	{
 		fprintf(stderr, "Failed to set SIGUSR1 handler\n");
 		perror("sigaction");
-		push_buffer();
+		push_ring(&s_buf, QUIET);
 		return(1);
 	}
 	
@@ -68,25 +68,25 @@ int main(int argc, char *argv[])
 			char *err=strerror(errno);
 			char msg[48+strlen(err)];
 			sprintf(msg, "Failed to mark stdin non-blocking: fcntl: %s", err);
-			asb_failsafe(STA, msg);
+			atr_failsafe(&s_buf, STA, msg, "init: ");
 		}
 	}
 	if(initkeys())
 	{
 		fprintf(stderr, "Failed to initialise keymapping\n");
-		push_buffer();
+		push_ring(&s_buf, QUIET);
 		return(1);
 	}
 	if(c_init()) // should be impossible
 	{
 		fprintf(stderr, "Failed to initialise colours\n");
-		push_buffer();
+		push_ring(&s_buf, QUIET);
 		return(1);
 	}
 	if(def_config())
 	{
 		fprintf(stderr, "Failed to apply default configuration\n");
-		push_buffer();
+		push_ring(&s_buf, QUIET);
 		return(1);
 	}
 	resetcol();
@@ -101,7 +101,7 @@ int main(int argc, char *argv[])
 			if(chdir(qfld))
 			{
 				fprintf(stderr, "Failed to change directory into %s: %s", qfld, strerror(errno));
-				push_buffer();
+				push_ring(&s_buf, QUIET);
 				return(1);
 			}
 			free(qfld);
@@ -109,13 +109,14 @@ int main(int argc, char *argv[])
 		else
 		{
 			perror("Failed to allocate space for 'qfld'");
-			push_buffer();
+			push_ring(&s_buf, QUIET);
 			return(1);
 		}
 	}
 	else
 	{
 		fprintf(stderr, "Environment variable $HOME not set!  Exiting\n");
+		push_ring(&s_buf, QUIET);
 		return(1);
 	}
 	FILE *rcfp=fopen("rc", "r");
@@ -128,12 +129,12 @@ int main(int argc, char *argv[])
 		{
 			char msg[32];
 			sprintf(msg, "%d errors in ~/.quirc/rc", rc_err);
-			asb_failsafe(STA, msg);
+			atr_failsafe(&s_buf, STA, msg, "init: ");
 		}
 	}
 	else
 	{
-		asb_failsafe(STA, "no config file found.  Install one at ~/.quirc/rc");
+		atr_failsafe(&s_buf, STA, "no config file found.  Install one at ~/.quirc/rc", "init: ");
 	}
 	FILE *keyfp=fopen("keys", "r");
 	if(keyfp)
@@ -144,7 +145,7 @@ int main(int argc, char *argv[])
 	signed int e=pargs(argc, argv);
 	if(e>=0)
 	{
-		push_buffer();
+		push_ring(&s_buf, QUIET);
 		return(e);
 	}
 	
@@ -152,8 +153,8 @@ int main(int argc, char *argv[])
 	
 	if(ttyraw(fileno(stdout)))
 	{
-		asb_failsafe(ERR, "Failed to set raw mode on tty: ttyraw:");
-		asb_failsafe(ERR, strerror(errno));
+		atr_failsafe(&s_buf, ERR, "Failed to set raw mode on tty: ttyraw:", "init: ");
+		atr_failsafe(&s_buf, ERR, strerror(errno), "init: ");
 	}
 	
 	unsigned int i;
@@ -164,11 +165,11 @@ int main(int argc, char *argv[])
 	if(e)
 	{
 		fprintf(stderr, "Failed to set up buffers\n");
-		push_buffer();
+		push_ring(&s_buf, QUIET);
 		return(1);
 	}
 	
-	push_buffer();
+	push_ring(&s_buf, QUIET);
 	
 	fd_set master, readfds;
 	FD_ZERO(&master);

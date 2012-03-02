@@ -567,7 +567,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 	}
 	if(strcmp(cmd, "set")==0) // set options
 	{
-		bool osp=show_prefix;
+		bool osp=show_prefix, odbg=debug;
 		unsigned int omln=maxnlen;
 		if(args)
 		{
@@ -668,6 +668,15 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		{
 			for(int b=0;b<nbufs;b++)
 				mark_buffer_dirty(b);
+		}
+		if(debug&&!odbg)
+		{
+			push_ring(&d_buf, DEBUG);
+		}
+		else if(odbg&&!debug)
+		{
+			init_ring(&d_buf);
+			d_buf.loop=true;
 		}
 		return(0);
 	}

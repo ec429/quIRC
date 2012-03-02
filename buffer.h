@@ -113,20 +113,26 @@ int nbufs;
 int cbuf;
 buffer *bufs;
 
-struct
+typedef struct
 {
 	int nlines;
+	int ptr;
+	bool filled;
 	char **lt;
+	char **ltag;
 	mtype *lm;
 	time_t *ts;
+	bool loop;
 	int errs;
 }
-s_buf;
+ring;
 
-int init_start_buffer(void);
-int add_to_start_buffer(mtype lm, const char *lt);
-int asb_failsafe(mtype lm, const char *lt);
-int free_start_buffer(void);
+ring s_buf, d_buf;
+
+int init_ring(ring *r);
+int add_to_ring(ring *r, mtype lm, const char *lt, const char *ltag);
+int atr_failsafe(ring *r, mtype lm, const char *lt, const char *ltag);
+int free_ring(ring *r);
 int initialise_buffers(int buflines);
 int init_buffer(int buf, btype type, const char *bname, int nlines);
 int free_buffer(int buf);
@@ -136,8 +142,8 @@ int redraw_buffer(void);
 int render_buffer(int buf);
 int render_line(int buf, int uline);
 int e_buf_print(int buf, mtype lm, message pkt, const char *lead);
-int transfer_start_buffer(void);
-int push_buffer(void);
+int transfer_ring(ring *r, prio lq);
+int push_ring(ring *r, prio lq);
 void in_update(iline inp);
 char *highlight(const char *src); // use colours to highlight \escapes.  Returns a malloc-like pointer
 void titlebar(void);

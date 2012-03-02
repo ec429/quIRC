@@ -8,75 +8,79 @@
 
 #include "buffer.h"
 
-int init_start_buffer(void)
+int init_ring(ring *r)
 {
-	s_buf.nlines=0;
-	s_buf.lt=NULL;
-	s_buf.lm=NULL;
-	s_buf.ts=NULL;
-	s_buf.errs=0;
+	r->nlines=64;
+	r->ptr=0;
+	r->filled=false;
+	r->loop=false;
+	r->lt=malloc(r->nlines*sizeof(char *));
+	r->ltag=malloc(r->nlines*sizeof(char *));
+	r->lm=malloc(r->nlines*sizeof(mtype));
+	r->ts=malloc(r->nlines*sizeof(time_t));
+	r->errs=0;
 	return(0);
 }
 
-int add_to_start_buffer(mtype lm, const char *lt)
+int add_to_ring(ring *r, mtype lm, const char *lt, const char *ltag)
 {
-	s_buf.nlines++;
-	char **nlt;mtype *nlm;time_t *nts;
-	nlt=(char **)realloc(s_buf.lt, s_buf.nlines*sizeof(char *));
-	if(!nlt)
+	if(!r->nlines) init_ring(r);
+	int p=r->ptr;
+	if(!(++r->ptr<r->nlines))
 	{
-		s_buf.nlines--;
-		s_buf.errs++;
-		return(1);
+		if(r->loop)
+		{
+			r->filled=true;
+			r->ptr-=r->nlines;
+		}
+		else
+		{
+			r->ptr=p;
+			r->errs++;
+			return(1);
+		}
 	}
-	s_buf.lt=nlt;
-	s_buf.lt[s_buf.nlines-1]=strdup(lt);
-	nlm=(mtype *)realloc(s_buf.lm, s_buf.nlines*sizeof(mtype));
-	if(!nlm)
-	{
-		s_buf.nlines--;
-		s_buf.errs++;
-		return(1);
-	}
-	s_buf.lm=nlm;
-	s_buf.lm[s_buf.nlines-1]=lm;
-	nts=(time_t *)realloc(s_buf.ts, s_buf.nlines*sizeof(time_t));
-	if(!nts)
-	{
-		s_buf.nlines--;
-		s_buf.errs++;
-		return(1);
-	}
-	s_buf.ts=nts;
-	s_buf.ts[s_buf.nlines-1]=time(NULL);
+	r->lt[p]=strdup(lt);
+	r->ltag[p]=strdup(ltag);
+	r->lm[p]=lm;
+	r->ts[p]=time(NULL);
 	return(0);
 }
 
-int asb_failsafe(mtype lm, const char *lt)
+int atr_failsafe(ring *r, mtype lm, const char *lt, const char *ltag)
 {
 	int e=0;
-	if((e=add_to_start_buffer(lm, lt)))
+	if((e=add_to_ring(r, lm, lt, ltag)))
 	{
-		fprintf(stderr, "init[%d]: %s\n", e, lt);
+		fprintf(stderr, "atr[%d]: %s%s\n", e, ltag, lt);
 	}
 	return(e);
 }
 
-int free_start_buffer(void)
+int free_ring(ring *r)
 {
 	int i;
-	if(s_buf.lt)
+	if(r->lt)
 	{
-		for(i=0;i<s_buf.nlines;i++)
+		for(i=0;i<(r->filled?r->nlines:r->ptr);i++)
 		{
-			free(s_buf.lt[i]);
+			free(r->lt[i]);
 		}
-		free(s_buf.lt);
-		s_buf.lt=NULL;
+		free(r->lt);
+		r->lt=NULL;
 	}
-	free(s_buf.lm);
-	free(s_buf.ts);
-	s_buf.nlines=0;
+	if(r->ltag)
+	{
+		for(i=0;i<(r->filled?r->nlines:r->ptr);i++)
+		{
+			free(r->ltag[i]);
+		}
+		free(r->ltag);
+		r->ltag=NULL;
+	}
+	free(r->lm);
+	free(r->ts);
+	r->nlines=0;
 	return(0);
 }
 
@@ -92,6 +96,8 @@ int initialise_buffers(int buflines)
 	bufs[0].nick=nick;
 	bufs[0].ilist=igns;
 	add_to_buffer(0, STA, QUIET, 0, false, GPL_TAIL, "quirc -- ");
+	init_ring(&d_buf);
+	d_buf.loop=true;
 	return(0);
 }
 
@@ -256,6 +262,15 @@ int add_to_buffer(int buf, mtype lm, prio lq, char lp, bool ls, const char *lt, 
 			add_to_buffer(0, lm, NORMAL, lp, ls, lt, ltag);
 		}
 		return(1);
+	}
+	if(!debug&&(lq==DEBUG))
+	{
+		if(!d_buf.nlines)
+		{
+			init_ring(&d_buf);
+			d_buf.loop=true;
+		}
+		return(add_to_ring(&d_buf, lm, lt, ltag));
 	}
 	int optr=bufs[buf].ptr;
 	bool scrollisptr=(bufs[buf].scroll==bufs[buf].ptr)&&(bufs[buf].ascroll==0);
@@ -936,40 +951,51 @@ int e_buf_print(int buf, mtype lm, message pkt, const char *lead)
 	return(add_to_buffer(buf, lm, QUIET, 0, false, text, lead));
 }
 
-int transfer_start_buffer(void)
+int transfer_ring(ring *r, prio lq)
 {
 	int i,e=0;
-	for(i=0;i<s_buf.nlines;i++)
+	if(r->filled)
 	{
-		e|=add_to_buffer(0, s_buf.lm[i], QUIET, 0, false, s_buf.lt[i], "init: ");
+		for(i=0;i<r->nlines;i++)
+		{
+			int j=(i+r->ptr)%r->nlines;
+			e|=add_to_buffer(0, r->lm[j], lq, 0, false, r->lt[j], r->ltag[j]);
+		}
+	}
+	else
+	{
+		for(i=0;i<r->ptr;i++)
+		{
+			e|=add_to_buffer(0, r->lm[i], lq, 0, false, r->lt[i], r->ltag[i]);
+		}
 	}
 	return(e);
 }
 
-int push_buffer(void)
+int push_ring(ring *r, prio lq)
 {
-	if(!bufs || transfer_start_buffer())
+	if(!bufs || transfer_ring(r, lq))
 	{
-		if(bufs) add_to_buffer(0, ERR, NORMAL, 0, false, "Failed to transfer start_buffer", "init[xsb]: ");
+		if(bufs) add_to_buffer(0, ERR, NORMAL, 0, false, "Failed to transfer ring", "init[xr]: ");
 		int i;
-		for(i=0;i<s_buf.nlines;i++)
+		for(i=0;i<s_buf.ptr;i++)
 		{
-			fprintf(stderr, "init[xsb]: %s\n", s_buf.lt[i]);
+			fprintf(stderr, "init[xr]: %s%s\n", r->ltag[i], r->lt[i]);
 		}
 		if(bufs)
 		{
 			char msg[32];
-			sprintf(msg, "%d messages written to stderr", s_buf.nlines);
-			add_to_buffer(0, STA, NORMAL, 0, false, msg, "init[xsb]: ");
+			sprintf(msg, "%d messages written to stderr", r->nlines);
+			add_to_buffer(0, STA, NORMAL, 0, false, msg, "init[xr]: ");
 		}
 	}
-	if(bufs&&s_buf.errs)
+	if(bufs&&r->errs)
 	{
 		char msg[80];
-		sprintf(msg, "%d messages were written to stderr due to start_buffer errors", s_buf.errs);
+		sprintf(msg, "%d messages were written to stderr due to ring errors", r->errs);
 		add_to_buffer(0, ERR, NORMAL, 0, false, msg, "init[errs]: ");
 	}
-	return(free_start_buffer());
+	return(free_ring(r));
 }
 
 void titlebar(void)

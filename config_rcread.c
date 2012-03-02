@@ -8,8 +8,8 @@
 					mirc_colour_compat=value;
 				else
 				{
-					asb_failsafe(ERR, "Malformed rc entry for mcc (value not numeric)");
-					asb_failsafe(ERR, rest);
+					atr_failsafe(&s_buf, ERR, "Malformed rc entry for mcc (value not numeric)", "init: ");
+					atr_failsafe(&s_buf, ERR, rest, "init: ");
 				}
 			}
 			else if(strcmp(cmd, "no-fred")==0)
@@ -21,8 +21,8 @@
 					force_redraw=value;
 				else
 				{
-					asb_failsafe(ERR, "Malformed rc entry for fred (value not numeric)");
-					asb_failsafe(ERR, rest);
+					atr_failsafe(&s_buf, ERR, "Malformed rc entry for fred (value not numeric)", "init: ");
+					atr_failsafe(&s_buf, ERR, rest, "init: ");
 				}
 			}
 			else if(strcmp(cmd, "buf")==0)
@@ -32,8 +32,8 @@
 					buflines=value;
 				else
 				{
-					asb_failsafe(ERR, "Malformed rc entry for buf (value not numeric)");
-					asb_failsafe(ERR, rest);
+					atr_failsafe(&s_buf, ERR, "Malformed rc entry for buf (value not numeric)", "init: ");
+					atr_failsafe(&s_buf, ERR, rest, "init: ");
 				}
 			}
 			else if(strcmp(cmd, "mnln")==0)
@@ -43,8 +43,8 @@
 					maxnlen=value;
 				else
 				{
-					asb_failsafe(ERR, "Malformed rc entry for mnln (value not numeric)");
-					asb_failsafe(ERR, rest);
+					atr_failsafe(&s_buf, ERR, "Malformed rc entry for mnln (value not numeric)", "init: ");
+					atr_failsafe(&s_buf, ERR, rest, "init: ");
 				}
 			}
 			else if(strcmp(cmd, "no-fwc")==0)
@@ -84,8 +84,8 @@
 					tping=value;
 				else
 				{
-					asb_failsafe(ERR, "Malformed rc entry for tping (value not numeric)");
-					asb_failsafe(ERR, rest);
+					atr_failsafe(&s_buf, ERR, "Malformed rc entry for tping (value not numeric)", "init: ");
+					atr_failsafe(&s_buf, ERR, rest, "init: ");
 				}
 			}
 			else if(strcmp(cmd, "no-ts")==0)
@@ -97,8 +97,8 @@
 					ts=value;
 				else
 				{
-					asb_failsafe(ERR, "Malformed rc entry for ts (value not numeric)");
-					asb_failsafe(ERR, rest);
+					atr_failsafe(&s_buf, ERR, "Malformed rc entry for ts (value not numeric)", "init: ");
+					atr_failsafe(&s_buf, ERR, rest, "init: ");
 				}
 			}
 			else if(strcmp(cmd, "no-utc")==0)
