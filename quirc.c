@@ -175,7 +175,7 @@ int main(int argc, char *argv[])
 	FD_SET(fileno(stdin), &master);
 	int fdmax=fileno(stdin);
 	if((!autoconnect(&master, &fdmax, servs))&&(!quiet))
-		add_to_buffer(0, STA, 0, false, "Not connected - use /server to connect", "");
+		add_to_buffer(0, STA, QUIET, 0, false, "Not connected - use /server to connect", "");
 	iline inp={{NULL, 0, 0}, {NULL, 0, 0}};
 	in_update(inp);
 	struct timeval timeout;
@@ -189,7 +189,7 @@ int main(int argc, char *argv[])
 				int l, c;
 				if(termsize(fileno(stdin), &c, &l))
 				{
-					add_to_buffer(0, ERR, 0, false, strerror(errno), "termsize: ioctl: ");
+					add_to_buffer(0, ERR, NORMAL, 0, false, strerror(errno), "termsize: ioctl: ");
 				}
 				else
 				{
@@ -231,7 +231,7 @@ int main(int argc, char *argv[])
 					bufs[list->reconn_b].realsname=NULL;
 					if(list->autoent)
 						bufs[list->reconn_b].autoent=list->autoent;
-					if(!quiet) add_to_buffer(list->reconn_b, STA, 0, false, dstr, "/server: ");
+					add_to_buffer(list->reconn_b, STA, QUIET, 0, false, dstr, "/server: ");
 				}
 				else
 				{
@@ -249,7 +249,7 @@ int main(int argc, char *argv[])
 						bufs[cbuf].ilist=list->autoent->igns;
 						bufs[cbuf].autoent=list->autoent;
 					}
-					if(!quiet) add_to_buffer(cbuf, STA, 0, false, dstr, "/server: ");
+					add_to_buffer(cbuf, STA, QUIET, 0, false, dstr, "/server: ");
 				}
 				free((char *)list->nl_details->ar_name);
 				free((char *)list->nl_details->ar_service);
@@ -282,7 +282,7 @@ int main(int argc, char *argv[])
 									close(bufs[b].handle);
 									FD_CLR(bufs[b].handle, &master);
 									bufs[b].handle=0; // de-bind fd
-									add_to_buffer(b, ERR, 0, false, "Outbound ping timeout", "Disconnected: ");
+									add_to_buffer(b, ERR, NORMAL, 0, false, "Outbound ping timeout", "Disconnected: ");
 								}
 								bufs[b].alert=true;
 								bufs[b].hi_alert=5;
@@ -302,7 +302,7 @@ int main(int argc, char *argv[])
 					{
 						bufs[b].live=false;
 						bufs[b].handle=0; // just in case
-						add_to_buffer(b, ERR, 0, false, "Connection to server lost", "Disconnected: ");
+						add_to_buffer(b, ERR, NORMAL, 0, false, "Connection to server lost", "Disconnected: ");
 					}
 				}
 			}
@@ -314,7 +314,7 @@ int main(int argc, char *argv[])
 		if(select(fdmax+1, &readfds, NULL, NULL, &timeout)==-1)
 		{
 			if(errno!=EINTR) // nobody cares if select() was interrupted by a signal
-				add_to_buffer(0, ERR, 0, false, strerror(errno), "select: ");
+				add_to_buffer(0, ERR, NORMAL, 0, false, strerror(errno), "select: ");
 		}
 		else
 		{
@@ -379,7 +379,7 @@ int main(int argc, char *argv[])
 										bufs[b].handle=0; // de-bind fd
 										FD_CLR(fd, &master);
 										bufs[b].live=false;
-										add_to_buffer(0, ERR, 0, false, emsg, "error: ");
+										add_to_buffer(0, ERR, NORMAL, 0, false, emsg, "error: ");
 										redraw_buffer();
 									}
 									else if(packet)
@@ -471,7 +471,7 @@ int main(int argc, char *argv[])
 									bufs[b].handle=0; // de-bind fd
 									FD_CLR(fd, &master);
 									bufs[b].live=false;
-									add_to_buffer(0, ERR, 0, false, emsg, "error: read on a dead tab: ");
+									add_to_buffer(0, ERR, NORMAL, 0, false, emsg, "error: read on a dead tab: ");
 									redraw_buffer();
 								}
 								in_update(inp);
@@ -482,7 +482,7 @@ int main(int argc, char *argv[])
 						{
 							char fmsg[48];
 							sprintf(fmsg, "select() returned data on unknown fd %d!", fd);
-							if(!quiet) add_to_buffer(0, ERR, 0, false, fmsg, "main loop:");
+							add_to_buffer(0, ERR, QUIET, 0, false, fmsg, "main loop:");
 							FD_CLR(fd, &master); // prevent it from happening again
 						}
 					}

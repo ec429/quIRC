@@ -3,7 +3,7 @@
 	height=24;
 	mirc_colour_compat=1;
 	force_redraw=0;
-	buflines=256;
+	buflines=1024;
 	maxnlen=16;
 	full_width_colour=0;
 	hilite_tabstrip=0;

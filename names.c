@@ -212,7 +212,7 @@ void i_list(void)
 			name *next=curr->next;
 			char tag[20];
 			sprintf(tag, "/ignore -l: C%s%s\t", curr->pms?"p":"", curr->icase?"i":"");
-			add_to_buffer(cbuf, STATUS, 0, false, curr->data, tag);
+			add_to_buffer(cbuf, STATUS, NORMAL, 0, false, curr->data, tag);
 			count++;
 			curr=next;
 		}
@@ -225,7 +225,7 @@ void i_list(void)
 			name *next=curr->next;
 			char tag[20];
 			sprintf(tag, "/ignore -l: S%s%s\t", curr->pms?"p":"", curr->icase?"i":"");
-			add_to_buffer(cbuf, STATUS, 0, false, curr->data, tag);
+			add_to_buffer(cbuf, STATUS, NORMAL, 0, false, curr->data, tag);
 			count++;
 			curr=next;
 		}
@@ -236,12 +236,12 @@ void i_list(void)
 		name *next=curr->next;
 		char tag[20];
 		sprintf(tag, "/ignore -l: *%s%s\t", curr->pms?"p":"", curr->icase?"i":"");
-		add_to_buffer(cbuf, STATUS, 0, false, curr->data, tag);
+		add_to_buffer(cbuf, STATUS, NORMAL, 0, false, curr->data, tag);
 		count++;
 		curr=next;
 	}
 	if(!count)
 	{
-		add_to_buffer(cbuf, STATUS, 0, false, "No active ignores for this view.", "/ignore -l: ");
+		add_to_buffer(cbuf, STATUS, NORMAL, 0, false, "No active ignores for this view.", "/ignore -l: ");
 	}
 }

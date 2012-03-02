@@ -47,6 +47,7 @@ typedef enum
 	JOIN,
 	PART,
 	QUIT,
+	QUIT_PREFORMAT,
 	NICK,
 	MODE,
 	STA,
@@ -55,6 +56,14 @@ typedef enum
 	UNN,
 }
 mtype;
+
+typedef enum
+{
+	QUIET,	// hide in quiet mode
+	NORMAL,	// always show
+	DEBUG,	// show only in debug mode
+}
+prio;
 
 typedef struct _buf
 {
@@ -73,6 +82,7 @@ typedef struct _buf
 	int scroll; // unproc line of screen bottom (which is one physical line below the last displayed text)
 	int ascroll; // physical line within [scroll]
 	bool *ls; // array of whether line was sent or rxed
+	prio *lq; // array of priority levels for lines
 	mtype *lm; // array of message types for lines
 	char *lp; // array of prefix chars (0 for use default)
 	char **lt; // array of (unprocessed) text for lines
@@ -120,7 +130,7 @@ int free_start_buffer(void);
 int initialise_buffers(int buflines);
 int init_buffer(int buf, btype type, const char *bname, int nlines);
 int free_buffer(int buf);
-int add_to_buffer(int buf, mtype lm, char lp, bool ls, const char *lt, const char *ltag);
+int add_to_buffer(int buf, mtype lm, prio lq, char lp, bool ls, const char *lt, const char *ltag);
 int mark_buffer_dirty(int buf);
 int redraw_buffer(void);
 int render_buffer(int buf);

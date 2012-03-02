@@ -91,7 +91,7 @@ int initialise_buffers(int buflines)
 	bufs[0].live=true; // STATUS is never dead
 	bufs[0].nick=nick;
 	bufs[0].ilist=igns;
-	if(!quiet) add_to_buffer(0, STA, 0, false, GPL_TAIL, "quirc -- ");
+	add_to_buffer(0, STA, QUIET, 0, false, GPL_TAIL, "quirc -- ");
 	return(0);
 }
 
@@ -112,6 +112,7 @@ int init_buffer(int buf, btype type, const char *bname, int nlines)
 	bufs[buf].scroll=0;
 	bufs[buf].ascroll=0;
 	bufs[buf].lm=malloc(nlines*sizeof(mtype));
+	bufs[buf].lq=malloc(nlines*sizeof(prio));
 	bufs[buf].lp=malloc(nlines);
 	bufs[buf].ls=malloc(nlines*sizeof(bool));
 	bufs[buf].lt=malloc(nlines*sizeof(char *));
@@ -166,7 +167,7 @@ int free_buffer(int buf)
 {
 	if(bufs[buf].live)
 	{
-		add_to_buffer(buf, ERR, 0, false, "Buffer is still live!", "free_buffer:");
+		add_to_buffer(buf, ERR, NORMAL, 0, false, "Buffer is still live!", "free_buffer:");
 		return(1);
 	}
 	else
@@ -178,6 +179,7 @@ int free_buffer(int buf)
 		n_free(bufs[buf].ilist);
 		bufs[buf].ilist=NULL;
 		free(bufs[buf].lm);
+		free(bufs[buf].lq);
 		free(bufs[buf].lp);
 		free(bufs[buf].ls);
 		free(bufs[buf].topic);
@@ -244,20 +246,21 @@ int free_buffer(int buf)
 	}
 }
 
-int add_to_buffer(int buf, mtype lm, char lp, bool ls, const char *lt, const char *ltag)
+int add_to_buffer(int buf, mtype lm, prio lq, char lp, bool ls, const char *lt, const char *ltag)
 {
 	if(buf>=nbufs)
 	{
 		if(bufs&&buf)
 		{
-			add_to_buffer(0, ERR, 0, false, "Line was written to bad buffer!  Contents below.", "add_to_buffer(): ");
-			add_to_buffer(0, lm, lp, ls, lt, ltag);
+			add_to_buffer(0, ERR, NORMAL, 0, false, "Line was written to bad buffer!  Contents below.", "add_to_buffer(): ");
+			add_to_buffer(0, lm, NORMAL, lp, ls, lt, ltag);
 		}
 		return(1);
 	}
 	int optr=bufs[buf].ptr;
 	bool scrollisptr=(bufs[buf].scroll==bufs[buf].ptr)&&(bufs[buf].ascroll==0);
 	bufs[buf].lm[bufs[buf].ptr]=lm;
+	bufs[buf].lq[bufs[buf].ptr]=lq;
 	bufs[buf].lp[bufs[buf].ptr]=lp;
 	bufs[buf].ls[bufs[buf].ptr]=ls;
 	free(bufs[buf].lt[bufs[buf].ptr]);
@@ -451,14 +454,24 @@ int render_line(int buf, int uline)
 			free(bufs[buf].lpt[uline][pline]);
 		free(bufs[buf].lpt[uline]);
 	}
-	if(bufs[buf].conf)
+	if( // this is quite a complicated conditional, so I've split it up.  It handles conference mode, quiet mode and debug mode
+		(bufs[buf].conf&&(
+			(bufs[buf].lm[uline]==JOIN)
+			||(bufs[buf].lm[uline]==PART)
+			||(bufs[buf].lm[uline]==NICK)
+			||(bufs[buf].lm[uline]==MODE)
+			||(bufs[buf].lm[uline]==QUIT)
+			)
+		)
+		||
+			(quiet&&(bufs[buf].lq[uline]==QUIET))
+		||
+			(!debug&&(bufs[buf].lq[uline]==DEBUG))
+		)
 	{
-		if((bufs[buf].lm[uline]==JOIN)||(bufs[buf].lm[uline]==PART)||(bufs[buf].lm[uline]==NICK)||(bufs[buf].lm[uline]==MODE)||(bufs[buf].lm[uline]==QUIT))
-		{
-			bufs[buf].lpt[uline]=NULL;
-			bufs[buf].lpl[uline]=0;
-			return(0);
-		}
+		bufs[buf].lpt[uline]=NULL;
+		bufs[buf].lpl[uline]=0;
+		return(0);
 	}
 	char *proc;int l,i;
 	init_char(&proc, &l, &i);
@@ -538,6 +551,9 @@ int render_line(int buf, int uline)
 		case QUIT:
 			c=c_quit[bufs[buf].ls[uline]?1:0];
 			goto eqtag;
+		case QUIT_PREFORMAT:
+			c=c_quit[bufs[buf].ls[uline]?1:0];
+		break;
 		case NICK:
 		{
 			c=c_nick[bufs[buf].ls[uline]?1:0];
@@ -579,7 +595,7 @@ int render_line(int buf, int uline)
 		char **nlpt=realloc(bufs[buf].lpt[uline], bufs[buf].lpl[uline]*sizeof(char *));
 		if(!nlpt)
 		{
-			add_to_buffer(0, ERR, 0, false, "realloc failed; buffer may be corrupted", "render_buffer: ");
+			add_to_buffer(0, ERR, NORMAL, 0, false, "realloc failed; buffer may be corrupted", "render_buffer: ");
 			free(proc);
 			return(1);
 		}
@@ -712,7 +728,7 @@ void in_update(iline inp)
 		{
 			stamp[0]=0;
 			its=false;
-			add_to_buffer(0, STA, 0, false, "disabled due to insufficient display width", "its: ");
+			add_to_buffer(0, STA, NORMAL, 0, false, "disabled due to insufficient display width", "its: ");
 		}
 		wwidth-=strlen(stamp);
 	}
@@ -870,7 +886,6 @@ char *highlight(const char *src)
 
 int e_buf_print(int buf, mtype lm, message pkt, const char *lead)
 {
-	if(quiet) return(0);
 	int arg;
 	int len=(pkt.prefix?strlen(pkt.prefix):0)+strlen(pkt.cmd)+8;
 	for(arg=0;arg<pkt.nargs;arg++)
@@ -893,16 +908,15 @@ int e_buf_print(int buf, mtype lm, message pkt, const char *lead)
 		strcat(text, " _ ");
 		strcat(text, pkt.args[arg]);
 	}
-	return(add_to_buffer(buf, lm, 0, false, text, lead));
+	return(add_to_buffer(buf, lm, QUIET, 0, false, text, lead));
 }
 
 int transfer_start_buffer(void)
 {
-	if(quiet) return(0);
 	int i,e=0;
 	for(i=0;i<s_buf.nlines;i++)
 	{
-		e|=add_to_buffer(0, s_buf.lm[i], 0, false, s_buf.lt[i], "init: ");
+		e|=add_to_buffer(0, s_buf.lm[i], QUIET, 0, false, s_buf.lt[i], "init: ");
 	}
 	return(e);
 }
@@ -911,7 +925,7 @@ int push_buffer(void)
 {
 	if(!bufs || transfer_start_buffer())
 	{
-		if(bufs) add_to_buffer(0, ERR, 0, false, "Failed to transfer start_buffer", "init[xsb]: ");
+		if(bufs) add_to_buffer(0, ERR, NORMAL, 0, false, "Failed to transfer start_buffer", "init[xsb]: ");
 		int i;
 		for(i=0;i<s_buf.nlines;i++)
 		{
@@ -921,14 +935,14 @@ int push_buffer(void)
 		{
 			char msg[32];
 			sprintf(msg, "%d messages written to stderr", s_buf.nlines);
-			add_to_buffer(0, STA, 0, false, msg, "init[xsb]: ");
+			add_to_buffer(0, STA, NORMAL, 0, false, msg, "init[xsb]: ");
 		}
 	}
 	if(bufs&&s_buf.errs)
 	{
 		char msg[80];
 		sprintf(msg, "%d messages were written to stderr due to start_buffer errors", s_buf.errs);
-		add_to_buffer(0, ERR, 0, false, msg, "init[errs]: ");
+		add_to_buffer(0, ERR, NORMAL, 0, false, msg, "init[errs]: ");
 	}
 	return(free_start_buffer());
 }
