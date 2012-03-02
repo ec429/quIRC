@@ -751,7 +751,7 @@ int irc_numeric(message pkt, int b)
 				{
 					char tmsg[32+strlen(pkt.args[1])];
 					sprintf(tmsg, "Topic for %s is ", pkt.args[1]);
-					add_to_buffer(b2, NOTICE, 0, false, pkt.args[2], tmsg);
+					add_to_buffer(b2, PREFORMAT, 0, false, pkt.args[2], tmsg);
 					free(bufs[b2].topic);
 					bufs[b2].topic=strdup(pkt.args[2]);
 				}
