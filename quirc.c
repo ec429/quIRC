@@ -559,6 +559,8 @@ int main(int argc, char *argv[])
 	free(portno);
 	freeservlist(servs);
 	n_free(igns);
+	locate(height-1, 0);
+	putchar('\n');
 	ttyreset(fileno(stdout));
 	#ifdef	USE_MTRACE
 		muntrace();
