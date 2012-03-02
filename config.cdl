@@ -2,7 +2,7 @@ int:width:80:30:::width:width:S:display width
 int:height:24:5:::height:height:S:display height
 int:mirc_colour_compat:1:0:2:mcc:mcc:mcc:L:mirc colour compatibility
 int:force_redraw:0:0:3:fred:fred:fred:L:force-redraw
-int:buflines:256:32::buf:buf-lines:buf:S:buffer lines
+int:buflines:1024:32::buf:buf-lines:buf:S:buffer lines
 int:maxnlen:16:4::mnln:maxnicklen:mnln:S:max nick length
 bool:full_width_colour:false:::fwc:fwc:fwc:B:full width colour
 bool:hilite_tabstrip:false:::hts:hts:hts:B:highlight tabstrip
