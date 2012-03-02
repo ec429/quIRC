@@ -1880,7 +1880,20 @@ int talk(char *iinput)
 				char pmsg[12+strlen(bufs[cbuf].bname)+strlen(iinput)];
 				sprintf(pmsg, "PRIVMSG %s :%s", bufs[cbuf].bname, iinput);
 				irc_tx(bufs[bufs[cbuf].server].handle, pmsg);
-				add_to_buffer(cbuf, MSG, 0, true, iinput, bufs[bufs[cbuf].server].nick); // TODO find my prefix and use it
+				char lp=0;
+				int po=-1;
+				for(unsigned int i=0;i<bufs[cbuf].us->npfx;i++)
+				{
+					for(unsigned int j=0;j<(po<0?bufs[bufs[cbuf].server].npfx:(unsigned)po);j++)
+					{
+						if(bufs[bufs[cbuf].server].prefixes[j].letter==bufs[cbuf].us->prefixes[i].letter)
+						{
+							po=j;
+							lp=bufs[cbuf].us->prefixes[i].pfx;
+						}
+					}
+				}
+				add_to_buffer(cbuf, MSG, lp, true, iinput, bufs[bufs[cbuf].server].nick);
 			}
 			else
 			{
