@@ -568,7 +568,7 @@ int render_line(int buf, int uline)
 		{
 			c=c_actn[bufs[buf].ls[uline]?1:0];
 			crush(&tag, maxnlen);
-			char *ntag=mktag(" %s  ", tag);
+			char *ntag=mktag("* %s ", tag);
 			free(tag);
 			tag=ntag;
 		}
