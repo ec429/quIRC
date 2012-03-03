@@ -1344,34 +1344,37 @@ int rx_privmsg(message pkt, int b, bool notice)
 			if(i_match(bufs[b2].ilist, nm, false, bufs[b].casemapping))
 				continue;
 			ctcp_strip(pkt.args[1], src, b2, ha, notice, false, false);
-			char lp=0;
-			if(show_prefix)
+			if(*pkt.args[1])
 			{
-				name *curr=bufs[b2].nlist;
-				while(curr)
+				char lp=0;
+				if(show_prefix)
 				{
-					if(irc_strcasecmp(src, curr->data, bufs[b].casemapping)==0)
+					name *curr=bufs[b2].nlist;
+					while(curr)
 					{
-						int po=-1;
-						for(unsigned int i=0;i<curr->npfx;i++)
+						if(irc_strcasecmp(src, curr->data, bufs[b].casemapping)==0)
 						{
-							for(unsigned int j=0;j<(po<0?bufs[b].npfx:(unsigned)po);j++)
+							int po=-1;
+							for(unsigned int i=0;i<curr->npfx;i++)
 							{
-								if(bufs[b].prefixes[j].letter==curr->prefixes[i].letter)
+								for(unsigned int j=0;j<(po<0?bufs[b].npfx:(unsigned)po);j++)
 								{
-									po=j;
-									lp=curr->prefixes[i].pfx;
+									if(bufs[b].prefixes[j].letter==curr->prefixes[i].letter)
+									{
+										po=j;
+										lp=curr->prefixes[i].pfx;
+									}
 								}
 							}
+							break;
 						}
-						break;
+						curr=curr->next;
 					}
-					curr=curr->next;
 				}
+				add_to_buffer(b2, notice?NOTICE:MSG, NORMAL, lp, false, pkt.args[1], src);
+				if(ha)
+					bufs[b2].hi_alert=5;
 			}
-			add_to_buffer(b2, notice?NOTICE:MSG, NORMAL, lp, false, pkt.args[1], src);
-			if(ha)
-				bufs[b2].hi_alert=5;
 		}
 	}
 	if(!match)
@@ -1381,25 +1384,28 @@ int rx_privmsg(message pkt, int b, bool notice)
 		if((irc_strcasecmp(pkt.args[0], bufs[b].nick, bufs[b].casemapping)==0) || (irc_strcasecmp(pkt.args[0], "AUTH", bufs[b].casemapping)==0) || (irc_strcasecmp(pkt.args[0], "Global", bufs[b].casemapping)==0))
 		{
 			ctcp_strip(pkt.args[1], src, b, true, notice, true, false);
-			if(!notice)
+			if(*pkt.args[1])
 			{
-				int b2=findptab(b, src);
-				if(b2<0)
+				if(!notice)
 				{
-					bufs=(buffer *)realloc(bufs, ++nbufs*sizeof(buffer));
-					init_buffer(nbufs-1, PRIVATE, src, buflines);
-					b2=nbufs-1;
-					bufs[b2].server=bufs[b].server;
-					bufs[b2].live=true;
-					n_add(&bufs[b2].nlist, bufs[bufs[b2].server].nick, bufs[b].casemapping);
-					n_add(&bufs[b2].nlist, src, bufs[b].casemapping);
+					int b2=findptab(b, src);
+					if(b2<0)
+					{
+						bufs=(buffer *)realloc(bufs, ++nbufs*sizeof(buffer));
+						init_buffer(nbufs-1, PRIVATE, src, buflines);
+						b2=nbufs-1;
+						bufs[b2].server=bufs[b].server;
+						bufs[b2].live=true;
+						n_add(&bufs[b2].nlist, bufs[bufs[b2].server].nick, bufs[b].casemapping);
+						n_add(&bufs[b2].nlist, src, bufs[b].casemapping);
+					}
+					add_to_buffer(b2, MSG, NORMAL, 0, false, pkt.args[1], src);
+					bufs[b2].hi_alert=5;
 				}
-				add_to_buffer(b2, MSG, NORMAL, 0, false, pkt.args[1], src);
-				bufs[b2].hi_alert=5;
-			}
-			else
-			{
-				add_to_buffer(b, NOTICE, NORMAL, 0, false, pkt.args[1], src);
+				else
+				{
+					add_to_buffer(b, NOTICE, NORMAL, 0, false, pkt.args[1], src);
+				}
 			}
 		}
 		else
@@ -1673,6 +1679,7 @@ int ctcp_strip(char *msg, const char *src, int b2, bool ha, bool notice, bool pr
 		}
 		*out++=*in++;
 	}
+	*out=0;
 	return(e);
 }
 
@@ -1789,20 +1796,23 @@ int talk(char *iinput)
 				sprintf(pmsg, "PRIVMSG %s :%s", bufs[cbuf].bname, iinput);
 				irc_tx(bufs[bufs[cbuf].server].handle, pmsg);
 				ctcp_strip(iinput, bufs[bufs[cbuf].server].nick, cbuf, false, false, bufs[cbuf].type==PRIVATE, true);
-				char lp=0;
-				int po=-1;
-				for(unsigned int i=0;i<bufs[cbuf].us->npfx;i++)
+				if(*iinput)
 				{
-					for(unsigned int j=0;j<(po<0?bufs[bufs[cbuf].server].npfx:(unsigned)po);j++)
+					char lp=0;
+					int po=-1;
+					for(unsigned int i=0;i<bufs[cbuf].us->npfx;i++)
 					{
-						if(bufs[bufs[cbuf].server].prefixes[j].letter==bufs[cbuf].us->prefixes[i].letter)
+						for(unsigned int j=0;j<(po<0?bufs[bufs[cbuf].server].npfx:(unsigned)po);j++)
 						{
-							po=j;
-							lp=bufs[cbuf].us->prefixes[i].pfx;
+							if(bufs[bufs[cbuf].server].prefixes[j].letter==bufs[cbuf].us->prefixes[i].letter)
+							{
+								po=j;
+								lp=bufs[cbuf].us->prefixes[i].pfx;
+							}
 						}
 					}
+					add_to_buffer(cbuf, MSG, NORMAL, lp, true, iinput, bufs[bufs[cbuf].server].nick);
 				}
-				add_to_buffer(cbuf, MSG, NORMAL, lp, true, iinput, bufs[bufs[cbuf].server].nick);
 			}
 			else
 			{
