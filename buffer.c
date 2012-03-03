@@ -1155,3 +1155,19 @@ int findptab(int b, const char *src)
 	}
 	return(-1);
 }
+
+int makeptab(int b, const char *src)
+{
+	int b2=findptab(b, src);
+	if(b2<0)
+	{
+		bufs=(buffer *)realloc(bufs, ++nbufs*sizeof(buffer));
+		init_buffer(nbufs-1, PRIVATE, src, buflines);
+		b2=nbufs-1;
+		bufs[b2].server=bufs[b].server;
+		bufs[b2].live=true;
+		n_add(&bufs[b2].nlist, bufs[bufs[b2].server].nick, bufs[b].casemapping);
+		n_add(&bufs[b2].nlist, src, bufs[b].casemapping);
+	}
+	return(b2);
+}

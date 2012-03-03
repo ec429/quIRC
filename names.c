@@ -8,7 +8,7 @@
 
 #include "names.h"
 
-name * n_add(name ** list, char *data, cmap casemapping)
+name * n_add(name ** list, const char *data, cmap casemapping)
 {
 	if(!list)
 		return(NULL);
@@ -68,7 +68,7 @@ name * n_add(name ** list, char *data, cmap casemapping)
 	return(new);
 }
 
-int n_cull(name ** list, char *data, cmap casemapping)
+int n_cull(name ** list, const char *data, cmap casemapping)
 {
 	if(!list)
 		return(0);
@@ -109,7 +109,7 @@ void n_free(name * list)
 	}
 }
 
-int i_match(name * list, char *nm, bool pm, cmap casemapping)
+int i_match(name * list, const char *nm, bool pm, cmap casemapping)
 {
 	int rv=0;
 	name *curr=list;
@@ -161,7 +161,7 @@ int i_match(name * list, char *nm, bool pm, cmap casemapping)
 	return(rv);
 }
 
-int i_cull(name ** list, char *nm)
+int i_cull(name ** list, const char *nm)
 {
 	if(!list)
 		return(0);

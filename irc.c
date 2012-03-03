@@ -1668,25 +1668,12 @@ int rx_nick(message pkt, int b)
 
 int ctcp(char *msg, char *src, int b2, bool ha, bool notice, bool priv)
 {
-	int fd=bufs[b2].handle;
+	int b=bufs[b2].server;
+	int fd=bufs[b].handle;
 	if(strncmp(msg, "\001ACTION ", 8)==0)
 	{
 		msg[strlen(msg)-1]=0; // remove trailing \001
-		if(priv) // TODO: this bit is actually copypasted far too many times.  I need to find a better solution (probably proper CTCP handling generally)
-		{
-			int b=b2;
-			b2=findptab(b, src);
-			if(b2<0)
-			{
-				bufs=(buffer *)realloc(bufs, ++nbufs*sizeof(buffer));
-				init_buffer(nbufs-1, PRIVATE, src, buflines);
-				b2=nbufs-1;
-				bufs[b2].server=bufs[b].server;
-				bufs[b2].live=true;
-				n_add(&bufs[b2].nlist, bufs[bufs[b2].server].nick, bufs[b].casemapping);
-				n_add(&bufs[b2].nlist, src, bufs[b].casemapping);
-			}
-		}
+		if(priv) b2=makeptab(b, src);
 		add_to_buffer(b2, ACT, NORMAL, 0, false, msg+8, src);
 		ha=ha||strstr(msg+8, bufs[bufs[b2].server].nick);
 		if(ha)
@@ -1696,21 +1683,7 @@ int ctcp(char *msg, char *src, int b2, bool ha, bool notice, bool priv)
 	{
 		if(notice)
 		{
-			if(priv)
-			{
-				int b=b2;
-				b2=findptab(b, src);
-				if(b2<0)
-				{
-					bufs=(buffer *)realloc(bufs, ++nbufs*sizeof(buffer));
-					init_buffer(nbufs-1, PRIVATE, src, buflines);
-					b2=nbufs-1;
-					bufs[b2].server=bufs[b].server;
-					bufs[b2].live=true;
-					n_add(&bufs[b2].nlist, bufs[bufs[b2].server].nick, bufs[b].casemapping);
-					n_add(&bufs[b2].nlist, src, bufs[b].casemapping);
-				}
-			}
+			if(priv) b2=makeptab(b, src);
 			add_to_buffer(b2, NOTICE, NORMAL, 0, false, msg, src);
 			if(ha)
 				bufs[b2].hi_alert=5;
@@ -1726,21 +1699,7 @@ int ctcp(char *msg, char *src, int b2, bool ha, bool notice, bool priv)
 	{
 		if(notice)
 		{
-			if(priv)
-			{
-				int b=b2;
-				b2=findptab(b, src);
-				if(b2<0)
-				{
-					bufs=(buffer *)realloc(bufs, ++nbufs*sizeof(buffer));
-					init_buffer(nbufs-1, PRIVATE, src, buflines);
-					b2=nbufs-1;
-					bufs[b2].server=bufs[b].server;
-					bufs[b2].live=true;
-					n_add(&bufs[b2].nlist, bufs[bufs[b2].server].nick, bufs[b].casemapping);
-					n_add(&bufs[b2].nlist, src, bufs[b].casemapping);
-				}
-			}
+			if(priv) b2=makeptab(b, src);
 			add_to_buffer(b2, NOTICE, NORMAL, 0, false, msg, src);
 			if(ha)
 				bufs[b2].hi_alert=5;
@@ -1756,21 +1715,7 @@ int ctcp(char *msg, char *src, int b2, bool ha, bool notice, bool priv)
 	{
 		if(notice)
 		{
-			if(priv)
-			{
-				int b=b2;
-				b2=findptab(b, src);
-				if(b2<0)
-				{
-					bufs=(buffer *)realloc(bufs, ++nbufs*sizeof(buffer));
-					init_buffer(nbufs-1, PRIVATE, src, buflines);
-					b2=nbufs-1;
-					bufs[b2].server=bufs[b].server;
-					bufs[b2].live=true;
-					n_add(&bufs[b2].nlist, bufs[bufs[b2].server].nick, bufs[b].casemapping);
-					n_add(&bufs[b2].nlist, src, bufs[b].casemapping);
-				}
-			}
+			if(priv) b2=makeptab(b, src);
 			add_to_buffer(b2, NOTICE, NORMAL, 0, false, msg, src);
 			if(ha)
 				bufs[b2].hi_alert=5;
@@ -1786,21 +1731,7 @@ int ctcp(char *msg, char *src, int b2, bool ha, bool notice, bool priv)
 	{
 		if(notice)
 		{
-			if(priv)
-			{
-				int b=b2;
-				b2=findptab(b, src);
-				if(b2<0)
-				{
-					bufs=(buffer *)realloc(bufs, ++nbufs*sizeof(buffer));
-					init_buffer(nbufs-1, PRIVATE, src, buflines);
-					b2=nbufs-1;
-					bufs[b2].server=bufs[b].server;
-					bufs[b2].live=true;
-					n_add(&bufs[b2].nlist, bufs[bufs[b2].server].nick, bufs[b].casemapping);
-					n_add(&bufs[b2].nlist, src, bufs[b].casemapping);
-				}
-			}
+			if(priv) b2=makeptab(b, src);
 			add_to_buffer(b2, NOTICE, NORMAL, 0, false, msg, src);
 			if(ha)
 				bufs[b2].hi_alert=5;
@@ -1814,21 +1745,7 @@ int ctcp(char *msg, char *src, int b2, bool ha, bool notice, bool priv)
 	}
 	else
 	{
-		if(priv)
-		{
-			int b=b2;
-			b2=findptab(b, src);
-			if(b2<0)
-			{
-				bufs=(buffer *)realloc(bufs, ++nbufs*sizeof(buffer));
-				init_buffer(nbufs-1, PRIVATE, src, buflines);
-				b2=nbufs-1;
-				bufs[b2].server=bufs[b].server;
-				bufs[b2].live=true;
-				n_add(&bufs[b2].nlist, bufs[bufs[b2].server].nick, bufs[b].casemapping);
-				n_add(&bufs[b2].nlist, src, bufs[b].casemapping);
-			}
-		}
+		if(priv) b2=makeptab(b, src);
 		add_to_buffer(b2, NOTICE, NORMAL, 0, false, msg, src);
 		if(ha)
 			bufs[b2].hi_alert=5;
