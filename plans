@@ -4,10 +4,6 @@ Scripting language.  Under development in branch 'script'.
 
 Need to fix the problem of the conn_rest not getting called for eg worldofspectrum (why is this happening?)
 
-Handle CTCP correctly, on both receive (rx_privmsg()) and send (talk()).
-
-Fix possible issue with CTCP.  Funny stuff (including random characters) happened when eg spike1 sent a CTCP PONG to the channel.
-
 Optionally fold runs of the same type of message.  Eg.: =foo=bar=baz= have joined #whatever.
 
 Handle \ in tab-completion.  It should be expanded to \\.

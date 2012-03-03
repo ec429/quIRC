@@ -1343,41 +1343,35 @@ int rx_privmsg(message pkt, int b, bool notice)
 				break;
 			if(i_match(bufs[b2].ilist, nm, false, bufs[b].casemapping))
 				continue;
-			if(*pkt.args[1]==1) // CTCP TODO: proper CTCP handling of embedded messages
+			ctcp_strip(pkt.args[1], src, b2, ha, notice, false, false);
+			char lp=0;
+			if(show_prefix)
 			{
-				ctcp(pkt.args[1], src, b2, ha, notice, false);
-			}
-			else
-			{
-				char lp=0;
-				if(show_prefix)
+				name *curr=bufs[b2].nlist;
+				while(curr)
 				{
-					name *curr=bufs[b2].nlist;
-					while(curr)
+					if(irc_strcasecmp(src, curr->data, bufs[b].casemapping)==0)
 					{
-						if(irc_strcasecmp(src, curr->data, bufs[b].casemapping)==0)
+						int po=-1;
+						for(unsigned int i=0;i<curr->npfx;i++)
 						{
-							int po=-1;
-							for(unsigned int i=0;i<curr->npfx;i++)
+							for(unsigned int j=0;j<(po<0?bufs[b].npfx:(unsigned)po);j++)
 							{
-								for(unsigned int j=0;j<(po<0?bufs[b].npfx:(unsigned)po);j++)
+								if(bufs[b].prefixes[j].letter==curr->prefixes[i].letter)
 								{
-									if(bufs[b].prefixes[j].letter==curr->prefixes[i].letter)
-									{
-										po=j;
-										lp=curr->prefixes[i].pfx;
-									}
+									po=j;
+									lp=curr->prefixes[i].pfx;
 								}
 							}
-							break;
 						}
-						curr=curr->next;
+						break;
 					}
+					curr=curr->next;
 				}
-				add_to_buffer(b2, notice?NOTICE:MSG, NORMAL, lp, false, pkt.args[1], src);
-				if(ha)
-					bufs[b2].hi_alert=5;
 			}
+			add_to_buffer(b2, notice?NOTICE:MSG, NORMAL, lp, false, pkt.args[1], src);
+			if(ha)
+				bufs[b2].hi_alert=5;
 		}
 	}
 	if(!match)
@@ -1386,32 +1380,26 @@ int rx_privmsg(message pkt, int b, bool notice)
 			return(0);
 		if((irc_strcasecmp(pkt.args[0], bufs[b].nick, bufs[b].casemapping)==0) || (irc_strcasecmp(pkt.args[0], "AUTH", bufs[b].casemapping)==0) || (irc_strcasecmp(pkt.args[0], "Global", bufs[b].casemapping)==0))
 		{
-			if(*pkt.args[1]==1) // CTCP TODO: proper CTCP handling of embedded messages
+			ctcp_strip(pkt.args[1], src, b, true, notice, true, false);
+			if(!notice)
 			{
-				ctcp(pkt.args[1], src, b, true, notice, true);
+				int b2=findptab(b, src);
+				if(b2<0)
+				{
+					bufs=(buffer *)realloc(bufs, ++nbufs*sizeof(buffer));
+					init_buffer(nbufs-1, PRIVATE, src, buflines);
+					b2=nbufs-1;
+					bufs[b2].server=bufs[b].server;
+					bufs[b2].live=true;
+					n_add(&bufs[b2].nlist, bufs[bufs[b2].server].nick, bufs[b].casemapping);
+					n_add(&bufs[b2].nlist, src, bufs[b].casemapping);
+				}
+				add_to_buffer(b2, MSG, NORMAL, 0, false, pkt.args[1], src);
+				bufs[b2].hi_alert=5;
 			}
 			else
 			{
-				if(!notice)
-				{
-					int b2=findptab(b, src);
-					if(b2<0)
-					{
-						bufs=(buffer *)realloc(bufs, ++nbufs*sizeof(buffer));
-						init_buffer(nbufs-1, PRIVATE, src, buflines);
-						b2=nbufs-1;
-						bufs[b2].server=bufs[b].server;
-						bufs[b2].live=true;
-						n_add(&bufs[b2].nlist, bufs[bufs[b2].server].nick, bufs[b].casemapping);
-						n_add(&bufs[b2].nlist, src, bufs[b].casemapping);
-					}
-					add_to_buffer(b2, MSG, NORMAL, 0, false, pkt.args[1], src);
-					bufs[b2].hi_alert=5;
-				}
-				else
-				{
-					add_to_buffer(b, NOTICE, NORMAL, 0, false, pkt.args[1], src);
-				}
+				add_to_buffer(b, NOTICE, NORMAL, 0, false, pkt.args[1], src);
 			}
 		}
 		else
@@ -1666,104 +1654,125 @@ int rx_nick(message pkt, int b)
 	return(0);
 }
 
-int ctcp(char *msg, char *src, int b2, bool ha, bool notice, bool priv)
+int ctcp_strip(char *msg, const char *src, int b2, bool ha, bool notice, bool priv, bool tx)
+{
+	int e=0;
+	char *in=msg, *out=msg;
+	while(*in)
+	{
+		if(*in==1)
+		{
+			char *t=strchr(in+1, 1);
+			if(t)
+			{
+				*t=0;
+				e|=ctcp(in+1, src, b2, ha, notice, priv, tx);
+				in=t+1;
+				continue;
+			}
+		}
+		*out++=*in++;
+	}
+	return(e);
+}
+
+int ctcp(const char *msg, const char *src, int b2, bool ha, bool notice, bool priv, bool tx)
 {
 	int b=bufs[b2].server;
 	int fd=bufs[b].handle;
-	if(strncmp(msg, "\001ACTION ", 8)==0)
-	{
-		msg[strlen(msg)-1]=0; // remove trailing \001
-		if(priv) b2=makeptab(b, src);
-		add_to_buffer(b2, ACT, NORMAL, 0, false, msg+8, src);
-		ha=ha||strstr(msg+8, bufs[bufs[b2].server].nick);
-		if(ha)
-			bufs[b2].hi_alert=5;
-	}
-	else if(strncmp(msg, "\001FINGER", 7)==0)
-	{
-		if(notice)
-		{
-			if(priv) b2=makeptab(b, src);
-			add_to_buffer(b2, NOTICE, NORMAL, 0, false, msg, src);
-			if(ha)
-				bufs[b2].hi_alert=5;
-		}
-		else
-		{
-			char resp[32+strlen(src)+strlen(fname)];
-			sprintf(resp, "NOTICE %s \001FINGER :%s\001", src, fname);
-			irc_tx(fd, resp);
-		}
-	}
-	else if(strncmp(msg, "\001PING", 5)==0)
-	{
-		if(notice)
-		{
-			if(priv) b2=makeptab(b, src);
-			add_to_buffer(b2, NOTICE, NORMAL, 0, false, msg, src);
-			if(ha)
-				bufs[b2].hi_alert=5;
-		}
-		else
-		{
-			char resp[16+strlen(src)+strlen(msg)];
-			sprintf(resp, "NOTICE %s %s", src, msg);
-			irc_tx(fd, resp);
-		}
-	}
-	else if(strncmp(msg, "\001CLIENTINFO", 11)==0)
-	{
-		if(notice)
-		{
-			if(priv) b2=makeptab(b, src);
-			add_to_buffer(b2, NOTICE, NORMAL, 0, false, msg, src);
-			if(ha)
-				bufs[b2].hi_alert=5;
-		}
-		else
-		{
-			char resp[64+strlen(src)];
-			sprintf(resp, "NOTICE %s \001CLIENTINFO ACTION FINGER PING CLIENTINFO VERSION\001", src);
-			irc_tx(fd, resp);
-		}
-	}
-	else if(strncmp(msg, "\001VERSION", 8)==0)
-	{
-		if(notice)
-		{
-			if(priv) b2=makeptab(b, src);
-			add_to_buffer(b2, NOTICE, NORMAL, 0, false, msg, src);
-			if(ha)
-				bufs[b2].hi_alert=5;
-		}
-		else
-		{
-			char resp[32+strlen(src)+strlen(version)+strlen(CC_VERSION)];
-			sprintf(resp, "NOTICE %s \001VERSION %s:%s:%s\001", src, "quIRC", version, CC_VERSION);
-			irc_tx(fd, resp);
-		}
-	}
-	else
+	if(strncmp(msg, "ACTION ", 7)==0)
 	{
 		if(priv) b2=makeptab(b, src);
-		add_to_buffer(b2, NOTICE, NORMAL, 0, false, msg, src);
+		add_to_buffer(b2, ACT, NORMAL, 0, tx, msg+7, src);
+		ha=ha||strstr(msg+7, bufs[bufs[b2].server].nick);
 		if(ha)
 			bufs[b2].hi_alert=5;
-		char *cmd=msg+1;
-		char *space=strchr(cmd, ' ');
-		if(space)
-			*space=0;
-		char cmsg[32+strlen(cmd)];
-		sprintf(cmsg, "Unrecognised CTCP %s (ignoring)", cmd);
-		add_to_buffer(b2, UNK, QUIET, 0, false, cmsg, src);
-		if(!notice)
+	}
+	else if(!tx)
+	{
+		if(strncmp(msg, "FINGER", 7)==0)
 		{
-			char resp[32+strlen(src)+strlen(cmd)];
-			sprintf(resp, "NOTICE %s \001ERRMSG %s\001", src, cmd);
-			irc_tx(fd, resp);
+			if(notice)
+			{
+				if(priv) b2=makeptab(b, src);
+				add_to_buffer(b2, NOTICE, NORMAL, 0, false, msg, src);
+				if(ha)
+					bufs[b2].hi_alert=5;
+			}
+			else
+			{
+				char resp[32+strlen(src)+strlen(fname)];
+				sprintf(resp, "NOTICE %s \001FINGER :%s\001", src, fname);
+				irc_tx(fd, resp);
+			}
 		}
-		if(ha)
-			bufs[b2].hi_alert=5;
+		else if(strncmp(msg, "PING", 5)==0)
+		{
+			if(notice)
+			{
+				if(priv) b2=makeptab(b, src);
+				add_to_buffer(b2, NOTICE, NORMAL, 0, false, msg, src);
+				if(ha)
+					bufs[b2].hi_alert=5;
+			}
+			else
+			{
+				char resp[16+strlen(src)+strlen(msg)];
+				sprintf(resp, "NOTICE %s %s", src, msg);
+				irc_tx(fd, resp);
+			}
+		}
+		else if(strncmp(msg, "CLIENTINFO", 11)==0)
+		{
+			if(notice)
+			{
+				if(priv) b2=makeptab(b, src);
+				add_to_buffer(b2, NOTICE, NORMAL, 0, false, msg, src);
+				if(ha)
+					bufs[b2].hi_alert=5;
+			}
+			else
+			{
+				char resp[64+strlen(src)];
+				sprintf(resp, "NOTICE %s \001CLIENTINFO ACTION FINGER PING CLIENTINFO VERSION\001", src);
+				irc_tx(fd, resp);
+			}
+		}
+		else if(strncmp(msg, "VERSION", 8)==0)
+		{
+			if(notice)
+			{
+				if(priv) b2=makeptab(b, src);
+				add_to_buffer(b2, NOTICE, NORMAL, 0, false, msg, src);
+				if(ha)
+					bufs[b2].hi_alert=5;
+			}
+			else
+			{
+				char resp[32+strlen(src)+strlen(version)+strlen(CC_VERSION)];
+				sprintf(resp, "NOTICE %s \001VERSION %s:%s:%s\001", src, "quIRC", version, CC_VERSION);
+				irc_tx(fd, resp);
+			}
+		}
+		else
+		{
+			if(priv) b2=makeptab(b, src);
+			add_to_buffer(b2, NOTICE, NORMAL, 0, false, msg, src);
+			if(ha)
+				bufs[b2].hi_alert=5;
+			int space=strcspn(msg, " ");
+			char cmsg[32+space];
+			sprintf(cmsg, "Unrecognised CTCP %.*s (ignoring)", space, msg);
+			add_to_buffer(b2, UNK, QUIET, 0, false, cmsg, src);
+			if(!notice)
+			{
+				char resp[32+strlen(src)+space];
+				sprintf(resp, "NOTICE %s \001ERRMSG %.*s\001", src, space, msg);
+				irc_tx(fd, resp);
+			}
+			if(ha)
+				bufs[b2].hi_alert=5;
+		}
 	}
 	return(0);
 }
@@ -1779,6 +1788,7 @@ int talk(char *iinput)
 				char pmsg[12+strlen(bufs[cbuf].bname)+strlen(iinput)];
 				sprintf(pmsg, "PRIVMSG %s :%s", bufs[cbuf].bname, iinput);
 				irc_tx(bufs[bufs[cbuf].server].handle, pmsg);
+				ctcp_strip(iinput, bufs[bufs[cbuf].server].nick, cbuf, false, false, bufs[cbuf].type==PRIVATE, true);
 				char lp=0;
 				int po=-1;
 				for(unsigned int i=0;i<bufs[cbuf].us->npfx;i++)

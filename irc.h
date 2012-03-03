@@ -105,4 +105,5 @@ int rx_part(message pkt, int b);
 int rx_quit(message pkt, int b);
 int rx_nick(message pkt, int b);
 
-int ctcp(char *msg, char *src, int b2, bool ha, bool notice, bool priv); // Handle CTCP (Client-To-Client Protocol) messages
+int ctcp_strip(char *msg, const char *src, int b2, bool ha, bool notice, bool priv, bool tx); // Strip the CTCPs out of a privmsg and handle them
+int ctcp(const char *msg, const char *src, int b2, bool ha, bool notice, bool priv, bool tx); // Handle CTCP (Client-To-Client Protocol) messages
