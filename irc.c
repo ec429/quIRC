@@ -1697,7 +1697,7 @@ int ctcp(const char *msg, const char *src, int b2, bool ha, bool notice, bool pr
 	}
 	else if(!tx)
 	{
-		if(strncmp(msg, "FINGER", 7)==0)
+		if(strncmp(msg, "FINGER", 6)==0)
 		{
 			if(notice)
 			{
@@ -1713,7 +1713,7 @@ int ctcp(const char *msg, const char *src, int b2, bool ha, bool notice, bool pr
 				irc_tx(fd, resp);
 			}
 		}
-		else if(strncmp(msg, "PING", 5)==0)
+		else if(strncmp(msg, "PING", 4)==0)
 		{
 			if(notice)
 			{
@@ -1729,7 +1729,7 @@ int ctcp(const char *msg, const char *src, int b2, bool ha, bool notice, bool pr
 				irc_tx(fd, resp);
 			}
 		}
-		else if(strncmp(msg, "CLIENTINFO", 11)==0)
+		else if(strncmp(msg, "CLIENTINFO", 10)==0)
 		{
 			if(notice)
 			{
@@ -1745,7 +1745,7 @@ int ctcp(const char *msg, const char *src, int b2, bool ha, bool notice, bool pr
 				irc_tx(fd, resp);
 			}
 		}
-		else if(strncmp(msg, "VERSION", 8)==0)
+		else if(strncmp(msg, "VERSION", 7)==0)
 		{
 			if(notice)
 			{
