@@ -607,6 +607,16 @@ int render_line(int buf, int uline)
 		case UNK:
 			c=c_unk;
 		break;
+		case UNK_NOTICE:
+			c=c_unk;
+			if(*tag)
+			{
+				crush(&tag, maxnlen);
+				char *ntag=mktag("(from %s) ", tag);
+				free(tag);
+				tag=ntag;
+			}
+		break;
 		case UNN:
 			c=c_unn;
 		break;

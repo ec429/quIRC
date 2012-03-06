@@ -1770,7 +1770,7 @@ int ctcp(const char *msg, const char *src, int b2, bool ha, bool notice, bool pr
 			int space=strcspn(msg, " ");
 			char cmsg[32+space];
 			sprintf(cmsg, "Unrecognised CTCP %.*s (ignoring)", space, msg);
-			add_to_buffer(b2, UNK, QUIET, 0, false, cmsg, src);
+			add_to_buffer(b2, UNK_NOTICE, QUIET, 0, false, cmsg, src);
 			if(!notice)
 			{
 				char resp[32+strlen(src)+space];

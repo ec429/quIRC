@@ -53,6 +53,7 @@ typedef enum
 	STA,
 	ERR,
 	UNK,
+	UNK_NOTICE,
 	UNN,
 }
 mtype;
