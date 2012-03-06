@@ -1799,15 +1799,18 @@ int talk(char *iinput)
 				if(*iinput)
 				{
 					char lp=0;
-					int po=-1;
-					for(unsigned int i=0;i<bufs[cbuf].us->npfx;i++)
+					if(bufs[cbuf].us&&bufs[cbuf].us->prefixes)
 					{
-						for(unsigned int j=0;j<(po<0?bufs[bufs[cbuf].server].npfx:(unsigned)po);j++)
+						int po=-1;
+						for(unsigned int i=0;i<bufs[cbuf].us->npfx;i++)
 						{
-							if(bufs[bufs[cbuf].server].prefixes[j].letter==bufs[cbuf].us->prefixes[i].letter)
+							for(unsigned int j=0;j<(po<0?bufs[bufs[cbuf].server].npfx:(unsigned)po);j++)
 							{
-								po=j;
-								lp=bufs[cbuf].us->prefixes[i].pfx;
+								if(bufs[bufs[cbuf].server].prefixes[j].letter==bufs[cbuf].us->prefixes[i].letter)
+								{
+									po=j;
+									lp=bufs[cbuf].us->prefixes[i].pfx;
+								}
 							}
 						}
 					}
