@@ -1725,7 +1725,7 @@ int ctcp(const char *msg, const char *src, int b2, bool ha, bool notice, bool pr
 			else
 			{
 				char resp[16+strlen(src)+strlen(msg)];
-				sprintf(resp, "NOTICE %s %s", src, msg);
+				sprintf(resp, "NOTICE %s \001%s\001", src, msg);
 				irc_tx(fd, resp);
 			}
 		}
