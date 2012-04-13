@@ -537,7 +537,7 @@ int render_line(int buf, int uline)
 	{
 		case MSG:
 		{
-			c=c_msg[bufs[buf].ls[uline]?1:0];
+			c=c_msg[bufs[buf].ls[uline]?0:1];
 			char mk[6]="<%s> ";
 			if(show_prefix&&bufs[buf].lp[uline])
 			{
@@ -551,7 +551,7 @@ int render_line(int buf, int uline)
 		break;
 		case NOTICE:
 		{
-			c=c_notice[bufs[buf].ls[uline]?1:0];
+			c=c_notice[bufs[buf].ls[uline]?0:1];
 			if(*tag)
 			{
 				crush(&tag, maxnlen);
@@ -562,11 +562,11 @@ int render_line(int buf, int uline)
 		}
 		break;
 		case PREFORMAT:
-			c=c_notice[bufs[buf].ls[uline]?1:0];
+			c=c_notice[bufs[buf].ls[uline]?0:1];
 		break;
 		case ACT:
 		{
-			c=c_actn[bufs[buf].ls[uline]?1:0];
+			c=c_actn[bufs[buf].ls[uline]?0:1];
 			crush(&tag, maxnlen);
 			char *ntag=mktag("* %s ", tag);
 			free(tag);
@@ -574,20 +574,20 @@ int render_line(int buf, int uline)
 		}
 		break;
 		case JOIN:
-			c=c_join[bufs[buf].ls[uline]?1:0];
+			c=c_join[bufs[buf].ls[uline]?0:1];
 			goto eqtag;
 		case PART:
-			c=c_part[bufs[buf].ls[uline]?1:0];
+			c=c_part[bufs[buf].ls[uline]?0:1];
 			goto eqtag;
 		case QUIT:
-			c=c_quit[bufs[buf].ls[uline]?1:0];
+			c=c_quit[bufs[buf].ls[uline]?0:1];
 			goto eqtag;
 		case QUIT_PREFORMAT:
-			c=c_quit[bufs[buf].ls[uline]?1:0];
+			c=c_quit[bufs[buf].ls[uline]?0:1];
 		break;
 		case NICK:
 		{
-			c=c_nick[bufs[buf].ls[uline]?1:0];
+			c=c_nick[bufs[buf].ls[uline]?0:1];
 			eqtag:
 			crush(&tag, maxnlen);
 			char *ntag=mktag("=%s= ", tag);
@@ -596,7 +596,7 @@ int render_line(int buf, int uline)
 		}
 		break;
 		case MODE:
-			c=c_nick[bufs[buf].ls[uline]?1:0];
+			c=c_nick[bufs[buf].ls[uline]?0:1];
 		break;
 		case STA:
 			c=c_status;
