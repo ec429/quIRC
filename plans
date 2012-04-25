@@ -32,6 +32,8 @@ Improve the parsing of mirc-colour-codes (to fix things like \003124 which curre
 
 /dump command.  Pipes a screendump (or better still, unprocessed text) into program of choice.
 
+/ping command.  Send CTCP PING.
+
 /clear command.
 
 Short commands (sufficient-prefix matching, like /cle).
