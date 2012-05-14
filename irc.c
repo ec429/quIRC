@@ -1347,29 +1347,26 @@ int rx_privmsg(message pkt, int b, bool notice)
 			if(*pkt.args[1])
 			{
 				char lp=0;
-				if(show_prefix)
+				name *curr=bufs[b2].nlist;
+				while(curr)
 				{
-					name *curr=bufs[b2].nlist;
-					while(curr)
+					if(irc_strcasecmp(src, curr->data, bufs[b].casemapping)==0)
 					{
-						if(irc_strcasecmp(src, curr->data, bufs[b].casemapping)==0)
+						int po=-1;
+						for(unsigned int i=0;i<curr->npfx;i++)
 						{
-							int po=-1;
-							for(unsigned int i=0;i<curr->npfx;i++)
+							for(unsigned int j=0;j<(po<0?bufs[b].npfx:(unsigned)po);j++)
 							{
-								for(unsigned int j=0;j<(po<0?bufs[b].npfx:(unsigned)po);j++)
+								if(bufs[b].prefixes[j].letter==curr->prefixes[i].letter)
 								{
-									if(bufs[b].prefixes[j].letter==curr->prefixes[i].letter)
-									{
-										po=j;
-										lp=curr->prefixes[i].pfx;
-									}
+									po=j;
+									lp=curr->prefixes[i].pfx;
 								}
 							}
-							break;
 						}
-						curr=curr->next;
+						break;
 					}
+					curr=curr->next;
 				}
 				add_to_buffer(b2, notice?NOTICE:MSG, NORMAL, lp, false, pkt.args[1], src);
 				if(ha)
