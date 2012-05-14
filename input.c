@@ -561,7 +561,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 	}
 	if((strcmp(cmd, "quit")==0)||(strcmp(cmd, "exit")==0))
 	{
-		if(args) *qmsg=strdup(args);
+		if(args) {free(*qmsg); *qmsg=strdup(args);}
 		add_to_buffer(cbuf, STA, NORMAL, 0, false, "Exited quirc", "/quit: ");
 		return(-1);
 	}
@@ -684,7 +684,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 	{
 		if(args)
 		{
-			char *server=strdup(args);
+			char *server=args;
 			char *newport=strchr(server, ':');
 			if(newport)
 			{
@@ -1050,6 +1050,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 			{
 				if(LIVE(cbuf))
 				{
+					free(bufs[bufs[cbuf].server].nick);
 					bufs[bufs[cbuf].server].nick=strdup(nn);
 					char nmsg[8+strlen(bufs[bufs[cbuf].server].nick)];
 					sprintf(nmsg, "NICK %s", bufs[bufs[cbuf].server].nick);
@@ -1067,7 +1068,9 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Tab not live, can't send", "/nick: ");
 				else
 				{
+					free(bufs[0].nick);
 					bufs[0].nick=strdup(nn);
+					free(nick);
 					nick=strdup(nn);
 					defnick=false;
 					add_to_buffer(cbuf, STA, QUIET, 0, false, "Default nick changed", "/nick: ");
