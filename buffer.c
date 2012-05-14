@@ -166,6 +166,7 @@ int init_buffer(int buf, btype type, const char *bname, int nlines)
 		bufs[buf].prefixes=NULL;
 	}
 	bufs[buf].autoent=NULL;
+	bufs[buf].conf=conf;
 	return(0);
 }
 
