@@ -820,17 +820,13 @@ int irc_numeric(message pkt, int b)
 				{
 					if((bufs[b2].server==b)&&(bufs[b2].type==PRIVATE)&&(irc_strcasecmp(pkt.args[1], bufs[b2].bname, bufs[b].casemapping)==0))
 					{
-						char *tag=mktag("(%s away) ", pkt.args[1]);
-						add_to_buffer(b2, NOTICE, NORMAL, 0, false, pkt.nargs>2?pkt.args[2]:"no message set", tag);
-						free(tag);
+						add_to_buffer(b2, NOTICE, NORMAL, 0, false, pkt.nargs>2?pkt.args[2]:"no message set", pkt.args[1]);
 						break;
 					}
 				}
 				if(b2==nbufs)
 				{
-					char *tag=mktag("(%s away) ", pkt.args[1]);
-					add_to_buffer(b, NOTICE, NORMAL, 0, false, pkt.nargs>2?pkt.args[2]:"no message set", tag);
-					free(tag);
+					add_to_buffer(b, NOTICE, NORMAL, 0, false, pkt.nargs>2?pkt.args[2]:"no message set", pkt.args[1]);
 				}
 			}
 		break;
