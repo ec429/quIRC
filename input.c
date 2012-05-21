@@ -851,6 +851,20 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		}
 		return(0);
 	}
+	if(strcmp(cmd, "realsname")==0)
+	{
+		int b=bufs[cbuf].server;
+		if(b>0)
+		{
+			if(bufs[b].realsname)
+				add_to_buffer(cbuf, STA, NORMAL, 0, false, bufs[b].realsname, "/realsname: ");
+			else
+				add_to_buffer(cbuf, ERR, NORMAL, 0, false, "unknown", "/realsname ");
+		}
+		else
+			add_to_buffer(cbuf, ERR, NORMAL, 0, false, "(status) is not a server", "/realsname: ");
+		return(0);
+	}
 	if(strcmp(cmd, "join")==0)
 	{
 		if(!bufs[bufs[cbuf].server].handle)
