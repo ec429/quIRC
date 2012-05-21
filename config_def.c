@@ -18,3 +18,4 @@
 	show_prefix=0;
 	titles=1;
 	winch=1;
+	indent=1;

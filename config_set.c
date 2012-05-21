@@ -631,3 +631,46 @@
 						bufs[buf].dirty=true;
 					redraw_buffer();
 				}
+				else if(strcmp(opt, "indent")==0)
+				{
+					if(val)
+					{
+						if(isdigit(*val))
+						{
+							unsigned int value;
+							sscanf(val, "%u", &value);
+							indent=value;
+						}
+						else if(strcmp(val, "+")==0)
+						{
+							indent=true;
+						}
+						else if(strcmp(val, "-")==0)
+						{
+							indent=false;
+						}
+						else
+						{
+							add_to_buffer(cbuf, ERR, NORMAL, 0, false, "option 'indent' is boolean, use only 0/1 or -/+ to set", "/set: ");
+						}
+					}
+					else
+						indent=true;
+					if(indent)
+						add_to_buffer(cbuf, STA, QUIET, 0, false, "hanging indent enabled", "/set: ");
+					else
+						add_to_buffer(cbuf, STA, QUIET, 0, false, "hanging indent disabled", "/set: ");
+					int buf;
+					for(buf=0;buf<nbufs;buf++)
+						bufs[buf].dirty=true;
+					redraw_buffer();
+				}
+				else if(strcmp(opt, "no-indent")==0)
+				{
+					indent=0;
+					add_to_buffer(cbuf, STA, QUIET, 0, false, "hanging indent disabled", "/set: ");
+					int buf;
+					for(buf=0;buf<nbufs;buf++)
+						bufs[buf].dirty=true;
+					redraw_buffer();
+				}

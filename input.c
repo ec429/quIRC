@@ -567,7 +567,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 	}
 	if(strcmp(cmd, "set")==0) // set options
 	{
-		bool osp=show_prefix, odbg=debug;
+		bool osp=show_prefix, odbg=debug, oind=indent;
 		unsigned int omln=maxnlen;
 		if(args)
 		{
@@ -664,7 +664,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		{
 			add_to_buffer(cbuf, ERR, NORMAL, 0, false, "But what do you want to set?", "/set: ");
 		}
-		if((show_prefix!=osp)||(maxnlen!=omln))
+		if((show_prefix!=osp)||(maxnlen!=omln)||(indent!=oind))
 		{
 			for(int b=0;b<nbufs;b++)
 				mark_buffer_dirty(b);

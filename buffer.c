@@ -624,9 +624,9 @@ int render_line(int buf, int uline)
 		default:
 		break;
 	}
-	x=wordline(tag, x, &proc, &l, &i, c);
+	x=wordline(tag, indent?x:0, &proc, &l, &i, c);
 	free(tag);
-	wordline(bufs[buf].lt[uline], x, &proc, &l, &i, c);
+	wordline(bufs[buf].lt[uline], indent?x:0, &proc, &l, &i, c);
 	bufs[buf].lpl[uline]=0;
 	bufs[buf].lpt[uline]=NULL;
 	bufs[buf].lpc[uline]=c;

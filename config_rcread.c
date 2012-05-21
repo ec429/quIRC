@@ -181,3 +181,13 @@
 				else
 					winch=true;
 			}
+			else if(strcmp(cmd, "no-indent")==0)
+				indent=false;
+			else if(strcmp(cmd, "indent")==0)
+			{
+				unsigned int value;
+				if(rest&&sscanf(rest, "%u", &value))
+					indent=value;
+				else
+					indent=true;
+			}

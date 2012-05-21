@@ -14,8 +14,6 @@ Tab search, with ^T.  Typing eg ^Tqu<return> should switch to the tab named quir
 
 Use the NETWORK parameter of RPL_ISUPPORT as the bname for server buffers.
 
-Option for no hanging indent (wordline() tabx=0).
-
 Const-correctness.  There are a lot of functions taking a char * that should take a const char *.
 
 Check the return value of malloc (and realloc) everywhere.  At the moment we're lax, which is fine on overcommitting Linux but not elsewhere.

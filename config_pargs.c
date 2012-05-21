@@ -59,3 +59,7 @@
 			winch=true;
 		else if(strcmp(argv[arg], "--no-winch")==0)
 			winch=false;
+		else if(strcmp(argv[arg], "--indent")==0)
+			indent=true;
+		else if(strcmp(argv[arg], "--no-indent")==0)
+			indent=false;
