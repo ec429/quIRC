@@ -620,6 +620,14 @@ int irc_numeric(message pkt, int b)
 						bufs[b].prefixes=NULL;
 					}
 				}
+				else if(strcmp(rest, "NETWORK")==0)
+				{
+					if(value)
+					{
+						free(bufs[b].bname);
+						bufs[b].bname=strdup(value);
+					}
+				}
 				else
 				{
 					char isup[strlen(rest)+(value?strlen(value):0)+3];
@@ -856,6 +864,15 @@ int irc_numeric(message pkt, int b)
 				b2=b;
 			add_to_buffer(b2, ERR, QUIET, 0, false, pkt.args[1], "No such nick/channel: ");
 		break;
+		case 001:
+		case 002:
+		case 003:
+			if(pkt.nargs>1)
+			{
+				add_to_buffer(b, STA, QUIET, 0, false, pkt.args[1], ": ");
+				break;
+			}
+			// else fall through
 		default:
 			e_buf_print(b, UNN, pkt, "Unknown numeric: ");
 		break;
