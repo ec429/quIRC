@@ -69,7 +69,8 @@ prio;
 typedef struct _buf
 {
 	btype type;
-	char *bname; // "status" or serverloc or #channel or @nick (resp. types)
+	char *bname; // Buffer display name: "status" or serverloc(or NETWORK) or #channel or @nick (resp. types)
+	char *serverloc; // address of server roundrobin
 	char *realsname; // real server name (not the same as bname)
 	name *nlist; // only used for CHANNELs and PRIVATE: linked-list of nicks
 	name *us; // pointer to our entry in the nlist

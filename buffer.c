@@ -105,6 +105,10 @@ int init_buffer(int buf, btype type, const char *bname, int nlines)
 {
 	bufs[buf].type=type;
 	bufs[buf].bname=strdup(bname);
+	if(type==SERVER)
+		bufs[buf].serverloc=strdup(bname);
+	else
+		bufs[buf].serverloc=NULL;
 	bufs[buf].realsname=NULL;
 	bufs[buf].nlist=NULL;
 	bufs[buf].us=NULL;
@@ -180,6 +184,7 @@ int free_buffer(int buf)
 	else
 	{
 		free(bufs[buf].bname);
+		free(bufs[buf].serverloc);
 		free(bufs[buf].realsname);
 		n_free(bufs[buf].nlist);
 		bufs[buf].nlist=NULL;
