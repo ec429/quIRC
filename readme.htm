@@ -55,6 +55,8 @@ Then there&apos;s the github page, <a href="http://github.com/ec429/quIRC">http:
 	<dd>Private message; sends the message to the given recipient.  Will open a private messaging tab if one is not already open for that recipient (suppress with -n).  If <em>message</em> is omitted, just opens the tab.</dd>
 <dt>/amsg <em>message</em></dt>
 	<dd>Send message to all attached channels on this server.</dd>
+<dt>/ping [<em>recipient</em>]</dt>
+	<dd>Send a CTCP ping to <em>recipient</em>.  If used in a private messaging tab, <em>recipient</em> may be omitted.</dd>
 <dt>/topic [<em>message</em>]</dt>
 	<dd>Sets or gets the channel topic.</dd>
 <dt>/mode [<em>nick</em> [{+|-}<em>mode</em>]]</dt>
@@ -97,6 +99,8 @@ Then there&apos;s the github page, <a href="http://github.com/ec429/quIRC">http:
 	<dd>Rejoins a channel tab which is dead (eg after losing server connection).</dd>
 <dt>/reconnect</dt>
 	<dd>Reconnects to a server from which you have become disconnected.</dd>
+<dt>/realsname</dt>
+	<dd>Displays the hostname of the server you are connected to.</dd>
 <dt>/part <em>channel</em></dt>
 <dt>/leave <em>channel</em></dt>
 	<dd>Leaves (departs) the given channel.</dd>

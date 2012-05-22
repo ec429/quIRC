@@ -43,6 +43,9 @@ the channel (or nick if current tab is a private messaging tab).
       (suppress with -n). If message is omitted, just opens the tab.
   /amsg message
       Send message to all attached channels on this server.
+  /ping [recipient]
+      Send a CTCP ping to recipient. If used in a private messaging tab,
+      recipient may be omitted.
   /topic [message]
       Sets or gets the channel topic.
   /mode [nick [{+|-}mode]]
@@ -97,6 +100,8 @@ the channel (or nick if current tab is a private messaging tab).
       Rejoins a channel tab which is dead (eg after losing server connection).
   /reconnect
       Reconnects to a server from which you have become disconnected.
+  /realsname
+      Displays the hostname of the server you are connected to.
   /part channel
   /leave channel
       Leaves (departs) the given channel.
