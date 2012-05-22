@@ -247,7 +247,7 @@ int main(int argc, char *argv[])
 					{
 						free(bufs[cbuf].nick);
 						bufs[cbuf].nick=strdup(list->autoent->nick);
-						bufs[cbuf].ilist=list->autoent->igns;
+						bufs[cbuf].ilist=n_dup(list->autoent->igns);
 						bufs[cbuf].autoent=list->autoent;
 					}
 					add_to_buffer(cbuf, STA, QUIET, 0, false, dstr, "/server: ");

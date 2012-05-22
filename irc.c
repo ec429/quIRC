@@ -184,7 +184,7 @@ int autoconnect(fd_set *master, int *fdmax, servlist *serv) // XXX broken in the
 		bufs[cbuf].handle=serverhandle;
 		bufs[cbuf].nick=strdup(serv->nick);
 		bufs[cbuf].autoent=serv;
-		if(serv) bufs[cbuf].ilist=serv->igns;
+		if(serv) bufs[cbuf].ilist=n_dup(serv->igns);
 		bufs[cbuf].server=cbuf;
 		bufs[cbuf].conninpr=true;
 		add_to_buffer(cbuf, STA, QUIET, 0, false, cstr, "auto: ");

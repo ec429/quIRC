@@ -1019,7 +1019,7 @@ void titlebar(void)
 	locate(1, 1);
 	setcol(0, 7, true, false);
 	clr();
-	unsigned int gits;
+	unsigned int gits=0;
 	sscanf(VERSION_TXT, "%u", &gits);
 	const char *hashgit=strchr(VERSION_TXT, ' ');
 	if(hashgit)

@@ -36,6 +36,7 @@ name;
 #include "buffer.h"
 #include "irc.h"
 
+name *n_dup(const name *list);
 name * n_add(name ** list, const char *data, cmap casemapping); // returns pointer to the added name.  Calls n_cull() first
 int n_cull(name ** list, const char *data, cmap casemapping); // returns number of instances culled
 void n_free(name * list);

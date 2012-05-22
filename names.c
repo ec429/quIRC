@@ -8,6 +8,28 @@
 
 #include "names.h"
 
+name *n_dup(const name *list)
+{
+	if(!list) return(NULL);
+	name *rv=malloc(sizeof(name));
+	if(!rv) return(NULL);
+	*rv=*list;
+	rv->prev=NULL;
+	name *next=rv->next=n_dup(list->next);
+	if(next)
+		next->prev=rv;
+	rv->data=strdup(list->data);
+	rv->prefixes=malloc(rv->npfx*sizeof(prefix));
+	if(rv->prefixes)
+	{
+		for(unsigned int i=0;i<rv->npfx;i++)
+			rv->prefixes[i]=list->prefixes[i];
+	}
+	else
+		rv->npfx=0;
+	return(rv);
+}
+
 name * n_add(name ** list, const char *data, cmap casemapping)
 {
 	if(!list)
