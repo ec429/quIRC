@@ -1728,7 +1728,27 @@ int ctcp(const char *msg, const char *src, int b2, bool ha, bool notice, bool pr
 			if(notice)
 			{
 				if(priv) b2=makeptab(b, src);
-				add_to_buffer(b2, NOTICE, NORMAL, 0, false, msg, src);
+				unsigned int t, u;
+				ssize_t n;
+				if((msg[4]==' ')&&(sscanf(msg+5, "%u%zn", &t, &n)==1))
+				{
+					double dt=0;
+					if((msg[5+n]==' ')&&(sscanf(msg+6+n, "%u", &u)==1))
+					{
+						struct timeval tv;
+						gettimeofday(&tv, NULL);
+						dt=(tv.tv_sec-t)+1e-6*(tv.tv_usec-u);
+					}
+					else
+						dt=difftime(time(NULL), t);
+					char tm[32];
+					snprintf(tm, 32, "%gs", dt);
+					add_to_buffer(b2, STA, NORMAL, 0, false, tm, "/ping: ");
+				}
+				else
+				{
+					add_to_buffer(b2, NOTICE, NORMAL, 0, false, msg, src);
+				}
 				if(ha)
 					bufs[b2].hi_alert=5;
 			}

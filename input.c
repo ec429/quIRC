@@ -1231,6 +1231,48 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		}
 		return(0);
 	}
+	if(strcmp(cmd, "ping")==0)
+	{
+		if(!bufs[bufs[cbuf].server].handle)
+		{
+			add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Must be run in the context of a server!", "/ping: ");
+		}
+		else
+		{
+			const char *dest=NULL;
+			if(args)
+				dest=strtok(args, " ");
+			if(!dest&&bufs[cbuf].type==PRIVATE)
+				dest=bufs[cbuf].bname;
+			if(dest)
+			{
+				if(bufs[bufs[cbuf].server].handle)
+				{
+					if(LIVE(cbuf))
+					{
+						struct timeval tv;
+						gettimeofday(&tv, NULL);
+						char privmsg[64+strlen(dest)];
+						snprintf(privmsg, 64+strlen(dest), "PRIVMSG %s :\001PING %u %u\001", dest, (unsigned int)tv.tv_sec, (unsigned int)tv.tv_usec);
+						irc_tx(bufs[bufs[cbuf].server].handle, privmsg);
+					}
+					else
+					{
+						add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Tab not live, can't send", "/ping: ");
+					}
+				}
+				else
+				{
+					add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Can't send - not connected!", "/ping: ");
+				}
+			}
+			else
+			{
+				add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Must specify a recipient!", "/ping: ");
+			}
+		}
+		return(0);
+	}
 	if(strcmp(cmd, "amsg")==0)
 	{
 		if(!bufs[cbuf].server)
