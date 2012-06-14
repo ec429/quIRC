@@ -55,6 +55,8 @@ int wordline(const char *msg, unsigned int x, char **out, int *l, int *i, colour
 	int l2,i2;
 	char *word;
 	const char *ptr=msg;
+	colour cc=lc; // current colour
+	s_setcolour(cc, out, l, i);
 	while(*ptr)
 	{
 		switch(*ptr)
@@ -67,8 +69,10 @@ int wordline(const char *msg, unsigned int x, char **out, int *l, int *i, colour
 				else
 				{
 					append_char(out, l, i, '\n');
+					s_setcolour(lc, out, l, i);
 					for(x=0;x<tabx;x++)
 						append_char(out, l, i, ' ');
+					s_setcolour(cc, out, l, i);
 				}
 				ptr++;
 			break;
@@ -76,8 +80,10 @@ int wordline(const char *msg, unsigned int x, char **out, int *l, int *i, colour
 				if(*++ptr)
 				{
 					append_char(out, l, i, '\n');
+					s_setcolour(lc, out, l, i);
 					for(x=0;x<tabx;x++)
 						append_char(out, l, i, ' ');
+					s_setcolour(cc, out, l, i);
 				}
 			break;
 			case '\t':;
@@ -92,8 +98,10 @@ int wordline(const char *msg, unsigned int x, char **out, int *l, int *i, colour
 					else
 					{
 						append_char(out, l, i, '\n');
+						s_setcolour(lc, out, l, i);
 						for(x=0;x<tabx;x++)
 							append_char(out, l, i, ' ');
+						s_setcolour(cc, out, l, i);
 						break;
 					}
 				}
@@ -101,6 +109,7 @@ int wordline(const char *msg, unsigned int x, char **out, int *l, int *i, colour
 			break;
 			default:
 				init_char(&word, &l2, &i2);
+				colour oc=cc;
 				int wdlen=0;
 				while(!strchr(" \t\n", *ptr))
 				{
@@ -114,7 +123,7 @@ int wordline(const char *msg, unsigned int x, char **out, int *l, int *i, colour
 							if(mirc_colour_compat==2)
 							{
 								colour mcc=c_mirc(fore, back);
-								s_setcol(mcc.fore, mcc.back, mcc.hi, mcc.ul, &word, &l2, &i2);
+								s_setcolour(cc=mcc, &word, &l2, &i2);
 							}
 						}
 						else if(sscanf(ptr, "\003%d%zn", &fore, &bytes)==1)
@@ -123,7 +132,7 @@ int wordline(const char *msg, unsigned int x, char **out, int *l, int *i, colour
 							if(mirc_colour_compat==2)
 							{
 								colour mcc=c_mirc(fore, 1);
-								s_setcol(mcc.fore, mcc.back, mcc.hi, mcc.ul, &word, &l2, &i2);
+								s_setcolour(cc=mcc, &word, &l2, &i2);
 							}
 						}
 						else
@@ -131,7 +140,7 @@ int wordline(const char *msg, unsigned int x, char **out, int *l, int *i, colour
 							ptr++;
 							if(mirc_colour_compat==2)
 							{
-								s_setcol(lc.fore, lc.back, lc.hi, lc.ul, &word, &l2, &i2);
+								s_setcolour(cc=lc, &word, &l2, &i2);
 							}
 						}
 					}
@@ -146,21 +155,20 @@ int wordline(const char *msg, unsigned int x, char **out, int *l, int *i, colour
 						break;
 					}
 				}
-				if(wdlen+x<width)
-				{
-					append_str(out, l, i, word);
-					free(word);
-					x+=wdlen;
-				}
-				else
+				if(wdlen+x>=width)
 				{
 					append_char(out, l, i, '\n');
+					s_setcolour(lc, out, l, i);
 					for(x=0;x<tabx;x++)
 						append_char(out, l, i, ' ');
-					append_str(out, l, i, word);
-					free(word);
-					x+=wdlen;
+					if(mirc_colour_compat==2)
+						s_setcolour(oc, out, l, i);
+					else
+						s_setcolour(cc, out, l, i);
 				}
+				append_str(out, l, i, word);
+				free(word);
+				x+=wdlen;
 			break;
 		}
 	}

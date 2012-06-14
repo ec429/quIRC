@@ -379,6 +379,7 @@ int redraw_buffer(void)
 	bufs[cbuf].scroll=uline;
 	bufs[cbuf].ascroll=pline;
 	int row=height-2;
+	//setcolour(bufs[cbuf].lpc[uline]);
 	while(row>(tsb?1:0))
 	{
 		bool breakit=false;
@@ -405,7 +406,6 @@ int redraw_buffer(void)
 			pline+=bufs[cbuf].lpl[uline];
 		}
 		if(breakit) break;
-		setcolour(bufs[cbuf].lpc[uline]);
 		locate(row, 0);
 		fputs(bufs[cbuf].lpt[uline][pline], stdout);
 		if(!full_width_colour) resetcol();
@@ -537,7 +537,6 @@ int render_line(int buf, int uline)
 		break;
 	}
 	colour c={.fore=7, .back=0, .hi=false, .ul=false};
-	int x=wordline(stamp, 0, &proc, &l, &i, c);
 	char *tag=strdup(bufs[buf].ltag[uline]?bufs[buf].ltag[uline]:"");
 	switch(bufs[buf].lm[uline])
 	{
@@ -629,6 +628,7 @@ int render_line(int buf, int uline)
 		default:
 		break;
 	}
+	int x=wordline(stamp, 0, &proc, &l, &i, c);
 	x=wordline(tag, indent?x:0, &proc, &l, &i, c);
 	free(tag);
 	wordline(bufs[buf].lt[uline], indent?x:0, &proc, &l, &i, c);
