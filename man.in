@@ -93,8 +93,7 @@ The user's login name.  This is sent to the
 server at connect time as part of the
 .B USER
 command.
-.IP LINES
-.IP COLUMNS
+.IP LINES,COLUMNS
 The size of the user's terminal;
 .B quirc
 uses this when painting the screen.  If not set, it falls back on other
