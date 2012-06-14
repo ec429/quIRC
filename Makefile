@@ -21,7 +21,11 @@ install: all doc
 	install -D -m0644 tutorial.htm $(PREFIX)/share/doc/quirc/tutorial.htm
 
 uninstall:
-	rm $(PREFIX)/bin/quirc
+	-rm $(PREFIX)/bin/quirc
+	-rm $(PREFIX)/man/man1/quirc.1
+	-rm $(PREFIX)/share/doc/quirc/readme.htm
+	-rm $(PREFIX)/share/doc/quirc/config_ref.htm
+	-rm $(PREFIX)/share/doc/quirc/tutorial.htm
 
 quirc: quirc.c $(LIBS) $(INCLUDE)
 	$(CC) $(CFLAGS) $(CPPFLAGS) -o $@ $< $(LIBS) -lm $(DEFINES)
