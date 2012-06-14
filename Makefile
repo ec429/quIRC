@@ -121,7 +121,7 @@ dist: all doc
 	tar -czf quirc_$(VERSION).tar.gz quirc_$(VERSION)/
 	rm -r quirc_$(VERSION)
 
-dists: c_init.c config.c config.h doc
+dists: c_init.c config.c config.h version.h keymod.h keymap.c doc
 	-mkdir quirc_$(VERSION)_src
 	for p in $$(ls); do cp $$p quirc_$(VERSION)_src/$$p; done;
 	-rm quirc_$(VERSION)_src/*.tar.gz
