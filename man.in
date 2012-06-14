@@ -1,0 +1,148 @@
+.TH QUIRC 1 2012-06-14 Linux "User Manuals"
+.mso www.tmac
+.SH NAME
+quirc \- console-mode IRC client
+.SH SYNOPSIS
+.B quirc
+.BI [--server= server "] [--nick=" nick "] [--chan=" chan "]"
+.BR [ options... ]
+.br
+.B quirc -h|--help
+.br
+.B quirc -V|--version
+.SH DESCRIPTION
+This man page briefly documents the
+.B quirc
+command.  The full documentation is available in
+.SM XHTML
+format at
+.I "$PREFIX/share/doc/quirc/readme.htm"
+and there is a tutorial for new users at
+.IR "$PREFIX/share/doc/quirc/tutorial.htm" .
+.P
+.B quirc
+is an
+.SM IRC
+(Internet Relay Chat) client with a roguelike interface.
+The main body of the display shows lines typed by you and others, output of
+commands, etc.  At the bottom are a tab strip indicating the servers and
+channels to which you're connected (and which one you are viewing at present)
+and, on the last row, a space to enter commands.
+.P
+If you have used an
+.SM IRC
+client before, very little about quirc should be surprising to you.
+Ctrl-cursors switch tabs and scroll the display;
+.RI F n
+switches to tab
+.I n
+(except for F12 which switches to tab 0).
+The commands
+.IR /server ,
+.IR /join ,
+.IR /part ,
+.IR /nick ,
+.I /me
+and
+.I /quit
+all do exactly what you would expect them to do.
+.SH OPTIONS
+For a full listing of command-line options run
+.BR "quirc --help" ;
+the most commonly used options are:
+.TP
+.B --no-server
+Overrides any servers listed in the rc file, preventing
+.B quirc
+from auto-connecting.
+.TP
+.B --no-chan
+Overrides any channels listed in the rc file, preventing
+.B quirc
+from auto-joining.
+.TP
+.B --check,--lint
+Parses the configuration, including the rc file and command line, and reports
+any errors; then exits.
+.TP
+.BI --width= width " --height=" height
+Set the width and height of the terminal.  Normally
+.B quirc
+will determine this from envvars and ioctls, but these options allow you to
+override that.
+.TP
+.B --quiet
+Start up in Quiet Mode; various status messages will be suppressed.  This can
+also be changed during runtime with
+.IR "/set quiet" .
+.TP
+.B --debug
+Start up in Debug Mode; extra diagnostic output will be produced, including
+transcripts of the
+.SM IRC
+protocol messages send and received.
+This can also be changed during runtime with
+.IR "/set debug" .
+.SH ENVIRONMENT
+.IP HOME
+The user's home directory.  Configuration files will be read from
+.I $(HOME)/.quirc/
+.IP USER
+The user's login name.  This is sent to the
+.SM IRC
+server at connect time as part of the
+.B USER
+command.
+.IP LINES
+.IP COLUMNS
+The size of the user's terminal;
+.B quirc
+uses this when painting the screen.  If not set, it falls back on other
+methods including ioctls and the
+.B --width
+and
+.B --height
+command-line options.  The ioctls will also be used when catching
+.BR SIGWINCH .
+.SH FILES
+.I ~/.quirc/rc
+.RS
+Runtime configuration file.  For details see the manual and
+.IR "$PREFIX/share/doc/quirc/config_ref.htm" .
+.RE
+.I ~/.quirc/keys
+.RS
+Keymapping file.  Users of
+.SM ANSI
+terminals can probably ignore this.
+.RE
+.SH CONFORMING TO
+.IP \(bu
+RFC 1459, "Internet Relay Chat Protocol"
+.URL "http://tools.ietf.org/html/rfc1459"
+.IP \(bu
+"The Client-To-Client Protocol",
+.URL "http://www.irchelp.org/irchelp/rfc/ctcpspec.html"
+.IP \(bu
+"IRC RPL_ISUPPORT Numeric Definition",
+.URL "http://www.irc.org/tech_docs/draft-brocklesby-irc-isupport-03.txt"
+(Draft specification)
+.SH BUGS
+The rc file has its own format; arguably, it should just be a series of
+commands to run.  However, there are certain parts to it that can't yet be
+done that way; servlists and chanlists, custom colours.
+.P
+Colour (from mIRC colour codes) is rendered incorrectly when a message is
+split over multiple lines.  This is hard to fix because lines are rendered in
+reverse order.
+.P
+Unicode (particularly double-width characters) can confuse the line-breaking
+code.
+.P
+Connecting to some servers may hang (if they don't say anything until we've
+identified ourselves).
+.P
+If malloc ever fails, everything goes horribly wrong because we don't check it
+in most places.
+.SH SEE ALSO
+.IR "$PREFIX/share/doc/quirc/readme.htm" ", " "$PREFIX/share/doc/quirc/tutorial.htm"

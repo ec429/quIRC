@@ -13,8 +13,12 @@ INCLUDE := ttyraw.h ttyesc.h irc.h bits.h colour.h buffer.h names.h config.h inp
 
 all: quirc doc
 
-install: all
+install: all doc
 	install -D -m0755 quirc $(PREFIX)/bin/quirc
+	install -D -m0644 quirc.1 $(PREFIX)/man/man1/quirc.1
+	install -D -m0644 readme.htm $(PREFIX)/share/doc/quirc/readme.htm
+	install -D -m0644 config_ref.htm $(PREFIX)/share/doc/quirc/config_ref.htm
+	install -D -m0644 tutorial.htm $(PREFIX)/share/doc/quirc/tutorial.htm
 
 uninstall:
 	rm $(PREFIX)/bin/quirc
@@ -31,10 +35,14 @@ clean:
 realclean: clean
 	-rm c_init.c README version.h config_* keymap.c keymod.h
 
-doc: README config_ref.htm
+doc: README config_ref.htm quirc.1
 
 README: readme.htm
 	-sed -e "s/&apos;/'/g" -e "s/&quot;/\"/g" < readme.htm | html2text -nobs -o README
+
+# warning, this explodes if PREFIX contains a !
+quirc.1: man.in
+	sed -e "s!\$$PREFIX!$(PREFIX)!g" < man.in > quirc.1
 
 # funky make cleverness to generate object files; a %.o /always/ depends on its %.h as well as its %.c
 
