@@ -22,8 +22,6 @@ Proper handling of Unicode in character-based things like cursor-movement, backs
 
 Use unicode-charmap (somewhere in system i18n) to find out character widths, for wordline().
 
-Improve the parsing of mirc-colour-codes (to fix things like \003124 which currently gets eaten entirely).  The relevant code is in bits.c.
-
 /dump command.  Pipes a screendump (or better still, unprocessed text) into program of choice.
 
 /clear command.

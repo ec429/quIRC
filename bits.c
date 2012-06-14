@@ -117,7 +117,7 @@ int wordline(const char *msg, unsigned int x, char **out, int *l, int *i, colour
 					{
 						int fore=0, back=0;
 						ssize_t bytes=0;
-						if(sscanf(ptr, "\003%d,%d%zn", &fore, &back, &bytes)==2)
+						if(sscanf(ptr, "\003%2d,%2d%zn", &fore, &back, &bytes)==2)
 						{
 							ptr+=bytes;
 							if(mirc_colour_compat==2)
@@ -126,7 +126,7 @@ int wordline(const char *msg, unsigned int x, char **out, int *l, int *i, colour
 								s_setcolour(cc=mcc, &word, &l2, &i2);
 							}
 						}
-						else if(sscanf(ptr, "\003%d%zn", &fore, &bytes)==1)
+						else if(sscanf(ptr, "\003%2d%zn", &fore, &bytes)==1)
 						{
 							ptr+=bytes;
 							if(mirc_colour_compat==2)
