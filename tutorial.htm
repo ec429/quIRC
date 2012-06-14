@@ -1,0 +1,44 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<title>quIRC: Tutorial</title>
+	<meta http-equiv="Content-Type" content="text/html;charset=utf-8;" />
+	<link rel="stylesheet" href="readme.css" />
+</head>
+<body>
+<div id="title">
+<h1>quIRC: Tutorial</h1>
+<h5>quIRC is a lightweight terminal-based <acronym title="Internet Relay Chat">IRC</acronym> client.  It is written in C.</h5>
+</div><!--#title-->
+<div id="contents">
+<h2>Contents</h2>
+<ul>
+<li><a href="#foreword">Foreword</a></li>
+<li><a href="#irc">Internet Relay Chat</a></li>
+<li><a href="#start">Getting Started with quIRC</a></li>
+</ul>
+</div><!--#contents-->
+<div id="foreword">
+<h2>Foreword</h2>
+<p>I like to engage with my user population.  I welcome bug reports, feature requests, patches, and even undirected rambling musings about what direction quIRC should take in the future.  If you use (or are considering using) quIRC, please drop into #quirc on irc.newnet.net for a chat.</p>
+<p>This is a tutorial for new users.  There is also a <a href="readme.htm">reference manual</a>.</p>
+</div><!--#foreword-->
+<div id="irc">
+<h2>Internet Relay Chat</h2>
+<p><acronym title="Internet Relay Chat">IRC</acronym> is an Internet chat protocol.  It is mainly designed for group communication in discussion forums, called <em>channels</em>, but also allows one-to-one communication via private message.  For an overview see <a href="http://en.wikipedia.org/wiki/IRC">the Wikipedia article on IRC</a>.  There is a good IRC primer for newbies on <a href="http://www.irchelp.org/irchelp/new2irc.html">www.irchelp.org</a>.</p>
+<p>There are several IRC <em>networks</em>, each of which consists of a tree of <em>servers</em> to which users (&apos;<em>clients</em>&apos;) connect.  Each user on a given network is identified by a <em>nick</em>, which may be their name or a handle.  Users can communicate through private messaging, but most conversations take place in <em>channels</em>.  A channel is analogous to a room; a line typed into a channel by one user is seen by all other users in that channel.</p>
+<p>Channels are policed by <em>chanops</em> (<em>channel operators</em>), who have the power to <em>kick</em> clients out of a room or even <em>ban</em> them.  Different channels will have different rules on what is acceptable.</p>
+</div><!--#irc-->
+<div id="start">
+<h2>Getting Started with quIRC</h2>
+<p>Assuming your distributor hasn&apos;t packaged quIRC, the first thing you will need to do is compile it.  After downloading the source tarball (or cloning the <tt>git</tt> repository) run <tt>make; sudo make install</tt>.  This should compile quIRC and install it under <tt>/usr/local</tt>; to install somewhere else (eg. if <tt>/usr/local</tt> is not in your <tt>$PATH</tt>), you will need to change the definition of <tt>PREFIX</tt> in the <tt>Makefile</tt>.  One possible problem at this stage is that your libc may not support asynchronous DNS lookups (<tt>getaddrinfo_a()</tt>), in which case you will need to edit <tt>osconf.h</tt>, changing <tt>ASYNCH_NL</tt> from 1 to 0, and remove <tt>-lanl</tt> from the <tt>OPTLIBS</tt> definition in the <tt>Makefile</tt>.  Also, if your C compiler is not <tt>gcc</tt>, you will need to change <tt>CC</tt> (and probably also <tt>CFLAGS</tt> and <tt>OPTFLAGS</tt>) in the Makefile.</p>
+<p>If all of this sounds complicated, and you are running Linux on x86, you can just download the binary tarball (though you will still need to <tt>sudo make install</tt>).  Alternatively, OpenSUSE and SLE users can use the package from <a href="https://build.opensuse.org/package/show?package=quirc&project=server%3Airc">the openSUSE Build Service</a>.</p>
+<p>Once you&apos;ve installed quIRC, you will want to connect to a server and join a channel.  Good places to start are #quirc on NewNet, #newbies on EFnet, or #irchelp on ColdFront.  We&apos;ll walk you through connecting to #quirc.</p>
+<p>First, choose and set your nickname; you can use your real name or any handle you like to go by.  Try not to pick anything too common, like &apos;john&apos;, as it&apos;s likely to already be in use.  Set your nickname with <tt>/nick <em>yournickhere</em></tt>.</p>
+<p>Next, connect to the NewNet network, with <tt>/server irc.newnet.net</tt>.  A new tab will open, and various information, including the <acronym title="Message Of The Day">MOTD</acronym>, will scroll by.  If you get a message like &quot;foobar: Nickname is in use&quot;, choose a different nick.</p>
+<p>Now you&apos;re ready to join the channel; type <tt>/join #quirc</tt>.  Another new tab will open (you can switch between tabs at any time with Ctrl-left and Ctrl-right or by typing <tt>/tab <em>n</em></tt> or pressing the F<em>n</em> key to switch to tab <em>n</em>) and the channel topic will be displayed.</p>
+<p>Any messages you type into this tab will be sent to all the other users on the channel.  Say hello!</p>
+<p>You might find that you don&apos;t get an answer straight away, particularly if the channel isn&apos;t very busy.  It&apos;s a good idea to be patient.</p>
+</div><!--#start-->
+</body>
+</html>
