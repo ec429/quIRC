@@ -46,7 +46,8 @@ README: readme.htm
 
 # warning, this explodes if PREFIX contains a !
 quirc.1: man.in
-	sed -e "s!\$$PREFIX!$(PREFIX)!g" < man.in > quirc.1
+	echo ".\\\"\n.\\\"This man page is automatically generated from man.in by a sedscript; edit man.in, not this file, and 'make doc' to apply the changes.">quirc.1
+	sed -e "s!\$$PREFIX!$(PREFIX)!g" < man.in >> quirc.1
 
 # funky make cleverness to generate object files; a %.o /always/ depends on its %.h as well as its %.c
 
