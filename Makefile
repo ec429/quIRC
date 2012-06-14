@@ -8,8 +8,8 @@ VERSION := `git describe --tags`
 PREFIX := /usr/local
 # -lanl is for ASYNCH_NL
 OPTLIBS := -lanl
-LIBS := -lncurses ttyraw.o ttyesc.o irc.o bits.o colour.o buffer.o names.o config.o input.o $(OPTLIBS)
-INCLUDE := ttyraw.h ttyesc.h irc.h bits.h colour.h buffer.h names.h config.h input.h quirc.h version.h osconf.h
+LIBS := -lncurses ttyraw.o ttyesc.o irc.o bits.o colour.o buffer.o names.o config.o input.o logging.o types.o $(OPTLIBS)
+INCLUDE := ttyraw.h ttyesc.h irc.h bits.h colour.h buffer.h names.h config.h input.h logging.h types.h quirc.h version.h osconf.h
 
 all: quirc doc
 
@@ -68,9 +68,9 @@ bits.h: config.h
 
 colour.o: colour.c colour.h c_init.c ttyesc.h
 
-buffer.o: buffer.c buffer.h ttyesc.h colour.h bits.h names.h text.h irc.h version.h input.h
+buffer.o: buffer.c buffer.h ttyesc.h colour.h bits.h names.h text.h irc.h version.h input.h logging.h
 
-buffer.h: config.h version.h
+buffer.h: config.h version.h logging.h
 	touch buffer.h
 
 config.o: config.c config.h names.h bits.h colour.h text.h version.h
@@ -89,10 +89,12 @@ genconfig: genconfig.c
 input.h: keymod.h
 	touch input.h
 
-input.o: input.c input.h ttyesc.h names.h buffer.h irc.h bits.h config.h
+input.o: input.c input.h ttyesc.h names.h buffer.h irc.h bits.h config.h logging.h
 
 input.c: config_set.c
 	touch input.c
+
+logging.o: types.h bits.h
 
 names.o: names.c names.h buffer.h irc.h
 

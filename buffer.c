@@ -7,6 +7,7 @@
 */
 
 #include "buffer.h"
+#include "logging.h"
 
 int init_ring(ring *r)
 {
@@ -117,6 +118,7 @@ int init_buffer(int buf, btype type, const char *bname, int nlines)
 	bufs[buf].server=0;
 	bufs[buf].nick=NULL;
 	bufs[buf].topic=NULL;
+	bufs[buf].logf=NULL;
 	bufs[buf].nlines=nlines;
 	bufs[buf].ptr=0;
 	bufs[buf].scroll=0;
@@ -190,11 +192,14 @@ int free_buffer(int buf)
 		bufs[buf].nlist=NULL;
 		n_free(bufs[buf].ilist);
 		bufs[buf].ilist=NULL;
+		free(bufs[buf].nick);
+		free(bufs[buf].topic);
+		if(bufs[buf].logf)
+			fclose(bufs[buf].logf);
 		free(bufs[buf].lm);
 		free(bufs[buf].lq);
 		free(bufs[buf].lp);
 		free(bufs[buf].ls);
-		free(bufs[buf].topic);
 		int l;
 		if(bufs[buf].lt)
 		{
@@ -288,7 +293,7 @@ int add_to_buffer(int buf, mtype lm, prio lq, char lp, bool ls, const char *lt, 
 	bufs[buf].lt[bufs[buf].ptr]=strdup(lt);
 	free(bufs[buf].ltag[bufs[buf].ptr]);
 	bufs[buf].ltag[bufs[buf].ptr]=strdup(ltag);
-	bufs[buf].ts[bufs[buf].ptr]=time(NULL);
+	time_t ts=bufs[buf].ts[bufs[buf].ptr]=time(NULL);
 	bufs[buf].ptr=(bufs[buf].ptr+1)%bufs[buf].nlines;
 	if(scrollisptr)
 	{
@@ -313,6 +318,11 @@ int add_to_buffer(int buf, mtype lm, prio lq, char lp, bool ls, const char *lt, 
 				(!debug&&(lq==DEBUG))
 			))
 		bufs[buf].alert=true;
+	}
+	if(bufs[buf].logf)
+	{
+		int e=log_add(bufs[buf].logf, bufs[buf].logt, lm, lq, lp, ls, lt, ltag, ts);
+		if(e) return(e);
 	}
 	return(0);
 }
@@ -529,7 +539,7 @@ int render_line(int buf, int uline)
 				strftime(stamp, 40, "[%a. %H:%M:%S %z] ", td);
 		break;
 		case 6:
-			snprintf(stamp, 40, "[u+%lu] ", (unsigned long)bufs[buf].ts[uline]);
+			snprintf(stamp, 40, "[u+%lld] ", (signed long long)bufs[buf].ts[uline]);
 		break;
 		case 0: // no timestamps
 		default:

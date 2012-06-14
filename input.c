@@ -7,6 +7,7 @@
 */
 
 #include "input.h"
+#include "logging.h"
 
 int inputchar(iline *inp, int *state)
 {
@@ -564,6 +565,67 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		if(args) {free(*qmsg); *qmsg=strdup(args);}
 		add_to_buffer(cbuf, STA, NORMAL, 0, false, "Exited quirc", "/quit: ");
 		return(-1);
+	}
+	if(strcmp(cmd, "log")==0) // start/stop logging
+	{
+		if(!args)
+		{
+			add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Must specify a log type or /log -", "/log: ");
+			return(0);
+		}
+		if(bufs[cbuf].logf)
+		{
+			fclose(bufs[cbuf].logf);
+			bufs[cbuf].logf=NULL;
+		}
+		if(strcmp(args, "-")==0)
+		{
+			add_to_buffer(cbuf, STA, QUIET, 0, false, "Disabled logging of this buffer", "/log: ");
+			return(0);
+		}
+		else
+		{
+			char *type=strtok(args, " ");
+			if(type)
+			{
+				char *fn=strtok(NULL, "");
+				if(fn)
+				{
+					logtype logt;
+					if(strcasecmp(type, "plain")==0)
+						logt=LOGT_PLAIN;
+					else if(strcasecmp(type, "symbolic")==0)
+						logt=LOGT_SYMBOLIC;
+					else
+					{
+						add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Unrecognised log type (valid types are: plain, symbolic)", "/log: ");
+						return(0);
+					}
+					FILE *fp=fopen(fn, "a");
+					if(!fp)
+					{
+						add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Failed to open log file for append", "/log: ");
+						add_to_buffer(cbuf, ERR, NORMAL, 0, false, strerror(errno), "fopen: ");
+						return(0);
+					}
+					log_init(fp, logt);
+					bufs[cbuf].logf=fp;
+					bufs[cbuf].logt=logt;
+					add_to_buffer(cbuf, STA, QUIET, 0, false, "Enabled logging of this buffer", "/log: ");
+					return(0);
+				}
+				else
+				{
+					add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Must specify a log file", "/log: ");
+					return(0);
+				}
+			}
+			else
+			{
+				add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Must specify a log type or /log -", "/log: ");
+				return(0);
+			}
+		}
 	}
 	if(strcmp(cmd, "set")==0) // set options
 	{

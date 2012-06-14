@@ -25,46 +25,10 @@
 #include "irc.h"
 #include "names.h"
 #include "text.h"
+#include "types.h"
 #include "version.h"
 
 #define LIVE(buf)	(bufs[buf].live && bufs[bufs[buf].server].live)	// Check liveness
-
-typedef enum
-{
-	STATUS,
-	SERVER,
-	CHANNEL,
-	PRIVATE // right now we don't have handy private chat, you just have to /msg in a server or channel
-}
-btype;
-
-typedef enum
-{
-	MSG,
-	NOTICE,
-	PREFORMAT,
-	ACT,
-	JOIN,
-	PART,
-	QUIT,
-	QUIT_PREFORMAT,
-	NICK,
-	MODE,
-	STA,
-	ERR,
-	UNK,
-	UNK_NOTICE,
-	UNN,
-}
-mtype;
-
-typedef enum
-{
-	QUIET,	// hide in quiet mode
-	NORMAL,	// always show
-	DEBUG,	// show only in debug mode
-}
-prio;
 
 typedef struct _buf
 {
@@ -79,6 +43,8 @@ typedef struct _buf
 	int server; // used by CHANNELs and PRIVATE to denote their 'parent' server.  In SERVER||STATUS, points to self.  Is an offset into 'bufs'
 	char *nick; // used for SERVER: user's nick on this server
 	char *topic; // used for CHANNELs
+	FILE *logf;
+	logtype logt;
 	int nlines; // number of lines allocated
 	int ptr; // pointer to current unproc line
 	int scroll; // unproc line of screen bottom (which is one physical line below the last displayed text)
