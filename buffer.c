@@ -539,7 +539,7 @@ int render_line(int buf, int uline)
 				strftime(stamp, 40, "[%a. %H:%M:%S %z] ", td);
 		break;
 		case 6:
-			snprintf(stamp, 40, "[u+%lld] ", (signed long long)bufs[buf].ts[uline]);
+			snprintf(stamp, 40, "[u+%jd] ", (intmax_t)bufs[buf].ts[uline]);
 		break;
 		case 0: // no timestamps
 		default:
