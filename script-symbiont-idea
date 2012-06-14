@@ -1,0 +1,5 @@
+Idea for quIRC scripting interface:
+Outboard symbionts, communicating through bidi pipes.
+When a line comes in, we tell the script with "rx <TYPE> <from> <line>".
+The script can grab a command with "tellme <cmd>", like "tellme alias", in which case an input of "/alias foo bar" would be passed to the script instead of being handled in the normal way.
+The script can initiate a command with "tx <command>" (which is then treated as though entered by the user).
