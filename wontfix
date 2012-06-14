@@ -7,6 +7,3 @@
 	instead of correct
 		...(yellow)\\\(cyan)\003
 	This is essentially because the escape sequences are not self-synchronising in the case of \\.  However, long strings of \\s are so unlikely that the considerable extra processing time /for all input editing/ required to fix is simply not worthwhile.
-
- *	Colour error: when a logical line is split over multiple physical lines (eg. a long message) and contains colour codes, they will only affect the rest of the physical line on which they appear.  This will only occur if 'mcc' (mirc-colour-compat) has been set to 2 (the default is 1, silently strip), or if a logical line contains terminal escape codes (which it /really/ /shouldn't/ and we might strip such things one day).
-	This happens because we actually draw the lines in *reverse* order, starting at the bottom of the screen, and because line colour is applied at draw time rather than render time.  This bug was introduced in the unproc branch which became version 0.7.0 and subsequent.  Fixing it would overcomplicate things, probably increase CPU load, and isn't worthwhile anyway since it's a rare bug and a cosmetic one at that.
