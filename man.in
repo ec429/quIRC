@@ -131,10 +131,6 @@ The rc file has its own format; arguably, it should just be a series of
 commands to run.  However, there are certain parts to it that can't yet be
 done that way; servlists and chanlists, custom colours.
 .P
-Colour (from mIRC colour codes) is rendered incorrectly when a message is
-split over multiple lines.  This is hard to fix because lines are rendered in
-reverse order.
-.P
 Unicode (particularly double-width characters) can confuse the line-breaking
 code.
 .P
