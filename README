@@ -77,6 +77,13 @@ the channel (or nick if current tab is a private messaging tab).
           * The options 'uname', 'fname' and 'pass' are analogous to the --
             uname, --fname and --pass commandline options.
       For full details see config_ref.htm.
+  /log logtype file
+  /log -
+      Starts logging the current buffer to file (relative to ~/.quirc/), using
+      a format specified by logtype. This may be plain (human-readable output
+      similar to normal display) or symbolic (machine-readable, though still
+      textual, format).
+      /log - disables logging for the current buffer.
   /ignore [-ipd] nick[!user[@host]]
   /ignore [-ipd] -r regex
   /ignore -l

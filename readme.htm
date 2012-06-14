@@ -78,6 +78,10 @@ Then there&apos;s the github page, <a href="http://github.com/ec429/quIRC">http:
 	</ul>
 	For full details see <a href="config_ref.htm">config_ref.htm</a>.
 	</dd>
+<dt>/log <em>logtype</em> <em>file</em></dt>
+<dt>/log -</dt>
+	<dd>Starts logging the current buffer to <em>file</em> (relative to <small>~/.quirc/</small>), using a format specified by <em>logtype</em>.  This may be <small>plain</small> (human-readable output similar to normal display) or <small>symbolic</small> (machine-readable, though still textual, format).<br />
+	<small>/log -</small> disables logging for the current buffer.</dd>
 <dt>/ignore [-ipd] <em>nick</em>[!<em>user</em>[@<em>host</em>]]</dt>
 <dt>/ignore [-ipd] -r <em>regex</em></dt>
 <dt>/ignore -l</dt>
