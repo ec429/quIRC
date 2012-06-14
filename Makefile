@@ -37,7 +37,7 @@ clean:
 	-rm *.o quirc genconfig genkeymap
 
 realclean: clean
-	-rm c_init.c README version.h config_* keymap.c keymod.h
+	-rm c_init.c README version.h config_* keymap.c keymod.h quirc.1
 
 doc: README config_ref.htm quirc.1
 
