@@ -7,16 +7,24 @@ AWK ?= gawk
 PREFIX ?= /usr/local
 # -lanl is for ASYNCH_NL
 OPTLIBS := -lanl
-LIBS := ttyraw.o ttyesc.o irc.o bits.o colour.o buffer.o names.o config.o input.o $(OPTLIBS)
-INCLUDE := ttyraw.h ttyesc.h irc.h bits.h colour.h buffer.h names.h config.h input.h quirc.h version.h
+LIBS := -lncurses ttyraw.o ttyesc.o irc.o bits.o colour.o buffer.o names.o config.o input.o $(OPTLIBS)
+INCLUDE := ttyraw.h ttyesc.h irc.h bits.h colour.h buffer.h names.h config.h input.h quirc.h version.h osconf.h
 
 all: quirc doc
 
-install: all
+install: all doc
 	install -D -m0755 quirc $(PREFIX)/bin/quirc
+	install -D -m0644 quirc.1 $(PREFIX)/man/man1/quirc.1
+	install -D -m0644 readme.htm $(PREFIX)/share/doc/quirc/readme.htm
+	install -D -m0644 config_ref.htm $(PREFIX)/share/doc/quirc/config_ref.htm
+	install -D -m0644 tutorial.htm $(PREFIX)/share/doc/quirc/tutorial.htm
 
 uninstall:
-	rm $(PREFIX)/bin/quirc
+	-rm $(PREFIX)/bin/quirc
+	-rm $(PREFIX)/man/man1/quirc.1
+	-rm $(PREFIX)/share/doc/quirc/readme.htm
+	-rm $(PREFIX)/share/doc/quirc/config_ref.htm
+	-rm $(PREFIX)/share/doc/quirc/tutorial.htm
 
 quirc: quirc.c $(LIBS) $(INCLUDE)
 	$(CC) $(CFLAGS) $(CPPFLAGS) -o $@ $< $(LIBS) -lm $(DEFINES)
@@ -25,15 +33,20 @@ quirc.h: config.h version.h
 	touch quirc.h
 
 clean:
-	-rm *.o quirc genconfig
+	-rm *.o quirc genconfig genkeymap
 
 realclean: clean
-	-rm c_init.c README version.h config_*
+	-rm c_init.c README version.h config_* keymap.c keymod.h
 
-doc: README config_ref.htm
+doc: README config_ref.htm quirc.1
 
 README: readme.htm
 	-sed -e "s/&apos;/'/g" -e "s/&quot;/\"/g" < readme.htm | html2text -nobs -o README
+
+# warning, this explodes if PREFIX contains a !
+quirc.1: man.in
+	echo ".\\\"\n.\\\"This man page is automatically generated from man.in by a sedscript; edit man.in, not this file, and 'make doc' to apply the changes.">quirc.1
+	sed -e "s!\$$PREFIX!$(PREFIX)!g" < man.in >> quirc.1
 
 # funky make cleverness to generate object files; a %.o /always/ depends on its %.h as well as its %.c
 
@@ -42,7 +55,7 @@ README: readme.htm
 
 ttyesc.o: ttyesc.c ttyesc.h bits.h
 
-irc.o: irc.c irc.h bits.h buffer.h colour.h names.h numeric.h
+irc.o: irc.c irc.h bits.h buffer.h colour.h names.h numeric.h osconf.h
 
 irc.h: config.h
 	touch irc.h
