@@ -1737,7 +1737,7 @@ int ctcp(const char *msg, const char *src, int b2, bool ha, bool notice, bool pr
 					{
 						struct timeval tv;
 						gettimeofday(&tv, NULL);
-						dt=(tv.tv_sec-t)+1e-6*(tv.tv_usec-u);
+						dt=(tv.tv_sec-t)+1e-6*(tv.tv_usec-(suseconds_t)u);
 					}
 					else
 						dt=difftime(time(NULL), t);
