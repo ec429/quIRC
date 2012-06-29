@@ -1,5 +1,33 @@
 Idea for quIRC scripting interface:
 Outboard symbionts, communicating through bidi pipes.
-When a line comes in, we tell the script with "rx <TYPE> <from> <line>".
-The script can grab a command with "tellme <cmd>", like "tellme alias", in which case an input of "/alias foo bar" would be passed to the script instead of being handled in the normal way.
-The script can initiate a command with "tx <command>" (which is then treated as though entered by the user).
+When a line comes in, we tell the script with "rx <TYPE> <from> <chan> <line>".
+The script can grab a command with "grab <cmd>", like "grab alias", in which case an input of "/alias foo bar" would be passed to the script instead of being handled in the normal way.  This can be undone with "ungrab <cmd>".  <cmd> may also be a regex.
+The script can initiate a command with "tx <command>" (which is then treated as though entered by the user, except that it can't be grabbed by this script).
+
+"rxmode <MODE>" sets the format of |rx| lines; the default is mode 0.
+Until an |rxmode| is issued, we don't supply |rx| lines.
+Modes:
+	0: rx <TYPE> <from> <chan> <line>
+		<TYPE> in
+			MSG
+			NOTICE
+			PREFORMAT
+			ACT
+			JOIN
+			PART
+			QUIT
+			QUIT_PREFORMAT
+			NICK
+			MODE
+			STA
+			ERR
+			UNK
+			UNK_NOTICE
+			UNN
+			?		(shouldn't happen)
+		<from> is either a nick or a server; the former is prefixed with !
+		<chan> will contain the leading #
+		<line> may contain spaces
+	0e: rx <TYPE> <from> <chan> <line>
+		As 0, except that spaces and nonprintables in <line> are escaped with \ooo (octal)
+	l: as produced by logging with LOGT_SYMBOLIC
