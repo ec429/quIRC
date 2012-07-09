@@ -1,9 +1,24 @@
 #!/bin/sh
 
-git describe --tags | awk -f gv.awk > version.h3
-
+VERSION=$(git describe --tags)
+MAJOR=$(echo $VERSION | cut -d . -f 1)
+MINOR=$(echo $VERSION | cut -d . -f 2)
+REST=$(echo $VERSION | cut -d . -f 3)
+REV=$(echo $REST | cut -d - -f 1)
+GIT=$(echo $REST | cut -d - -f 2-)
 CCVER=$(cc -v 2>&1 | tail -n 1)
-echo "#define CC_VERSION	\"$CCVER\" // last line of cc -v" | cat version.h3 - > version.h2
-rm version.h3
+echo "/*
+	quIRC - simple terminal-based IRC client
+	Copyright (C) 2010-12 Edward Cree
+
+	See quirc.c for license information
+	version.h: contains version number (generated from git describe)
+*/
+#pragma once
+#define VERSION_MAJ $MAJOR // Major version
+#define VERSION_MIN $MINOR // Minor version
+#define VERSION_REV $REV // Revision number
+#define VERSION_TXT \"$GIT\" // Rest of git describe
+#define CC_VERSION	\"$CCVER\" // last line of cc -v" > version.h2
 
 if ! cmp version.h version.h2; then mv version.h2 version.h; else rm version.h2; fi
