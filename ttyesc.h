@@ -28,3 +28,4 @@ int savepos(void); // Save cursor position
 int restpos(void); // Restore cursor position
 int settitle(const char *newtitle); // sets the window title if running in a term in a window system (eg. xterm)
 int termsize(int fd, int *x, int *y);
+int termsgr0(void);

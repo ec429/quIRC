@@ -43,6 +43,7 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "Failed to set SIGPIPE handler\n");
 		perror("sigaction");
 		push_ring(&s_buf, QUIET);
+		termsgr0();
 		return(1);
 	}
 	if(sigaction(SIGWINCH, &sa, NULL)==-1)
@@ -50,6 +51,7 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "Failed to set SIGWINCH handler\n");
 		perror("sigaction");
 		push_ring(&s_buf, QUIET);
+		termsgr0();
 		return(1);
 	}
 	if(sigaction(SIGUSR1, &sa, NULL)==-1)
@@ -57,6 +59,7 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "Failed to set SIGUSR1 handler\n");
 		perror("sigaction");
 		push_ring(&s_buf, QUIET);
+		termsgr0();
 		return(1);
 	}
 	
@@ -75,18 +78,21 @@ int main(int argc, char *argv[])
 	{
 		fprintf(stderr, "Failed to initialise keymapping\n");
 		push_ring(&s_buf, QUIET);
+		termsgr0();
 		return(1);
 	}
 	if(c_init()) // should be impossible
 	{
 		fprintf(stderr, "Failed to initialise colours\n");
 		push_ring(&s_buf, QUIET);
+		termsgr0();
 		return(1);
 	}
 	if(def_config())
 	{
 		fprintf(stderr, "Failed to apply default configuration\n");
 		push_ring(&s_buf, QUIET);
+		termsgr0();
 		return(1);
 	}
 	resetcol();
@@ -102,6 +108,7 @@ int main(int argc, char *argv[])
 			{
 				fprintf(stderr, "Failed to change directory into %s: %s", qfld, strerror(errno));
 				push_ring(&s_buf, QUIET);
+				termsgr0();
 				return(1);
 			}
 			free(qfld);
@@ -110,6 +117,7 @@ int main(int argc, char *argv[])
 		{
 			perror("Failed to allocate space for 'qfld'");
 			push_ring(&s_buf, QUIET);
+			termsgr0();
 			return(1);
 		}
 	}
@@ -117,6 +125,7 @@ int main(int argc, char *argv[])
 	{
 		fprintf(stderr, "Environment variable $HOME not set!  Exiting\n");
 		push_ring(&s_buf, QUIET);
+		termsgr0();
 		return(1);
 	}
 	FILE *rcfp=fopen("rc", "r");
@@ -146,6 +155,7 @@ int main(int argc, char *argv[])
 	if(e>=0)
 	{
 		push_ring(&s_buf, QUIET);
+		termsgr0();
 		return(e);
 	}
 	
@@ -166,6 +176,7 @@ int main(int argc, char *argv[])
 	{
 		fprintf(stderr, "Failed to set up buffers\n");
 		push_ring(&s_buf, QUIET);
+		termsgr0();
 		return(1);
 	}
 	
@@ -563,6 +574,7 @@ int main(int argc, char *argv[])
 	locate(height-1, 0);
 	putchar('\n');
 	ttyreset(fileno(stdout));
+	termsgr0();
 	#ifdef	USE_MTRACE
 		muntrace();
 	#endif	// USE_MTRACE

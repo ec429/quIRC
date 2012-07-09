@@ -8,6 +8,14 @@
 
 #include "ttyesc.h"
 
+int termsgr0(void)
+{
+	const char *sgr0=exit_attribute_mode;
+	if(sgr0) putp(sgr0);
+	else return(resetcol());
+	return(0);
+}
+
 int setcol(int fore, int back, bool hi, bool ul)
 {
 	if((fore<0)||(fore>7))
