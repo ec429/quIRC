@@ -6,8 +6,6 @@
 	quirc.h: header for main source file (quirc.c)
 */
 
-#define _GNU_SOURCE // feature test macro
-
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>

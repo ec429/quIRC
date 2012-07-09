@@ -2,7 +2,7 @@
 
 CC := gcc
 OPTFLAGS := -g
-CFLAGS := -Wall -Wextra -Werror -pedantic -std=gnu99 $(OPTFLAGS)
+CFLAGS := -Wall -Wextra -Werror -pedantic -std=gnu99 -D_GNU_SOURCE $(OPTFLAGS)
 AWK := gawk
 VERSION := `git describe --tags`
 PREFIX := /usr/local

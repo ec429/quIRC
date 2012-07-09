@@ -8,8 +8,6 @@
 	irc: networking functions
 */
 
-#define _GNU_SOURCE // feature test macro
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
