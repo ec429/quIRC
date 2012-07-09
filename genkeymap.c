@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include "strbuf.h"
 
 typedef struct
 {
@@ -9,10 +10,6 @@ typedef struct
 	char *mod;
 }
 keymod;
-
-char * fgetl(FILE *); // gets a line of string data; returns a malloc-like pointer
-void init_char(char **buf, int *l, int *i); // initialises a string buffer in heap.  *buf becomes a malloc-like pointer
-void append_char(char **buf, int *l, int *i, char c); // adds a character to a string buffer in heap (and realloc()s if needed)
 
 int main(int argc, char **argv)
 {
@@ -122,63 +119,4 @@ int main(int argc, char **argv)
 		break;
 	}
 	return(0);
-}
-
-char * fgetl(FILE *fp)
-{
-	char * lout;
-	int l,i;
-	init_char(&lout, &l, &i);
-	signed int c;
-	while(!feof(fp))
-	{
-		c=fgetc(fp);
-		if((c==EOF)||(c=='\n'))
-			break;
-		if(c!=0)
-		{
-			append_char(&lout, &l, &i, c);
-		}
-	}
-	return(lout);
-}
-
-void append_char(char **buf, int *l, int *i, char c)
-{
-	if(!((c==0)||(c==EOF)))
-	{
-		if(*buf)
-		{
-			(*buf)[(*i)++]=c;
-		}
-		else
-		{
-			init_char(buf, l, i);
-			append_char(buf, l, i, c);
-		}
-		char *nbuf=*buf;
-		if((*i)>=(*l))
-		{
-			*l=*i*2;
-			nbuf=(char *)realloc(*buf, *l);
-		}
-		if(nbuf)
-		{
-			*buf=nbuf;
-			(*buf)[*i]=0;
-		}
-		else
-		{
-			free(*buf);
-			init_char(buf, l, i);
-		}
-	}
-}
-
-void init_char(char **buf, int *l, int *i)
-{
-	*l=80;
-	*buf=(char *)malloc(*l);
-	(*buf)[0]=0;
-	*i=0;
 }

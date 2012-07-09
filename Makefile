@@ -8,8 +8,8 @@ VERSION := `git describe --tags`
 PREFIX := /usr/local
 # -lanl is for ASYNCH_NL
 OPTLIBS := -lanl
-LIBS := -lncurses ttyraw.o ttyesc.o irc.o bits.o colour.o buffer.o names.o config.o input.o logging.o types.o $(OPTLIBS)
-INCLUDE := ttyraw.h ttyesc.h irc.h bits.h colour.h buffer.h names.h config.h input.h logging.h types.h quirc.h version.h osconf.h
+LIBS := -lncurses ttyraw.o ttyesc.o irc.o bits.o strbuf.o colour.o buffer.o names.o config.o input.o logging.o types.o $(OPTLIBS)
+INCLUDE := ttyraw.h ttyesc.h irc.h bits.h strbuf.h colour.h buffer.h names.h config.h input.h logging.h types.h quirc.h version.h osconf.h
 
 all: quirc doc
 
@@ -63,7 +63,7 @@ irc.h: config.h
 
 bits.o: bits.c bits.h ttyesc.h colour.h
 
-bits.h: config.h
+bits.h: config.h strbuf.h
 	touch bits.h
 
 colour.o: colour.c colour.h c_init.c ttyesc.h
@@ -84,7 +84,8 @@ config.h: config_globals.h version.h keymod.h
 config_%: config.cdl genconfig
 	./genconfig $@ < config.cdl > $@ || (rm $@ && false)
 
-genconfig: genconfig.c
+genconfig: genconfig.c strbuf.h strbuf.o
+	$(CC) $(CFLAGS) $(CPPFLAGS) $< $(LDFLAGS) strbuf.o -o $@
 
 input.h: keymod.h
 	touch input.h
@@ -103,7 +104,8 @@ script.o: script.c script.h bits.h buffer.h
 c_init.c: colour.d c_init.awk
 	$(AWK) -f c_init.awk colour.d > c_init.c
 
-genkeymap: genkeymap.c
+genkeymap: genkeymap.c strbuf.h strbuf.o
+	$(CC) $(CFLAGS) $(CPPFLAGS) $< $(LDFLAGS) strbuf.o -o $@
 
 keymod.h: keys genkeymap
 	./genkeymap h < keys > $@ || (rm $@ && false)
