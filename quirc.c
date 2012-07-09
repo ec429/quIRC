@@ -98,6 +98,7 @@ int main(int argc, char *argv[])
 	resetcol();
 	char *qmsg=fname;
 	char *home=getenv("HOME");
+	bool haveqfld=true;
 	if(home)
 	{
 		char *qfld=malloc(strlen(home)+8);
@@ -106,10 +107,11 @@ int main(int argc, char *argv[])
 			sprintf(qfld, "%s/.quirc", home);
 			if(chdir(qfld))
 			{
-				fprintf(stderr, "Failed to change directory into %s: %s", qfld, strerror(errno));
-				push_ring(&s_buf, QUIET);
-				termsgr0();
-				return(1);
+				char *err=strerror(errno);
+				char msg[48+strlen(err)+strlen(qfld)];
+				sprintf(msg, "Failed to change directory into %s: chdir: %s", qfld, err);
+				atr_failsafe(&s_buf, STA, msg, "init: ");
+				haveqfld=false;
 			}
 			free(qfld);
 		}
@@ -128,7 +130,7 @@ int main(int argc, char *argv[])
 		termsgr0();
 		return(1);
 	}
-	FILE *rcfp=fopen("rc", "r");
+	FILE *rcfp=haveqfld?fopen("rc", "r"):NULL;
 	int rc_err=0;
 	if(rcfp)
 	{
@@ -146,7 +148,7 @@ int main(int argc, char *argv[])
 		atr_failsafe(&s_buf, STA, "no config file found.  Install one at ~/.quirc/rc", "init: ");
 	}
 	FILE *keyfp=fopen("keys", "r");
-	if(keyfp)
+	if(haveqfld&&keyfp)
 	{
 		loadkeys(keyfp);
 		fclose(keyfp);
