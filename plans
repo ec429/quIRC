@@ -22,6 +22,10 @@ Proper handling of Unicode in character-based things like cursor-movement, backs
 
 Use unicode-charmap (somewhere in system i18n) to find out character widths, for wordline().
 
+/connrest.  Force the conn_rest to be called (to deal with eg. worldofspectrum - see above).
+
+/quote alias to /cmd.
+
 /dump command.  Pipes a screendump (or better still, unprocessed text) into program of choice.
 
 /clear command.
