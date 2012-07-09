@@ -888,8 +888,8 @@ int rx_ping(message pkt, int b)
 		e_buf_print(b, ERR, pkt, "Not enough arguments: ");
 		return(0);
 	}
-	char pong[8+strlen(username)+strlen(pkt.args[0])];
-	sprintf(pong, "PONG %s %s", username, pkt.args[0]); // PONG <user> <sender>
+	char pong[7+strlen(pkt.args[0])];
+	sprintf(pong, "PONG :%s", pkt.args[0]); // PONG :<sender>
 	return(irc_tx(bufs[bufs[b].server].handle, pong));
 }
 
