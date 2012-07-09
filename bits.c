@@ -177,33 +177,30 @@ int wordline(const char *msg, unsigned int x, char **out, int *l, int *i, colour
 
 void append_char(char **buf, int *l, int *i, char c)
 {
-	if(!((c==0)||(c==EOF)))
+	if(*buf)
 	{
-		if(*buf)
-		{
-			(*buf)[(*i)++]=c;
-		}
-		else
-		{
-			init_char(buf, l, i);
-			append_char(buf, l, i, c);
-		}
-		char *nbuf=*buf;
-		if((*i)>=(*l))
-		{
-			*l=*i*2;
-			nbuf=(char *)realloc(*buf, *l);
-		}
-		if(nbuf)
-		{
-			*buf=nbuf;
-			(*buf)[*i]=0;
-		}
-		else
-		{
-			free(*buf);
-			init_char(buf, l, i);
-		}
+		(*buf)[(*i)++]=c;
+	}
+	else
+	{
+		init_char(buf, l, i);
+		append_char(buf, l, i, c);
+	}
+	char *nbuf=*buf;
+	if((*i)>=(*l))
+	{
+		*l=*i*2;
+		nbuf=(char *)realloc(*buf, *l);
+	}
+	if(nbuf)
+	{
+		*buf=nbuf;
+		(*buf)[*i]=0;
+	}
+	else
+	{
+		free(*buf);
+		init_char(buf, l, i);
 	}
 }
 
