@@ -36,10 +36,10 @@ quirc.h: config.h version.h
 	touch quirc.h
 
 clean:
-	-rm *.o quirc genconfig genkeymap
+	-rm -f *.o quirc genconfig genkeymap
 
 realclean: clean
-	-rm c_init.c README version.h config_* keymap.c keymod.h quirc.1
+	-rm -f c_init.c README version.h config_* keymap.c keymod.h quirc.1
 
 doc: README config_ref.htm quirc.1
 
