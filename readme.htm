@@ -299,6 +299,13 @@ Similarly, if your terminal sends backspace as ^H, you would add:<br />
 <dd><p>One possible cause of this is that your terminal size is not what quIRC thinks it is.  You may need to /set height and width, or export the environment variables $LINES and $COLUMNS from your shell (typically you would also add this to your shell's .rc file), or as a last resort resize your terminal to 80x24.</p><p>Another possibility is that your terminal emulator isn't recognising terminal escape sequences (which quIRC uses heavily for eg. cursor positioning).  For details see your terminal emulator's documentation; it is known that xterm works out-of-the-box.  In general quIRC relies on your system&apos;s <strong>terminfo</strong> database; if this is inaccurate, or your <small>$TERM</small> is set incorrectly, quIRC will be sending the wrong escape sequences.</p></dd>
 <dt>The control keys/cursor keys/function keys don't do anything!</dt>
 <dd><p>This probably means your terminal isn't sending VT100 (ANSI) escape sequences, but rather some other set of sequences.  See the section &quot;<a href="#keymapping">Keymapping</a>&quot;, above.</p></dd>
+<dt>I can't build it!  My libc doesn't support getaddrinfo_a()!</dt>
+<dd><p>You need to disable ASYNCH_NL; add the following lines to <small>config.mak</small> (which you should create if not present):</p>
+<blockquote style="font-family:monospace;">
+OPTFLAGS := $(OPTFLAGS) -DASYNCH_NL=0<br />
+LIBS_ASYNCH_NL := 
+</blockquote>
+<p>This should disable asynchronous name lookups, instead using code which will block while performing the DNS lookup.</p></dd>
 </dl>
 </div><!--#trouble-->
 </body>

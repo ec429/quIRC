@@ -338,3 +338,10 @@ turns yellow.
       This probably means your terminal isn't sending VT100 (ANSI) escape
       sequences, but rather some other set of sequences. See the section
       "Keymapping", above.
+  I can't build it! My libc doesn't support getaddrinfo_a()!
+      You need to disable ASYNCH_NL; add the following lines to config.mak
+      (which you should create if not present):
+           OPTFLAGS := $(OPTFLAGS) -DASYNCH_NL=0
+           LIBS_ASYNCH_NL :=
+      This should disable asynchronous name lookups, instead using code which
+      will block while performing the DNS lookup.

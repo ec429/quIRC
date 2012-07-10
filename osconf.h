@@ -8,4 +8,6 @@
 	osconf.h: platform-specific configuration settings
 */
 
-#define ASYNCH_NL	1 // set to 0 if platform does not provide getaddrinfo_a() (and remove -lanl from Makefile OPTLIBS)
+#ifndef ASYNCH_NL
+	#define ASYNCH_NL	1 // set to 0 if platform does not provide getaddrinfo_a() (and remove -lanl from Makefile OPTLIBS)
+#endif /* ¬ASYNCH_NL */
