@@ -511,7 +511,7 @@ int render_line(int buf, int uline)
 		bufs[buf].lpl[uline]=0;
 		return(0);
 	}
-	char *proc;int l,i;
+	char *proc;size_t l,i;
 	init_char(&proc, &l, &i);
 	char stamp[40];
 	struct tm *td=(utc?gmtime:localtime)(&bufs[buf].ts[uline]);
@@ -850,7 +850,7 @@ void in_update(iline inp)
 		else
 		{
 			int torem=floor((wwidth/4.0)*floor(((inp.left.i-(wwidth/2.0))*4.0/wwidth)+0.5));
-			torem=min(torem, inp.left.i-3);
+			torem=min(torem, (int)inp.left.i-3);
 			int c=inp.left.i+4-torem;
 			char ll[max(3, c/4)+1];
 			snprintf(ll, max(3, c/4)+1, "%s", inp.left.data);
@@ -877,7 +877,7 @@ void in_update(iline inp)
 
 char *highlight(const char *src)
 {
-	int l,i;char *rv;
+	size_t l,i;char *rv;
 	init_char(&rv, &l, &i);
 	while(*src)
 	{

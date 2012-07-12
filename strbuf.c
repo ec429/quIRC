@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include "strbuf.h"
 
-void append_char(char **buf, int *l, int *i, char c)
+void append_char(char **buf, size_t *l, size_t *i, char c)
 {
 	if(*buf)
 	{
@@ -38,7 +38,7 @@ void append_char(char **buf, int *l, int *i, char c)
 	}
 }
 
-void append_str(char **buf, int *l, int *i, const char *str)
+void append_str(char **buf, size_t *l, size_t *i, const char *str)
 {
 	while(str && *str) // not the most tremendously efficient implementation, but conceptually simple at least
 	{
@@ -46,7 +46,7 @@ void append_str(char **buf, int *l, int *i, const char *str)
 	}
 }
 
-void init_char(char **buf, int *l, int *i)
+void init_char(char **buf, size_t *l, size_t *i)
 {
 	*l=80;
 	*buf=(char *)malloc(*l);
@@ -57,7 +57,7 @@ void init_char(char **buf, int *l, int *i)
 char * fgetl(FILE *fp)
 {
 	char * lout;
-	int l,i;
+	size_t l,i;
 	init_char(&lout, &l, &i);
 	signed int c;
 	while(!feof(fp))
@@ -76,7 +76,7 @@ char * fgetl(FILE *fp)
 char *slurp(FILE *fp)
 {
 	char *fout;
-	int l,i;
+	size_t l,i;
 	init_char(&fout, &l, &i);
 	signed int c;
 	while(!feof(fp))

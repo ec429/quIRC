@@ -13,7 +13,7 @@ int setcolour(colour c)
 	return(setcol(c.fore, c.back, c.hi, c.ul));
 }
 
-int s_setcolour(colour c, char **rv, int *l, int *i)
+int s_setcolour(colour c, char **rv, size_t *l, size_t *i)
 {
 	return(s_setcol(c.fore, c.back, c.hi, c.ul, rv, l, i));
 }

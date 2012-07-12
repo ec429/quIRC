@@ -14,7 +14,8 @@ int inputchar(iline *inp, int *state)
 	int c=getchar();
 	if((c==0)||(c==EOF)) // stdin is set to non-blocking, so this may happen
 		return(0);
-	char *seq;int sl,si,mod=-1;
+	char *seq;size_t sl,si;
+	int mod=-1;
 	init_char(&seq, &sl, &si);
 	bool match=true;
 	while(match&&(mod<0))
@@ -95,12 +96,12 @@ int inputchar(iline *inp, int *state)
 		}
 		if(c=='\t') // tab completion of nicks
 		{
-			int sp=max(inp->left.i-1, 0);
+			size_t sp=max(inp->left.i-1, 0);
 			while(sp>0 && !strchr(" \t", inp->left.data[sp-1]))
 				sp--;
 			name *curr=bufs[cbuf].nlist;
 			name *found=NULL;
-			int count=0, mlen=0;
+			size_t count=0, mlen=0;
 			while(curr)
 			{
 				if((inp->left.i==sp) || (irc_strncasecmp(inp->left.data+sp, curr->data, inp->left.i-sp, bufs[cbuf].casemapping)==0))
@@ -109,7 +110,7 @@ int inputchar(iline *inp, int *state)
 					n_add(&found, curr->data, bufs[cbuf].casemapping);
 					if(old&&(old->data))
 					{
-						int i;
+						size_t i;
 						for(i=0;i<mlen;i++)
 						{
 							if(irc_to_upper(curr->data[i], bufs[cbuf].casemapping)!=irc_to_upper(old->data[i], bufs[cbuf].casemapping))
@@ -144,7 +145,7 @@ int inputchar(iline *inp, int *state)
 				else if(found->next||(count>1))
 				{
 					char *fmsg;
-					int i,l;
+					size_t i,l;
 					init_char(&fmsg, &i, &l);
 					while(found)
 					{

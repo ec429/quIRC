@@ -8,13 +8,13 @@
 
 #include "bits.h"
 
-int wordline(const char *msg, unsigned int x, char **out, int *l, int *i, colour lc)
+int wordline(const char *msg, unsigned int x, char **out, size_t *l, size_t *i, colour lc)
 {
 	if(!msg) return(x);
 	unsigned int tabx=x;
 	if(tabx*2>width)
 		tabx=8;
-	int l2,i2;
+	size_t l2,i2;
 	char *word;
 	const char *ptr=msg;
 	colour cc=lc; // current colour

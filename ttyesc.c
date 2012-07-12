@@ -43,7 +43,7 @@ int setcol(int fore, int back, bool hi, bool ul)
 	return(0);
 }
 
-int s_setcol(int fore, int back, bool hi, bool ul, char **rv, int *l, int *i)
+int s_setcol(int fore, int back, bool hi, bool ul, char **rv, size_t *l, size_t *i)
 {
 	if((fore<0)||(fore>7))
 		return(1);
@@ -74,7 +74,7 @@ int resetcol(void)
 	return(setcol(7, 0, false, false));
 }
 
-int s_resetcol(char **rv, int *l, int *i)
+int s_resetcol(char **rv, size_t *l, size_t *i)
 {
 	return(s_setcol(7, 0, false, false, rv, l, i));
 }
@@ -102,7 +102,7 @@ int cls(void)
 	return(0);
 }
 
-int s_cls(char **rv, int *l, int *i)
+int s_cls(char **rv, size_t *l, size_t *i)
 {
 	const char *cl=clear_screen;
 	if(cl)
@@ -141,7 +141,7 @@ int clr(void)
 	return(0);
 }
 
-int s_clr(char **rv, int *l, int *i)
+int s_clr(char **rv, size_t *l, size_t *i)
 {
 	const char *cl=clr_eol;
 	if(cl)
@@ -177,7 +177,7 @@ int locate(int y, int x)
 	return(0);
 }
 
-int s_locate(int y, int x, char **rv, int *l, int *i)
+int s_locate(int y, int x, char **rv, size_t *l, size_t *i)
 {
 	const char *loc=tparm(cursor_address, y-1, x-1);
 	if(loc) append_str(rv, l, i, loc);
