@@ -1,15 +1,16 @@
 # Makefile for quIRC
 
-CC := gcc
+CC ?= gcc
 OPTFLAGS := -g
-CFLAGS := -Wall -Wextra -Werror -pedantic -std=gnu99 -D_GNU_SOURCE $(OPTFLAGS)
+CFLAGS = -Wall -Wextra -Werror -pedantic -std=gnu99 -D_GNU_SOURCE $(OPTFLAGS)
 AWK := gawk
 VERSION := `git describe --tags`
 PREFIX := /usr/local
 LIBS_ASYNCH_NL := -lanl
 OPTLIBS = $(LIBS_ASYNCH_NL)
-LIBS := -lncurses ttyraw.o ttyesc.o irc.o bits.o strbuf.o colour.o buffer.o names.o config.o input.o logging.o types.o $(OPTLIBS)
-INCLUDE := ttyraw.h ttyesc.h irc.h bits.h strbuf.h colour.h buffer.h names.h config.h input.h logging.h types.h quirc.h version.h osconf.h
+LIBS = -lm -lncurses $(OBJS) $(OPTLIBS)
+OBJS := ttyraw.o ttyesc.o irc.o bits.o strbuf.o colour.o buffer.o names.o config.o input.o logging.o types.o
+INCLUDE := $(OBJS:.o=.h) quirc.h version.h osconf.h
 
 -include config.mak
 
@@ -29,8 +30,8 @@ uninstall:
 	-rm $(PREFIX)/share/doc/quirc/config_ref.htm
 	-rm $(PREFIX)/share/doc/quirc/tutorial.htm
 
-quirc: quirc.c $(LIBS) $(INCLUDE)
-	$(CC) $(CFLAGS) $(CPPFLAGS) -o $@ $< $(LIBS) -lm $(DEFINES)
+quirc: quirc.c $(OBJS) $(INCLUDE)
+	$(CC) $(CFLAGS) $(CPPFLAGS) -o $@ $< $(LIBS) $(DEFINES)
 
 quirc.h: config.h version.h
 	touch quirc.h

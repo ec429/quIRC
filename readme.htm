@@ -302,7 +302,7 @@ Similarly, if your terminal sends backspace as ^H, you would add:<br />
 <dt>I can't build it!  My libc doesn't support getaddrinfo_a()!</dt>
 <dd><p>You need to disable ASYNCH_NL; add the following lines to <small>config.mak</small> (which you should create if not present):</p>
 <blockquote style="font-family:monospace;">
-OPTFLAGS := $(OPTFLAGS) -DASYNCH_NL=0<br />
+OPTFLAGS += -DASYNCH_NL=0<br />
 LIBS_ASYNCH_NL := 
 </blockquote>
 <p>This should disable asynchronous name lookups, instead using code which will block while performing the DNS lookup.</p></dd>

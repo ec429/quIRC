@@ -341,7 +341,7 @@ turns yellow.
   I can't build it! My libc doesn't support getaddrinfo_a()!
       You need to disable ASYNCH_NL; add the following lines to config.mak
       (which you should create if not present):
-           OPTFLAGS := $(OPTFLAGS) -DASYNCH_NL=0
+           OPTFLAGS += -DASYNCH_NL=0
            LIBS_ASYNCH_NL :=
       This should disable asynchronous name lookups, instead using code which
       will block while performing the DNS lookup.
