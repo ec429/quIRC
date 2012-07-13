@@ -339,9 +339,14 @@ turns yellow.
       sequences, but rather some other set of sequences. See the section
       "Keymapping", above.
   I can't build it! My libc doesn't support getaddrinfo_a()!
-      You need to disable ASYNCH_NL; add the following lines to config.mak
-      (which you should create if not present):
-           OPTFLAGS += -DASYNCH_NL=0
-           LIBS_ASYNCH_NL :=
+      You need to disable ASYNCH_NL; cp dist/config.mak . (unless you already
+      have a config.mak) and then uncomment the relevant lines.
       This should disable asynchronous name lookups, instead using code which
       will block while performing the DNS lookup.
+  I can't build it! My compiler complains about %jd and intmax_t!
+      This is a known bug in some compiler/libc combinations; to work around it
+      you need to define INTMAX_BUG to 1. cp dist/config.mak . (unless you
+      already have a config.mak) and then uncomment the relevant lines.
+      This should work around the bug by using %lld and (long long int) instead
+      of %jd and (intmax_t). Since what we're actually printing is a time_t,
+      this ought to work.
