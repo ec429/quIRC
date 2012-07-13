@@ -8,4 +8,3 @@ genconfig
 genkeymap
 version.h
 quirc.1
-config.mak

@@ -71,7 +71,7 @@ bits.h: config.h strbuf.h
 
 colour.o: colour.c colour.h c_init.c ttyesc.h
 
-buffer.o: buffer.c buffer.h ttyesc.h colour.h bits.h names.h text.h irc.h version.h input.h logging.h
+buffer.o: buffer.c buffer.h ttyesc.h colour.h bits.h names.h text.h irc.h version.h input.h logging.h osconf.h
 
 buffer.h: config.h version.h logging.h
 	touch buffer.h

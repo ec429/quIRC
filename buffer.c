@@ -8,6 +8,7 @@
 
 #include "buffer.h"
 #include "logging.h"
+#include "osconf.h"
 
 int init_ring(ring *r)
 {
@@ -513,39 +514,8 @@ int render_line(int buf, int uline)
 	}
 	char *proc;size_t l,i;
 	init_char(&proc, &l, &i);
-	char stamp[40];
-	struct tm *td=(utc?gmtime:localtime)(&bufs[buf].ts[uline]);
-	switch(ts)
-	{
-		case 1:
-			strftime(stamp, 40, "[%H:%M] ", td);
-		break;
-		case 2:
-			strftime(stamp, 40, "[%H:%M:%S] ", td);
-		break;
-		case 3:
-			if(utc)
-				strftime(stamp, 40, "[%H:%M:%S UTC] ", td);
-			else
-				strftime(stamp, 40, "[%H:%M:%S %z] ", td);
-		break;
-		case 4:
-			strftime(stamp, 40, "[%a. %H:%M:%S] ", td);
-		break;
-		case 5:
-			if(utc)
-				strftime(stamp, 40, "[%a. %H:%M:%S UTC] ", td);
-			else
-				strftime(stamp, 40, "[%a. %H:%M:%S %z] ", td);
-		break;
-		case 6:
-			snprintf(stamp, 40, "[u+%jd] ", (intmax_t)bufs[buf].ts[uline]);
-		break;
-		case 0: // no timestamps
-		default:
-			stamp[0]=0;
-		break;
-	}
+	char stamp[STAMP_LEN];
+	timestamp(stamp, bufs[buf].ts[uline]);
 	colour c={.fore=7, .back=0, .hi=false, .ul=false};
 	char *tag=strdup(bufs[buf].ltag[uline]?bufs[buf].ltag[uline]:"");
 	switch(bufs[buf].lm[uline])
@@ -754,42 +724,11 @@ void in_update(iline inp)
 	resetcol();
 	putchar('\n');
 	unsigned int wwidth=width;
-	char stamp[40];
+	char stamp[STAMP_LEN];
 	stamp[0]=0;
 	if(its)
 	{
-		time_t t=time(NULL);
-		struct tm *td=(utc?gmtime:localtime)(&t);
-		switch(ts)
-		{
-			case 1:
-			strftime(stamp, 40, "[%H:%M] ", td);
-			break;
-			case 2:
-				strftime(stamp, 40, "[%H:%M:%S] ", td);
-			break;
-			case 3:
-				if(utc)
-					strftime(stamp, 40, "[%H:%M:%S UTC] ", td);
-				else
-					strftime(stamp, 40, "[%H:%M:%S %z] ", td);
-			break;
-			case 4:
-				strftime(stamp, 40, "[%a. %H:%M:%S] ", td);
-			break;
-			case 5:
-				if(utc)
-					strftime(stamp, 40, "[%a. %H:%M:%S UTC] ", td);
-				else
-					strftime(stamp, 40, "[%a. %H:%M:%S %z] ", td);
-			break;
-			case 6:
-				snprintf(stamp, 40, "[u+%lu] ", (unsigned long)t);
-			break;
-			case 0: // no timestamps
-			default:
-			break;
-		}
+		timestamp(stamp, time(NULL));
 		if(strlen(stamp)+25>wwidth)
 		{
 			stamp[0]=0;
@@ -1196,4 +1135,40 @@ int makeptab(int b, const char *src)
 		n_add(&bufs[b2].nlist, src, bufs[b].casemapping);
 	}
 	return(b2);
+}
+
+void timestamp(char stamp[STAMP_LEN], time_t t)
+{
+	struct tm *td=(utc?gmtime:localtime)(&t);
+	switch(ts)
+	{
+		case 1:
+			strftime(stamp, STAMP_LEN, "[%H:%M] ", td);
+		break;
+		case 2:
+			strftime(stamp, STAMP_LEN, "[%H:%M:%S] ", td);
+		break;
+		case 3:
+			if(utc)
+				strftime(stamp, STAMP_LEN, "[%H:%M:%S UTC] ", td);
+			else
+				strftime(stamp, STAMP_LEN, "[%H:%M:%S %z] ", td);
+		break;
+		case 4:
+			strftime(stamp, STAMP_LEN, "[%a. %H:%M:%S] ", td);
+		break;
+		case 5:
+			if(utc)
+				strftime(stamp, STAMP_LEN, "[%a. %H:%M:%S UTC] ", td);
+			else
+				strftime(stamp, STAMP_LEN, "[%a. %H:%M:%S %z] ", td);
+		break;
+		case 6:
+			snprintf(stamp, STAMP_LEN, "[u+"PRINTMAX"] ", CASTINTMAX t);
+		break;
+		case 0: // no timestamps
+		default:
+			stamp[0]=0;
+		break;
+	}
 }

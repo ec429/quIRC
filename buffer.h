@@ -29,6 +29,7 @@
 #include "version.h"
 
 #define LIVE(buf)	(bufs[buf].live && bufs[bufs[buf].server].live)	// Check liveness
+#define STAMP_LEN	40
 
 typedef struct _buf
 {
@@ -117,3 +118,4 @@ char *highlight(const char *src); // use colours to highlight \escapes.  Returns
 void titlebar(void);
 int findptab(int b, const char *src);
 int makeptab(int b, const char *src);
+void timestamp(char stamp[STAMP_LEN], time_t t);
