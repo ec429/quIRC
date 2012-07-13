@@ -8,7 +8,7 @@ VERSION := `git describe --tags`
 PREFIX := /usr/local
 LIBS_ASYNCH_NL := -lanl
 OPTLIBS = $(LIBS_ASYNCH_NL)
-LIBS := -lncurses ttyraw.o ttyesc.o irc.o bits.o strbuf.o colour.o buffer.o names.o config.o input.o logging.o types.o $(OPTLIBS)
+LIBS := -lncurses ttyraw.o ttyesc.o irc.o bits.o strbuf.o colour.o buffer.o names.o config.o input.o logging.o types.o
 INCLUDE := ttyraw.h ttyesc.h irc.h bits.h strbuf.h colour.h buffer.h names.h config.h input.h logging.h types.h quirc.h version.h osconf.h
 
 -include config.mak
@@ -30,7 +30,7 @@ uninstall:
 	-rm $(PREFIX)/share/doc/quirc/tutorial.htm
 
 quirc: quirc.c $(LIBS) $(INCLUDE)
-	$(CC) $(CFLAGS) $(CPPFLAGS) -o $@ $< $(LIBS) -lm $(DEFINES)
+	$(CC) $(CFLAGS) $(CPPFLAGS) -o $@ $< $(LIBS) $(OPTLIBS) -lm $(DEFINES)
 
 quirc.h: config.h version.h
 	touch quirc.h
