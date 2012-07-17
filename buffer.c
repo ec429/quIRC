@@ -9,6 +9,9 @@
 #include "buffer.h"
 #include "logging.h"
 #include "osconf.h"
+#include "ctbuf.h"
+
+ctchar *highlight(const char *src, size_t *len); // use colours to highlight \escapes.  Returns a malloc-like pointer
 
 int init_ring(ring *r)
 {
@@ -738,86 +741,76 @@ void in_update(iline inp)
 		wwidth-=strlen(stamp);
 	}
 	// input
-	if((unsigned)inp.left.i+(unsigned)inp.right.i+1<wwidth)
+	size_t ll, rl;
+	ctchar *left =highlight(inp.left .data?inp.left .data:"", &ll),
+	       *right=highlight(inp.right.data?inp.right.data:"", &rl);
+	if(ll+rl+1<wwidth)
 	{
-		char *lh=highlight(inp.left.data?inp.left.data:"");
-		char *rh=highlight(inp.right.data?inp.right.data:"");
 		fputs(stamp, stdout);
-		fputs(lh, stdout);
+		ct_puts(left);
 		savepos();
-		fputs(rh, stdout);
+		ct_puts(right);
+		resetcol();
 		clr();
 		restpos();
-		free(lh);
-		free(rh);
 	}
 	else
 	{
-		if(inp.left.i<wwidth*0.75)
+		if(ll<wwidth*0.75)
 		{
-			char *lh=highlight(inp.left.data?inp.left.data:"");
-			char rl[wwidth-inp.left.i-3-max(3, (wwidth-inp.left.i)/4)];
-			snprintf(rl, wwidth-inp.left.i-3-max(3, (wwidth-inp.left.i)/4), "%s", inp.right.data);
-			char *rlh=highlight(rl);
-			char *rrh=highlight(inp.right.data+inp.right.i-max(3, (wwidth-inp.left.i)/4));
 			fputs(stamp, stdout);
-			fputs(lh, stdout);
+			ct_puts(left);
 			savepos();
-			printf("%s...%s", rlh, rrh);
+			ct_putsn(right, wwidth-ll-4-max(3, (wwidth-ll)/4));
+			resetcol();
+			fputs("...", stdout);
+			ct_puts(right+rl-max(3, (wwidth-ll)/4));
+			resetcol();
 			clr();
 			restpos();
-			free(lh);
-			free(rlh);
-			free(rrh);
 		}
-		else if(inp.right.i<wwidth*0.75)
+		else if(rl<wwidth*0.75)
 		{
-			char ll[max(3, (wwidth-inp.right.i)/4)];
-			snprintf(ll, max(3, (wwidth-inp.right.i)/4), "%s", inp.left.data);
-			char *llh=highlight(ll);
-			char *lrh=highlight(inp.left.data+inp.left.i-wwidth+3+inp.right.i+max(3, (wwidth-inp.right.i)/4));
-			char *rh=highlight(inp.right.data?inp.right.data:"");
 			fputs(stamp, stdout);
-			printf("%s...%s", llh, lrh);
+			ct_putsn(left, max(3, (wwidth-rl)/4));
+			resetcol();
+			fputs("...", stdout);
+			ct_puts(left+ll-wwidth+4+rl+max(3, (wwidth-rl)/4));
 			savepos();
-			fputs(rh, stdout);
+			ct_puts(right);
+			resetcol();
+			clr();
 			restpos();
-			free(llh);
-			free(lrh);
-			free(rh);
 		}
 		else
 		{
-			int torem=floor((wwidth/4.0)*floor(((inp.left.i-(wwidth/2.0))*4.0/wwidth)+0.5));
-			torem=min(torem, (int)inp.left.i-3);
-			int c=inp.left.i+4-torem;
-			char ll[max(3, c/4)+1];
-			snprintf(ll, max(3, c/4)+1, "%s", inp.left.data);
-			char *llh=highlight(ll);
-			char *lrh=highlight(inp.left.data+torem+max(3, c/4));
-			char rl[wwidth-c-2-max(3, (wwidth-c)/4)];
-			snprintf(rl, wwidth-c-2-max(3, (wwidth-c)/4), "%s", inp.right.data);
-			char *rlh=highlight(rl);
-			char *rrh=highlight(inp.right.data+inp.right.i-max(3, (wwidth-c)/4));
+			int torem=floor((wwidth/4.0)*floor(((ll-(wwidth/2.0))*4.0/wwidth)+0.5));
+			torem=min(torem, (int)ll-3);
+			size_t c=ll+4-torem;
 			fputs(stamp, stdout);
-			printf("%s...%s", llh, lrh);
+			ct_putsn(left, max(3, c/4)+1);
+			resetcol();
+			fputs("...", stdout);
+			ct_puts(left+torem+max(3, c/4)+1);
 			savepos();
-			printf("%s...%s", rlh, rrh);
+			ct_putsn(right, wwidth-c-3-max(3, (wwidth-c)/4));
+			resetcol();
+			fputs("...", stdout);
+			ct_puts(right+rl-max(3, (wwidth-c)/4));
+			resetcol();
 			clr();
 			restpos();
-			free(llh);
-			free(lrh);
-			free(rlh);
-			free(rrh);
 		}
 	}
+	free(left);
+	free(right);
 	fflush(stdout);
 }
 
-char *highlight(const char *src)
+ctchar *highlight(const char *src, size_t *len)
 {
-	size_t l,i;char *rv;
-	init_char(&rv, &l, &i);
+	size_t l,i;ctchar *rv;
+	ct_init_char(&rv, &l, &i);
 	while(*src)
 	{
 		if(*src=='\\')
@@ -825,67 +818,52 @@ char *highlight(const char *src)
 			switch(src[1])
 			{
 				case 'n':
-					s_setcol(7, 0, 1, 0, &rv, &l, &i);
-					append_char(&rv, &l, &i, '\\');
-					append_char(&rv, &l, &i, 'n');
-					s_setcol(7, 0, 0, 0, &rv, &l, &i);
+					ct_append_char_c(&rv, &l, &i, (colour){7, 0, 1, 0}, '\\');
+					ct_append_char(&rv, &l, &i, 'n');
 					src++;
 				break;
 				case 'r':
-					s_setcol(7, 0, 1, 0, &rv, &l, &i);
-					append_char(&rv, &l, &i, '\\');
-					append_char(&rv, &l, &i, 'r');
-					s_setcol(7, 0, 0, 0, &rv, &l, &i);
+					ct_append_char_c(&rv, &l, &i, (colour){7, 0, 1, 0}, '\\');
+					ct_append_char(&rv, &l, &i, 'r');
 					src++;
 				break;
 				case '\\':
-					s_setcol(3, 0, 1, 0, &rv, &l, &i);
-					append_char(&rv, &l, &i, '\\');
-					append_char(&rv, &l, &i, '\\');
-					s_setcol(7, 0, 0, 0, &rv, &l, &i);
+					ct_append_char_c(&rv, &l, &i, (colour){3, 0, 1, 0}, '\\');
+					ct_append_char(&rv, &l, &i, '\\');
 					src++;
 				break;
 				case 0:
-					s_setcol(4, 0, 1, 0, &rv, &l, &i);
-					append_char(&rv, &l, &i, '\\');
-					s_setcol(7, 0, 0, 0, &rv, &l, &i);
+					ct_append_char_c(&rv, &l, &i, (colour){4, 0, 1, 0}, '\\');
 				break;
 				case '0':
 				case '1':
 				case '2':
 				case '3':
-					s_setcol(6, 0, 1, 0, &rv, &l, &i);
-					append_char(&rv, &l, &i, '\\');
-					append_char(&rv, &l, &i, *++src);
+					ct_append_char_c(&rv, &l, &i, (colour){6, 0, 1, 0}, '\\');
+					ct_append_char(&rv, &l, &i, *++src);
 					int digits=0;
 					while(isdigit(src[1])&&(src[1]<'8')&&(++digits<3))
-					{
-						append_char(&rv, &l, &i, *++src);
-					}
-					s_setcol(7, 0, 0, 0, &rv, &l, &i);
+						ct_append_char(&rv, &l, &i, *++src);
 				break;
 				default:
-					s_setcol(1, 0, 1, 0, &rv, &l, &i);
-					append_char(&rv, &l, &i, '\\');
-					s_setcol(7, 0, 0, 0, &rv, &l, &i);
+					ct_append_char_c(&rv, &l, &i, (colour){1, 0, 1, 0}, '\\');
 				break;
 			}
 		}
 		else if(!isprint(*src))
 		{
-			s_setcol(2, 0, 1, 1, &rv, &l, &i);
-			append_char(&rv, &l, &i, '\\');
+			ct_append_char_c(&rv, &l, &i, (colour){2, 0, 1, 0}, '\\');
 			char obuf[16];
 			snprintf(obuf, 16, "%03o", (unsigned char)*src);
-			append_str(&rv, &l, &i, obuf);
-			s_setcol(7, 0, 0, 0, &rv, &l, &i);
+			ct_append_str(&rv, &l, &i, obuf);
 		}
 		else
 		{
-			append_char(&rv, &l, &i, *src);
+			ct_append_char_c(&rv, &l, &i, (colour){7, 0, 1, 0}, *src);
 		}
 		src++;
 	}
+	if(len) *len=i;
 	return(rv);
 }
 

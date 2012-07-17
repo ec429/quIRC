@@ -7,6 +7,16 @@
 */
 
 #include "colour.h"
+#include "ttyesc.h"
+
+inline bool eq_colour(colour a, colour b)
+{
+	if(a.fore!=b.fore) return(false);
+	if(a.back!=b.back) return(false);
+	if(a.hi!=b.hi) return(false);
+	if(a.ul!=b.ul) return(false);
+	return(true);
+}
 
 int setcolour(colour c)
 {

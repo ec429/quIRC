@@ -24,7 +24,7 @@ void append_char(char **buf, size_t *l, size_t *i, char c)
 	if((*i)>=(*l))
 	{
 		*l=*i*2;
-		nbuf=(char *)realloc(*buf, *l);
+		nbuf=realloc(*buf, *l);
 	}
 	if(nbuf)
 	{
@@ -49,7 +49,7 @@ void append_str(char **buf, size_t *l, size_t *i, const char *str)
 void init_char(char **buf, size_t *l, size_t *i)
 {
 	*l=80;
-	*buf=(char *)malloc(*l);
+	*buf=malloc(*l);
 	(*buf)[0]=0;
 	*i=0;
 }

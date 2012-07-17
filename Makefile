@@ -9,7 +9,7 @@ PREFIX := /usr/local
 LIBS_ASYNCH_NL := -lanl
 OPTLIBS = $(LIBS_ASYNCH_NL)
 LIBS = -lm -lncurses $(OBJS) $(OPTLIBS)
-OBJS := ttyraw.o ttyesc.o irc.o bits.o strbuf.o colour.o buffer.o names.o config.o input.o logging.o types.o
+OBJS := ttyraw.o ttyesc.o irc.o bits.o strbuf.o ctbuf.o colour.o buffer.o names.o config.o input.o logging.o types.o
 INCLUDE := $(OBJS:.o=.h) quirc.h version.h osconf.h
 
 -include config.mak
@@ -69,9 +69,12 @@ bits.o: bits.c bits.h ttyesc.h colour.h
 bits.h: config.h strbuf.h
 	touch bits.h
 
+ctbuf.h: colour.h
+	touch ctbuf.h
+
 colour.o: colour.c colour.h c_init.c ttyesc.h
 
-buffer.o: buffer.c buffer.h ttyesc.h colour.h bits.h names.h text.h irc.h version.h input.h logging.h osconf.h
+buffer.o: buffer.c buffer.h ttyesc.h colour.h bits.h names.h text.h irc.h version.h input.h logging.h osconf.h ctbuf.h
 
 buffer.h: config.h version.h logging.h
 	touch buffer.h

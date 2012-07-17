@@ -114,7 +114,6 @@ int e_buf_print(int buf, mtype lm, message pkt, const char *lead);
 int transfer_ring(ring *r, prio lq);
 int push_ring(ring *r, prio lq);
 void in_update(iline inp);
-char *highlight(const char *src); // use colours to highlight \escapes.  Returns a malloc-like pointer
 void titlebar(void);
 int findptab(int b, const char *src);
 int makeptab(int b, const char *src);
