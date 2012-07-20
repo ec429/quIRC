@@ -859,7 +859,7 @@ ctchar *highlight(const char *src, size_t *len)
 		}
 		else
 		{
-			ct_append_char_c(&rv, &l, &i, (colour){7, 0, 1, 0}, *src);
+			ct_append_char_c(&rv, &l, &i, (colour){7, 0, 0, 0}, *src);
 		}
 		src++;
 	}
