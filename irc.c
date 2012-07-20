@@ -1719,7 +1719,7 @@ int ctcp(const char *msg, const char *src, int b2, bool ha, bool notice, bool pr
 			else
 			{
 				char resp[32+strlen(src)+strlen(fname)];
-				sprintf(resp, "NOTICE %s \001FINGER :%s\001", src, fname);
+				sprintf(resp, "NOTICE %s :\001FINGER %s\001", src, fname);
 				irc_tx(fd, resp);
 			}
 		}
@@ -1755,7 +1755,7 @@ int ctcp(const char *msg, const char *src, int b2, bool ha, bool notice, bool pr
 			else
 			{
 				char resp[16+strlen(src)+strlen(msg)];
-				sprintf(resp, "NOTICE %s \001%s\001", src, msg);
+				sprintf(resp, "NOTICE %s :\001%s\001", src, msg);
 				irc_tx(fd, resp);
 			}
 		}
@@ -1771,7 +1771,7 @@ int ctcp(const char *msg, const char *src, int b2, bool ha, bool notice, bool pr
 			else
 			{
 				char resp[64+strlen(src)];
-				sprintf(resp, "NOTICE %s \001CLIENTINFO ACTION FINGER PING CLIENTINFO VERSION\001", src);
+				sprintf(resp, "NOTICE %s :\001CLIENTINFO ACTION FINGER PING CLIENTINFO VERSION\001", src);
 				irc_tx(fd, resp);
 			}
 		}
@@ -1787,7 +1787,7 @@ int ctcp(const char *msg, const char *src, int b2, bool ha, bool notice, bool pr
 			else
 			{
 				char resp[32+strlen(src)+strlen(version)+strlen(CC_VERSION)];
-				sprintf(resp, "NOTICE %s \001VERSION %s:%s:%s\001", src, "quIRC", version, CC_VERSION);
+				sprintf(resp, "NOTICE %s :\001VERSION %s:%s:%s\001", src, "quIRC", version, CC_VERSION);
 				irc_tx(fd, resp);
 			}
 		}
