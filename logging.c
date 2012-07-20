@@ -149,7 +149,7 @@ void safeprint(FILE *logf, const char *text, bool es)
 	while(*text)
 	{
 		if((!isprint(*text)) || (es&&isspace(*text)))
-			fprintf(logf, "\\%03o", *text);
+			fprintf(logf, "\\%03o", (unsigned char)*text);
 		else
 			fputc(*text, logf);
 		text++;
