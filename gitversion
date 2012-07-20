@@ -4,8 +4,8 @@ VERSION=$(git describe --tags)
 MAJOR=$(echo $VERSION | cut -d . -f 1)
 MINOR=$(echo $VERSION | cut -d . -f 2)
 REST=$(echo $VERSION | cut -d . -f 3)
-REV=$(echo $REST | cut -d - -f 1)
-GIT=$(echo $REST | cut -d - -f 2-)
+REV=$(echo $REST | cut -d - -sf 1)
+GIT=$(echo $REST | cut -d - -sf 2-)
 CCVER=$(cc -v 2>&1 | tail -n 1)
 echo "/*
 	quIRC - simple terminal-based IRC client
