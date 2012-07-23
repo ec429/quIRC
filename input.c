@@ -96,7 +96,8 @@ int inputchar(iline *inp, int *state)
 		}
 		if(c=='\t') // tab completion of nicks
 		{
-			size_t sp=max(inp->left.i-1, 0);
+			size_t sp=inp->left.i;
+			if(sp) sp--;
 			while(sp>0 && !strchr(" \t", inp->left.data[sp-1]))
 				sp--;
 			name *curr=bufs[cbuf].nlist;
