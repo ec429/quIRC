@@ -150,7 +150,13 @@ int inputchar(iline *inp, int *state)
 					init_char(&fmsg, &i, &l);
 					while(found)
 					{
-						append_str(&fmsg, &i, &l, found->data);
+						const char *p=found->data;
+						while(*p)
+						{
+							if(*p=='\\')
+								append_char(&fmsg, &i, &l, *p);
+							append_char(&fmsg, &i, &l, *p++);
+						}
 						found=found->next;
 						count--;
 						if(count)
