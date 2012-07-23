@@ -132,10 +132,16 @@ int inputchar(iline *inp, int *state)
 			{
 				if((mlen>inp->left.i-sp)&&(count>1))
 				{
-					inp->left.data=(char *)realloc(inp->left.data, sp+mlen+4);
-					snprintf(inp->left.data+sp, mlen+1, "%s", found->data);
-					inp->left.i=strlen(inp->left.data);
-					inp->left.l=sp+mlen+4;
+					while(sp<inp->left.i)
+						back_ichar(&inp->left);
+					const char *p=found->data;
+					for(size_t i=0;i<mlen;i++)
+					{
+						if(!p[i]) break;
+						if(p[i]=='\\')
+							append_char(&inp->left.data, &inp->left.l, &inp->left.i, p[i]);
+						append_char(&inp->left.data, &inp->left.l, &inp->left.i, p[i]);
+					}
 					ttab=false;
 				}
 				else if((count>16)&&!ttab)
@@ -146,22 +152,16 @@ int inputchar(iline *inp, int *state)
 				else if(found->next||(count>1))
 				{
 					char *fmsg;
-					size_t i,l;
-					init_char(&fmsg, &i, &l);
+					size_t l,i;
+					init_char(&fmsg, &l, &i);
 					while(found)
 					{
-						const char *p=found->data;
-						while(*p)
-						{
-							if(*p=='\\')
-								append_char(&fmsg, &i, &l, *p);
-							append_char(&fmsg, &i, &l, *p++);
-						}
+						append_str(&fmsg, &l, &i, found->data);
 						found=found->next;
 						count--;
 						if(count)
 						{
-							append_str(&fmsg, &i, &l, ", ");
+							append_str(&fmsg, &l, &i, ", ");
 						}
 					}
 					if(!ttab)
@@ -172,13 +172,16 @@ int inputchar(iline *inp, int *state)
 				}
 				else
 				{
-					inp->left.data=(char *)realloc(inp->left.data, sp+strlen(found->data)+4);
-					if(sp)
-						sprintf(inp->left.data+sp, "%s", found->data);
-					else
-						sprintf(inp->left.data+sp, "%s: ", found->data);
-					inp->left.i=strlen(inp->left.data);
-					inp->left.l=sp+strlen(found->data)+4;
+					while(sp<inp->left.i)
+						back_ichar(&inp->left);
+					const char *p=found->data;
+					while(*p)
+					{
+						if(*p=='\\')
+							append_char(&inp->left.data, &inp->left.l, &inp->left.i, *p);
+						append_char(&inp->left.data, &inp->left.l, &inp->left.i, *p++);
+					}
+					append_str(&inp->left.data, &inp->left.l, &inp->left.i, ": ");
 					ttab=false;
 				}
 			}
