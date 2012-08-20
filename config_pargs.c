@@ -63,3 +63,7 @@
 			indent=true;
 		else if(strcmp(argv[arg], "--no-indent")==0)
 			indent=false;
+		else if(strcmp(argv[arg], "--merge")==0)
+			merge=true;
+		else if(strcmp(argv[arg], "--no-merge")==0)
+			merge=false;

@@ -192,12 +192,21 @@ char *mktag(char *fmt, char *from)
 	char *rv=NULL;
 	if(strlen(from)<=maxnlen)
 	{
-		rv=(char *)malloc(strlen(fmt)+maxnlen);
+		size_t n=strlen(fmt)+maxnlen;
+		rv=malloc(n);
 		if(rv)
 		{
 			memset(rv, ' ', maxnlen+strlen(fmt)-1);
-			sprintf(rv+maxnlen-strlen(from), fmt, from);
+			ssize_t off=maxnlen-strlen(from);
+			snprintf(rv+off, n-off, fmt, from);
 		}
+	}
+	else
+	{
+		size_t n=strlen(fmt)+strlen(from);
+		rv=malloc(n);
+		if(rv)
+			snprintf(rv, n, fmt, from);
 	}
 	return(rv);
 }

@@ -515,12 +515,50 @@ int render_line(int buf, int uline)
 		bufs[buf].lpl[uline]=0;
 		return(0);
 	}
+	char *tag=strdup(bufs[buf].ltag[uline]?bufs[buf].ltag[uline]:"");
+	bool mergetype=((bufs[buf].lm[uline]==JOIN)&&*tag)||(bufs[buf].lm[uline]==PART)||(bufs[buf].lm[uline]==QUIT);
+	bool merged=false;
+	if(merge&&(bufs[buf].type==CHANNEL)&&mergetype)
+	{
+		int prevline=uline;
+		while(1)
+		{
+			if(--prevline<0)
+			{
+				prevline+=bufs[buf].nlines;
+				if(!bufs[buf].filled) break;
+			}
+			if(!bufs[buf].lpl[prevline]) continue;
+			if(fabs(difftime(bufs[buf].ts[prevline], bufs[buf].ts[uline]))>5) break;
+			if(bufs[buf].lm[prevline]==bufs[buf].lm[uline])
+			{
+				if((bufs[buf].lm[uline]==QUIT)&&strcmp(bufs[buf].lt[uline], bufs[buf].lt[prevline])) break;
+				const char *ltag=bufs[buf].ltag[prevline];
+				if(!ltag) ltag="";
+				if((bufs[buf].lm[uline]==JOIN)&&!*ltag) break;
+				size_t nlen=strlen(tag)+strlen(ltag)+2;
+				char *ntag=malloc(nlen);
+				snprintf(ntag, nlen, "%s=%s", ltag, tag);
+				free(tag);
+				tag=ntag;
+				int pline;
+				for(pline=0;pline<bufs[buf].lpl[prevline];pline++)
+					free(bufs[buf].lpt[prevline][pline]);
+				free(bufs[buf].lpt[prevline]);
+				bufs[buf].lpt[prevline]=NULL;
+				bufs[buf].lpl[prevline]=0;
+				merged=true;
+				continue;
+			}
+			break;
+		}
+	}
+	char *message=strdup(bufs[buf].lt[uline]);
 	char *proc;size_t l,i;
 	init_char(&proc, &l, &i);
 	char stamp[STAMP_LEN];
 	timestamp(stamp, bufs[buf].ts[uline]);
 	colour c={.fore=7, .back=0, .hi=false, .ul=false};
-	char *tag=strdup(bufs[buf].ltag[uline]?bufs[buf].ltag[uline]:"");
 	switch(bufs[buf].lm[uline])
 	{
 		case MSG:
@@ -563,12 +601,49 @@ int render_line(int buf, int uline)
 		break;
 		case JOIN:
 			c=c_join[bufs[buf].ls[uline]?0:1];
+			if(tag&&*tag)
+			{
+				free(message);
+				const char *bn=bufs[buf].bname;
+				if(!bn) bn="the channel";
+				size_t l=16+strlen(bn);
+				message=malloc(l);
+				if(merged)
+					snprintf(message, l, "have joined %s", bufs[buf].bname);
+				else
+					snprintf(message, l, "has joined %s", bufs[buf].bname);
+			}
 			goto eqtag;
 		case PART:
 			c=c_part[bufs[buf].ls[uline]?0:1];
+			if(tag&&*tag)
+			{
+				free(message);
+				const char *bn=bufs[buf].bname;
+				if(!bn) bn="the channel";
+				size_t l=16+strlen(bn);
+				message=malloc(l);
+				if(merged)
+					snprintf(message, l, "have left %s", bufs[buf].bname);
+				else
+					snprintf(message, l, "has left %s", bufs[buf].bname);
+			}
 			goto eqtag;
 		case QUIT:
 			c=c_quit[bufs[buf].ls[uline]?0:1];
+			if(tag&&*tag)
+			{
+				const char *bn=bufs[buf].bname;
+				if(!bn) bn="the channel";
+				size_t l=16+strlen(bn)+strlen(message);
+				char *nmessage=malloc(l);
+				if(merged)
+					snprintf(nmessage, l, "have left %s (%s)", bufs[buf].bname, message);
+				else
+					snprintf(nmessage, l, "has left %s (%s)", bufs[buf].bname, message);
+				free(message);
+				message=nmessage;
+			}
 			goto eqtag;
 		case QUIT_PREFORMAT:
 			c=c_quit[bufs[buf].ls[uline]?0:1];
@@ -577,7 +652,8 @@ int render_line(int buf, int uline)
 		{
 			c=c_nick[bufs[buf].ls[uline]?0:1];
 			eqtag:
-			crush(&tag, maxnlen);
+			if(!merge)
+				crush(&tag, maxnlen);
 			char *ntag=mktag("=%s= ", tag);
 			free(tag);
 			tag=ntag;
@@ -614,7 +690,8 @@ int render_line(int buf, int uline)
 	int x=wordline(stamp, 0, &proc, &l, &i, c);
 	x=wordline(tag, indent?x:0, &proc, &l, &i, c);
 	free(tag);
-	wordline(bufs[buf].lt[uline], indent?x:0, &proc, &l, &i, c);
+	wordline(message, indent?x:0, &proc, &l, &i, c);
+	free(message);
 	bufs[buf].lpl[uline]=0;
 	bufs[buf].lpt[uline]=NULL;
 	bufs[buf].lpc[uline]=c;

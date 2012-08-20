@@ -56,7 +56,7 @@ typedef struct _buf
 	char *lp; // array of prefix chars (0 for use default)
 	char **lt; // array of (unprocessed) text for lines
 	char **ltag; // array of (unprocessed, uncrushed) tag text for lines
-	time_t *ts; // array of timestamps for unproc lines (not used now, but there ready for eg. mergebuffers)
+	time_t *ts; // array of timestamps for unproc lines
 	bool filled; // buffer has filled up and looped? (the buffers are circular in nature)
 	bool dirty; // processed lines are out of date? (TODO: make this indicate /which/ are out of date and only re-render those)
 	int *lpl; // count of processed lines for each line

@@ -96,7 +96,7 @@ int main(int argc, char *argv[])
 		return(1);
 	}
 	resetcol();
-	char *qmsg=fname;
+	char *qmsg=strdup(fname);
 	char *home=getenv("HOME");
 	bool haveqfld=true;
 	if(home)
@@ -357,7 +357,7 @@ int main(int argc, char *argv[])
 					if(fd==fileno(stdin))
 					{
 						inputchar(&inp, &state);
-						/* WARNING!  Possibly non-portable code; relies on edge-case behaviour */
+						/* XXX Possibly non-portable code; relies on edge-case behaviour */
 						bool loop=true;
 						while(loop && !state)
 						{
@@ -569,6 +569,7 @@ int main(int argc, char *argv[])
 	free(bufs);
 	free(username);
 	free(fname);
+	free(qmsg);
 	free(nick);
 	free(portno);
 	freeservlist(servs);

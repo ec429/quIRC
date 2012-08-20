@@ -1534,6 +1534,7 @@ int rx_join(message pkt, int b)
 int rx_part(message pkt, int b)
 {
 	// :nick[[!user]@host] PART #chan message
+	// TODO this should be PART #chan [,#chan ...]
 	if(pkt.nargs<1)
 	{
 		e_buf_print(b, ERR, pkt, "Not enough arguments: ");
@@ -1609,9 +1610,7 @@ int rx_quit(message pkt, int b)
 			{
 				if(n_cull(&bufs[b2].nlist, src, bufs[b].casemapping))
 				{
-					char dstr[24+strlen(bufs[b].bname)+strlen(reason)];
-					sprintf(dstr, "has left %s (%s)", bufs[b].bname, reason);
-					add_to_buffer(b2, QUIT, NORMAL, 0, false, dstr, src);
+					add_to_buffer(b2, QUIT, NORMAL, 0, false, reason, src);
 				}
 			}
 		}

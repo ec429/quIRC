@@ -32,3 +32,5 @@
 			if(strcmp(cmd, "no-winch")==0) need=false;
 			if(strcmp(cmd, "indent")==0) need=false;
 			if(strcmp(cmd, "no-indent")==0) need=false;
+			if(strcmp(cmd, "merge")==0) need=false;
+			if(strcmp(cmd, "no-merge")==0) need=false;

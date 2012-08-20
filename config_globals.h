@@ -19,3 +19,4 @@ bool show_prefix; // display nick prefixes
 bool titles; // xterm title
 bool winch; // react to SIGWINCH (window change)
 bool indent; // hanging indent
+bool merge; // merge events

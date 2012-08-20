@@ -18,3 +18,4 @@ bool:show_prefix:false:::prefix:prefix:prefix:B:display nick prefixes
 bool:titles:true:::titles:titles:titles:B:xterm title
 bool:winch:true:::winch:winch:winch:B:react to SIGWINCH (window change)
 bool:indent:true:::indent:indent:indent:B:hanging indent
+bool:merge:true:::merge:merge:merge:B:merge events
