@@ -1738,7 +1738,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		}
 		return(0);
 	}
-	if(strcmp(cmd, "cmd")==0)
+	if((strcmp(cmd, "cmd")==0)||(strcmp(cmd, "quote")==0))
 	{
 		if(!bufs[bufs[cbuf].server].handle)
 		{
