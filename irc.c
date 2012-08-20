@@ -1533,8 +1533,7 @@ int rx_join(message pkt, int b)
 
 int rx_part(message pkt, int b)
 {
-	// :nick[[!user]@host] PART #chan message
-	// TODO this should be PART #chan [,#chan ...]
+	// :nick[[!user]@host] PART #chan [#chan ...]
 	if(pkt.nargs<1)
 	{
 		e_buf_print(b, ERR, pkt, "Not enough arguments: ");
@@ -1562,25 +1561,18 @@ int rx_part(message pkt, int b)
 	else
 	{
 		bool match=false;
-		int b2;
-		for(b2=0;b2<nbufs;b2++)
+		for(int p=0;p<pkt.nargs;p++)
 		{
-			if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(pkt.args[0], bufs[b2].bname, bufs[b].casemapping)==0))
+			for(int b2=0;b2<nbufs;b2++)
 			{
-				match=true;
-				if(pkt.nargs<2)
+				if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(pkt.args[p], bufs[b2].bname, bufs[b].casemapping)==0))
 				{
-					char dstr[16+strlen(pkt.args[0])];
-					sprintf(dstr, "has left %s", pkt.args[0]);
+					match=true;
+					char dstr[16+strlen(pkt.args[p])];
+					sprintf(dstr, "has left %s", pkt.args[p]);
 					add_to_buffer(b2, PART, NORMAL, 0, false, dstr, src);
+					n_cull(&bufs[b2].nlist, src, bufs[b].casemapping);
 				}
-				else
-				{
-					char dstr[24+strlen(pkt.args[0])+strlen(pkt.args[1])];
-					sprintf(dstr, "has left %s (Part: %s)", pkt.args[0], pkt.args[1]);
-					add_to_buffer(b2, PART, NORMAL, 0, false, dstr, src);
-				}
-				n_cull(&bufs[b2].nlist, src, bufs[b].casemapping);
 			}
 		}
 		if(!match)
