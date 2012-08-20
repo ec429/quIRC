@@ -12,6 +12,8 @@ typedef enum
 {
 	LOGT_PLAIN,
 	LOGT_SYMBOLIC,
+	
+	LOGT_NONE
 }
 logtype;
 

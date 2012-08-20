@@ -1503,6 +1503,21 @@ int rx_join(message pkt, int b)
 			init_buffer(nbufs-1, CHANNEL, pkt.args[0], buflines);
 			cbuf=nbufs-1;
 			bufs[cbuf].server=bufs[b].server;
+			if(bufs[b].autoent)
+			{
+				chanlist *c=bufs[b].autoent->chans;
+				while(c)
+				{
+					if(irc_strcasecmp(c->name, pkt.args[0], bufs[b].casemapping)==0)
+					{
+						bufs[cbuf].logf=c->logf;
+						bufs[cbuf].logt=c->logt;
+						c->logf=NULL;
+						break;
+					}
+					c=c->next;
+				}
+			}
 		}
 		add_to_buffer(cbuf, JOIN, NORMAL, 0, true, dstr, "");
 		bufs[cbuf].live=true;

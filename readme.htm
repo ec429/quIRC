@@ -147,10 +147,12 @@ Then there&apos;s the github page, <a href="http://github.com/ec429/quIRC">http:
 <tt>ignore -<em>options</em> <em>global-ignore</em></tt><br />
 <tt>server <em>url</em></tt><br />
 <tt>*chan <em>channel-on-that-server</em></tt><br />
+<tt>&gt;log <em>logtype-for-that-channel</em> <em>logfile-for-that-channel</em></tt><br />
 <tt>*nick <em>nick-on-that-server</em></tt><br />
 <tt>*pass <em>password-for-that-server</em></tt><br />
 <tt>*ignore -<em>options</em> <em>ignore-on-that-server</em></tt><br />
-where the <em>options</em> to [*]ignore are those for the /ignore command (except for l and d), and must not be separated by whitespace.  You can however combine options, like <small>-ipr</small>.  The <em>options</em> may not be omitted; if none are required, use <small>-</small> (dash).</p>
+where the <em>options</em> to [*]ignore are those for the /ignore command (except for l and d), and must not be separated by whitespace.  You can however combine options, like <small>-ipr</small>.  The <em>options</em> may not be omitted; if none are required, use <small>-</small> (dash).<br />
+The logfile (for &gt;log) is relative to <small>~/.quirc/</small>, as with the /log command.</p>
 <p>Set the maximum length of nick that will be displayed, with lines<br />
 <tt>mnln <em>maxnicklen</em></tt></p>
 <p>You can also set mirc-colour-compatibility, with<br />

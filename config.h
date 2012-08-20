@@ -12,10 +12,14 @@
 #include <stdbool.h>
 #include <string.h>
 
+#include "types.h"
+
 typedef struct _chanlist
 {
 	char *name;
 	char *key;
+	FILE *logf;
+	logtype logt;
 	struct _chanlist *next;
 	struct _name *igns;
 }
@@ -59,5 +63,5 @@ int conf_check(void); // writes diagnostics to start-buffer
 int def_config(void); // set these to their defaults
 int rcread(FILE *rcfp); // read & parse the rc file.
 signed int pargs(int argc, char *argv[]); // parse the cmdline args.  If return is >=0, main should return it also
-void freeservlist(servlist * serv);
-void freechanlist(chanlist * chan);
+void freeservlist(servlist *serv);
+void freechanlist(chanlist *chan);

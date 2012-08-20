@@ -151,6 +151,7 @@ pass global-password
 ignore -options global-ignore
 server url
 *chan channel-on-that-server
+>log logtype-for-that-channel logfile-for-that-channel
 *nick nick-on-that-server
 *pass password-for-that-server
 *ignore -options ignore-on-that-server
@@ -158,6 +159,7 @@ where the options to [*]ignore are those for the /ignore command (except for l
 and d), and must not be separated by whitespace. You can however combine
 options, like -ipr. The options may not be omitted; if none are required, use -
 (dash).
+The logfile (for >log) is relative to ~/.quirc/, as with the /log command.
 Set the maximum length of nick that will be displayed, with lines
 mnln maxnicklen
 You can also set mirc-colour-compatibility, with

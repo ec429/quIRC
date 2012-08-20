@@ -406,6 +406,33 @@ int rcread(FILE *rcfp)
 				new->igns=NULL;
 				servs->chans=new;
 			}
+			else if(servs && servs->chans && (strcmp(cmd, ">log")==0))
+			{
+				if(servs->chans->logf) fclose(servs->chans->logf);
+				char *type=strtok(rest, " \t");
+				logtype logt=LOGT_NONE;
+				if(strcasecmp(type, "plain")==0)
+					logt=LOGT_PLAIN;
+				else if(strcasecmp(type, "symbolic")==0)
+					logt=LOGT_SYMBOLIC;
+				else
+				{
+					atr_failsafe(&s_buf, ERR, "rc: >log: Unrecognised log type (valid types are: plain, symbolic)", "init: ");
+					nerrors++;
+				}
+				if(logt!=LOGT_NONE)
+				{
+					char *logf=strtok(NULL, "");
+					servs->chans->logf=fopen(logf, "a");
+					if(!servs->chans->logf)
+					{
+						atr_failsafe(&s_buf, ERR, "rc: >log: Failed to open log file for append", "init: ");
+						atr_failsafe(&s_buf, ERR, strerror(errno), "fopen: ");
+						nerrors++;
+					}
+					servs->chans->logt=logt;
+				}
+			}
 #include "config_rcread.c"
 			else
 			{
@@ -517,7 +544,7 @@ signed int pargs(int argc, char *argv[])
 	return(-1);
 }
 
-void freeservlist(servlist * serv)
+void freeservlist(servlist *serv)
 {
 	if(serv)
 	{
@@ -532,12 +559,13 @@ void freeservlist(servlist * serv)
 	free(serv);
 }
 
-void freechanlist(chanlist * chan)
+void freechanlist(chanlist *chan)
 {
 	if(chan)
 	{
 		free(chan->name);
 		free(chan->key);
+		if(chan->logf) fclose(chan->logf);
 		n_free(chan->igns);
 		freechanlist(chan->next);
 	}

@@ -28,8 +28,6 @@ Short commands (sufficient-prefix matching, like /cle).
 
 #inclusion and Makefile audit.  Lots of stuff is #included from .h files when it should only be #included from the .c files, some #inclusions may not be reflected in the Makefile, and type definition #include loops should be resolved with types.h instead of relying on placing #includes after typedefs.
 
-Logging configuration in rc file.
-
 Persistent backscroll.
 
 Runtime buffer resizing.
