@@ -437,7 +437,7 @@ int rcread(FILE *rcfp)
 			else
 			{
 				char msg[48+strlen(cmd)];
-				sprintf(msg, "rc: Unrecognised cmd %s in .quirc (ignoring)", cmd);
+				sprintf(msg, "rc: Unrecognised cmd %s in .quirc/rc (ignoring)", cmd);
 				atr_failsafe(&s_buf, ERR, msg, "init: ");
 				nerrors++;
 			}
