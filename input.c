@@ -181,7 +181,9 @@ int inputchar(iline *inp, int *state)
 							append_char(&inp->left.data, &inp->left.l, &inp->left.i, *p);
 						append_char(&inp->left.data, &inp->left.l, &inp->left.i, *p++);
 					}
-					append_str(&inp->left.data, &inp->left.l, &inp->left.i, ": ");
+					if(!sp)
+						append_char(&inp->left.data, &inp->left.l, &inp->left.i, ':');
+					append_char(&inp->left.data, &inp->left.l, &inp->left.i, ' ');
 					ttab=false;
 				}
 			}
