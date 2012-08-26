@@ -19,3 +19,4 @@
 			fprintf(stderr, "\t--[no-]titles                   : xterm title\n");
 			fprintf(stderr, "\t--[no-]winch                    : react to SIGWINCH (window change)\n");
 			fprintf(stderr, "\t--[no-]indent                   : hanging indent\n");
+			fprintf(stderr, "\t--[no-]merge                    : merge events\n");

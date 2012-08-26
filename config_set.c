@@ -674,3 +674,46 @@
 						bufs[buf].dirty=true;
 					redraw_buffer();
 				}
+				else if(strcmp(opt, "merge")==0)
+				{
+					if(val)
+					{
+						if(isdigit(*val))
+						{
+							unsigned int value;
+							sscanf(val, "%u", &value);
+							merge=value;
+						}
+						else if(strcmp(val, "+")==0)
+						{
+							merge=true;
+						}
+						else if(strcmp(val, "-")==0)
+						{
+							merge=false;
+						}
+						else
+						{
+							add_to_buffer(cbuf, ERR, NORMAL, 0, false, "option 'merge' is boolean, use only 0/1 or -/+ to set", "/set: ");
+						}
+					}
+					else
+						merge=true;
+					if(merge)
+						add_to_buffer(cbuf, STA, QUIET, 0, false, "merge events enabled", "/set: ");
+					else
+						add_to_buffer(cbuf, STA, QUIET, 0, false, "merge events disabled", "/set: ");
+					int buf;
+					for(buf=0;buf<nbufs;buf++)
+						bufs[buf].dirty=true;
+					redraw_buffer();
+				}
+				else if(strcmp(opt, "no-merge")==0)
+				{
+					merge=0;
+					add_to_buffer(cbuf, STA, QUIET, 0, false, "merge events disabled", "/set: ");
+					int buf;
+					for(buf=0;buf<nbufs;buf++)
+						bufs[buf].dirty=true;
+					redraw_buffer();
+				}

@@ -7,13 +7,23 @@
 */
 
 #include "colour.h"
+#include "ttyesc.h"
+
+inline bool eq_colour(colour a, colour b)
+{
+	if(a.fore!=b.fore) return(false);
+	if(a.back!=b.back) return(false);
+	if(a.hi!=b.hi) return(false);
+	if(a.ul!=b.ul) return(false);
+	return(true);
+}
 
 int setcolour(colour c)
 {
 	return(setcol(c.fore, c.back, c.hi, c.ul));
 }
 
-int s_setcolour(colour c, char **rv, int *l, int *i)
+int s_setcolour(colour c, char **rv, size_t *l, size_t *i)
 {
 	return(s_setcol(c.fore, c.back, c.hi, c.ul, rv, l, i));
 }

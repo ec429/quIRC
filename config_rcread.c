@@ -191,3 +191,13 @@
 				else
 					indent=true;
 			}
+			else if(strcmp(cmd, "no-merge")==0)
+				merge=false;
+			else if(strcmp(cmd, "merge")==0)
+			{
+				unsigned int value;
+				if(rest&&sscanf(rest, "%u", &value))
+					merge=value;
+				else
+					merge=true;
+			}

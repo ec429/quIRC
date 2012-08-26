@@ -151,6 +151,7 @@ pass global-password
 ignore -options global-ignore
 server url
 *chan channel-on-that-server
+>log logtype-for-that-channel logfile-for-that-channel
 *nick nick-on-that-server
 *pass password-for-that-server
 *ignore -options ignore-on-that-server
@@ -158,6 +159,7 @@ where the options to [*]ignore are those for the /ignore command (except for l
 and d), and must not be separated by whitespace. You can however combine
 options, like -ipr. The options may not be omitted; if none are required, use -
 (dash).
+The logfile (for >log) is relative to ~/.quirc/, as with the /log command.
 Set the maximum length of nick that will be displayed, with lines
 mnln maxnicklen
 You can also set mirc-colour-compatibility, with
@@ -338,3 +340,15 @@ turns yellow.
       This probably means your terminal isn't sending VT100 (ANSI) escape
       sequences, but rather some other set of sequences. See the section
       "Keymapping", above.
+  I can't build it! My libc doesn't support getaddrinfo_a()!
+      You need to disable ASYNCH_NL; cp dist/config.mak . (unless you already
+      have a config.mak) and then uncomment the relevant lines.
+      This should disable asynchronous name lookups, instead using code which
+      will block while performing the DNS lookup.
+  I can't build it! My compiler complains about %jd and intmax_t!
+      This is a known bug in some compiler/libc combinations; to work around it
+      you need to define INTMAX_BUG to 1. cp dist/config.mak . (unless you
+      already have a config.mak) and then uncomment the relevant lines.
+      This should work around the bug by using %lld and (long long int) instead
+      of %jd and (intmax_t). Since what we're actually printing is a time_t,
+      this ought to work.

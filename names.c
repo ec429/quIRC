@@ -142,7 +142,7 @@ int i_match(name * list, const char *nm, bool pm, cmap casemapping)
 			char *data;
 			if(curr->icase)
 			{
-				int l,i;
+				size_t l,i;
 				init_char(&data, &l, &i);
 				char *p=curr->data;
 				while(*p)

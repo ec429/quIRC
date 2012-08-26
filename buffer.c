@@ -8,6 +8,10 @@
 
 #include "buffer.h"
 #include "logging.h"
+#include "osconf.h"
+#include "ctbuf.h"
+
+ctchar *highlight(const char *src, size_t *len); // use colours to highlight \escapes.  Returns a malloc-like pointer
 
 int init_ring(ring *r)
 {
@@ -511,43 +515,50 @@ int render_line(int buf, int uline)
 		bufs[buf].lpl[uline]=0;
 		return(0);
 	}
-	char *proc;int l,i;
-	init_char(&proc, &l, &i);
-	char stamp[40];
-	struct tm *td=(utc?gmtime:localtime)(&bufs[buf].ts[uline]);
-	switch(ts)
-	{
-		case 1:
-			strftime(stamp, 40, "[%H:%M] ", td);
-		break;
-		case 2:
-			strftime(stamp, 40, "[%H:%M:%S] ", td);
-		break;
-		case 3:
-			if(utc)
-				strftime(stamp, 40, "[%H:%M:%S UTC] ", td);
-			else
-				strftime(stamp, 40, "[%H:%M:%S %z] ", td);
-		break;
-		case 4:
-			strftime(stamp, 40, "[%a. %H:%M:%S] ", td);
-		break;
-		case 5:
-			if(utc)
-				strftime(stamp, 40, "[%a. %H:%M:%S UTC] ", td);
-			else
-				strftime(stamp, 40, "[%a. %H:%M:%S %z] ", td);
-		break;
-		case 6:
-			snprintf(stamp, 40, "[u+%jd] ", (intmax_t)bufs[buf].ts[uline]);
-		break;
-		case 0: // no timestamps
-		default:
-			stamp[0]=0;
-		break;
-	}
-	colour c={.fore=7, .back=0, .hi=false, .ul=false};
 	char *tag=strdup(bufs[buf].ltag[uline]?bufs[buf].ltag[uline]:"");
+	bool mergetype=((bufs[buf].lm[uline]==JOIN)&&*tag)||(bufs[buf].lm[uline]==PART)||(bufs[buf].lm[uline]==QUIT);
+	bool merged=false;
+	if(merge&&(bufs[buf].type==CHANNEL)&&mergetype)
+	{
+		int prevline=uline;
+		while(1)
+		{
+			if(--prevline<0)
+			{
+				prevline+=bufs[buf].nlines;
+				if(!bufs[buf].filled) break;
+			}
+			if(!bufs[buf].lpl[prevline]) continue;
+			if(fabs(difftime(bufs[buf].ts[prevline], bufs[buf].ts[uline]))>5) break;
+			if(bufs[buf].lm[prevline]==bufs[buf].lm[uline])
+			{
+				if((bufs[buf].lm[uline]==QUIT)&&strcmp(bufs[buf].lt[uline], bufs[buf].lt[prevline])) break;
+				const char *ltag=bufs[buf].ltag[prevline];
+				if(!ltag) ltag="";
+				if((bufs[buf].lm[uline]==JOIN)&&!*ltag) break;
+				size_t nlen=strlen(tag)+strlen(ltag)+2;
+				char *ntag=malloc(nlen);
+				snprintf(ntag, nlen, "%s=%s", ltag, tag);
+				free(tag);
+				tag=ntag;
+				int pline;
+				for(pline=0;pline<bufs[buf].lpl[prevline];pline++)
+					free(bufs[buf].lpt[prevline][pline]);
+				free(bufs[buf].lpt[prevline]);
+				bufs[buf].lpt[prevline]=NULL;
+				bufs[buf].lpl[prevline]=0;
+				merged=true;
+				continue;
+			}
+			break;
+		}
+	}
+	char *message=strdup(bufs[buf].lt[uline]);
+	char *proc;size_t l,i;
+	init_char(&proc, &l, &i);
+	char stamp[STAMP_LEN];
+	timestamp(stamp, bufs[buf].ts[uline]);
+	colour c={.fore=7, .back=0, .hi=false, .ul=false};
 	switch(bufs[buf].lm[uline])
 	{
 		case MSG:
@@ -590,12 +601,49 @@ int render_line(int buf, int uline)
 		break;
 		case JOIN:
 			c=c_join[bufs[buf].ls[uline]?0:1];
+			if(tag&&*tag)
+			{
+				free(message);
+				const char *bn=bufs[buf].bname;
+				if(!bn) bn="the channel";
+				size_t l=16+strlen(bn);
+				message=malloc(l);
+				if(merged)
+					snprintf(message, l, "have joined %s", bufs[buf].bname);
+				else
+					snprintf(message, l, "has joined %s", bufs[buf].bname);
+			}
 			goto eqtag;
 		case PART:
 			c=c_part[bufs[buf].ls[uline]?0:1];
+			if(tag&&*tag)
+			{
+				free(message);
+				const char *bn=bufs[buf].bname;
+				if(!bn) bn="the channel";
+				size_t l=16+strlen(bn);
+				message=malloc(l);
+				if(merged)
+					snprintf(message, l, "have left %s", bufs[buf].bname);
+				else
+					snprintf(message, l, "has left %s", bufs[buf].bname);
+			}
 			goto eqtag;
 		case QUIT:
 			c=c_quit[bufs[buf].ls[uline]?0:1];
+			if(tag&&*tag)
+			{
+				const char *bn=bufs[buf].bname;
+				if(!bn) bn="the channel";
+				size_t l=16+strlen(bn)+strlen(message);
+				char *nmessage=malloc(l);
+				if(merged)
+					snprintf(nmessage, l, "have left %s (%s)", bufs[buf].bname, message);
+				else
+					snprintf(nmessage, l, "has left %s (%s)", bufs[buf].bname, message);
+				free(message);
+				message=nmessage;
+			}
 			goto eqtag;
 		case QUIT_PREFORMAT:
 			c=c_quit[bufs[buf].ls[uline]?0:1];
@@ -604,7 +652,8 @@ int render_line(int buf, int uline)
 		{
 			c=c_nick[bufs[buf].ls[uline]?0:1];
 			eqtag:
-			crush(&tag, maxnlen);
+			if(!merge)
+				crush(&tag, maxnlen);
 			char *ntag=mktag("=%s= ", tag);
 			free(tag);
 			tag=ntag;
@@ -641,7 +690,8 @@ int render_line(int buf, int uline)
 	int x=wordline(stamp, 0, &proc, &l, &i, c);
 	x=wordline(tag, indent?x:0, &proc, &l, &i, c);
 	free(tag);
-	wordline(bufs[buf].lt[uline], indent?x:0, &proc, &l, &i, c);
+	wordline(message, indent?x:0, &proc, &l, &i, c);
+	free(message);
 	bufs[buf].lpl[uline]=0;
 	bufs[buf].lpt[uline]=NULL;
 	bufs[buf].lpc[uline]=c;
@@ -754,42 +804,11 @@ void in_update(iline inp)
 	resetcol();
 	putchar('\n');
 	unsigned int wwidth=width;
-	char stamp[40];
+	char stamp[STAMP_LEN];
 	stamp[0]=0;
 	if(its)
 	{
-		time_t t=time(NULL);
-		struct tm *td=(utc?gmtime:localtime)(&t);
-		switch(ts)
-		{
-			case 1:
-			strftime(stamp, 40, "[%H:%M] ", td);
-			break;
-			case 2:
-				strftime(stamp, 40, "[%H:%M:%S] ", td);
-			break;
-			case 3:
-				if(utc)
-					strftime(stamp, 40, "[%H:%M:%S UTC] ", td);
-				else
-					strftime(stamp, 40, "[%H:%M:%S %z] ", td);
-			break;
-			case 4:
-				strftime(stamp, 40, "[%a. %H:%M:%S] ", td);
-			break;
-			case 5:
-				if(utc)
-					strftime(stamp, 40, "[%a. %H:%M:%S UTC] ", td);
-				else
-					strftime(stamp, 40, "[%a. %H:%M:%S %z] ", td);
-			break;
-			case 6:
-				snprintf(stamp, 40, "[u+%lu] ", (unsigned long)t);
-			break;
-			case 0: // no timestamps
-			default:
-			break;
-		}
+		timestamp(stamp, time(NULL));
 		if(strlen(stamp)+25>wwidth)
 		{
 			stamp[0]=0;
@@ -799,86 +818,76 @@ void in_update(iline inp)
 		wwidth-=strlen(stamp);
 	}
 	// input
-	if((unsigned)inp.left.i+(unsigned)inp.right.i+1<wwidth)
+	size_t ll, rl;
+	ctchar *left =highlight(inp.left .data?inp.left .data:"", &ll),
+	       *right=highlight(inp.right.data?inp.right.data:"", &rl);
+	if(ll+rl+1<wwidth)
 	{
-		char *lh=highlight(inp.left.data?inp.left.data:"");
-		char *rh=highlight(inp.right.data?inp.right.data:"");
 		fputs(stamp, stdout);
-		fputs(lh, stdout);
+		ct_puts(left);
 		savepos();
-		fputs(rh, stdout);
+		ct_puts(right);
+		resetcol();
 		clr();
 		restpos();
-		free(lh);
-		free(rh);
 	}
 	else
 	{
-		if(inp.left.i<wwidth*0.75)
+		if(ll<wwidth*0.75)
 		{
-			char *lh=highlight(inp.left.data?inp.left.data:"");
-			char rl[wwidth-inp.left.i-3-max(3, (wwidth-inp.left.i)/4)];
-			snprintf(rl, wwidth-inp.left.i-3-max(3, (wwidth-inp.left.i)/4), "%s", inp.right.data);
-			char *rlh=highlight(rl);
-			char *rrh=highlight(inp.right.data+inp.right.i-max(3, (wwidth-inp.left.i)/4));
 			fputs(stamp, stdout);
-			fputs(lh, stdout);
+			ct_puts(left);
 			savepos();
-			printf("%s...%s", rlh, rrh);
+			ct_putsn(right, wwidth-ll-4-max(3, (wwidth-ll)/4));
+			resetcol();
+			fputs("...", stdout);
+			ct_puts(right+rl-max(3, (wwidth-ll)/4));
+			resetcol();
 			clr();
 			restpos();
-			free(lh);
-			free(rlh);
-			free(rrh);
 		}
-		else if(inp.right.i<wwidth*0.75)
+		else if(rl<wwidth*0.75)
 		{
-			char ll[max(3, (wwidth-inp.right.i)/4)];
-			snprintf(ll, max(3, (wwidth-inp.right.i)/4), "%s", inp.left.data);
-			char *llh=highlight(ll);
-			char *lrh=highlight(inp.left.data+inp.left.i-wwidth+3+inp.right.i+max(3, (wwidth-inp.right.i)/4));
-			char *rh=highlight(inp.right.data?inp.right.data:"");
 			fputs(stamp, stdout);
-			printf("%s...%s", llh, lrh);
+			ct_putsn(left, max(3, (wwidth-rl)/4));
+			resetcol();
+			fputs("...", stdout);
+			ct_puts(left+ll-wwidth+4+rl+max(3, (wwidth-rl)/4));
 			savepos();
-			fputs(rh, stdout);
+			ct_puts(right);
+			resetcol();
+			clr();
 			restpos();
-			free(llh);
-			free(lrh);
-			free(rh);
 		}
 		else
 		{
-			int torem=floor((wwidth/4.0)*floor(((inp.left.i-(wwidth/2.0))*4.0/wwidth)+0.5));
-			torem=min(torem, inp.left.i-3);
-			int c=inp.left.i+4-torem;
-			char ll[max(3, c/4)+1];
-			snprintf(ll, max(3, c/4)+1, "%s", inp.left.data);
-			char *llh=highlight(ll);
-			char *lrh=highlight(inp.left.data+torem+max(3, c/4));
-			char rl[wwidth-c-2-max(3, (wwidth-c)/4)];
-			snprintf(rl, wwidth-c-2-max(3, (wwidth-c)/4), "%s", inp.right.data);
-			char *rlh=highlight(rl);
-			char *rrh=highlight(inp.right.data+inp.right.i-max(3, (wwidth-c)/4));
+			int torem=floor((wwidth/4.0)*floor(((ll-(wwidth/2.0))*4.0/wwidth)+0.5));
+			torem=min(torem, (int)ll-3);
+			size_t c=ll+4-torem;
 			fputs(stamp, stdout);
-			printf("%s...%s", llh, lrh);
+			ct_putsn(left, max(3, c/4)+1);
+			resetcol();
+			fputs("...", stdout);
+			ct_puts(left+torem+max(3, c/4)+1);
 			savepos();
-			printf("%s...%s", rlh, rrh);
+			ct_putsn(right, wwidth-c-3-max(3, (wwidth-c)/4));
+			resetcol();
+			fputs("...", stdout);
+			ct_puts(right+rl-max(3, (wwidth-c)/4));
+			resetcol();
 			clr();
 			restpos();
-			free(llh);
-			free(lrh);
-			free(rlh);
-			free(rrh);
 		}
 	}
+	free(left);
+	free(right);
 	fflush(stdout);
 }
 
-char *highlight(const char *src)
+ctchar *highlight(const char *src, size_t *len)
 {
-	int l,i;char *rv;
-	init_char(&rv, &l, &i);
+	size_t l,i;ctchar *rv;
+	ct_init_char(&rv, &l, &i);
 	while(*src)
 	{
 		if(*src=='\\')
@@ -886,67 +895,52 @@ char *highlight(const char *src)
 			switch(src[1])
 			{
 				case 'n':
-					s_setcol(7, 0, 1, 0, &rv, &l, &i);
-					append_char(&rv, &l, &i, '\\');
-					append_char(&rv, &l, &i, 'n');
-					s_setcol(7, 0, 0, 0, &rv, &l, &i);
+					ct_append_char_c(&rv, &l, &i, (colour){7, 0, 1, 0}, '\\');
+					ct_append_char(&rv, &l, &i, 'n');
 					src++;
 				break;
 				case 'r':
-					s_setcol(7, 0, 1, 0, &rv, &l, &i);
-					append_char(&rv, &l, &i, '\\');
-					append_char(&rv, &l, &i, 'r');
-					s_setcol(7, 0, 0, 0, &rv, &l, &i);
+					ct_append_char_c(&rv, &l, &i, (colour){7, 0, 1, 0}, '\\');
+					ct_append_char(&rv, &l, &i, 'r');
 					src++;
 				break;
 				case '\\':
-					s_setcol(3, 0, 1, 0, &rv, &l, &i);
-					append_char(&rv, &l, &i, '\\');
-					append_char(&rv, &l, &i, '\\');
-					s_setcol(7, 0, 0, 0, &rv, &l, &i);
+					ct_append_char_c(&rv, &l, &i, (colour){3, 0, 1, 0}, '\\');
+					ct_append_char(&rv, &l, &i, '\\');
 					src++;
 				break;
 				case 0:
-					s_setcol(4, 0, 1, 0, &rv, &l, &i);
-					append_char(&rv, &l, &i, '\\');
-					s_setcol(7, 0, 0, 0, &rv, &l, &i);
+					ct_append_char_c(&rv, &l, &i, (colour){4, 0, 1, 0}, '\\');
 				break;
 				case '0':
 				case '1':
 				case '2':
 				case '3':
-					s_setcol(6, 0, 1, 0, &rv, &l, &i);
-					append_char(&rv, &l, &i, '\\');
-					append_char(&rv, &l, &i, *++src);
+					ct_append_char_c(&rv, &l, &i, (colour){6, 0, 1, 0}, '\\');
+					ct_append_char(&rv, &l, &i, *++src);
 					int digits=0;
 					while(isdigit(src[1])&&(src[1]<'8')&&(++digits<3))
-					{
-						append_char(&rv, &l, &i, *++src);
-					}
-					s_setcol(7, 0, 0, 0, &rv, &l, &i);
+						ct_append_char(&rv, &l, &i, *++src);
 				break;
 				default:
-					s_setcol(1, 0, 1, 0, &rv, &l, &i);
-					append_char(&rv, &l, &i, '\\');
-					s_setcol(7, 0, 0, 0, &rv, &l, &i);
+					ct_append_char_c(&rv, &l, &i, (colour){1, 0, 1, 0}, '\\');
 				break;
 			}
 		}
 		else if(!isprint(*src))
 		{
-			s_setcol(2, 0, 1, 1, &rv, &l, &i);
-			append_char(&rv, &l, &i, '\\');
+			ct_append_char_c(&rv, &l, &i, (colour){2, 0, 1, 0}, '\\');
 			char obuf[16];
 			snprintf(obuf, 16, "%03o", (unsigned char)*src);
-			append_str(&rv, &l, &i, obuf);
-			s_setcol(7, 0, 0, 0, &rv, &l, &i);
+			ct_append_str(&rv, &l, &i, obuf);
 		}
 		else
 		{
-			append_char(&rv, &l, &i, *src);
+			ct_append_char_c(&rv, &l, &i, (colour){7, 0, 0, 0}, *src);
 		}
 		src++;
 	}
+	if(len) *len=i;
 	return(rv);
 }
 
@@ -1196,4 +1190,40 @@ int makeptab(int b, const char *src)
 		n_add(&bufs[b2].nlist, src, bufs[b].casemapping);
 	}
 	return(b2);
+}
+
+void timestamp(char stamp[STAMP_LEN], time_t t)
+{
+	struct tm *td=(utc?gmtime:localtime)(&t);
+	switch(ts)
+	{
+		case 1:
+			strftime(stamp, STAMP_LEN, "[%H:%M] ", td);
+		break;
+		case 2:
+			strftime(stamp, STAMP_LEN, "[%H:%M:%S] ", td);
+		break;
+		case 3:
+			if(utc)
+				strftime(stamp, STAMP_LEN, "[%H:%M:%S UTC] ", td);
+			else
+				strftime(stamp, STAMP_LEN, "[%H:%M:%S %z] ", td);
+		break;
+		case 4:
+			strftime(stamp, STAMP_LEN, "[%a. %H:%M:%S] ", td);
+		break;
+		case 5:
+			if(utc)
+				strftime(stamp, STAMP_LEN, "[%a. %H:%M:%S UTC] ", td);
+			else
+				strftime(stamp, STAMP_LEN, "[%a. %H:%M:%S %z] ", td);
+		break;
+		case 6:
+			snprintf(stamp, STAMP_LEN, "[u+"PRINTMAX"] ", CASTINTMAX t);
+		break;
+		case 0: // no timestamps
+		default:
+			stamp[0]=0;
+		break;
+	}
 }

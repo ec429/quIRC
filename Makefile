@@ -1,15 +1,18 @@
 # Makefile for quIRC
 
-CC := gcc
+CC ?= gcc
 OPTFLAGS := -g
-CFLAGS := -Wall -Wextra -Werror -pedantic -std=gnu99 $(OPTFLAGS)
+CFLAGS = -Wall -Wextra -Werror -pedantic -std=gnu99 -D_GNU_SOURCE $(OPTFLAGS)
 AWK := gawk
 VERSION := `git describe --tags`
 PREFIX := /usr/local
-# -lanl is for ASYNCH_NL
-OPTLIBS := -lanl
-LIBS := -lncurses ttyraw.o ttyesc.o irc.o bits.o colour.o buffer.o names.o config.o input.o logging.o types.o $(OPTLIBS)
-INCLUDE := ttyraw.h ttyesc.h irc.h bits.h colour.h buffer.h names.h config.h input.h logging.h types.h quirc.h version.h osconf.h
+LIBS_ASYNCH_NL := -lanl
+OPTLIBS = $(LIBS_ASYNCH_NL)
+LIBS = -lm -lncurses $(OBJS) $(OPTLIBS)
+OBJS := ttyraw.o ttyesc.o irc.o bits.o strbuf.o ctbuf.o colour.o buffer.o names.o config.o input.o logging.o types.o
+INCLUDE := $(OBJS:.o=.h) quirc.h version.h osconf.h
+
+-include config.mak
 
 all: quirc doc
 
@@ -27,17 +30,17 @@ uninstall:
 	-rm $(PREFIX)/share/doc/quirc/config_ref.htm
 	-rm $(PREFIX)/share/doc/quirc/tutorial.htm
 
-quirc: quirc.c $(LIBS) $(INCLUDE)
-	$(CC) $(CFLAGS) $(CPPFLAGS) -o $@ $< $(LIBS) -lm $(DEFINES)
+quirc: quirc.c $(OBJS) $(INCLUDE)
+	$(CC) $(CFLAGS) $(CPPFLAGS) -o $@ $< $(LIBS) $(DEFINES)
 
 quirc.h: config.h version.h
 	touch quirc.h
 
 clean:
-	-rm *.o quirc genconfig genkeymap
+	-rm -f *.o quirc genconfig genkeymap
 
 realclean: clean
-	-rm c_init.c README version.h config_* keymap.c keymod.h quirc.1
+	-rm -f c_init.c README version.h config_* keymap.c keymod.h quirc.1
 
 doc: README config_ref.htm quirc.1
 
@@ -63,12 +66,15 @@ irc.h: config.h
 
 bits.o: bits.c bits.h ttyesc.h colour.h
 
-bits.h: config.h
+bits.h: config.h strbuf.h
 	touch bits.h
+
+ctbuf.h: colour.h
+	touch ctbuf.h
 
 colour.o: colour.c colour.h c_init.c ttyesc.h
 
-buffer.o: buffer.c buffer.h ttyesc.h colour.h bits.h names.h text.h irc.h version.h input.h logging.h
+buffer.o: buffer.c buffer.h ttyesc.h colour.h bits.h names.h text.h irc.h version.h input.h logging.h osconf.h ctbuf.h
 
 buffer.h: config.h version.h logging.h
 	touch buffer.h
@@ -84,7 +90,8 @@ config.h: config_globals.h version.h keymod.h
 config_%: config.cdl genconfig
 	./genconfig $@ < config.cdl > $@ || (rm $@ && false)
 
-genconfig: genconfig.c
+genconfig: genconfig.c strbuf.h strbuf.o
+	$(CC) $(CFLAGS) $(CPPFLAGS) $< $(LDFLAGS) strbuf.o -o $@
 
 input.h: keymod.h
 	touch input.h
@@ -103,7 +110,8 @@ script.o: script.c script.h bits.h buffer.h
 c_init.c: colour.d c_init.awk
 	$(AWK) -f c_init.awk colour.d > c_init.c
 
-genkeymap: genkeymap.c
+genkeymap: genkeymap.c strbuf.h strbuf.o
+	$(CC) $(CFLAGS) $(CPPFLAGS) $< $(LDFLAGS) strbuf.o -o $@
 
 keymod.h: keys genkeymap
 	./genkeymap h < keys > $@ || (rm $@ && false)
@@ -118,6 +126,7 @@ version.h: FORCE
 dist: all doc
 	-mkdir quirc_$(VERSION)
 	for p in $$(ls); do cp $$p quirc_$(VERSION)/$$p; done;
+	cp -r dist quirc_$(VERSION)/dist
 	-rm quirc_$(VERSION)/*.tar.gz
 	mv quirc_$(VERSION)/distMakefile quirc_$(VERSION)/Makefile
 	tar -czf quirc_$(VERSION).tar.gz quirc_$(VERSION)/
@@ -126,6 +135,7 @@ dist: all doc
 dists: c_init.c config.c config.h version.h keymod.h keymap.c doc
 	-mkdir quirc_$(VERSION)_src
 	for p in $$(ls); do cp $$p quirc_$(VERSION)_src/$$p; done;
+	cp -r dist quirc_$(VERSION)_src/dist
 	-rm quirc_$(VERSION)_src/*.tar.gz
 	rm quirc_$(VERSION)_src/*.o
 	rm quirc_$(VERSION)_src/quirc

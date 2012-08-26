@@ -1,9 +1,0 @@
-==quIRC:bugs which WONTFIX or NOTABUG==
-
- *	Pathological error in handling of escape sequence highlighting on cursor movement, input-line crushing etc.  For instance
-		\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\003
-	will sometimes show
-		...(yellow)\\\\(white)003
-	instead of correct
-		...(yellow)\\\(cyan)\003
-	This is essentially because the escape sequences are not self-synchronising in the case of \\.  However, long strings of \\s are so unlikely that the considerable extra processing time /for all input editing/ required to fix is simply not worthwhile.

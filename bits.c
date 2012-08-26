@@ -8,51 +8,13 @@
 
 #include "bits.h"
 
-char * fgetl(FILE *fp)
-{
-	char * lout;
-	int l,i;
-	init_char(&lout, &l, &i);
-	signed int c;
-	while(!feof(fp))
-	{
-		c=fgetc(fp);
-		if((c==EOF)||(c=='\n'))
-			break;
-		if(c!=0)
-		{
-			append_char(&lout, &l, &i, c);
-		}
-	}
-	return(lout);
-}
-
-char *slurp(FILE *fp)
-{
-	char *fout;
-	int l,i;
-	init_char(&fout, &l, &i);
-	signed int c;
-	while(!feof(fp))
-	{
-		c=fgetc(fp);
-		if(c==EOF)
-			break;
-		if(c!=0)
-		{
-			append_char(&fout, &l, &i, c);
-		}
-	}
-	return(fout);
-}
-
-int wordline(const char *msg, unsigned int x, char **out, int *l, int *i, colour lc)
+int wordline(const char *msg, unsigned int x, char **out, size_t *l, size_t *i, colour lc)
 {
 	if(!msg) return(x);
 	unsigned int tabx=x;
 	if(tabx*2>width)
 		tabx=8;
-	int l2,i2;
+	size_t l2,i2;
 	char *word;
 	const char *ptr=msg;
 	colour cc=lc; // current colour
@@ -175,54 +137,6 @@ int wordline(const char *msg, unsigned int x, char **out, int *l, int *i, colour
 	return(x);
 }
 
-void append_char(char **buf, int *l, int *i, char c)
-{
-	if(!((c==0)||(c==EOF)))
-	{
-		if(*buf)
-		{
-			(*buf)[(*i)++]=c;
-		}
-		else
-		{
-			init_char(buf, l, i);
-			append_char(buf, l, i, c);
-		}
-		char *nbuf=*buf;
-		if((*i)>=(*l))
-		{
-			*l=*i*2;
-			nbuf=(char *)realloc(*buf, *l);
-		}
-		if(nbuf)
-		{
-			*buf=nbuf;
-			(*buf)[*i]=0;
-		}
-		else
-		{
-			free(*buf);
-			init_char(buf, l, i);
-		}
-	}
-}
-
-void append_str(char **buf, int *l, int *i, const char *str)
-{
-	while(str && *str) // not the most tremendously efficient implementation, but conceptually simple at least
-	{
-		append_char(buf, l, i, *str++);
-	}
-}
-
-void init_char(char **buf, int *l, int *i)
-{
-	*l=80;
-	*buf=(char *)malloc(*l);
-	(*buf)[0]=0;
-	*i=0;
-}
-
 void crush(char **buf, unsigned int len)
 {
 	if(strlen(*buf)>len)
@@ -278,12 +192,21 @@ char *mktag(char *fmt, char *from)
 	char *rv=NULL;
 	if(strlen(from)<=maxnlen)
 	{
-		rv=(char *)malloc(strlen(fmt)+maxnlen);
+		size_t n=strlen(fmt)+maxnlen;
+		rv=malloc(n);
 		if(rv)
 		{
 			memset(rv, ' ', maxnlen+strlen(fmt)-1);
-			sprintf(rv+maxnlen-strlen(from), fmt, from);
+			ssize_t off=maxnlen-strlen(from);
+			snprintf(rv+off, n-off, fmt, from);
 		}
+	}
+	else
+	{
+		size_t n=strlen(fmt)+strlen(from);
+		rv=malloc(n);
+		if(rv)
+			snprintf(rv, n, fmt, from);
 	}
 	return(rv);
 }

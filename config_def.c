@@ -19,3 +19,4 @@
 	titles=1;
 	winch=1;
 	indent=1;
+	merge=1;

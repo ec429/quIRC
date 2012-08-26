@@ -29,6 +29,7 @@
 #include "version.h"
 
 #define LIVE(buf)	(bufs[buf].live && bufs[bufs[buf].server].live)	// Check liveness
+#define STAMP_LEN	40
 
 typedef struct _buf
 {
@@ -55,7 +56,7 @@ typedef struct _buf
 	char *lp; // array of prefix chars (0 for use default)
 	char **lt; // array of (unprocessed) text for lines
 	char **ltag; // array of (unprocessed, uncrushed) tag text for lines
-	time_t *ts; // array of timestamps for unproc lines (not used now, but there ready for eg. mergebuffers)
+	time_t *ts; // array of timestamps for unproc lines
 	bool filled; // buffer has filled up and looped? (the buffers are circular in nature)
 	bool dirty; // processed lines are out of date? (TODO: make this indicate /which/ are out of date and only re-render those)
 	int *lpl; // count of processed lines for each line
@@ -113,7 +114,7 @@ int e_buf_print(int buf, mtype lm, message pkt, const char *lead);
 int transfer_ring(ring *r, prio lq);
 int push_ring(ring *r, prio lq);
 void in_update(iline inp);
-char *highlight(const char *src); // use colours to highlight \escapes.  Returns a malloc-like pointer
 void titlebar(void);
 int findptab(int b, const char *src);
 int makeptab(int b, const char *src);
+void timestamp(char stamp[STAMP_LEN], time_t t);

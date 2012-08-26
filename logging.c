@@ -134,7 +134,7 @@ int log_add_plain(FILE *logf, mtype lm, __attribute__((unused)) prio lq, char lp
 int log_add_symbolic(FILE *logf, mtype lm, prio lq, char lp, bool ls, const char *lt, const char *ltag, time_t ts)
 {
 	if(!logf) return(1);
-	fprintf(logf, "u+%jd %s %s %c %c ", (intmax_t)ts, mtype_name(lm), prio_name(lq), lp?lp:'0', ls?'>':'<');
+	fprintf(logf, "u+"PRINTMAX" %s %s %c %c ", CASTINTMAX ts, mtype_name(lm), prio_name(lq), lp?lp:'0', ls?'>':'<');
 	safeprint(logf, ltag, true);
 	fputc(' ', logf);
 	safeprint(logf, lt, false);
@@ -149,7 +149,7 @@ void safeprint(FILE *logf, const char *text, bool es)
 	while(*text)
 	{
 		if((!isprint(*text)) || (es&&isspace(*text)))
-			fprintf(logf, "\\%03o", *text);
+			fprintf(logf, "\\%03o", (unsigned char)*text);
 		else
 			fputc(*text, logf);
 		text++;

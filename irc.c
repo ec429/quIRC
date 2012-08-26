@@ -888,8 +888,8 @@ int rx_ping(message pkt, int b)
 		e_buf_print(b, ERR, pkt, "Not enough arguments: ");
 		return(0);
 	}
-	char pong[8+strlen(username)+strlen(pkt.args[0])];
-	sprintf(pong, "PONG %s %s", username, pkt.args[0]); // PONG <user> <sender>
+	char pong[7+strlen(pkt.args[0])];
+	sprintf(pong, "PONG :%s", pkt.args[0]); // PONG :<sender>
 	return(irc_tx(bufs[bufs[b].server].handle, pong));
 }
 
@@ -1503,6 +1503,21 @@ int rx_join(message pkt, int b)
 			init_buffer(nbufs-1, CHANNEL, pkt.args[0], buflines);
 			cbuf=nbufs-1;
 			bufs[cbuf].server=bufs[b].server;
+			if(bufs[b].autoent)
+			{
+				chanlist *c=bufs[b].autoent->chans;
+				while(c)
+				{
+					if(irc_strcasecmp(c->name, pkt.args[0], bufs[b].casemapping)==0)
+					{
+						bufs[cbuf].logf=c->logf;
+						bufs[cbuf].logt=c->logt;
+						c->logf=NULL;
+						break;
+					}
+					c=c->next;
+				}
+			}
 		}
 		add_to_buffer(cbuf, JOIN, NORMAL, 0, true, dstr, "");
 		bufs[cbuf].live=true;
@@ -1533,7 +1548,7 @@ int rx_join(message pkt, int b)
 
 int rx_part(message pkt, int b)
 {
-	// :nick[[!user]@host] PART #chan message
+	// :nick[[!user]@host] PART #chan [#chan ...]
 	if(pkt.nargs<1)
 	{
 		e_buf_print(b, ERR, pkt, "Not enough arguments: ");
@@ -1561,25 +1576,18 @@ int rx_part(message pkt, int b)
 	else
 	{
 		bool match=false;
-		int b2;
-		for(b2=0;b2<nbufs;b2++)
+		for(int p=0;p<pkt.nargs;p++)
 		{
-			if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(pkt.args[0], bufs[b2].bname, bufs[b].casemapping)==0))
+			for(int b2=0;b2<nbufs;b2++)
 			{
-				match=true;
-				if(pkt.nargs<2)
+				if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(pkt.args[p], bufs[b2].bname, bufs[b].casemapping)==0))
 				{
-					char dstr[16+strlen(pkt.args[0])];
-					sprintf(dstr, "has left %s", pkt.args[0]);
+					match=true;
+					char dstr[16+strlen(pkt.args[p])];
+					sprintf(dstr, "has left %s", pkt.args[p]);
 					add_to_buffer(b2, PART, NORMAL, 0, false, dstr, src);
+					n_cull(&bufs[b2].nlist, src, bufs[b].casemapping);
 				}
-				else
-				{
-					char dstr[24+strlen(pkt.args[0])+strlen(pkt.args[1])];
-					sprintf(dstr, "has left %s (Part: %s)", pkt.args[0], pkt.args[1]);
-					add_to_buffer(b2, PART, NORMAL, 0, false, dstr, src);
-				}
-				n_cull(&bufs[b2].nlist, src, bufs[b].casemapping);
 			}
 		}
 		if(!match)
@@ -1609,9 +1617,7 @@ int rx_quit(message pkt, int b)
 			{
 				if(n_cull(&bufs[b2].nlist, src, bufs[b].casemapping))
 				{
-					char dstr[24+strlen(bufs[b].bname)+strlen(reason)];
-					sprintf(dstr, "has left %s (%s)", bufs[b].bname, reason);
-					add_to_buffer(b2, QUIT, NORMAL, 0, false, dstr, src);
+					add_to_buffer(b2, QUIT, NORMAL, 0, false, reason, src);
 				}
 			}
 		}
@@ -1719,7 +1725,7 @@ int ctcp(const char *msg, const char *src, int b2, bool ha, bool notice, bool pr
 			else
 			{
 				char resp[32+strlen(src)+strlen(fname)];
-				sprintf(resp, "NOTICE %s \001FINGER :%s\001", src, fname);
+				sprintf(resp, "NOTICE %s :\001FINGER %s\001", src, fname);
 				irc_tx(fd, resp);
 			}
 		}
@@ -1737,7 +1743,7 @@ int ctcp(const char *msg, const char *src, int b2, bool ha, bool notice, bool pr
 					{
 						struct timeval tv;
 						gettimeofday(&tv, NULL);
-						dt=(tv.tv_sec-t)+1e-6*(tv.tv_usec-u);
+						dt=(tv.tv_sec-t)+1e-6*(tv.tv_usec-(suseconds_t)u);
 					}
 					else
 						dt=difftime(time(NULL), t);
@@ -1755,7 +1761,7 @@ int ctcp(const char *msg, const char *src, int b2, bool ha, bool notice, bool pr
 			else
 			{
 				char resp[16+strlen(src)+strlen(msg)];
-				sprintf(resp, "NOTICE %s \001%s\001", src, msg);
+				sprintf(resp, "NOTICE %s :\001%s\001", src, msg);
 				irc_tx(fd, resp);
 			}
 		}
@@ -1771,7 +1777,7 @@ int ctcp(const char *msg, const char *src, int b2, bool ha, bool notice, bool pr
 			else
 			{
 				char resp[64+strlen(src)];
-				sprintf(resp, "NOTICE %s \001CLIENTINFO ACTION FINGER PING CLIENTINFO VERSION\001", src);
+				sprintf(resp, "NOTICE %s :\001CLIENTINFO ACTION FINGER PING CLIENTINFO VERSION\001", src);
 				irc_tx(fd, resp);
 			}
 		}
@@ -1787,7 +1793,7 @@ int ctcp(const char *msg, const char *src, int b2, bool ha, bool notice, bool pr
 			else
 			{
 				char resp[32+strlen(src)+strlen(version)+strlen(CC_VERSION)];
-				sprintf(resp, "NOTICE %s \001VERSION %s:%s:%s\001", src, "quIRC", version, CC_VERSION);
+				sprintf(resp, "NOTICE %s :\001VERSION %s:%s:%s\001", src, "quIRC", version, CC_VERSION);
 				irc_tx(fd, resp);
 			}
 		}

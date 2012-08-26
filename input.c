@@ -14,7 +14,8 @@ int inputchar(iline *inp, int *state)
 	int c=getchar();
 	if((c==0)||(c==EOF)) // stdin is set to non-blocking, so this may happen
 		return(0);
-	char *seq;int sl,si,mod=-1;
+	char *seq;size_t sl,si;
+	int mod=-1;
 	init_char(&seq, &sl, &si);
 	bool match=true;
 	while(match&&(mod<0))
@@ -95,12 +96,13 @@ int inputchar(iline *inp, int *state)
 		}
 		if(c=='\t') // tab completion of nicks
 		{
-			int sp=max(inp->left.i-1, 0);
+			size_t sp=inp->left.i;
+			if(sp) sp--;
 			while(sp>0 && !strchr(" \t", inp->left.data[sp-1]))
 				sp--;
 			name *curr=bufs[cbuf].nlist;
 			name *found=NULL;
-			int count=0, mlen=0;
+			size_t count=0, mlen=0;
 			while(curr)
 			{
 				if((inp->left.i==sp) || (irc_strncasecmp(inp->left.data+sp, curr->data, inp->left.i-sp, bufs[cbuf].casemapping)==0))
@@ -109,7 +111,7 @@ int inputchar(iline *inp, int *state)
 					n_add(&found, curr->data, bufs[cbuf].casemapping);
 					if(old&&(old->data))
 					{
-						int i;
+						size_t i;
 						for(i=0;i<mlen;i++)
 						{
 							if(irc_to_upper(curr->data[i], bufs[cbuf].casemapping)!=irc_to_upper(old->data[i], bufs[cbuf].casemapping))
@@ -130,10 +132,16 @@ int inputchar(iline *inp, int *state)
 			{
 				if((mlen>inp->left.i-sp)&&(count>1))
 				{
-					inp->left.data=(char *)realloc(inp->left.data, sp+mlen+4);
-					snprintf(inp->left.data+sp, mlen+1, "%s", found->data);
-					inp->left.i=strlen(inp->left.data);
-					inp->left.l=sp+mlen+4;
+					while(sp<inp->left.i)
+						back_ichar(&inp->left);
+					const char *p=found->data;
+					for(size_t i=0;i<mlen;i++)
+					{
+						if(!p[i]) break;
+						if(p[i]=='\\')
+							append_char(&inp->left.data, &inp->left.l, &inp->left.i, p[i]);
+						append_char(&inp->left.data, &inp->left.l, &inp->left.i, p[i]);
+					}
 					ttab=false;
 				}
 				else if((count>16)&&!ttab)
@@ -144,16 +152,16 @@ int inputchar(iline *inp, int *state)
 				else if(found->next||(count>1))
 				{
 					char *fmsg;
-					int i,l;
-					init_char(&fmsg, &i, &l);
+					size_t l,i;
+					init_char(&fmsg, &l, &i);
 					while(found)
 					{
-						append_str(&fmsg, &i, &l, found->data);
+						append_str(&fmsg, &l, &i, found->data);
 						found=found->next;
 						count--;
 						if(count)
 						{
-							append_str(&fmsg, &i, &l, ", ");
+							append_str(&fmsg, &l, &i, ", ");
 						}
 					}
 					if(!ttab)
@@ -164,13 +172,18 @@ int inputchar(iline *inp, int *state)
 				}
 				else
 				{
-					inp->left.data=(char *)realloc(inp->left.data, sp+strlen(found->data)+4);
-					if(sp)
-						sprintf(inp->left.data+sp, "%s", found->data);
-					else
-						sprintf(inp->left.data+sp, "%s: ", found->data);
-					inp->left.i=strlen(inp->left.data);
-					inp->left.l=sp+strlen(found->data)+4;
+					while(sp<inp->left.i)
+						back_ichar(&inp->left);
+					const char *p=found->data;
+					while(*p)
+					{
+						if(*p=='\\')
+							append_char(&inp->left.data, &inp->left.l, &inp->left.i, *p);
+						append_char(&inp->left.data, &inp->left.l, &inp->left.i, *p++);
+					}
+					if(!sp)
+						append_char(&inp->left.data, &inp->left.l, &inp->left.i, ':');
+					append_char(&inp->left.data, &inp->left.l, &inp->left.i, ' ');
 					ttab=false;
 				}
 			}
@@ -1727,7 +1740,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		}
 		return(0);
 	}
-	if(strcmp(cmd, "cmd")==0)
+	if((strcmp(cmd, "cmd")==0)||(strcmp(cmd, "quote")==0))
 	{
 		if(!bufs[bufs[cbuf].server].handle)
 		{

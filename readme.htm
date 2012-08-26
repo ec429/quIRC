@@ -147,10 +147,12 @@ Then there&apos;s the github page, <a href="http://github.com/ec429/quIRC">http:
 <tt>ignore -<em>options</em> <em>global-ignore</em></tt><br />
 <tt>server <em>url</em></tt><br />
 <tt>*chan <em>channel-on-that-server</em></tt><br />
+<tt>&gt;log <em>logtype-for-that-channel</em> <em>logfile-for-that-channel</em></tt><br />
 <tt>*nick <em>nick-on-that-server</em></tt><br />
 <tt>*pass <em>password-for-that-server</em></tt><br />
 <tt>*ignore -<em>options</em> <em>ignore-on-that-server</em></tt><br />
-where the <em>options</em> to [*]ignore are those for the /ignore command (except for l and d), and must not be separated by whitespace.  You can however combine options, like <small>-ipr</small>.  The <em>options</em> may not be omitted; if none are required, use <small>-</small> (dash).</p>
+where the <em>options</em> to [*]ignore are those for the /ignore command (except for l and d), and must not be separated by whitespace.  You can however combine options, like <small>-ipr</small>.  The <em>options</em> may not be omitted; if none are required, use <small>-</small> (dash).<br />
+The logfile (for &gt;log) is relative to <small>~/.quirc/</small>, as with the /log command.</p>
 <p>Set the maximum length of nick that will be displayed, with lines<br />
 <tt>mnln <em>maxnicklen</em></tt></p>
 <p>You can also set mirc-colour-compatibility, with<br />
@@ -298,7 +300,13 @@ Similarly, if your terminal sends backspace as ^H, you would add:<br />
 <dt>I get several copies of the status line scrolling up my screen!</dt>
 <dd><p>One possible cause of this is that your terminal size is not what quIRC thinks it is.  You may need to /set height and width, or export the environment variables $LINES and $COLUMNS from your shell (typically you would also add this to your shell's .rc file), or as a last resort resize your terminal to 80x24.</p><p>Another possibility is that your terminal emulator isn't recognising terminal escape sequences (which quIRC uses heavily for eg. cursor positioning).  For details see your terminal emulator's documentation; it is known that xterm works out-of-the-box.  In general quIRC relies on your system&apos;s <strong>terminfo</strong> database; if this is inaccurate, or your <small>$TERM</small> is set incorrectly, quIRC will be sending the wrong escape sequences.</p></dd>
 <dt>The control keys/cursor keys/function keys don't do anything!</dt>
-<dd><p>This probably means your terminal isn't sending VT100 (ANSI) escape sequences, but rather some other set of sequences.  See the section &quot;<a href="#keymapping">Keymapping</a>&quot;, above.</p></dd>
+<dd>This probably means your terminal isn't sending VT100 (ANSI) escape sequences, but rather some other set of sequences.  See the section &quot;<a href="#keymapping">Keymapping</a>&quot;, above.</dd>
+<dt>I can't build it!  My libc doesn't support getaddrinfo_a()!</dt>
+<dd><p>You need to disable ASYNCH_NL; <small>cp dist/config.mak .</small> (unless you already have a config.mak) and then uncomment the relevant lines.</p>
+<p>This should disable asynchronous name lookups, instead using code which will block while performing the DNS lookup.</p></dd>
+<dt>I can't build it!  My compiler complains about %jd and intmax_t!</dt>
+<dd><p>This is a known bug in some compiler/libc combinations; to work around it you need to define INTMAX_BUG to 1. <small>cp dist/config.mak .</small> (unless you already have a config.mak) and then uncomment the relevant lines.</p>
+<p>This should work around the bug by using %lld and (long long int) instead of %jd and (intmax_t).  Since what we're actually printing is a time_t, this ought to work.</p></dd>
 </dl>
 </div><!--#trouble-->
 </body>

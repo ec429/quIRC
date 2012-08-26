@@ -18,8 +18,8 @@
 typedef struct
 {
 	char *data;
-	int l;
-	int i;
+	size_t l;
+	size_t i;
 }
 ichar;
 
