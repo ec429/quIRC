@@ -1,0 +1,55 @@
+qsp: quIRC symbiont protocol
+
+1 Message syntax (in pseudo BNF)
+<message> ::= <msg> '\n'
+<msg>     ::= <request> | <response> | <event>
+<request> ::= <token> <sp> <req> <bufspec> <args>
+<response>::= <token> <sp> <status>
+<event>   ::= <ev> <bufspec> <args>
+<req>     ::= rxmode | tx | grab | ungrab
+<ev>      ::= rx | <cmd>
+<cmd>     ::= '/' <command>
+<command> ::= <arg>
+<bufspec> ::= <sp> <server> <sp> <chanspec> | <sp> <specbuf> <sp> '0'
+<chanspec>::= <channel> | server | '!' <nick>
+<specbuf> ::= status | any | home
+<token>   ::= [^[:space:]]*
+<args>    ::= <sp> <arg> <args> | <sp> :<argsp>
+<status>  ::= "OK" | "ERR" <error>
+<error>   ::= <args>
+<arg>     ::= [^:[:space:]][^[:space:]]*
+<argsp>   ::= [^\n]*
+<sp>      ::= [[:space:]]+
+1.1 Notes on the syntax
+An ':' which should begin an <arg> is encoded as "\072" to distinguish the resulting <arg> from an <argsp>.  In general \ooo octal escapes should be recognised in <arg> and <argsp> words.
+<server>, <channel> and <nick> are as defined in RFC1459.
+The <specbuf>s "any" and "home" may only appear in <request>s, never in <event>s.
+
+2 Requests
+2.1 rxmode
+	rxmode <bufspec> <mode>
+enables rx events on the specified buffer, with format <mode>; or disables them if <mode> is "nil".  If <mode> is omitted, it defaults to "0".
+The modes are detailed in the 2.1.* subsections.  Further modes may be added as extensions to this protocol, but they must not be called "nil".  Single-character mode names are reserved for future versions of this protocol.  Mode names are case-sensitive.
+2.1.1 Mode "0"
+rx <bufspec> <type> <nick> :<line>
+<type> in MSG NOTICE PREFORMAT ACT JOIN PART QUIT QUIT_PREFORMAT NICK MODE STA ERR UNK UNK_NOTICE UNN.
+<nick> may be "!", meaning it's a server message.  Otherwise, it's the nick which sent the message.
+<line> may contain [[:space:]]s.
+2.1.2 Mode "l"
+This format is broadly similar to LOGT_SYMBOLIC logging.
+rx <bufspec> u+<ts> <type> <prio> <prefix> '<' <tag> :<text>
+<ts> is the timestamp, in seconds since the Epoch.
+<mtype> as "0".
+<prio> in QUIET NORMAL DEBUG.
+<prefix> is the stored nick prefix for the line, or '0'.  It's usually safe to ignore this.
+<tag> is the line tag; [[:space:]]s are escaped with \ooo (octal).
+<text> the line text, and may contain [[:space:]]s.
+2.2 tx
+	tx <bufspec> :<tx>
+has the same effect as the user typing <tx> into the buffer specified by <bufspec>, except that it is undefined whether this will trigger any grabs by this or another symbiont.  (Allowing txed commands to be grabbed may lead to an infinite loop).
+2.3 grab
+	grab <bufspec> /<command>
+grabs <command> on the specified buffer; thus entering /<command> on that buffer will trigger a <cmd> event for this symbiont.
+2.4 ungrab
+	ungrab <bufspec> /<command>
+undoes the corresponding grab request.  Note that after "grab any 0 /blah", "ungrab foo bar /blah" will have no effect, since any-grabs and buffer-specific grabs are handled separately.  However, "home 0" _will_ mix with specific buffers, because it simply gets translated into a specific buffer (the script's home buffer).
