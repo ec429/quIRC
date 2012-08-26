@@ -1,0 +1,5 @@
+This directory contains sample QSP symbionts in various languages.
+
+ns.awk:
+This provides /ns and /id commands, aliases for "/msg -n NickServ" and "/msg -n NickServ IDENTIFY"; also /cs for "/msg -n ChanServ".
+It demonstrates that QSP is so simple, you can even write symbionts in Awk.
