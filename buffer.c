@@ -528,7 +528,6 @@ int render_line(int buf, int uline)
 				prevline+=bufs[buf].nlines;
 				if(!bufs[buf].filled) break;
 			}
-			if(!bufs[buf].lpl[prevline]) continue;
 			if(fabs(difftime(bufs[buf].ts[prevline], bufs[buf].ts[uline]))>5) break;
 			if(bufs[buf].lm[prevline]==bufs[buf].lm[uline])
 			{
