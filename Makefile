@@ -20,6 +20,7 @@ install: all doc
 	install -D -m0755 quirc $(PREFIX)/bin/quirc
 	install -D -m0644 quirc.1 $(PREFIX)/man/man1/quirc.1
 	install -D -m0644 readme.htm $(PREFIX)/share/doc/quirc/readme.htm
+	install -D -m0644 readme.css $(PREFIX)/share/doc/quirc/readme.css
 	install -D -m0644 config_ref.htm $(PREFIX)/share/doc/quirc/config_ref.htm
 	install -D -m0644 tutorial.htm $(PREFIX)/share/doc/quirc/tutorial.htm
 
@@ -27,6 +28,7 @@ uninstall:
 	-rm $(PREFIX)/bin/quirc
 	-rm $(PREFIX)/man/man1/quirc.1
 	-rm $(PREFIX)/share/doc/quirc/readme.htm
+	-rm $(PREFIX)/share/doc/quirc/readme.css
 	-rm $(PREFIX)/share/doc/quirc/config_ref.htm
 	-rm $(PREFIX)/share/doc/quirc/tutorial.htm
 
