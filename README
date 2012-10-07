@@ -23,8 +23,6 @@ First port of call is the website, http://jttlov.no-ip.org.
 Then there's the github page, http://github.com/ec429/quIRC.
 Or try our IRC channel, #quirc on irc.newnet.net (if your problem doesn't
 prevent you from joining us there!)
-Note: before reporting a bug, check the file wontfix, which lists things which
-are known to be wrong but whose fixes would be unacceptably crocky.
 ***** Commands *****
 All commands are prefixed with a '/'. Anything else is a message to be sent to
 the channel (or nick if current tab is a private messaging tab).
