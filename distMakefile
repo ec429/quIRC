@@ -1,14 +1,17 @@
 # gitless Makefile for quIRC
 
 CC ?= gcc
-OPTFLAGS = -g
-CFLAGS ?= -Wall -Wextra -Werror -pedantic -std=gnu99 $(OPTFLAGS)
-AWK ?= gawk
-PREFIX ?= /usr/local
-# -lanl is for ASYNCH_NL
-OPTLIBS := -lanl
-LIBS := -lncurses ttyraw.o ttyesc.o irc.o bits.o colour.o buffer.o names.o config.o input.o logging.o types.o $(OPTLIBS)
-INCLUDE := ttyraw.h ttyesc.h irc.h bits.h colour.h buffer.h names.h config.h input.h logging.h types.h quirc.h version.h osconf.h
+OPTFLAGS := -g
+CFLAGS = -Wall -Wextra -Werror -pedantic -std=gnu99 -D_GNU_SOURCE $(OPTFLAGS)
+AWK := gawk
+PREFIX := /usr/local
+LIBS_ASYNCH_NL := -lanl
+OPTLIBS = $(LIBS_ASYNCH_NL)
+LIBS = -lm -lncurses $(OBJS) $(OPTLIBS)
+OBJS := ttyraw.o ttyesc.o irc.o bits.o strbuf.o ctbuf.o colour.o buffer.o names.o config.o input.o logging.o types.o
+INCLUDE := $(OBJS:.o=.h) quirc.h version.h osconf.h
+
+-include config.mak
 
 all: quirc doc
 
@@ -16,6 +19,7 @@ install: all doc
 	install -D -m0755 quirc $(PREFIX)/bin/quirc
 	install -D -m0644 quirc.1 $(PREFIX)/man/man1/quirc.1
 	install -D -m0644 readme.htm $(PREFIX)/share/doc/quirc/readme.htm
+	install -D -m0644 readme.css $(PREFIX)/share/doc/quirc/readme.css
 	install -D -m0644 config_ref.htm $(PREFIX)/share/doc/quirc/config_ref.htm
 	install -D -m0644 tutorial.htm $(PREFIX)/share/doc/quirc/tutorial.htm
 
@@ -23,20 +27,21 @@ uninstall:
 	-rm $(PREFIX)/bin/quirc
 	-rm $(PREFIX)/man/man1/quirc.1
 	-rm $(PREFIX)/share/doc/quirc/readme.htm
+	-rm $(PREFIX)/share/doc/quirc/readme.css
 	-rm $(PREFIX)/share/doc/quirc/config_ref.htm
 	-rm $(PREFIX)/share/doc/quirc/tutorial.htm
 
-quirc: quirc.c $(LIBS) $(INCLUDE)
-	$(CC) $(CFLAGS) $(CPPFLAGS) -o $@ $< $(LIBS) -lm $(DEFINES)
+quirc: quirc.c $(OBJS) $(INCLUDE)
+	$(CC) $(CFLAGS) $(CPPFLAGS) -o $@ $< $(LIBS) $(DEFINES)
 
 quirc.h: config.h version.h
 	touch quirc.h
 
 clean:
-	-rm *.o quirc genconfig genkeymap
+	-rm -f *.o quirc genconfig genkeymap
 
 realclean: clean
-	-rm c_init.c README version.h config_* keymap.c keymod.h
+	-rm -f c_init.c README version.h config_* keymap.c keymod.h quirc.1
 
 doc: README config_ref.htm quirc.1
 
@@ -62,14 +67,17 @@ irc.h: config.h
 
 bits.o: bits.c bits.h ttyesc.h colour.h
 
-bits.h: config.h
+bits.h: config.h strbuf.h
 	touch bits.h
+
+ctbuf.h: colour.h
+	touch ctbuf.h
 
 colour.o: colour.c colour.h c_init.c ttyesc.h
 
-buffer.o: buffer.c buffer.h ttyesc.h colour.h bits.h names.h text.h irc.h version.h input.h logging.h
+buffer.o: buffer.c buffer.h ttyesc.h colour.h bits.h names.h text.h irc.h version.h input.h logging.h osconf.h ctbuf.h
 
-buffer.h: config.h version.h types.h
+buffer.h: config.h version.h logging.h
 	touch buffer.h
 
 config.o: config.c config.h names.h bits.h colour.h text.h version.h
@@ -83,7 +91,8 @@ config.h: config_globals.h version.h keymod.h
 config_%: config.cdl genconfig
 	./genconfig $@ < config.cdl > $@ || (rm $@ && false)
 
-genconfig: genconfig.c
+genconfig: genconfig.c strbuf.h strbuf.o
+	$(CC) $(CFLAGS) $(CPPFLAGS) $< $(LDFLAGS) strbuf.o -o $@
 
 input.h: keymod.h
 	touch input.h
@@ -102,7 +111,8 @@ script.o: script.c script.h bits.h buffer.h
 c_init.c: colour.d c_init.awk
 	$(AWK) -f c_init.awk colour.d > c_init.c
 
-genkeymap: genkeymap.c
+genkeymap: genkeymap.c strbuf.h strbuf.o
+	$(CC) $(CFLAGS) $(CPPFLAGS) $< $(LDFLAGS) strbuf.o -o $@
 
 keymod.h: keys genkeymap
 	./genkeymap h < keys > $@ || (rm $@ && false)
