@@ -811,7 +811,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					init_buffer(nbufs-1, SERVER, server, buflines);
 					cbuf=nbufs-1;
 					bufs[cbuf].handle=serverhandle;
-					bufs[cbuf].nick=strdup(nick);
+					bufs[cbuf].nick=bufs[0].nick?strdup(bufs[0].nick):NULL;
 					bufs[cbuf].server=cbuf;
 					bufs[cbuf].conninpr=true;
 					add_to_buffer(cbuf, STA, QUIET, 0, false, dstr, "/server: ");
@@ -1159,8 +1159,6 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 				{
 					free(bufs[0].nick);
 					bufs[0].nick=strdup(nn);
-					free(nick);
-					nick=strdup(nn);
 					defnick=false;
 					add_to_buffer(cbuf, STA, QUIET, 0, false, "Default nick changed", "/nick: ");
 				}

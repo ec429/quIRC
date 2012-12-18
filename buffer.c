@@ -99,6 +99,7 @@ int initialise_buffers(int buflines)
 	cbuf=0;
 	bufs[0].live=true; // STATUS is never dead
 	bufs[0].nick=nick;
+	nick=NULL;
 	bufs[0].ilist=igns;
 	add_to_buffer(0, STA, QUIET, 0, false, GPL_TAIL, "quirc -- ");
 	init_ring(&d_buf);

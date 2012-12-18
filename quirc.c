@@ -253,7 +253,7 @@ int main(int argc, char *argv[])
 					init_buffer(nbufs-1, SERVER, server, buflines);
 					cbuf=nbufs-1;
 					bufs[cbuf].handle=serverhandle;
-					bufs[cbuf].nick=strdup(nick);
+					bufs[cbuf].nick=bufs[0].nick?strdup(bufs[0].nick):NULL;
 					bufs[cbuf].server=cbuf;
 					bufs[cbuf].conninpr=true;
 					if(list->autoent)
@@ -475,7 +475,7 @@ int main(int argc, char *argv[])
 								}
 								else if(bufs[b].conninpr)
 								{
-									irc_conn_rest(b, nick, username, pass, fname);
+									irc_conn_rest(b, bufs[0].nick, username, pass, fname);
 								}
 								else
 								{
@@ -570,7 +570,7 @@ int main(int argc, char *argv[])
 	free(username);
 	free(fname);
 	free(qmsg);
-	free(nick);
+	free(nick); // should be NULL by now anyway
 	free(portno);
 	freeservlist(servs);
 	n_free(igns);
