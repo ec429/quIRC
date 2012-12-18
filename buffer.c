@@ -12,6 +12,7 @@
 #include "ctbuf.h"
 
 ctchar *highlight(const char *src, size_t *len); // use colours to highlight \escapes.  Returns a malloc-like pointer
+bool isutf8(const char *src, size_t *len); // determine if a string starts with a non-ASCII UTF8 character; if so, give its length (in bytes) in len.  If this function returns false, the value of *len is undefined
 
 int init_ring(ring *r)
 {
@@ -886,7 +887,7 @@ void in_update(iline inp)
 
 ctchar *highlight(const char *src, size_t *len)
 {
-	size_t l,i;ctchar *rv;
+	size_t l,i,u;ctchar *rv;
 	ct_init_char(&rv, &l, &i);
 	while(*src)
 	{
@@ -926,6 +927,12 @@ ctchar *highlight(const char *src, size_t *len)
 					ct_append_char_c(&rv, &l, &i, (colour){1, 0, 1, 0}, '\\');
 				break;
 			}
+		}
+		else if(isutf8(src, &u))
+		{
+		    ct_append_char_c(&rv, &l, &i, (colour){7, 0, 0, 0}, *src);
+		    while(--u)
+    		    ct_append_char(&rv, &l, &i, *++src);
 		}
 		else if(!isprint(*src))
 		{
@@ -1226,4 +1233,27 @@ void timestamp(char stamp[STAMP_LEN], time_t t)
 			stamp[0]=0;
 		break;
 	}
+}
+
+bool isutf8(const char *src, size_t *len)
+{
+    if((src[0]&0xe0)==0xc0) // 110xxxxx -> 2 bytes of UTF-8
+	{
+		if(len) *len=2;
+		return(src[1]&&((src[1]&0xc0)==0x80)); // 10xxxxxx - UTF middlebyte
+	}
+	else if((src[0]&0xf0)==0xe0) // 1110xxxx -> 3 bytes of UTF-8
+	{
+	    if(len) *len=3;
+		if(src[1]&&((src[1]&0xc0)==0x80)) // 10xxxxxx - UTF middlebyte
+			return(src[2]&&((src[2]&0xc0)==0x80)); // 10xxxxxx - UTF middlebyte
+	}
+	else if((src[0]&0xf8)==0xf0) // 11110xxx -> 4 bytes of UTF-8
+	{
+		if(len) *len=4;
+		if(src[1]&&((src[1]&0xc0)==0x80)) // 10xxxxxx - UTF middlebyte
+			if(src[2]&&((src[2]&0xc0)==0x80)) // 10xxxxxx - UTF middlebyte
+			    return(src[3]&&((src[3]&0xc0)==0x80)); // 10xxxxxx - UTF middlebyte
+	}
+    return(false);
 }
