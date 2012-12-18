@@ -57,6 +57,7 @@ void initibuf(ibuffer *i);
 void addtoibuf(ibuffer *i, char *data);
 void freeibuf(ibuffer *i);
 char back_ichar(ichar *buf); // returns the deleted char
+char front_ichar(ichar *buf); // returns the deleted char
 void ifree(iline *buf);
 
 void i_home(iline *inp);

@@ -118,3 +118,4 @@ void titlebar(void);
 int findptab(int b, const char *src);
 int makeptab(int b, const char *src);
 void timestamp(char stamp[STAMP_LEN], time_t t);
+bool isutf8(const char *src, size_t *len); // determine if a string starts with a non-ASCII UTF8 character; if so, give its length (in bytes) in len.  If this function returns false, the value of *len is undefined

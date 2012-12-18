@@ -9,6 +9,10 @@
 #include "input.h"
 #include "logging.h"
 
+size_t i_firstlen(ichar src);
+size_t i_lastlen(ichar src);
+void i_move(iline *inp, ssize_t bytes);
+
 int inputchar(iline *inp, int *state)
 {
 	int c=getchar();
@@ -55,13 +59,19 @@ int inputchar(iline *inp, int *state)
 	if(c!='\t')
 		ttab=false;
 	if(mod==KEY_BS) // backspace
-		back_ichar(&inp->left);
+	{
+		size_t ll=i_lastlen(inp->left);
+		for(size_t i=0;i<ll;i++)
+			back_ichar(&inp->left);
+	}
 	else if((mod<0) && (c<32)) // this also stomps on the newline
 	{
 		back_ichar(&inp->left);
 		if(c==8) // C-h ~= backspace
 		{
-			back_ichar(&inp->left);
+			size_t ll=i_lastlen(inp->left);
+			for(size_t i=0;i<ll;i++)
+				back_ichar(&inp->left);
 		}
 		if(c==1) // C-a ~= home
 		{
@@ -253,53 +263,29 @@ int inputchar(iline *inp, int *state)
 			}
 		}
 		else if(mod==KEY_RIGHT)
-		{
-			if(inp->right.data && *inp->right.data)
-			{
-				append_char(&inp->left.data, &inp->left.l, &inp->left.i, inp->right.data[0]);
-				char *nr=strdup(inp->right.data+1);
-				free(inp->right.data);
-				inp->right.data=nr;
-				inp->right.i--;
-				inp->right.l=0;
-			}
-		}
+			i_move(inp, i_firstlen(inp->right));
 		else if(mod==KEY_LEFT)
-		{
-			if(inp->left.i)
-			{
-				unsigned char e=back_ichar(&inp->left);
-				if(e)
-				{
-					char *nr=(char *)malloc(inp->right.i+2);
-					*nr=e;
-					if(inp->right.data)
-					{
-						strcpy(nr+1, inp->right.data);
-						free(inp->right.data);
-					}
-					else
-					{
-						nr[1]=0;
-					}
-					inp->right.data=nr;
-					inp->right.i++;
-					inp->right.l=inp->right.i+1;
-				}
-			}
-		}
+			i_move(inp, -i_lastlen(inp->left));
 		else if(mod==KEY_HOME)
 			i_home(inp);
 		else if(mod==KEY_END)
 			i_end(inp);
 		else if(mod==KEY_DELETE)
 		{
-			if(inp->right.data && inp->right.i)
+			size_t fl=i_firstlen(inp->right);
+			if(inp->right.data&&(inp->right.i>fl))
 			{
-				char *nr=strdup(inp->right.data+1);
+				char *nr=strdup(inp->right.data+fl);
 				free(inp->right.data);
 				inp->right.data=nr;
-				inp->right.l=inp->right.i--;
+				inp->right.i-=fl;
+				inp->right.l=inp->right.i;
+			}
+			else
+			{
+				free(inp->right.data);
+				inp->right.data=NULL;
+				inp->right.l=inp->right.i=0;
 			}
 		}
 		else if(mod==KEY_CPGUP)
@@ -1823,6 +1809,59 @@ char back_ichar(ichar *buf)
 		buf->data[(buf->i)]=0;
 	}
 	return(c);
+}
+
+char front_ichar(ichar *buf)
+{
+	char c=0;
+	if(buf->i)
+	{
+		c=buf->data[0];
+		memmove(buf->data, buf->data+1, buf->i--);
+	}
+	return(c);
+}
+
+size_t i_firstlen(ichar src)
+{
+	if(!src.i) return(0);
+	size_t u;
+	if(isutf8(src.data, &u)) return(u);
+	return(1);
+}
+
+size_t i_lastlen(ichar src)
+{
+	size_t start=max(src.i, 4)-4, prev=start;
+	size_t u;
+	while(start<src.i)
+	{
+		prev=start;
+		if(isutf8(src.data+start, &u)) start+=u;
+		else if(src.data[start]&0x80) start++;
+		else
+		{
+			start++;
+			if(start+1>=src.i) break;
+		}
+	}
+	return(start-prev);
+}
+
+void i_move(iline *inp, ssize_t bytes)
+{
+	bool fw=(bytes>0);
+	size_t b=fw?bytes:-bytes; // can't use abs() because we don't know what length a size_t is (do we need labs()? llabs()?)
+	char c;
+	for(size_t i=0;i<b;i++)
+		if(fw)
+		{
+			if((c=front_ichar(&inp->right)))
+			    append_char(&inp->left.data, &inp->left.l, &inp->left.i, c);
+	    }
+		else
+			if((c=back_ichar(&inp->left)))
+			    prepend_char(&inp->right.data, &inp->right.l, &inp->right.i, c);
 }
 
 void ifree(iline *buf)
