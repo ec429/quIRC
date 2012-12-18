@@ -97,10 +97,7 @@ genconfig: genconfig.c strbuf.h strbuf.o
 input.h: keymod.h
 	touch input.h
 
-input.o: input.c input.h ttyesc.h names.h buffer.h irc.h bits.h config.h logging.h
-
-input.c: config_set.c
-	touch input.c
+input.o: input.c input.h ttyesc.h names.h buffer.h irc.h bits.h config.h logging.h config_set.c
 
 logging.o: types.h bits.h
 
