@@ -372,6 +372,7 @@ int main(int argc, char *argv[])
 								loop=false;
 							}
 						}
+						in_update(inp);
 						break; // handle the input; everyone else can wait
 					}
 					else

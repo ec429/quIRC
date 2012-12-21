@@ -63,8 +63,9 @@ int inputchar(iline *inp, int *state)
 		size_t ll=i_lastlen(inp->left);
 		for(size_t i=0;i<ll;i++)
 			back_ichar(&inp->left);
+		return(0);
 	}
-	else if((mod<0) && (c<32)) // this also stomps on the newline
+	if((mod<0) && (c<32)) // this also stomps on the newline
 	{
 		back_ichar(&inp->left);
 		if(c==8) // C-h ~= backspace
@@ -72,30 +73,36 @@ int inputchar(iline *inp, int *state)
 			size_t ll=i_lastlen(inp->left);
 			for(size_t i=0;i<ll;i++)
 				back_ichar(&inp->left);
+			return(0);
 		}
 		if(c==1) // C-a ~= home
 		{
 			i_home(inp);
+			return(0);
 		}
 		if(c==5) // C-e ~= end
 		{
 			i_end(inp);
+			return(0);
 		}
 		if(c==3) // C-c ~= clear
 		{
 			ifree(inp);
+			return(0);
 		}
 		if(c==24) // C-x ~= clear to left
 		{
 			free(inp->left.data);
 			inp->left.data=NULL;
 			inp->left.i=inp->left.l=0;
+			return(0);
 		}
 		if(c==11) // C-k ~= clear to right
 		{
 			free(inp->right.data);
 			inp->right.data=NULL;
 			inp->right.i=inp->right.l=0;
+			return(0);
 		}
 		if(c==23) // C-w ~= backspace word
 		{
@@ -103,6 +110,7 @@ int inputchar(iline *inp, int *state)
 			while(!strchr(" ", back_ichar(&inp->left)));
 			if(inp->left.i)
 				append_char(&inp->left.data, &inp->left.l, &inp->left.i, ' ');
+			return(0);
 		}
 		if(c=='\t') // tab completion of nicks
 		{
@@ -202,6 +210,7 @@ int inputchar(iline *inp, int *state)
 				add_to_buffer(cbuf, STA, NORMAL, 0, false, "No nicks match", "[tab] ");
 			}
 			n_free(found);
+			return(0);
 		}
 	}
 	else if(mod>=0)
@@ -213,6 +222,7 @@ int inputchar(iline *inp, int *state)
 			{
 				cbuf=min(n%12, nbufs-1);
 				if(force_redraw<3) redraw_buffer();
+				return(0);
 			}
 		}
 		if(mod==KEY_UP) // Up
@@ -231,7 +241,7 @@ int inputchar(iline *inp, int *state)
 				}
 			}
 		}
-		else if(mod==KEY_DOWN) // Down
+		if(mod==KEY_DOWN) // Down
 		{
 			gone=true;
 			if(!bufs[cbuf].input.scroll)
@@ -261,16 +271,29 @@ int inputchar(iline *inp, int *state)
 			{
 				ifree(inp);
 			}
+			return(0);
 		}
-		else if(mod==KEY_RIGHT)
+		if(mod==KEY_RIGHT)
+		{
 			i_move(inp, i_firstlen(inp->right));
-		else if(mod==KEY_LEFT)
+			return(0);
+		}
+		if(mod==KEY_LEFT)
+		{
 			i_move(inp, -i_lastlen(inp->left));
-		else if(mod==KEY_HOME)
+			return(0);
+		}
+		if(mod==KEY_HOME)
+		{
 			i_home(inp);
-		else if(mod==KEY_END)
+			return(0);
+		}
+		if(mod==KEY_END)
+		{
 			i_end(inp);
-		else if(mod==KEY_DELETE)
+			return(0);
+		}
+		if(mod==KEY_DELETE)
 		{
 			size_t fl=i_firstlen(inp->right);
 			if(inp->right.data&&(inp->right.i>fl))
@@ -287,110 +310,120 @@ int inputchar(iline *inp, int *state)
 				inp->right.data=NULL;
 				inp->right.l=inp->right.i=0;
 			}
+			return(0);
 		}
-		else if(mod==KEY_CPGUP)
+		if(mod==KEY_CPGUP)
 		{
 			bufs[cbuf].ascroll-=height-(tsb?3:2);
 			if(force_redraw<3) redraw_buffer();
+			return(0);
 		}
-		else if(mod==KEY_CPGDN)
+		if(mod==KEY_CPGDN)
 		{
 			bufs[cbuf].ascroll+=height-(tsb?3:2);
 			if(force_redraw<3) redraw_buffer();
+			return(0);
 		}
-		else
+		gone=false;
+		if(mod==KEY_PGUP)
 		{
-			bool gone=false;
-			if(mod==KEY_PGUP)
+			int old=bufs[cbuf].input.scroll;
+			bufs[cbuf].input.scroll=min(bufs[cbuf].input.scroll+10, bufs[cbuf].input.filled?bufs[cbuf].input.nlines-1:bufs[cbuf].input.ptr);
+			if(old!=bufs[cbuf].input.scroll) gone=true;
+			if(gone&&!old)
 			{
-				int old=bufs[cbuf].input.scroll;
-				bufs[cbuf].input.scroll=min(bufs[cbuf].input.scroll+10, bufs[cbuf].input.filled?bufs[cbuf].input.nlines-1:bufs[cbuf].input.ptr);
-				if(old!=bufs[cbuf].input.scroll) gone=true;
-				if(gone&&!old)
+				if(inp->left.i||inp->right.i)
 				{
-					if(inp->left.i||inp->right.i)
-					{
-						char out[inp->left.i+inp->right.i+1];
-						sprintf(out, "%s%s", inp->left.data?inp->left.data:"", inp->right.data?inp->right.data:"");
-						addtoibuf(&bufs[cbuf].input, out);
-						bufs[cbuf].input.scroll=2;
-					}
+					char out[inp->left.i+inp->right.i+1];
+					sprintf(out, "%s%s", inp->left.data?inp->left.data:"", inp->right.data?inp->right.data:"");
+					addtoibuf(&bufs[cbuf].input, out);
+					bufs[cbuf].input.scroll=2;
 				}
 			}
-			else if(mod==KEY_PGDN)
+			return(0);
+		}
+		if(mod==KEY_PGDN)
+		{
+			gone=true;
+			if(!bufs[cbuf].input.scroll)
 			{
-				gone=true;
-				if(!bufs[cbuf].input.scroll)
+				if(inp->left.i||inp->right.i)
 				{
-					if(inp->left.i||inp->right.i)
-					{
-						char out[inp->left.i+inp->right.i+1];
-						sprintf(out, "%s%s", inp->left.data?inp->left.data:"", inp->right.data?inp->right.data:"");
-						addtoibuf(&bufs[cbuf].input, out);
-						bufs[cbuf].input.scroll=0;
-					}
+					char out[inp->left.i+inp->right.i+1];
+					sprintf(out, "%s%s", inp->left.data?inp->left.data:"", inp->right.data?inp->right.data:"");
+					addtoibuf(&bufs[cbuf].input, out);
+					bufs[cbuf].input.scroll=0;
 				}
-				bufs[cbuf].input.scroll=max(bufs[cbuf].input.scroll-10, 0);
 			}
-			if(gone&&(bufs[cbuf].input.ptr||bufs[cbuf].input.filled))
+			bufs[cbuf].input.scroll=max(bufs[cbuf].input.scroll-10, 0);
+			return(0);
+		}
+		if(gone&&(bufs[cbuf].input.ptr||bufs[cbuf].input.filled))
+		{
+			if(bufs[cbuf].input.scroll)
 			{
-				if(bufs[cbuf].input.scroll)
-				{
-					char *ln=bufs[cbuf].input.line[(bufs[cbuf].input.ptr+bufs[cbuf].input.nlines-bufs[cbuf].input.scroll)%bufs[cbuf].input.nlines];
-					if(ln)
-					{
-						ifree(inp);
-						inp->left.data=strdup(ln);inp->left.i=strlen(inp->left.data);inp->left.l=0;
-					}
-				}
-				else
+				char *ln=bufs[cbuf].input.line[(bufs[cbuf].input.ptr+bufs[cbuf].input.nlines-bufs[cbuf].input.scroll)%bufs[cbuf].input.nlines];
+				if(ln)
 				{
 					ifree(inp);
+					inp->left.data=strdup(ln);inp->left.i=strlen(inp->left.data);inp->left.l=0;
 				}
 			}
-			else if((mod==KEY_SLEFT)||(mod==KEY_CLEFT)||(mod==KEY_ALEFT))
+			else
 			{
-				cbuf=max(cbuf-1, 0);
-				if(force_redraw<3) redraw_buffer();
+				ifree(inp);
 			}
-			else if((mod==KEY_SRIGHT)||(mod==KEY_CRIGHT)||(mod==KEY_ARIGHT))
-			{
-				cbuf=min(cbuf+1, nbufs-1);
-				if(force_redraw<3) redraw_buffer();
-			}
-			else if((mod==KEY_CUP)||(mod==KEY_AUP))
-			{
-				bufs[cbuf].ascroll--;
-				if(force_redraw<3) redraw_buffer();
-			}
-			else if((mod==KEY_CDOWN)||(mod==KEY_ADOWN))
-			{
-				bufs[cbuf].ascroll++;
-				if(force_redraw<3) redraw_buffer();
-			}
-			else if((mod==KEY_SHOME)||(mod==KEY_CHOME)||(mod==KEY_AHOME))
-			{
-				bufs[cbuf].scroll=bufs[cbuf].filled?(bufs[cbuf].ptr+1)%bufs[cbuf].nlines:0;
-				bufs[cbuf].ascroll=0;
-				if(force_redraw<3) redraw_buffer();
-			}
-			else if((mod==KEY_SEND)||(mod==KEY_CEND)||(mod==KEY_AEND))
-			{
-				bufs[cbuf].scroll=bufs[cbuf].ptr;
-				bufs[cbuf].ascroll=0;
-				if(force_redraw<3) redraw_buffer();
-			}
+			return(0);
+		}
+		if((mod==KEY_SLEFT)||(mod==KEY_CLEFT)||(mod==KEY_ALEFT))
+		{
+			cbuf=max(cbuf-1, 0);
+			if(force_redraw<3) redraw_buffer();
+			return(0);
+		}
+		if((mod==KEY_SRIGHT)||(mod==KEY_CRIGHT)||(mod==KEY_ARIGHT))
+		{
+			cbuf=min(cbuf+1, nbufs-1);
+			if(force_redraw<3) redraw_buffer();
+			return(0);
+		}
+		if((mod==KEY_CUP)||(mod==KEY_AUP))
+		{
+			bufs[cbuf].ascroll--;
+			if(force_redraw<3) redraw_buffer();
+			return(0);
+		}
+		if((mod==KEY_CDOWN)||(mod==KEY_ADOWN))
+		{
+			bufs[cbuf].ascroll++;
+			if(force_redraw<3) redraw_buffer();
+			return(0);
+		}
+		if((mod==KEY_SHOME)||(mod==KEY_CHOME)||(mod==KEY_AHOME))
+		{
+			bufs[cbuf].scroll=bufs[cbuf].filled?(bufs[cbuf].ptr+1)%bufs[cbuf].nlines:0;
+			bufs[cbuf].ascroll=0;
+			if(force_redraw<3) redraw_buffer();
+			return(0);
+		}
+		if((mod==KEY_SEND)||(mod==KEY_CEND)||(mod==KEY_AEND))
+		{
+			bufs[cbuf].scroll=bufs[cbuf].ptr;
+			bufs[cbuf].ascroll=0;
+			if(force_redraw<3) redraw_buffer();
+			return(0);
 		}
 	}
-	else if((c&0xe0)==0xc0) // 110xxxxx -> 2 bytes of UTF-8
+	if((c&0xe0)==0xc0) // 110xxxxx -> 2 bytes of UTF-8
 	{
 		int d=getchar();
 		if(d&&(d!=EOF)&&((d&0xc0)==0x80)) // 10xxxxxx - UTF middlebyte
 			append_char(&inp->left.data, &inp->left.l, &inp->left.i, d);
 		else
 			ungetc(d, stdin);
+		return(0);
 	}
-	else if((c&0xf0)==0xe0) // 1110xxxx -> 3 bytes of UTF-8
+	if((c&0xf0)==0xe0) // 1110xxxx -> 3 bytes of UTF-8
 	{
 		int d=getchar();
 		if(d&&(d!=EOF)&&((d&0xc0)==0x80)) // 10xxxxxx - UTF middlebyte
@@ -409,8 +442,9 @@ int inputchar(iline *inp, int *state)
 		}
 		else
 			ungetc(d, stdin);
+		return(0);
 	}
-	else if((c&0xf8)==0xf0) // 11110xxx -> 4 bytes of UTF-8
+	if((c&0xf8)==0xf0) // 11110xxx -> 4 bytes of UTF-8
 	{
 		int d=getchar();
 		if(d&&(d!=EOF)&&((d&0xc0)==0x80)) // 10xxxxxx - UTF middlebyte
@@ -440,6 +474,7 @@ int inputchar(iline *inp, int *state)
 		}
 		else
 			ungetc(d, stdin);
+		return(0);
 	}
 	if(c=='\n')
 	{
@@ -448,10 +483,7 @@ int inputchar(iline *inp, int *state)
 		sprintf(out, "%s%s", inp->left.data?inp->left.data:"", inp->right.data?inp->right.data:"");
 		addtoibuf(&bufs[cbuf].input, out);
 		ifree(inp);
-	}
-	else
-	{
-		in_update(*inp);
+		return(0);
 	}
 	return(0);
 }
