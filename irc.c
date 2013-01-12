@@ -770,7 +770,7 @@ int irc_numeric(message pkt, int b)
 				}
 			}
 		break;
-		case RPL_X_TOPICWASSET: // 331 dest <channel> <nick> <time>
+		case RPL_X_TOPICWASSET: // 333 dest <channel> <nick> <time>
 			if(pkt.nargs<3)
 			{
 				e_buf_print(b, ERR, pkt, "RPL_X_TOPICWASSET: Not enough arguments: ");
