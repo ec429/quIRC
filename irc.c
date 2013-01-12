@@ -780,10 +780,11 @@ int irc_numeric(message pkt, int b)
 			{
 				if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(pkt.args[1], bufs[b2].bname, bufs[b].casemapping)==0))
 				{
-					time_t when;
-					sscanf(pkt.args[3], "%u", (unsigned int *)&when);
+					TYPEINTMAX when;
+					sscanf(pkt.args[3], PRINTMAX, &when);
+					time_t t=when;
 					char ts[256];
-					struct tm *tm = gmtime(&when);
+					struct tm *tm = gmtime(&t);
 					size_t tslen = strftime(ts, sizeof(ts), "%H:%M:%S GMT on %a, %d %b %Y", tm); // TODO options controlling date format (eg. ISO 8601)
 					char tmsg[32+strlen(pkt.args[2])+tslen];
 					sprintf(tmsg, "Topic was set by %s at %s", pkt.args[2], ts);

@@ -18,8 +18,9 @@
 
 #if INTMAX_BUG
 	#define PRINTMAX	"%lld"
-	#define CASTINTMAX	(long long int)
+	#define TYPEINTMAX	long long int
 #else
 	#define PRINTMAX	"%jd"
-	#define CASTINTMAX	(intmax_t)
+	#define TYPEINTMAX	intmax_t
 #endif
+#define CASTINTMAX	(TYPEINTMAX)
