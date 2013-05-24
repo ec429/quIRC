@@ -1294,6 +1294,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 						char privmsg[12+strlen(dest)+strlen(text)];
 						sprintf(privmsg, "PRIVMSG %s :%s", dest, text);
 						irc_tx(bufs[bufs[cbuf].server].handle, privmsg);
+						ctcp_strip(text, bufs[bufs[cbuf].server].nick, cbuf, false, false, true, true);
 						if(no_tab)
 						{
 							add_to_buffer(cbuf, STA, QUIET, 0, false, "sent", "/msg -n: ");
