@@ -585,7 +585,7 @@ int render_line(int buf, int uline)
 			if(*tag)
 			{
 				crush(&tag, maxnlen);
-				char *ntag=mktag("(from %s) ", tag);
+				char *ntag=mktag("(%s) ", tag);
 				free(tag);
 				tag=ntag;
 			}
@@ -680,7 +680,7 @@ int render_line(int buf, int uline)
 			if(*tag)
 			{
 				crush(&tag, maxnlen);
-				char *ntag=mktag("(from %s) ", tag);
+				char *ntag=mktag("(%s) ", tag);
 				free(tag);
 				tag=ntag;
 			}
