@@ -12,8 +12,7 @@
 #include <errno.h>
 #include "types.h"
 #include "buffer.h"
-
-#define CLIENT_SOURCE	"http://jttlov.no-ip.org/projects/quirc.htm"
+#include "config.h"
 
 int ctcp_strip(char *msg, const char *src, int b2, bool ha, bool notice, bool priv, bool tx)
 {

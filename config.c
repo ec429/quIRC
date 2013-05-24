@@ -126,7 +126,7 @@ int def_config(void)
 	nick=strdup(eu?eu:"ac");
 	defnick=true;
 	pass=NULL;
-	snprintf(fname, 64+strlen(VERSION_TXT), "quIRC %hhu.%hhu.%hhu%s%s : http://github.com/ec429/quIRC", VERSION_MAJ, VERSION_MIN, VERSION_REV, VERSION_TXT[0]?"-":"", VERSION_TXT);
+	snprintf(fname, 64+strlen(VERSION_TXT), "quIRC %hhu.%hhu.%hhu%s%s : %s", VERSION_MAJ, VERSION_MIN, VERSION_REV, VERSION_TXT[0]?"-":"", VERSION_TXT, CLIENT_SOURCE);
 	version=malloc(16+strlen(VERSION_TXT));
 	snprintf(version, 16+strlen(VERSION_TXT), "%hhu.%hhu.%hhu%s%s", VERSION_MAJ, VERSION_MIN, VERSION_REV, VERSION_TXT[0]?"-":"", VERSION_TXT);
 	return(0);

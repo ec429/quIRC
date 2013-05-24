@@ -12,6 +12,8 @@
 #include <stdbool.h>
 #include <string.h>
 
+#define CLIENT_SOURCE	"http://github.com/ec429/quIRC"
+
 #include "types.h"
 
 typedef struct _chanlist
