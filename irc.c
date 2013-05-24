@@ -1810,8 +1810,8 @@ int ctcp(const char *msg, const char *src, int b2, bool ha, bool notice, bool pr
 			add_to_buffer(b2, UNK_NOTICE, QUIET, 0, false, cmsg, src);
 			if(!notice)
 			{
-				char resp[32+strlen(src)+space];
-				sprintf(resp, "NOTICE %s \001ERRMSG %.*s\001", src, space, msg);
+				char resp[40+strlen(src)+strlen(msg)];
+				sprintf(resp, "NOTICE %s :\001ERRMSG %s :Unknown query\001", src, msg);
 				irc_tx(fd, resp);
 			}
 			if(ha)
