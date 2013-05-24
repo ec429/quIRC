@@ -160,10 +160,10 @@ int ctcp(const char *msg, const char *src, int b2, bool ha, bool notice, bool pr
 	}
 	queries[]=
 	{
-		{"FINGER ", ctcp_finger, ctcp_notice_generic},
-		{"PING ", ctcp_ping, ctcp_notice_ping},
-		{"CLIENTINFO ", ctcp_clientinfo, ctcp_notice_generic},
-		{"VERSION ", ctcp_version, ctcp_notice_generic},
+		{"FINGER", ctcp_finger, ctcp_notice_generic},
+		{"PING", ctcp_ping, ctcp_notice_ping},
+		{"CLIENTINFO", ctcp_clientinfo, ctcp_notice_generic},
+		{"VERSION", ctcp_version, ctcp_notice_generic},
 		{"TIME", ctcp_time, ctcp_notice_generic},
 		{"SOURCE", ctcp_source, ctcp_notice_generic},
 	};
