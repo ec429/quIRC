@@ -13,6 +13,8 @@
 #include "types.h"
 #include "buffer.h"
 
+#define CLIENT_SOURCE	"http://jttlov.no-ip.org/projects/quirc.htm"
+
 int ctcp_strip(char *msg, const char *src, int b2, bool ha, bool notice, bool priv, bool tx)
 {
 	int e=0;
@@ -99,8 +101,9 @@ int ctcp_notice_ping(const char *msg, const char *src, int b2, bool ha)
 
 int ctcp_clientinfo(int fd, __attribute__((unused)) const char *msg, const char *src, __attribute__((unused)) int b2)
 {
+	// XXX this doesn't fully implement the CLIENTINFO "protocol", it just gives a list of recognised top-level commands
 	char resp[64+strlen(src)];
-	sprintf(resp, "NOTICE %s :\001CLIENTINFO ACTION FINGER PING CLIENTINFO VERSION\001", src);
+	sprintf(resp, "NOTICE %s :\001CLIENTINFO ACTION FINGER PING CLIENTINFO TIME SOURCE VERSION\001", src);
 	irc_tx(fd, resp);
 	return(0);
 }
@@ -109,6 +112,15 @@ int ctcp_version(int fd, __attribute__((unused)) const char *msg, const char *sr
 {
 	char resp[32+strlen(src)+strlen(version)+strlen(CC_VERSION)];
 	sprintf(resp, "NOTICE %s :\001VERSION %s:%s:%s\001", src, "quIRC", version, CC_VERSION);
+	irc_tx(fd, resp);
+	return(0);
+}
+
+int ctcp_source(int fd, __attribute__((unused)) const char *msg, const char *src, __attribute__((unused)) int b2)
+{
+	// XXX this response doesn't match the SOURCE "protocol", which expects an FTP address; quIRC is distributed by HTTP, so we just give a URL
+	char resp[32+strlen(src)+strlen(CLIENT_SOURCE)];
+	sprintf(resp, "NOTICE %s :\001SOURCE %s\001", src, CLIENT_SOURCE);
 	irc_tx(fd, resp);
 	return(0);
 }
@@ -132,15 +144,11 @@ int ctcp_time(int fd, __attribute__((unused)) const char *msg, const char *src, 
 	return(0);
 }
 
-/*int ctcp_(int fd, const char *msg, const char *src, int b2)
-{
-}*/
-
 int ctcp(const char *msg, const char *src, int b2, bool ha, bool notice, bool priv, bool tx)
 {
 	int b=bufs[b2].server;
 	int fd=bufs[b].handle;
-	if(priv) b2=makeptab(b, src);
+	if(priv&&!tx) b2=makeptab(b, src);
 	if(strncmp(msg, "ACTION ", 7)==0)
 		return(ctcp_action(fd, msg, src, b2, ha, tx));
 	if(tx) return(0);
@@ -157,6 +165,7 @@ int ctcp(const char *msg, const char *src, int b2, bool ha, bool notice, bool pr
 		{"CLIENTINFO ", ctcp_clientinfo, ctcp_notice_generic},
 		{"VERSION ", ctcp_version, ctcp_notice_generic},
 		{"TIME", ctcp_time, ctcp_notice_generic},
+		{"SOURCE", ctcp_source, ctcp_notice_generic},
 	};
 	for(unsigned int i=0;i<sizeof(queries)/sizeof(*queries);i++)
 	{
