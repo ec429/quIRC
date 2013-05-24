@@ -77,7 +77,7 @@ void loadkeys(FILE *fp)
 				if(cont) continue;
 				new.mod[o>>1]=0;
 				bool match=false;
-				for(int i=0;i<nkeys;i++)
+				for(unsigned int i=0;i<nkeys;i++)
 				{
 					if(strcmp(new.name, kmap[i].name)==0)
 					{
@@ -404,6 +404,8 @@ int rcread(FILE *rcfp)
 					new->key=strdup(new->key);
 				}
 				new->igns=NULL;
+				new->logt=LOGT_NONE;
+				new->logf=NULL;
 				servs->chans=new;
 			}
 			else if(servs && servs->chans && (strcmp(cmd, ">log")==0))
@@ -530,6 +532,8 @@ signed int pargs(int argc, char *argv[])
 				*new->key++=0;
 			}
 			new->igns=NULL;
+			new->logt=LOGT_NONE;
+			new->logf=NULL;
 			servs->chans=new;
 		}
 #include "config_pargs.c"

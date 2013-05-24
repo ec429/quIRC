@@ -268,6 +268,7 @@ int main(int argc, char *argv[])
 				free((char *)list->nl_details->ar_name);
 				free((char *)list->nl_details->ar_service);
 				freeaddrinfo((void *)list->nl_details->ar_request);
+				free(list->nl_details);
 				if(list->prev) list->prev->next=list->next;
 				else nl_active=list->next;
 				if(list->next) list->next->prev=list->prev;
@@ -556,6 +557,7 @@ int main(int argc, char *argv[])
 	bufs[0].live=false;
 	free_buffer(0);
 	free(bufs);
+	free_ring(&d_buf);
 	free(username);
 	free(fname);
 	free(qmsg);
@@ -563,6 +565,10 @@ int main(int argc, char *argv[])
 	free(portno);
 	freeservlist(servs);
 	n_free(igns);
+	for(unsigned int i=0;i<nkeys;i++)
+		free(kmap[i].mod);
+	free(kmap);
+	free(version);
 	locate(height-1, 0);
 	putchar('\n');
 	ttyreset(fileno(stdout));

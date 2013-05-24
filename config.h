@@ -54,7 +54,7 @@ bool defnick;
 servlist *servs;
 name *igns;
 char *version;
-int nkeys;
+unsigned int nkeys;
 keymod *kmap;
 
 int initkeys(void);

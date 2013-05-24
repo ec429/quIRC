@@ -26,7 +26,7 @@ int inputchar(iline *inp, int *state)
 	{
 		append_char(&seq, &sl, &si, c);
 		match=false;
-		for(int i=0;i<nkeys;i++)
+		for(unsigned int i=0;i<nkeys;i++)
 		{
 			if(strncmp(seq, kmap[i].mod, si)==0)
 			{	

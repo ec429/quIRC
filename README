@@ -103,6 +103,7 @@ the channel (or nick if current tab is a private messaging tab).
             Instead of adding a rule, list rules which apply to this tab
   /rejoin [key]
       Rejoins a channel tab which is dead (eg after losing server connection).
+      If key is not specified, the previous key (if any) will be used.
   /reconnect
       Reconnects to a server from which you have become disconnected.
   /realsname
