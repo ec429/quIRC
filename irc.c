@@ -189,7 +189,7 @@ int autoconnect(fd_set *master, int *fdmax, servlist *serv) // XXX broken in the
 		bufs[cbuf].server=cbuf;
 		bufs[cbuf].conninpr=true;
 		add_to_buffer(cbuf, STA, QUIET, 0, false, cstr, "auto: ");
-		if(force_redraw<3) redraw_buffer();
+		redraw_buffer();
 	}
 	#endif /* ASYNCH_NL */
 	autoconnect(master, fdmax, serv->next);
@@ -1523,7 +1523,7 @@ int rx_join(message pkt, int b)
 		}
 		add_to_buffer(cbuf, JOIN, NORMAL, 0, true, dstr, "");
 		bufs[cbuf].live=true;
-		if(force_redraw<3) redraw_buffer();
+		redraw_buffer();
 	}
 	else
 	{
@@ -1568,7 +1568,7 @@ int rx_part(message pkt, int b)
 				if(b2==cbuf)
 				{
 					cbuf=b;
-					if(force_redraw<3) redraw_buffer();
+					redraw_buffer();
 				}
 				bufs[b2].live=false;
 				free_buffer(b2);

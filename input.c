@@ -221,7 +221,7 @@ int inputchar(iline *inp, int *state)
 			if(mod==KEY_F(n))
 			{
 				cbuf=min(n%12, nbufs-1);
-				if(force_redraw<3) redraw_buffer();
+				redraw_buffer();
 				return(0);
 			}
 		}
@@ -315,13 +315,13 @@ int inputchar(iline *inp, int *state)
 		if(mod==KEY_CPGUP)
 		{
 			bufs[cbuf].ascroll-=height-(tsb?3:2);
-			if(force_redraw<3) redraw_buffer();
+			redraw_buffer();
 			return(0);
 		}
 		if(mod==KEY_CPGDN)
 		{
 			bufs[cbuf].ascroll+=height-(tsb?3:2);
-			if(force_redraw<3) redraw_buffer();
+			redraw_buffer();
 			return(0);
 		}
 		gone=false;
@@ -378,39 +378,39 @@ int inputchar(iline *inp, int *state)
 		if((mod==KEY_SLEFT)||(mod==KEY_CLEFT)||(mod==KEY_ALEFT))
 		{
 			cbuf=max(cbuf-1, 0);
-			if(force_redraw<3) redraw_buffer();
+			redraw_buffer();
 			return(0);
 		}
 		if((mod==KEY_SRIGHT)||(mod==KEY_CRIGHT)||(mod==KEY_ARIGHT))
 		{
 			cbuf=min(cbuf+1, nbufs-1);
-			if(force_redraw<3) redraw_buffer();
+			redraw_buffer();
 			return(0);
 		}
 		if((mod==KEY_CUP)||(mod==KEY_AUP))
 		{
 			bufs[cbuf].ascroll--;
-			if(force_redraw<3) redraw_buffer();
+			redraw_buffer();
 			return(0);
 		}
 		if((mod==KEY_CDOWN)||(mod==KEY_ADOWN))
 		{
 			bufs[cbuf].ascroll++;
-			if(force_redraw<3) redraw_buffer();
+			redraw_buffer();
 			return(0);
 		}
 		if((mod==KEY_SHOME)||(mod==KEY_CHOME)||(mod==KEY_AHOME))
 		{
 			bufs[cbuf].scroll=bufs[cbuf].filled?(bufs[cbuf].ptr+1)%bufs[cbuf].nlines:0;
 			bufs[cbuf].ascroll=0;
-			if(force_redraw<3) redraw_buffer();
+			redraw_buffer();
 			return(0);
 		}
 		if((mod==KEY_SEND)||(mod==KEY_CEND)||(mod==KEY_AEND))
 		{
 			bufs[cbuf].scroll=bufs[cbuf].ptr;
 			bufs[cbuf].ascroll=0;
-			if(force_redraw<3) redraw_buffer();
+			redraw_buffer();
 			return(0);
 		}
 	}
@@ -796,14 +796,14 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					if(bufs[b].live)
 					{
 						cbuf=b;
-						if(force_redraw<3) redraw_buffer();
+						redraw_buffer();
 						return(0);
 					}
 					else
 					{
 						cbuf=b;
 						cmd="reconnect";
-						if(force_redraw<3) redraw_buffer();
+						redraw_buffer();
 						break;
 					}
 				}
@@ -819,7 +819,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 				{
 					nl->reconn_b=0;
 					add_to_buffer(0, STA, QUIET, 0, false, dstr, "/server: ");
-					if(force_redraw<3) redraw_buffer();
+					redraw_buffer();
 				}
 				#else
 				int serverhandle=irc_connect(server, newport, master, fdmax);
@@ -833,7 +833,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					bufs[cbuf].server=cbuf;
 					bufs[cbuf].conninpr=true;
 					add_to_buffer(cbuf, STA, QUIET, 0, false, dstr, "/server: ");
-					if(force_redraw<3) redraw_buffer();
+					redraw_buffer();
 				}
 				#endif
 			}
@@ -871,12 +871,12 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 				{
 					nl->reconn_b=bufs[cbuf].server;
 					add_to_buffer(bufs[cbuf].server, STA, QUIET, 0, false, dstr, "/server: ");
-					if(force_redraw<3) redraw_buffer();
+					redraw_buffer();
 				}
 				else
 				{
 					add_to_buffer(bufs[cbuf].server, ERR, NORMAL, 0, false, "malloc failure (see status)", "/server: ");
-					if(force_redraw<3) redraw_buffer();
+					redraw_buffer();
 				}
 				#else /* ASYNCH_NL */
 				int serverhandle=irc_connect(bufs[bufs[cbuf].server].serverloc, newport, master, fdmax);
@@ -936,7 +936,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 			bufs[b].live=false;
 			free_buffer(b);
 			cbuf=0;
-			if(force_redraw<3) redraw_buffer();
+			redraw_buffer();
 		}
 		else
 		{
@@ -1027,10 +1027,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 			char joinmsg[8+strlen(chan)+strlen(pass)];
 			sprintf(joinmsg, "JOIN %s %s", chan, pass);
 			irc_tx(bufs[bufs[cbuf].server].handle, joinmsg);
-			if(force_redraw<3)
-			{
-				redraw_buffer();
-			}
+			redraw_buffer();
 		}
 		return(0);
 	}
@@ -1453,7 +1450,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 				if((bufn>=0) && (bufn<nbufs))
 				{
 					cbuf=bufn;
-					if(force_redraw<3) redraw_buffer();
+					redraw_buffer();
 				}
 				else
 				{
@@ -1505,7 +1502,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 				cb=b;
 		}
 		cbuf=cb;
-		if(force_redraw<3) redraw_buffer();
+		redraw_buffer();
 		return(0);
 	}
 	if(strcmp(cmd, "left")==0)
@@ -1532,7 +1529,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					bufs[i].server--;
 				}
 			}
-			if(force_redraw<3) redraw_buffer();
+			redraw_buffer();
 		}
 		return(0);
 	}
@@ -1564,7 +1561,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					bufs[i].server--;
 				}
 			}
-			if(force_redraw<3) redraw_buffer();
+			redraw_buffer();
 		}
 		return(0);
 	}

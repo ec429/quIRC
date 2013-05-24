@@ -164,15 +164,6 @@ You can also set mirc-colour-compatibility, with
 mcc mcc-level
 where 0 doesn't scan for mirc-colours, 1 silently strips them out, and 2
 displays the appropriate colour. The default is mcc 1.
-Another setting here is force-redraw, with
-fred force-redraw
-which will redraw the whole screen when things change; the number controls how
-often.
-0 won't redraw at all, while 3 will redraw every 0.25 seconds. The default is
-now 0 (it used to be 2, which redraws whenever any buffer is written to or
-input is entered). Since some improvements were made to the drawing code,
-fred's assistance should no longer be needed, but we've kept him around just in
-case.
 The size of each scrollback buffer, in lines, can be set with
 buf buf-lines
 the default being 1024. Larger values will, of course, increase memory

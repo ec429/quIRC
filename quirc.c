@@ -230,7 +230,7 @@ int main(int argc, char *argv[])
 				if(!port) port="port";
 				char dstr[32+strlen(server)+strlen(port)];
 				sprintf(dstr, "Found %s, connecting on %s...", server, port);
-				if(force_redraw<3) redraw_buffer();
+				redraw_buffer();
 				if(list->reconn_b)
 				{
 					bufs[list->reconn_b].handle=serverhandle;
@@ -535,20 +535,8 @@ int main(int argc, char *argv[])
 				{
 					state=0;
 				}
-				if(force_redraw==2) // 'slight paranoia' mode
-				{
-					redraw_buffer();
-				}
-				if(force_redraw<3)
-				{
-					in_update(inp);
-				}
+				in_update(inp);
 			break;
-		}
-		if(force_redraw>=3) // 'extremely paranoid' mode
-		{
-			redraw_buffer();
-			in_update(inp);
 		}
 	}
 	int b;
