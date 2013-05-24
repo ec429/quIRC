@@ -8,3 +8,7 @@ genconfig
 genkeymap
 version.h
 quirc.1
+config_*
+c_init.c
+keymap.c
+keymod.h
