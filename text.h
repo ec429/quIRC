@@ -1,16 +1,16 @@
 /*
 	quIRC - simple terminal-based IRC client
-	Copyright (C) 2010-12 Edward Cree
+	Copyright (C) 2010-13 Edward Cree
 
 	See quirc.c for license information
 	text: misc. text snippets
 */
 
 // interface text
-#define GPL_TAIL	"Copyright (C) 2010-12 Edward Cree\nThis program comes with ABSOLUTELY NO WARRANTY.\nThis is free software, and you are welcome to redistribute it under certain conditions.  (GNU GPL v3+)\nFor further details, see the file 'COPYING' in the quirc directory."
+#define GPL_TAIL	"Copyright (C) 2010-13 Edward Cree\nThis program comes with ABSOLUTELY NO WARRANTY.\nThis is free software, and you are welcome to redistribute it under certain conditions.  (GNU GPL v3+)\nFor further details, see the file 'COPYING' in the quirc directory."
 
 #define VERSION_MSG " %s %hhu.%hhu.%hhu%s%s\n\
- Copyright (C) 2010-12 Edward Cree.\n\
+ Copyright (C) 2010-13 Edward Cree.\n\
  License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n\
  This is free software: you are free to change and redistribute it.\n\
  There is NO WARRANTY, to the extent permitted by law.\n\

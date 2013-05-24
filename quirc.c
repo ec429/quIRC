@@ -1,6 +1,6 @@
 /*
 	quIRC - simple terminal-based IRC client
-	Copyright (C) 2010-12 Edward Cree
+	Copyright (C) 2010-13 Edward Cree
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
