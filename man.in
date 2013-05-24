@@ -59,7 +59,8 @@ from auto-connecting.
 .B --no-chan
 Overrides any channels listed in the rc file, preventing
 .B quirc
-from auto-joining.
+from auto-joining.  Implied by
+.BR --no-server .
 .TP
 .B --check,--lint
 Parses the configuration, including the rc file and command line, and reports
