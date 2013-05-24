@@ -978,6 +978,42 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 			else
 			{
 				char *pass=strtok(NULL, ", ");
+				servlist *serv=bufs[bufs[cbuf].server].autoent;
+				if(!serv)
+				{
+					serv=bufs[bufs[cbuf].server].autoent=malloc(sizeof(servlist));
+					serv->name=NULL;
+					serv->portno=NULL;
+					serv->nick=NULL;
+					serv->pass=NULL;
+					serv->chans=NULL;
+					serv->next=NULL;
+					serv->igns=NULL;
+				}
+				if(pass)
+				{
+					chanlist *curr=malloc(sizeof(chanlist));
+					if(curr)
+					{
+						curr->name=strdup(chan);
+						curr->key=strdup(pass);
+						curr->next=serv->chans;
+						serv->chans=curr;
+					}
+				}
+				else
+				{
+					chanlist *curr=serv->chans;
+					while(curr)
+					{
+						if(irc_strcasecmp(curr->name, chan, bufs[bufs[cbuf].server].casemapping)==0)
+						{
+							pass=curr->key;
+							break;
+						}
+						curr=curr->next;
+					}
+				}
 				if(!pass) pass="";
 				char joinmsg[8+strlen(chan)+strlen(pass)];
 				sprintf(joinmsg, "JOIN %s %s", chan, pass);
@@ -1023,6 +1059,10 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		{
 			char *chan=bufs[cbuf].bname;
 			char *pass=args;
+			if(pass)
+				bufs[cbuf].lastkey=strdup(pass);
+			else
+				pass=bufs[cbuf].lastkey;
 			if(!pass) pass="";
 			char joinmsg[8+strlen(chan)+strlen(pass)];
 			sprintf(joinmsg, "JOIN %s %s", chan, pass);

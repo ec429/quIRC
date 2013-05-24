@@ -160,7 +160,7 @@ int irc_conn_rest(int b, char *nick, char *username, char *passwd, char *fullnam
 	return(0);
 }
 
-int autoconnect(fd_set *master, int *fdmax, servlist *serv) // XXX broken in the face of asynch nl
+int autoconnect(fd_set *master, int *fdmax, servlist *serv) // XXX broken in the face of asynch nl [I have forgotten what was meant by this; I'm not aware of anything broken about this function]
 {
 	servlist *curr=serv;
 	if(!curr) return(0);
@@ -904,7 +904,7 @@ int rx_mode(message pkt, int b)
 	servlist *serv=bufs[b].autoent;
 	if(autojoin && serv && serv->chans && !serv->join)
 	{
-		chanlist * curr=serv->chans;
+		chanlist *curr=serv->chans;
 		while(curr)
 		{
 			char joinmsg[8+strlen(curr->name)];
@@ -1496,6 +1496,11 @@ int rx_join(message pkt, int b)
 			if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(pkt.args[0], bufs[b2].bname, bufs[b].casemapping)==0))
 			{
 				cbuf=b2;
+				if(bufs[cbuf].lastkey)
+				{
+					free(bufs[cbuf].key);
+					bufs[cbuf].key=strdup(bufs[cbuf].lastkey);
+				}
 				break;
 			}
 		}
@@ -1512,6 +1517,7 @@ int rx_join(message pkt, int b)
 				{
 					if(irc_strcasecmp(c->name, pkt.args[0], bufs[b].casemapping)==0)
 					{
+						bufs[cbuf].key=c->key;
 						bufs[cbuf].logf=c->logf;
 						bufs[cbuf].logt=c->logt;
 						c->logf=NULL;

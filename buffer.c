@@ -178,6 +178,8 @@ int init_buffer(int buf, btype type, const char *bname, int nlines)
 	}
 	bufs[buf].autoent=NULL;
 	bufs[buf].conf=conf;
+	bufs[buf].key=NULL;
+	bufs[buf].lastkey=NULL;
 	return(0);
 }
 
@@ -242,6 +244,8 @@ int free_buffer(int buf)
 		free(bufs[buf].ts);
 		freeibuf(&bufs[buf].input);
 		free(bufs[buf].prefixes);
+		free(bufs[buf].key);
+		free(bufs[buf].lastkey);
 		if(cbuf>=buf)
 			cbuf--;
 		nbufs--;
