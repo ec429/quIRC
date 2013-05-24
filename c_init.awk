@@ -1,3 +1,9 @@
+#	quIRC - simple terminal-based IRC client
+#	Copyright (C) 2010-13 Edward Cree
+#
+#	See quirc.c for license information
+#	c_init.awk: colour initialiser
+
 # generate the colours initialisation c_init.c (used in colour.c) from
 # colour.d, the file of colour definitions
 # in records "S msg		7 0 0 1"

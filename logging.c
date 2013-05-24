@@ -1,3 +1,11 @@
+/*
+	quIRC - simple terminal-based IRC client
+	Copyright (C) 2010-13 Edward Cree
+
+	See quirc.c for license information
+	logging: routines to log activity
+*/
+
 #include "logging.h"
 #include <stdlib.h>
 #include <string.h>
