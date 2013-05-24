@@ -137,7 +137,7 @@ int ctcp_time(int fd, __attribute__((unused)) const char *msg, const char *src, 
 		irc_tx(fd, resp);
 	}
 	char datebuf[256];
-	size_t datelen=strftime(datebuf, sizeof(datebuf), "%c", tm);
+	size_t datelen=strftime(datebuf, sizeof(datebuf), "%F %a %T %z", tm);
 	char resp[32+strlen(src)+datelen];
 	sprintf(resp, "NOTICE %s :\001TIME %s\001", src, datebuf);
 	irc_tx(fd, resp);
