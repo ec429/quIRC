@@ -1517,7 +1517,7 @@ int rx_join(message pkt, int b)
 				{
 					if(irc_strcasecmp(c->name, pkt.args[0], bufs[b].casemapping)==0)
 					{
-						bufs[cbuf].key=c->key;
+						bufs[cbuf].key=strdup(c->key);
 						bufs[cbuf].logf=c->logf;
 						bufs[cbuf].logt=c->logt;
 						c->logf=NULL;

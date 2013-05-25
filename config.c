@@ -530,6 +530,7 @@ signed int pargs(int argc, char *argv[])
 			if((new->key=strpbrk(new->name, " \t")))
 			{
 				*new->key++=0;
+				new->key=strdup(new->key);
 			}
 			new->igns=NULL;
 			new->logt=LOGT_NONE;
