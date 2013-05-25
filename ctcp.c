@@ -148,7 +148,7 @@ int ctcp(const char *msg, const char *src, int b2, bool ha, bool notice, bool pr
 	int b=bufs[b2].server;
 	int fd=bufs[b].handle;
 	if(priv&&!tx) b2=makeptab(b, src);
-	if(strncmp(msg, "ACTION ", 7)==0)
+	if((strncmp(msg, "ACTION", 6)==0)&&((msg[6]==' ')||(msg[6]==0))) // allow 'ACTION' or 'ACTION blah'
 		return(ctcp_action(fd, msg, src, b2, ha, tx));
 	if(tx) return(0);
 	struct
