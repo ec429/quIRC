@@ -6,6 +6,8 @@ Need to fix the problem of the conn_rest not getting called for eg worldofspectr
 
 Tab search: /tab blah<tab>.
 
+Retitle PRIVATE tabs when other person /nicks.
+
 Const-correctness.  There are a lot of functions taking a char * that should take a const char *.
 
 Check the return value of malloc (and realloc) everywhere.  At the moment we're lax, which is fine on overcommitting Linux but not elsewhere.
