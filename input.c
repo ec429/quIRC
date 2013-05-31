@@ -1062,7 +1062,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 			if(pass)
 				bufs[cbuf].lastkey=strdup(pass);
 			else
-				pass=bufs[cbuf].lastkey;
+				pass=bufs[cbuf].key;
 			if(!pass) pass="";
 			char joinmsg[8+strlen(chan)+strlen(pass)];
 			sprintf(joinmsg, "JOIN %s %s", chan, pass);
