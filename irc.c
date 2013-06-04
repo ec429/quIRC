@@ -1328,10 +1328,10 @@ int rx_error(message pkt, int b, fd_set *master)
 	{
 		if((bufs[b2].server==b) || (bufs[b2].server==0))
 		{
-			if(pkt.nargs<2)
+			if(pkt.nargs<1)
 				add_to_buffer(b2, QUIT_PREFORMAT, NORMAL, 0, false, "ERROR", "Disconnected: ");
 			else
-				add_to_buffer(b2, QUIT_PREFORMAT, NORMAL, 0, false, pkt.args[1], "Disconnected: ");
+				add_to_buffer(b2, QUIT_PREFORMAT, NORMAL, 0, false, pkt.args[0], "Disconnected: ");
 			bufs[b2].live=false;
 			close(bufs[b2].handle);
 			bufs[b2].handle=0; // de-bind fd
