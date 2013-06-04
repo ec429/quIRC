@@ -8,6 +8,7 @@
 
 #include "irc.h"
 #include "ctcp.h"
+#include "numeric_text.h"
 
 void handle_signals(int sig)
 {
@@ -876,7 +877,14 @@ int irc_numeric(message pkt, int b)
 			}
 			// else fall through
 		default:
-			e_buf_print(b, UNN, pkt, "Unknown numeric: ");
+			if((num>=0)&&(num<1000)&&numeric_names[num])
+			{
+				char tag[40];
+				snprintf(tag, 40, "Unhandled %s: ", numeric_names[num]);
+				add_to_buffer(b, UNN, QUIET, 0, false, pkt.args[pkt.nargs-1], tag);
+			}
+			else
+				e_buf_print(b, UNN, pkt, "Unknown numeric: ");
 		break;
 	}
 	return(num);

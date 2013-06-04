@@ -9,13 +9,13 @@ class NumericMessage(object):
 		self.x       = x
 		self.typ     = 'NUM'
 	def getname(self):
-		return self.justify(self.typ+'_'+('X_' if self.x else '')+self.name)
+		return self.typ+'_'+('X_' if self.x else '')+self.name
 	@classmethod
 	def justify(cls, s):
 		l=int(len(s)/4)
 		return s+'\t'*(5-l)
 	def __str__(self):
-		return '#define\t%s\t%03d\t// %s' % (self.getname(), self.num, self.comment)
+		return '#define\t%s\t%03d\t// %s' % (self.justify(self.getname()), self.num, self.comment)
 
 class NumericError(NumericMessage):
 	def __init__(self, *args):

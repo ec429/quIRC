@@ -8,7 +8,7 @@ PREFIX := /usr/local
 LIBS_ASYNCH_NL := -lanl
 OPTLIBS = $(LIBS_ASYNCH_NL)
 LIBS = -lm -lncurses $(OBJS) $(OPTLIBS)
-OBJS := ttyraw.o ttyesc.o irc.o ctcp.o bits.o strbuf.o ctbuf.o colour.o buffer.o names.o config.o input.o logging.o types.o
+OBJS := ttyraw.o ttyesc.o irc.o ctcp.o bits.o strbuf.o ctbuf.o colour.o buffer.o names.o numeric_text.o config.o input.o logging.o types.o
 INCLUDE := $(OBJS:.o=.h) quirc.h version.h osconf.h
 
 -include config.mak
@@ -60,7 +60,7 @@ quirc.1: man.in
 
 ttyesc.o: ttyesc.c ttyesc.h bits.h
 
-irc.o: irc.c irc.h bits.h buffer.h colour.h names.h numeric.h osconf.h ctcp.h
+irc.o: irc.c irc.h bits.h buffer.h colour.h names.h numeric.h numeric_text.h osconf.h ctcp.h
 
 irc.h: config.h
 	touch irc.h
@@ -104,6 +104,12 @@ input.o: input.c input.h ttyesc.h names.h buffer.h irc.h bits.h config.h logging
 logging.o: types.h bits.h
 
 names.o: names.c names.h buffer.h irc.h
+
+numeric.h: gen_numerics.py numerics.py
+	./$< > $@
+
+numeric_text.c: gen_numerics_text.py numerics.py
+	./$< > $@
 
 script.o: script.c script.h bits.h buffer.h
 
