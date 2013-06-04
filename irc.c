@@ -1667,12 +1667,18 @@ int rx_nick(message pkt, int b)
 			if((bufs[b2].server==b) && ((bufs[b2].type==CHANNEL)||(bufs[b2].type==PRIVATE)))
 			{
 				match=true;
+				add_to_buffer(b2, NICK, QUIET, 0, false, src, bufs[b2].bname);
 				if(n_cull(&bufs[b2].nlist, src, bufs[b].casemapping))
 				{
 					n_add(&bufs[b2].nlist, pkt.args[0], bufs[b].casemapping);
 					char dstr[30+strlen(pkt.args[0])];
 					sprintf(dstr, "is now known as %s", pkt.args[0]);
 					add_to_buffer(b2, NICK, NORMAL, 0, false, dstr, src);
+					if((bufs[b2].type==PRIVATE)&&(irc_strcasecmp(src, bufs[b2].bname, bufs[b].casemapping)==0))
+					{
+						free(bufs[b2].bname);
+						bufs[b2].bname=strdup(pkt.args[0]);
+					}
 				}
 			}
 		}
