@@ -451,15 +451,15 @@ int redraw_buffer(void)
 		break;
 		case CHANNEL: // have to scope it for the cstr 'variably modified type'
 			{
-				char cstr[16+strlen(bufs[cbuf].bname)+strlen(bufs[bufs[cbuf].server].bname)];
-				sprintf(cstr, "quIRC - %s on %s", bufs[cbuf].bname, bufs[bufs[cbuf].server].bname);
+				char cstr[16+strlen(bufs[cbuf].bname)+strlen(SERVER(cbuf).bname)];
+				sprintf(cstr, "quIRC - %s on %s", bufs[cbuf].bname, SERVER(cbuf).bname);
 				settitle(cstr);
 			}
 		break;
 		case PRIVATE: // have to scope it for the cstr 'variably modified type'
 			{
-				char cstr[16+strlen(bufs[cbuf].bname)+strlen(bufs[bufs[cbuf].server].bname)];
-				sprintf(cstr, "quIRC - <%s> on %s", bufs[cbuf].bname, bufs[bufs[cbuf].server].bname);
+				char cstr[16+strlen(bufs[cbuf].bname)+strlen(SERVER(cbuf).bname)];
+				sprintf(cstr, "quIRC - <%s> on %s", bufs[cbuf].bname, SERVER(cbuf).bname);
 				settitle(cstr);
 			}
 		break;
@@ -1038,8 +1038,8 @@ void titlebar(void)
 	const char *hashgit=strchr(VERSION_TXT, ' ');
 	if(hashgit)
 		hashgit++;
-	char *cserv=strdup(bufs[bufs[cbuf].server].bname?bufs[bufs[cbuf].server].bname:"");
-	char *cnick=strdup(bufs[bufs[cbuf].server].nick?bufs[bufs[cbuf].server].nick:"");
+	char *cserv=strdup(SERVER(cbuf).bname?SERVER(cbuf).bname:"");
+	char *cnick=strdup(SERVER(cbuf).nick?SERVER(cbuf).nick:"");
 	char *cchan=strdup(((bufs[cbuf].type==CHANNEL)||(bufs[cbuf].type==PRIVATE))&&bufs[cbuf].bname?bufs[cbuf].bname:"");
 	size_t chanlen=strlen(cchan)+1, nicklen=strlen(cnick)+1;
 	if(bufs[cbuf].type==CHANNEL)

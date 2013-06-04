@@ -241,7 +241,7 @@ void i_list(void)
 	}
 	if(bufs[cbuf].server)
 	{
-		name *curr=bufs[bufs[cbuf].server].ilist;
+		name *curr=SERVER(cbuf).ilist;
 		while(curr)
 		{
 			name *next=curr->next;

@@ -1694,14 +1694,14 @@ int talk(char *iinput)
 {
 	if((bufs[cbuf].type==CHANNEL)||(bufs[cbuf].type==PRIVATE))
 	{
-		if(bufs[bufs[cbuf].server].handle)
+		if(SERVER(cbuf).handle)
 		{
 			if(LIVE(cbuf))
 			{
 				char pmsg[12+strlen(bufs[cbuf].bname)+strlen(iinput)];
 				sprintf(pmsg, "PRIVMSG %s :%s", bufs[cbuf].bname, iinput);
-				irc_tx(bufs[bufs[cbuf].server].handle, pmsg);
-				ctcp_strip(iinput, bufs[bufs[cbuf].server].nick, cbuf, false, false, bufs[cbuf].type==PRIVATE, true);
+				irc_tx(SERVER(cbuf).handle, pmsg);
+				ctcp_strip(iinput, SERVER(cbuf).nick, cbuf, false, false, bufs[cbuf].type==PRIVATE, true);
 				if(*iinput)
 				{
 					char lp=0;
@@ -1710,9 +1710,9 @@ int talk(char *iinput)
 						int po=-1;
 						for(unsigned int i=0;i<bufs[cbuf].us->npfx;i++)
 						{
-							for(unsigned int j=0;j<(po<0?bufs[bufs[cbuf].server].npfx:(unsigned)po);j++)
+							for(unsigned int j=0;j<(po<0?SERVER(cbuf).npfx:(unsigned)po);j++)
 							{
-								if(bufs[bufs[cbuf].server].prefixes[j].letter==bufs[cbuf].us->prefixes[i].letter)
+								if(SERVER(cbuf).prefixes[j].letter==bufs[cbuf].us->prefixes[i].letter)
 								{
 									po=j;
 									lp=bufs[cbuf].us->prefixes[i].pfx;
@@ -1720,7 +1720,7 @@ int talk(char *iinput)
 							}
 						}
 					}
-					add_to_buffer(cbuf, MSG, NORMAL, lp, true, iinput, bufs[bufs[cbuf].server].nick);
+					add_to_buffer(cbuf, MSG, NORMAL, lp, true, iinput, SERVER(cbuf).nick);
 				}
 			}
 			else

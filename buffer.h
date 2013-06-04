@@ -28,7 +28,8 @@
 #include "types.h"
 #include "version.h"
 
-#define LIVE(buf)	(bufs[buf].live && bufs[bufs[buf].server].live)	// Check liveness
+#define SERVER(buf)	(bufs[bufs[buf].server]) // server of a buf
+#define LIVE(buf)	(bufs[buf].live && SERVER(buf).live)	// Check liveness
 #define STAMP_LEN	40
 
 typedef struct _buf
