@@ -18,13 +18,13 @@ dist: all doc
 	rm -r quirc_$(VERSION)
 
 dists: c_init.c config.c config.h version.h keymod.h keymap.c doc
-	-mkdir quirc_$(VERSION)_src
-	for p in $$(ls); do cp $$p quirc_$(VERSION)_src/$$p; done;
-	cp -r dist quirc_$(VERSION)_src/dist
-	-rm quirc_$(VERSION)_src/*.tar.gz
-	rm quirc_$(VERSION)_src/*.o
-	rm quirc_$(VERSION)_src/quirc
-	mv quirc_$(VERSION)_src/distMakefile quirc_$(VERSION)_src/Makefile
-	tar -czf quirc_$(VERSION)_src.tar.gz quirc_$(VERSION)_src/
-	rm -r quirc_$(VERSION)_src
+	-mkdir quirc_$(VERSION).src
+	for p in $$(ls); do cp $$p quirc_$(VERSION).src/$$p; done;
+	cp -r dist quirc_$(VERSION).src/dist
+	-rm quirc_$(VERSION).src/*.tar.gz
+	rm quirc_$(VERSION).src/*.o
+	rm quirc_$(VERSION).src/quirc
+	mv quirc_$(VERSION).src/distMakefile quirc_$(VERSION).src/Makefile
+	tar -czf quirc_$(VERSION).src.tar.gz quirc_$(VERSION).src/
+	rm -r quirc_$(VERSION).src
 
