@@ -1413,7 +1413,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 							args[strlen(args)-1]=0; // stomp out trailing newlines, they break things
 						bool al=bufs[b2].alert; // save alert status...
 						int hi=bufs[b2].hi_alert;
-						add_to_buffer(b2, MSG, NORMAL, 0, true, args, bufs[bufs[b2].server].nick);
+						add_to_buffer(b2, MSG, NORMAL, 0, true, args, SERVER(b2).nick);
 						bufs[b2].alert=al; // and restore it
 						bufs[b2].hi_alert=hi;
 					}

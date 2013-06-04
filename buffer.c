@@ -1196,7 +1196,7 @@ int makeptab(int b, const char *src)
 		b2=nbufs-1;
 		bufs[b2].server=bufs[b].server;
 		bufs[b2].live=true;
-		n_add(&bufs[b2].nlist, bufs[bufs[b2].server].nick, bufs[b].casemapping);
+		n_add(&bufs[b2].nlist, SERVER(b2).nick, bufs[b].casemapping);
 		n_add(&bufs[b2].nlist, src, bufs[b].casemapping);
 	}
 	return(b2);

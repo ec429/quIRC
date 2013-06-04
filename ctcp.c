@@ -40,7 +40,7 @@ int ctcp_strip(char *msg, const char *src, int b2, bool ha, bool notice, bool pr
 int ctcp_action(__attribute__((unused)) int fd, const char *msg, const char *src, int b2, bool ha, bool tx)
 {
 	add_to_buffer(b2, ACT, NORMAL, 0, tx, msg+7, src);
-	ha=ha||strstr(msg+7, bufs[bufs[b2].server].nick);
+	ha=ha||strstr(msg+7, SERVER(b2).nick);
 	if(ha)
 		bufs[b2].hi_alert=5;
 	return(0);
