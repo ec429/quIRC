@@ -1307,18 +1307,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 			char *text=strtok(NULL, "");
 			if(!no_tab)
 			{
-				int b2=findptab(bufs[cbuf].server, dest);
-				if(b2<0)
-				{
-					bufs=(buffer *)realloc(bufs, ++nbufs*sizeof(buffer));
-					init_buffer(nbufs-1, PRIVATE, dest, buflines);
-					b2=nbufs-1;
-					bufs[b2].server=bufs[cbuf].server;
-					bufs[b2].handle=bufs[bufs[b2].server].handle;
-					bufs[b2].live=true;
-					if(bufs[bufs[b2].server].nick) n_add(&bufs[b2].nlist, bufs[bufs[b2].server].nick, bufs[bufs[b2].server].casemapping);
-					n_add(&bufs[b2].nlist, dest, bufs[bufs[b2].server].casemapping);
-				}
+				int b2=makeptab(bufs[cbuf].server, dest);
 				cbuf=b2;
 				redraw_buffer();
 			}
