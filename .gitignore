@@ -1,6 +1,7 @@
 *~
 quirc
 *.o
+*.d
 *.tar
 *.tar.gz
 *.tgz
