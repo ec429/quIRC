@@ -7,6 +7,13 @@
 */
 
 #include "config.h"
+#include "bits.h"
+#include "colour.h"
+#include "text.h"
+#include "version.h"
+#include "buffer.h"
+#include "strbuf.h"
+#include "ttyesc.h"
 
 #include "keymap.c"
 

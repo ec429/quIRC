@@ -10,6 +10,12 @@
 #include "logging.h"
 #include "osconf.h"
 #include "ctbuf.h"
+#include "strbuf.h"
+#include "ttyesc.h"
+#include "bits.h"
+#include "names.h"
+#include "text.h"
+#include "version.h"
 
 ctchar *highlight(const char *src, size_t *len); // use colours to highlight \escapes.  Returns a malloc-like pointer
 

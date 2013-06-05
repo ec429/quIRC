@@ -41,11 +41,7 @@ typedef struct
 }
 message;
 
-#include "bits.h"
-#include "buffer.h"
 #include "colour.h"
-#include "config.h"
-#include "numeric.h"
 #include "names.h"
 #include "osconf.h"
 

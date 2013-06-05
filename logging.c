@@ -8,9 +8,11 @@
 
 #include "logging.h"
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 #include <ctype.h>
 #include "bits.h"
+#include "osconf.h"
 
 int log_add_plain(FILE *logf, mtype lm, prio lq, char lp, bool ls, const char *lt, const char *ltag, time_t ts);
 int log_add_symbolic(FILE *logf, mtype lm, prio lq, char lp, bool ls, const char *lt, const char *ltag, time_t ts);

@@ -13,6 +13,7 @@
 #include "types.h"
 #include "buffer.h"
 #include "config.h"
+#include "version.h"
 
 int ctcp_strip(char *msg, const char *src, int b2, bool ha, bool notice, bool priv, bool tx)
 {

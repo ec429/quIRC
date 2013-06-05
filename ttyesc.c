@@ -7,6 +7,8 @@
 */
 
 #include "ttyesc.h"
+#include "config.h"
+#include "strbuf.h"
 
 int termsgr0(void)
 {

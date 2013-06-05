@@ -7,6 +7,9 @@
 */
 
 #include "bits.h"
+#include "strbuf.h"
+#include "ttyesc.h"
+#include "config.h"
 
 int wordline(const char *msg, unsigned int x, char **out, size_t *l, size_t *i, colour lc)
 {

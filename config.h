@@ -41,11 +41,6 @@ typedef struct _servlist
 servlist;
 
 #include "names.h"
-#include "bits.h"
-#include "colour.h"
-#include "text.h"
-#include "version.h"
-#include "buffer.h"
 #include "keymod.h"
 
 // global settings & state

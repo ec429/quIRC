@@ -40,13 +40,7 @@ typedef struct
 }
 ibuffer;
 
-#include "ttyesc.h"
 #include "names.h"
-#include "buffer.h"
-#include "irc.h"
-#include "bits.h"
-#include "config.h"
-#include "keymod.h"
 
 bool ttab;
 

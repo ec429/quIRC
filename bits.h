@@ -11,10 +11,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "strbuf.h"
-#include "ttyesc.h"
 #include "colour.h"
-#include "config.h"
 
 // helper fn macros
 #define max(a,b)	((a)>(b)?(a):(b))

@@ -41,7 +41,7 @@ clean:
 	-rm -f *.o quirc genconfig genkeymap
 
 realclean: clean
-	-rm -f c_init.c README version.h config_* keymap.c keymod.h quirc.1
+	-rm -f c_init.c README version.h config_* keymap.c keymod.h quirc.1 numeric.h numeric_text.c
 
 doc: README config_ref.htm quirc.1
 
@@ -58,31 +58,25 @@ quirc.1: man.in
 %.o: %.c %.h
 	$(CC) -c $(CFLAGS) $(CPPFLAGS) $< -o $@ $(DEFINES)
 
-ttyesc.o: ttyesc.c ttyesc.h bits.h
+ttyesc.o: ttyesc.c ttyesc.h bits.h config.h
 
 irc.o: irc.c irc.h bits.h buffer.h colour.h names.h numeric.h numeric_text.h osconf.h ctcp.h
 
-irc.h: config.h
-	touch irc.h
-
 bits.o: bits.c bits.h ttyesc.h colour.h
-
-bits.h: config.h strbuf.h
-	touch bits.h
 
 ctbuf.h: colour.h
 	touch ctbuf.h
 
-ctcp.c: types.h buffer.h
+ctcp.c: types.h buffer.h config.h version.h
 
 colour.o: colour.c colour.h c_init.c ttyesc.h
 
 buffer.o: buffer.c buffer.h ttyesc.h colour.h bits.h names.h text.h irc.h version.h input.h logging.h osconf.h ctbuf.h
 
-buffer.h: config.h version.h logging.h
+buffer.h: colour.h config.h input.h irc.h types.h
 	touch buffer.h
 
-config.o: config.c config.h names.h bits.h colour.h text.h version.h
+config.o: config.c config.h names.h bits.h colour.h text.h ttyesc.h version.h
 
 config.c: config_check.c config_def.c config_need.c config_rcread.c config_pargs.c config_help.c keymap.c
 	touch config.c

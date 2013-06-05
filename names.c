@@ -7,6 +7,7 @@
 */
 
 #include "names.h"
+#include "strbuf.h"
 
 name *n_dup(const name *list)
 {

@@ -7,7 +7,11 @@
 */
 
 #include "irc.h"
+#include "bits.h"
+#include "buffer.h"
+#include "config.h"
 #include "ctcp.h"
+#include "numeric.h"
 #include "numeric_text.h"
 
 void handle_signals(int sig)

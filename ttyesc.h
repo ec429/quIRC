@@ -12,7 +12,6 @@
 #include <sys/ioctl.h>
 #include <term.h>
 #undef tab
-#include "bits.h"
 
 int setcol(int fore, int back, bool hi, bool ul); // sets the text colour
 int s_setcol(int fore, int back, bool hi, bool ul, char **rv, size_t *l, size_t *i); // writes a setcol-like string with append_char (see bits.h)

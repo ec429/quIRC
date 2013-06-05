@@ -17,16 +17,11 @@
 #include <time.h>
 #include <ctype.h>
 #include <math.h>
-#include "ttyesc.h"
 #include "colour.h"
 #include "config.h"
-#include "bits.h"
 #include "input.h"
 #include "irc.h"
-#include "names.h"
-#include "text.h"
 #include "types.h"
-#include "version.h"
 
 #define SERVER(buf)	(bufs[bufs[buf].server]) // server of a buf
 #define LIVE(buf)	(bufs[buf].live && SERVER(buf).live)	// Check liveness

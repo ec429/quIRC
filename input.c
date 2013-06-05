@@ -8,6 +8,13 @@
 
 #include "input.h"
 #include "logging.h"
+#include "strbuf.h"
+#include "ttyesc.h"
+#include "buffer.h"
+#include "irc.h"
+#include "bits.h"
+#include "config.h"
+#include "keymod.h"
 
 size_t i_firstlen(ichar src);
 size_t i_lastlen(ichar src);
