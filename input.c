@@ -1790,6 +1790,63 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		}
 		return(0);
 	}
+	if(strcmp(cmd, "print")==0)
+	{
+		mtype lm=MT_STATUS;
+		prio lq=PRIO_NORMAL;
+		signed char lp=0;
+		const char *ltag="";
+		bool ls=true;
+		while(*args=='-')
+		{
+			size_t al=strcspn(args, " ");
+			args[al]=0;
+			while(args[++al]==' ');
+			if(strcmp(args, "--")==0)
+			{
+				args+=al;
+				break;
+			}
+			switch(args[1])
+			{
+				case 'm':
+					lm=mtype_from_name(args+2);
+					if(lm==(mtype)-1)
+					{
+						add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, args, "/print: Bad mtype: ");
+						return(0);
+					}
+				break;
+				case 'q':
+					lq=prio_from_name(args+2);
+					if(lq==(prio)-1)
+					{
+						add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, args, "/print: Bad prio: ");
+						return(0);
+					}
+				break;
+				case 'p':
+					if(sscanf(args+2, "%hhd", &lp)!=1)
+					{
+						add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, args, "/print: Bad prefix: ");
+						return(0);
+					}
+				break;
+				case 't':
+					ltag=args+2;
+				break;
+				case 'R':
+					ls=false;
+				break;
+				case 'S':
+					ls=true;
+				break;
+			}
+			args+=al;
+		}
+		add_to_buffer(cbuf, lm, lq, lp, ls, args, ltag);
+		return(0);
+	}
 	if((strcmp(cmd, "cmd")==0)||(strcmp(cmd, "quote")==0))
 	{
 		if(!SERVER(cbuf).handle)
