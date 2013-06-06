@@ -34,7 +34,7 @@ void loadkeys(FILE *fp)
 				{
 					char msg[32+strlen(new.name)];
 					sprintf(msg, "keys: missing mod in %s", new.name);
-					atr_failsafe(&s_buf, ERR, msg, "init: ");
+					atr_failsafe(&s_buf, MT_ERR, msg, "init: ");
 					free(line);
 					continue;
 				}
@@ -43,7 +43,7 @@ void loadkeys(FILE *fp)
 				{
 					char msg[32+strlen(new.name)];
 					sprintf(msg, "keys: odd mod length in %s", new.name);
-					atr_failsafe(&s_buf, ERR, msg, "init: ");
+					atr_failsafe(&s_buf, MT_ERR, msg, "init: ");
 					free(line);
 					continue;
 				}
@@ -52,7 +52,7 @@ void loadkeys(FILE *fp)
 				{
 					char msg[32+strlen(new.name)];
 					sprintf(msg, "keys: malloc failure in %s", new.name);
-					atr_failsafe(&s_buf, ERR, msg, "init: ");
+					atr_failsafe(&s_buf, MT_ERR, msg, "init: ");
 					free(line);
 					continue;
 				}
@@ -63,7 +63,7 @@ void loadkeys(FILE *fp)
 					{
 						char msg[32+strlen(new.name)];
 						sprintf(msg, "keys: bad mod (not hex) in %s", new.name);
-						atr_failsafe(&s_buf, ERR, msg, "init: ");
+						atr_failsafe(&s_buf, MT_ERR, msg, "init: ");
 						free(line);
 						cont=true;
 						break;
@@ -74,7 +74,7 @@ void loadkeys(FILE *fp)
 					{
 						char msg[32+strlen(new.name)];
 						sprintf(msg, "keys: sscanf failed in %s", new.name);
-						atr_failsafe(&s_buf, ERR, msg, "init: ");
+						atr_failsafe(&s_buf, MT_ERR, msg, "init: ");
 						free(line);
 						cont=true;
 						break;
@@ -97,7 +97,7 @@ void loadkeys(FILE *fp)
 				{
 					char msg[32+strlen(new.name)];
 					sprintf(msg, "keys: unrecognised name %s", new.name);
-					atr_failsafe(&s_buf, ERR, msg, "init: ");
+					atr_failsafe(&s_buf, MT_ERR, msg, "init: ");
 				}
 				free(new.mod);
 			}
@@ -224,7 +224,7 @@ int rcread(FILE *rcfp)
 			{
 				char msg[48+strlen(cmd)];
 				sprintf(msg, "rc: Unrecognised ident in %%colour (%s)", cmd);
-				atr_failsafe(&s_buf, ERR, msg, "init: ");
+				atr_failsafe(&s_buf, MT_ERR, msg, "init: ");
 				nerrors++;
 			}
 		}
@@ -237,7 +237,7 @@ int rcread(FILE *rcfp)
 			{
 				char msg[40+strlen(cmd)];
 				sprintf(msg, "rc: Command (%s) without argument", cmd);
-				atr_failsafe(&s_buf, ERR, msg, "init: ");
+				atr_failsafe(&s_buf, MT_ERR, msg, "init: ");
 				nerrors++;
 			}
 			else if(strcmp(cmd, "server")==0)
@@ -303,7 +303,7 @@ int rcread(FILE *rcfp)
 				char *sw=strtok(rest, " \t");
 				if(*sw!='-')
 				{
-					atr_failsafe(&s_buf, ERR, "rc: ignore: need options (use '-' for no options)", "init: ");
+					atr_failsafe(&s_buf, MT_ERR, "rc: ignore: need options (use '-' for no options)", "init: ");
 					nerrors++;
 				}
 				else
@@ -311,7 +311,7 @@ int rcread(FILE *rcfp)
 					rest=strtok(NULL, "");
 					if(!rest)
 					{
-						atr_failsafe(&s_buf, ERR, "rc: ignore: need options (use '-' for no options)", "init: ");
+						atr_failsafe(&s_buf, MT_ERR, "rc: ignore: need options (use '-' for no options)", "init: ");
 						nerrors++;
 					}
 					else
@@ -353,7 +353,7 @@ int rcread(FILE *rcfp)
 				char *sw=strtok(rest, " \t");
 				if(*sw!='-')
 				{
-					atr_failsafe(&s_buf, ERR, "rc: *ignore: need options (use '-' for no options)", "init: ");
+					atr_failsafe(&s_buf, MT_ERR, "rc: *ignore: need options (use '-' for no options)", "init: ");
 					nerrors++;
 				}
 				else
@@ -361,7 +361,7 @@ int rcread(FILE *rcfp)
 					rest=strtok(NULL, "");
 					if(!rest)
 					{
-						atr_failsafe(&s_buf, ERR, "rc: *ignore: need options (use '-' for no options)", "init: ");
+						atr_failsafe(&s_buf, MT_ERR, "rc: *ignore: need options (use '-' for no options)", "init: ");
 						nerrors++;
 					}
 					else
@@ -426,7 +426,7 @@ int rcread(FILE *rcfp)
 					logt=LOGT_SYMBOLIC;
 				else
 				{
-					atr_failsafe(&s_buf, ERR, "rc: >log: Unrecognised log type (valid types are: plain, symbolic)", "init: ");
+					atr_failsafe(&s_buf, MT_ERR, "rc: >log: Unrecognised log type (valid types are: plain, symbolic)", "init: ");
 					nerrors++;
 				}
 				if(logt!=LOGT_NONE)
@@ -435,8 +435,8 @@ int rcread(FILE *rcfp)
 					servs->chans->logf=fopen(logf, "a");
 					if(!servs->chans->logf)
 					{
-						atr_failsafe(&s_buf, ERR, "rc: >log: Failed to open log file for append", "init: ");
-						atr_failsafe(&s_buf, ERR, strerror(errno), "fopen: ");
+						atr_failsafe(&s_buf, MT_ERR, "rc: >log: Failed to open log file for append", "init: ");
+						atr_failsafe(&s_buf, MT_ERR, strerror(errno), "fopen: ");
 						nerrors++;
 					}
 					servs->chans->logt=logt;
@@ -447,7 +447,7 @@ int rcread(FILE *rcfp)
 			{
 				char msg[48+strlen(cmd)];
 				sprintf(msg, "rc: Unrecognised cmd %s in .quirc/rc (ignoring)", cmd);
-				atr_failsafe(&s_buf, ERR, msg, "init: ");
+				atr_failsafe(&s_buf, MT_ERR, msg, "init: ");
 				nerrors++;
 			}
 		}
@@ -549,7 +549,7 @@ signed int pargs(int argc, char *argv[])
 		{
 			char msg[40+strlen(argv[arg])];
 			sprintf(msg, "pargs: Unrecognised argument '%s'", argv[arg]);
-			atr_failsafe(&s_buf, ERR, msg, "init: ");
+			atr_failsafe(&s_buf, MT_ERR, msg, "init: ");
 		}
 	}
 	if(check) return(0);

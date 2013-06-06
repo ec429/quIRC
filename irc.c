@@ -31,7 +31,7 @@ nl_list *irc_connect(char *server, const char *portno)
 	struct addrinfo *hints=malloc(sizeof(struct addrinfo));
 	if(!hints)
 	{
-		add_to_buffer(0, ERR, NORMAL, 0, false, strerror(errno), "malloc: ");
+		add_to_buffer(0, MT_ERR, PRIO_NORMAL, 0, false, strerror(errno), "malloc: ");
 		return(NULL);
 	}
 	memset(hints, 0, sizeof(*hints));
@@ -40,13 +40,13 @@ nl_list *irc_connect(char *server, const char *portno)
 	struct gaicb *nl_details=malloc(sizeof(struct gaicb));
 	if(!nl_details)
 	{
-		add_to_buffer(0, ERR, NORMAL, 0, false, strerror(errno), "malloc: ");
+		add_to_buffer(0, MT_ERR, PRIO_NORMAL, 0, false, strerror(errno), "malloc: ");
 		return(NULL);
 	}
 	nl_list *nl=malloc(sizeof(nl_list));
 	if(!nl)
 	{
-		add_to_buffer(0, ERR, NORMAL, 0, false, strerror(errno), "malloc: ");
+		add_to_buffer(0, MT_ERR, PRIO_NORMAL, 0, false, strerror(errno), "malloc: ");
 		free(nl_details);
 		return(NULL);
 	}
@@ -82,7 +82,7 @@ int irc_connect(char *server, const char *portno, fd_set *master, int *fdmax)
 	int rv;
 	if((rv=getaddrinfo(server, portno, &hints, &servinfo))!=0)
 	{
-		add_to_buffer(0, ERR, NORMAL, 0, false, (char *)gai_strerror(rv), "getaddrinfo: ");
+		add_to_buffer(0, MT_ERR, PRIO_NORMAL, 0, false, (char *)gai_strerror(rv), "getaddrinfo: ");
 		return(0); // 0 indicates failure as rv is new serverhandle value
 	}
 #endif /* ASYNCH_NL */
@@ -94,13 +94,13 @@ int irc_connect(char *server, const char *portno, fd_set *master, int *fdmax)
 		inet_ntop(p->ai_family, &(((struct sockaddr_in*)p->ai_addr)->sin_addr), sip, sizeof(sip));
 		if((serverhandle=socket(p->ai_family, p->ai_socktype, p->ai_protocol))==-1)
 		{
-			add_to_buffer(0, ERR, NORMAL, 0, false, strerror(errno), "socket: ");
+			add_to_buffer(0, MT_ERR, PRIO_NORMAL, 0, false, strerror(errno), "socket: ");
 			continue;
 		}
 		if(fcntl(serverhandle, F_SETFD, O_NONBLOCK)==-1)
 		{
 			close(serverhandle);
-			add_to_buffer(0, ERR, NORMAL, 0, false, strerror(errno), "fcntl: ");
+			add_to_buffer(0, MT_ERR, PRIO_NORMAL, 0, false, strerror(errno), "fcntl: ");
 			continue;
 		}
 		connect_loop:
@@ -115,7 +115,7 @@ int irc_connect(char *server, const char *portno, fd_set *master, int *fdmax)
 				else
 				{
 					close(serverhandle);
-					add_to_buffer(0, ERR, NORMAL, 0, false, strerror(errno), "connect: ");
+					add_to_buffer(0, MT_ERR, PRIO_NORMAL, 0, false, strerror(errno), "connect: ");
 					continue;
 				}
 			}
@@ -124,10 +124,10 @@ int irc_connect(char *server, const char *portno, fd_set *master, int *fdmax)
 	}
 	char cmsg[16+strlen(sip)];
 	sprintf(cmsg, "fd=%d, ip=%s", serverhandle, sip);
-	add_to_buffer(0, STA, DEBUG, 0, false, cmsg, "DBG connect: ");
+	add_to_buffer(0, MT_STATUS, PRIO_DEBUG, 0, false, cmsg, "DBG connect: ");
 	if(!p)
 	{
-		add_to_buffer(0, ERR, NORMAL, 0, false, "failed to connect to server", "/connect: ");
+		add_to_buffer(0, MT_ERR, PRIO_NORMAL, 0, false, "failed to connect to server", "/connect: ");
 		return(0); // 0 indicates failure as rv is new serverhandle value
 	}
 	freeaddrinfo(servinfo);
@@ -139,7 +139,7 @@ int irc_connect(char *server, const char *portno, fd_set *master, int *fdmax)
 
 int irc_conn_rest(int b, char *nick, char *username, char *passwd, char *fullname)
 {
-	add_to_buffer(0, STA, DEBUG, 0, false, "", "DBG connect rest");
+	add_to_buffer(0, MT_STATUS, PRIO_DEBUG, 0, false, "", "DBG connect rest");
 	bufs[b].live=true; // mark it as live
 	bufs[b].conninpr=false;
 	bufs[b].ping=0;
@@ -174,26 +174,26 @@ int autoconnect(fd_set *master, int *fdmax, servlist *serv) // XXX broken in the
 	sprintf(cstr, "Connecting to %s on port %s...", serv->name, serv->portno);
 	nl_list *list=irc_connect(serv->name, serv->portno);
 	if(!list) return(autoconnect(master, fdmax, serv->next));
-	add_to_buffer(0, STA, QUIET, 0, false, cstr, "auto: ");
+	add_to_buffer(0, MT_STATUS, PRIO_QUIET, 0, false, cstr, "auto: ");
 	list->reconn_b=0;
 	list->autoent=serv;
 	#else /* ASYNCH_NL */
 	char cstr[36+strlen(serv->name)+strlen(serv->portno)];
 	sprintf(cstr, "Connecting to %s on port %s...", serv->name, serv->portno);
-	add_to_buffer(0, STA, QUIET, 0, false, cstr, "auto: ");
+	add_to_buffer(0, MT_STATUS, PRIO_QUIET, 0, false, cstr, "auto: ");
 	int serverhandle=irc_connect(serv->name, serv->portno, master, fdmax);
 	if(serverhandle)
 	{
 		bufs=(buffer *)realloc(bufs, ++nbufs*sizeof(buffer));
 		cbuf=nbufs-1;
-		init_buffer(cbuf, SERVER, serv->name, buflines);
+		init_buffer(cbuf, BT_SERVER, serv->name, buflines);
 		bufs[cbuf].handle=serverhandle;
 		bufs[cbuf].nick=strdup(serv->nick);
 		bufs[cbuf].autoent=serv;
 		if(serv) bufs[cbuf].ilist=n_dup(serv->igns);
 		bufs[cbuf].server=cbuf;
 		bufs[cbuf].conninpr=true;
-		add_to_buffer(cbuf, STA, QUIET, 0, false, cstr, "auto: ");
+		add_to_buffer(cbuf, MT_STATUS, PRIO_QUIET, 0, false, cstr, "auto: ");
 		redraw_buffer();
 	}
 	#endif /* ASYNCH_NL */
@@ -223,14 +223,14 @@ int irc_tx(int fd, char * packet)
 	{
 		char tmsg[32+strlen(pq)];
 		sprintf(tmsg, "%d, %lu bytes: %s", fd, p, pq);
-		add_to_buffer(0, STA, DEBUG, 0, false, tmsg, "DBG SIGPIPE tx: ");
+		add_to_buffer(0, MT_STATUS, PRIO_DEBUG, 0, false, tmsg, "DBG SIGPIPE tx: ");
 		sigpipe=0;
 		return(-1);
 	}
 	send(fd, "\n", 1, 0);
 	char tmsg[32+strlen(pq)];
 	sprintf(tmsg, "%d, %lu bytes: %s", fd, l, pq);
-	add_to_buffer(0, STA, DEBUG, 0, false, tmsg, "DBG tx: ");
+	add_to_buffer(0, MT_STATUS, PRIO_DEBUG, 0, false, tmsg, "DBG tx: ");
 	if(sigpipe)
 	{
 		sigpipe=0;
@@ -265,9 +265,9 @@ int irc_rx(int fd, char ** data, fd_set *master)
 			int b;
 			for(b=0;b<nbufs;b++)
 			{
-				if((fd==bufs[b].handle) && (bufs[b].type==SERVER))
+				if((fd==bufs[b].handle) && (bufs[b].type==BT_SERVER))
 				{
-					add_to_buffer(b, ERR, NORMAL, 0, false, strerror(errno), "irc_rx: recv:");
+					add_to_buffer(b, MT_ERR, PRIO_NORMAL, 0, false, strerror(errno), "irc_rx: recv:");
 					bufs[b].live=false;
 					close(bufs[b].handle);
 					bufs[b].handle=0; // de-bind fd
@@ -283,7 +283,7 @@ int irc_rx(int fd, char ** data, fd_set *master)
 	{
 		char rmsg[32+strlen(buf)];
 		sprintf(rmsg, "%d, %lu bytes: %s", fd, l, buf);
-		add_to_buffer(0, STA, DEBUG, 0, false, rmsg, sigpipe?"DBG SIGPIPE rx: ":"DBG rx: ");
+		add_to_buffer(0, MT_STATUS, PRIO_DEBUG, 0, false, rmsg, sigpipe?"DBG SIGPIPE rx: ":"DBG rx: ");
 	}
 	if(sigpipe)
 	{
@@ -592,7 +592,7 @@ int irc_numeric(message pkt, int b)
 								unsigned int npfx=p-value-1;
 								prefix *pfxs=malloc(npfx*sizeof(prefix));
 								if(!pfxs)
-									e_buf_print(b, ERR, pkt, "RPL_ISUPPORT: Discarded PREFIX - malloc failure: ");
+									e_buf_print(b, MT_ERR, pkt, "RPL_ISUPPORT: Discarded PREFIX - malloc failure: ");
 								else
 								{
 									unsigned int i;
@@ -601,7 +601,7 @@ int irc_numeric(message pkt, int b)
 										pfxs[i].letter=value[i+1];
 										if(!(pfxs[i].pfx=p[i+1]))
 										{
-											e_buf_print(b, ERR, pkt, "RPL_ISUPPORT: Malformed PREFIX - unbalanced parts: ");
+											e_buf_print(b, MT_ERR, pkt, "RPL_ISUPPORT: Malformed PREFIX - unbalanced parts: ");
 											break;
 										}
 									}
@@ -614,10 +614,10 @@ int irc_numeric(message pkt, int b)
 								}
 							}
 							else
-								e_buf_print(b, ERR, pkt, "RPL_ISUPPORT: Malformed PREFIX - missing ')': ");
+								e_buf_print(b, MT_ERR, pkt, "RPL_ISUPPORT: Malformed PREFIX - missing ')': ");
 						}
 						else
-							e_buf_print(b, ERR, pkt, "RPL_ISUPPORT: Malformed PREFIX - missing '(': ");
+							e_buf_print(b, MT_ERR, pkt, "RPL_ISUPPORT: Malformed PREFIX - missing '(': ");
 					}
 					else
 					{
@@ -638,7 +638,7 @@ int irc_numeric(message pkt, int b)
 				{
 					char isup[strlen(rest)+(value?strlen(value):0)+3];
 					sprintf(isup, "%s%s%s%s", min?"-":"", rest, value?"=":"", value?value:"");
-					add_to_buffer(b, UNN, QUIET, 0, false, isup, "RPL_ISUPPORT: ");
+					add_to_buffer(b, MT_UNN, PRIO_QUIET, 0, false, isup, "RPL_ISUPPORT: ");
 				}
 			}
 		break;
@@ -646,12 +646,12 @@ int irc_numeric(message pkt, int b)
 			// 353 dest {=|/|\*|@} #chan :([@|\+]nick)+
 			if(pkt.nargs<3)
 			{
-				e_buf_print(b, ERR, pkt, "RPL_NAMREPLY: Not enough arguments: ");
+				e_buf_print(b, MT_ERR, pkt, "RPL_NAMREPLY: Not enough arguments: ");
 				break;
 			}
 			for(b2=0;b2<nbufs;b2++)
 			{
-				if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(pkt.args[2], bufs[b2].bname, bufs[b].casemapping)==0))
+				if((bufs[b2].server==b) && (bufs[b2].type==BT_CHANNEL) && (irc_strcasecmp(pkt.args[2], bufs[b2].bname, bufs[b].casemapping)==0))
 				{
 					if(!bufs[b2].namreply)
 					{
@@ -709,17 +709,17 @@ int irc_numeric(message pkt, int b)
 			// 366 dest #chan :End of /NAMES list
 			if(pkt.nargs<1)
 			{
-				e_buf_print(b, ERR, pkt, "RPL_ENDOFNAMES: Not enough arguments: ");
+				e_buf_print(b, MT_ERR, pkt, "RPL_ENDOFNAMES: Not enough arguments: ");
 				break;
 			}
 			for(b2=0;b2<nbufs;b2++)
 			{
-				if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(pkt.args[1], bufs[b2].bname, bufs[b].casemapping)==0))
+				if((bufs[b2].server==b) && (bufs[b2].type==BT_CHANNEL) && (irc_strcasecmp(pkt.args[1], bufs[b2].bname, bufs[b].casemapping)==0))
 				{
 					bufs[b2].namreply=false;
 					char lmsg[32+strlen(pkt.args[1])];
 					sprintf(lmsg, "NAMES list received for %s", pkt.args[1]);
-					add_to_buffer(b2, STA, QUIET, 0, false, lmsg, "");
+					add_to_buffer(b2, MT_STATUS, PRIO_QUIET, 0, false, lmsg, "");
 				}
 			}
 		break;
@@ -728,32 +728,32 @@ int irc_numeric(message pkt, int b)
 		case RPL_MOTD: // 372 dest :- <text>
 			if(pkt.nargs<2)
 			{
-				e_buf_print(b, ERR, pkt, num==RPL_MOTD?"RPL_MOTD: Not enough arguments: ":num==RPL_MOTDSTART?"RPL_MOTDSTART: Not enough arguments: ":num==RPL_ENDOFMOTD?"RPL_ENDOFMOTD: Not enough arguments: ":"RPL_MOTD???: Not enough arguments: ");
+				e_buf_print(b, MT_ERR, pkt, num==RPL_MOTD?"RPL_MOTD: Not enough arguments: ":num==RPL_MOTDSTART?"RPL_MOTDSTART: Not enough arguments: ":num==RPL_ENDOFMOTD?"RPL_ENDOFMOTD: Not enough arguments: ":"RPL_MOTD???: Not enough arguments: ");
 				break;
 			}
-			add_to_buffer(b, NOTICE, QUIET, 0, false, pkt.args[1], "");
+			add_to_buffer(b, MT_NOTICE, PRIO_QUIET, 0, false, pkt.args[1], "");
 		break;
 		case ERR_NOMOTD: // 422 <dest> :MOTD File is missing
 			if(pkt.nargs<2)
 			{
-				e_buf_print(b, ERR, pkt, "ERR_NOMOTD: Not enough arguments: ");
+				e_buf_print(b, MT_ERR, pkt, "ERR_NOMOTD: Not enough arguments: ");
 				break;
 			}
-			add_to_buffer(b, NOTICE, QUIET, 0, false, pkt.args[1], "");
+			add_to_buffer(b, MT_NOTICE, PRIO_QUIET, 0, false, pkt.args[1], "");
 		break;
 		case RPL_TOPIC: // 332 dest <channel> :<topic>
 			if(pkt.nargs<3)
 			{
-				e_buf_print(b, ERR, pkt, "RPL_TOPIC: Not enough arguments: ");
+				e_buf_print(b, MT_ERR, pkt, "RPL_TOPIC: Not enough arguments: ");
 				break;
 			}
 			for(b2=0;b2<nbufs;b2++)
 			{
-				if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(pkt.args[1], bufs[b2].bname, bufs[b].casemapping)==0))
+				if((bufs[b2].server==b) && (bufs[b2].type==BT_CHANNEL) && (irc_strcasecmp(pkt.args[1], bufs[b2].bname, bufs[b].casemapping)==0))
 				{
 					char tmsg[32+strlen(pkt.args[1])];
 					sprintf(tmsg, "Topic for %s is ", pkt.args[1]);
-					add_to_buffer(b2, PREFORMAT, NORMAL, 0, false, pkt.args[2], tmsg);
+					add_to_buffer(b2, MT_PREFORMAT, PRIO_NORMAL, 0, false, pkt.args[2], tmsg);
 					free(bufs[b2].topic);
 					bufs[b2].topic=strdup(pkt.args[2]);
 				}
@@ -762,16 +762,16 @@ int irc_numeric(message pkt, int b)
 		case RPL_NOTOPIC: // 331 dest <channel> :No topic is set
 			if(pkt.nargs<2)
 			{
-				e_buf_print(b, ERR, pkt, "RPL_NOTOPIC: Not enough arguments: ");
+				e_buf_print(b, MT_ERR, pkt, "RPL_NOTOPIC: Not enough arguments: ");
 				break;
 			}
 			for(b2=0;b2<nbufs;b2++)
 			{
-				if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(pkt.args[1], bufs[b2].bname, bufs[b].casemapping)==0))
+				if((bufs[b2].server==b) && (bufs[b2].type==BT_CHANNEL) && (irc_strcasecmp(pkt.args[1], bufs[b2].bname, bufs[b].casemapping)==0))
 				{
 					char tmsg[32+strlen(pkt.args[1])];
 					sprintf(tmsg, "No topic is set for %s", pkt.args[1]);
-					add_to_buffer(b2, NOTICE, NORMAL, 0, false, tmsg, "");
+					add_to_buffer(b2, MT_NOTICE, PRIO_NORMAL, 0, false, tmsg, "");
 					free(bufs[b2].topic);
 				}
 			}
@@ -779,12 +779,12 @@ int irc_numeric(message pkt, int b)
 		case RPL_X_TOPICWASSET: // 333 dest <channel> <nick> <time>
 			if(pkt.nargs<3)
 			{
-				e_buf_print(b, ERR, pkt, "RPL_X_TOPICWASSET: Not enough arguments: ");
+				e_buf_print(b, MT_ERR, pkt, "RPL_X_TOPICWASSET: Not enough arguments: ");
 				break;
 			}
 			for(b2=0;b2<nbufs;b2++)
 			{
-				if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(pkt.args[1], bufs[b2].bname, bufs[b].casemapping)==0))
+				if((bufs[b2].server==b) && (bufs[b2].type==BT_CHANNEL) && (irc_strcasecmp(pkt.args[1], bufs[b2].bname, bufs[b].casemapping)==0))
 				{
 					TYPEINTMAX when;
 					sscanf(pkt.args[3], PRINTMAX, &when);
@@ -794,7 +794,7 @@ int irc_numeric(message pkt, int b)
 					size_t tslen = strftime(ts, sizeof(ts), "%H:%M:%S GMT on %a, %d %b %Y", tm); // TODO options controlling date format (eg. ISO 8601)
 					char tmsg[32+strlen(pkt.args[2])+tslen];
 					sprintf(tmsg, "Topic was set by %s at %s", pkt.args[2], ts);
-					add_to_buffer(b2, STA, QUIET, 0, false, tmsg, "");
+					add_to_buffer(b2, MT_STATUS, PRIO_QUIET, 0, false, tmsg, "");
 				}
 			}
 		break;
@@ -802,30 +802,30 @@ int irc_numeric(message pkt, int b)
 		case RPL_LUSERME: // 255 <dest> ":I have <integer> clients and <integer> servers
 			if(pkt.nargs<2)
 			{
-				e_buf_print(b, ERR, pkt, num==RPL_LUSERCLIENT?"RPL_LUSERCLIENT: Not enough arguments: ":num==RPL_LUSERME?"RPL_LUSERME: Not enough arguments: ":"RPL_LUSER???: Not enough arguments: ");
+				e_buf_print(b, MT_ERR, pkt, num==RPL_LUSERCLIENT?"RPL_LUSERCLIENT: Not enough arguments: ":num==RPL_LUSERME?"RPL_LUSERME: Not enough arguments: ":"RPL_LUSER???: Not enough arguments: ");
 				break;
 			}
-			add_to_buffer(b, STA, QUIET, 0, false, pkt.args[1], ": ");
+			add_to_buffer(b, MT_STATUS, PRIO_QUIET, 0, false, pkt.args[1], ": ");
 		break;
 		case RPL_LUSEROP: // 252 <dest> <integer> :operator(s) online
 		case RPL_LUSERUNKNOWN: // 253 <dest> <integer> :unknown connection(s)
 		case RPL_LUSERCHANNELS: // 254 <dest> <integer> :channels formed
 			if(pkt.nargs<3)
 			{
-				e_buf_print(b, ERR, pkt, num==RPL_LUSEROP?"RPL_LUSEROP: Not enough arguments: ":num==RPL_LUSERUNKNOWN?"RPL_LUSERUNKNOWN: Not enough arguments: ":num==RPL_LUSERCHANNELS?"RPL_LUSERCHANNELS: Not enough arguments: ":"RPL_LUSER???: Not enough arguments: ");
+				e_buf_print(b, MT_ERR, pkt, num==RPL_LUSEROP?"RPL_LUSEROP: Not enough arguments: ":num==RPL_LUSERUNKNOWN?"RPL_LUSERUNKNOWN: Not enough arguments: ":num==RPL_LUSERCHANNELS?"RPL_LUSERCHANNELS: Not enough arguments: ":"RPL_LUSER???: Not enough arguments: ");
 				break;
 			}
 			else
 			{
 				char lmsg[2+strlen(pkt.args[1])+strlen(pkt.args[2])];
 				sprintf(lmsg, "%s %s", pkt.args[1], pkt.args[2]);
-				add_to_buffer(b, STA, QUIET, 0, false, lmsg, ": ");
+				add_to_buffer(b, MT_STATUS, PRIO_QUIET, 0, false, lmsg, ": ");
 			}
 		break;
 		case RPL_AWAY: // 301 <dest> <nick> :<away message>
 			if(pkt.nargs<2)
 			{
-				e_buf_print(b, ERR, pkt, "RPL_AWAY: Not enough arguments: ");
+				e_buf_print(b, MT_ERR, pkt, "RPL_AWAY: Not enough arguments: ");
 				break;
 			}
 			else
@@ -833,50 +833,50 @@ int irc_numeric(message pkt, int b)
 				int b2;
 				for(b2=0;b2<nbufs;b2++)
 				{
-					if((bufs[b2].server==b)&&(bufs[b2].type==PRIVATE)&&(irc_strcasecmp(pkt.args[1], bufs[b2].bname, bufs[b].casemapping)==0))
+					if((bufs[b2].server==b)&&(bufs[b2].type==BT_PRIVATE)&&(irc_strcasecmp(pkt.args[1], bufs[b2].bname, bufs[b].casemapping)==0))
 					{
-						add_to_buffer(b2, NOTICE, NORMAL, 0, false, pkt.nargs>2?pkt.args[2]:"no message set", pkt.args[1]);
+						add_to_buffer(b2, MT_NOTICE, PRIO_NORMAL, 0, false, pkt.nargs>2?pkt.args[2]:"no message set", pkt.args[1]);
 						break;
 					}
 				}
 				if(b2==nbufs)
 				{
-					add_to_buffer(b, NOTICE, NORMAL, 0, false, pkt.nargs>2?pkt.args[2]:"no message set", pkt.args[1]);
+					add_to_buffer(b, MT_NOTICE, PRIO_NORMAL, 0, false, pkt.nargs>2?pkt.args[2]:"no message set", pkt.args[1]);
 				}
 			}
 		break;
 		case RPL_NOWAWAY: // 306 <dest> :You have been marked as being away
-			add_to_buffer(b, STA, QUIET, 0, false, pkt.nargs>1?pkt.args[1]:"You have been marked as being away", "/away: ");
+			add_to_buffer(b, MT_STATUS, PRIO_QUIET, 0, false, pkt.nargs>1?pkt.args[1]:"You have been marked as being away", "/away: ");
 		break;
 		case RPL_UNAWAY: // 305 <dest> :You are no longer marked as being away
-			add_to_buffer(b, STA, QUIET, 0, false, pkt.nargs>1?pkt.args[1]:"You are no longer marked as being away", "/unaway: ");
+			add_to_buffer(b, MT_STATUS, PRIO_QUIET, 0, false, pkt.nargs>1?pkt.args[1]:"You are no longer marked as being away", "/unaway: ");
 		break;
 		case RPL_X_LOCALUSERS: // 265 <dest> :Current Local Users: <integer>\tMax: <integer>
 		case RPL_X_GLOBALUSERS: // 266 <dest> :Current Global Users: <integer>\tMax: <integer>
 			if(pkt.nargs<2)
 			{
-				e_buf_print(b, ERR, pkt, num==RPL_X_LOCALUSERS?"RPL_X_LOCALUSERS: Not enough arguments: ":num==RPL_X_GLOBALUSERS?"RPL_X_GLOBALUSERS: Not enough arguments: ":"RPL_???USERS: Not enough arguments: ");
+				e_buf_print(b, MT_ERR, pkt, num==RPL_X_LOCALUSERS?"RPL_X_LOCALUSERS: Not enough arguments: ":num==RPL_X_GLOBALUSERS?"RPL_X_GLOBALUSERS: Not enough arguments: ":"RPL_???USERS: Not enough arguments: ");
 				break;
 			}
-			add_to_buffer(b, STA, QUIET, 0, false, pkt.args[1], ": ");
+			add_to_buffer(b, MT_STATUS, PRIO_QUIET, 0, false, pkt.args[1], ": ");
 		break;
 		case ERR_NOSUCHNICK: // 401 <dest> <nick> :No such nick/channel
 			if(pkt.nargs<2)
 			{
-				e_buf_print(b, ERR, pkt, "ERR_NOSUCHNICK: Not enough arguments: ");
+				e_buf_print(b, MT_ERR, pkt, "ERR_NOSUCHNICK: Not enough arguments: ");
 				break;
 			}
 			int b2=findptab(b, pkt.args[1]);
 			if(b2<0)
 				b2=b;
-			add_to_buffer(b2, ERR, QUIET, 0, false, pkt.args[1], "No such nick/channel: ");
+			add_to_buffer(b2, MT_ERR, PRIO_QUIET, 0, false, pkt.args[1], "No such nick/channel: ");
 		break;
 		case 001:
 		case 002:
 		case 003:
 			if(pkt.nargs>1)
 			{
-				add_to_buffer(b, STA, QUIET, 0, false, pkt.args[1], ": ");
+				add_to_buffer(b, MT_STATUS, PRIO_QUIET, 0, false, pkt.args[1], ": ");
 				break;
 			}
 			// else fall through
@@ -885,10 +885,10 @@ int irc_numeric(message pkt, int b)
 			{
 				char tag[40];
 				snprintf(tag, 40, "Unhandled %s: ", numeric_names[num]);
-				add_to_buffer(b, UNN, QUIET, 0, false, pkt.args[pkt.nargs-1], tag);
+				add_to_buffer(b, MT_UNN, PRIO_QUIET, 0, false, pkt.args[pkt.nargs-1], tag);
 			}
 			else
-				e_buf_print(b, UNN, pkt, "Unknown numeric: ");
+				e_buf_print(b, MT_UNN, pkt, "Unknown numeric: ");
 		break;
 	}
 	return(num);
@@ -899,7 +899,7 @@ int rx_ping(message pkt, int b)
 	// PING <sender>
 	if(pkt.nargs<1)
 	{
-		e_buf_print(b, ERR, pkt, "Not enough arguments: ");
+		e_buf_print(b, MT_ERR, pkt, "Not enough arguments: ");
 		return(0);
 	}
 	char pong[7+strlen(pkt.args[0])];
@@ -924,21 +924,21 @@ int rx_mode(message pkt, int b)
 			irc_tx(fd, joinmsg);
 			char jmsg[16+strlen(curr->name)];
 			sprintf(jmsg, "auto: Joining %s", curr->name);
-			add_to_buffer(b, JOIN, QUIET, 0, true, jmsg, "");
+			add_to_buffer(b, MT_JOIN, PRIO_QUIET, 0, true, jmsg, "");
 			curr=curr->next;
 		}
 		serv->join=true;
 	}
 	if(pkt.nargs<2)
 	{
-		e_buf_print(b, ERR, pkt, "Not enough arguments: ");
+		e_buf_print(b, MT_ERR, pkt, "Not enough arguments: ");
 		return(0);
 	}
 	char *from, *user, *host;
 	prefix_split(pkt.prefix, &from, &user, &host);
 	for(int b2=0;b2<nbufs;b2++)
 	{
-		if((bufs[b2].type==CHANNEL)&&(bufs[b2].server==b)&&(irc_strcasecmp(pkt.args[0], bufs[b2].bname, bufs[b].casemapping)==0))
+		if((bufs[b2].type==BT_CHANNEL)&&(bufs[b2].server==b)&&(irc_strcasecmp(pkt.args[0], bufs[b2].bname, bufs[b].casemapping)==0))
 		{
 			bool plus=false;
 			switch(*pkt.args[1])
@@ -954,7 +954,7 @@ int rx_mode(message pkt, int b)
 							// user expected
 							if(pkt.nargs<3)
 							{
-								e_buf_print(b, ERR, pkt, "Not enough arguments: ");
+								e_buf_print(b, MT_ERR, pkt, "Not enough arguments: ");
 								return(0);
 							}
 							name *curr=bufs[b2].nlist;
@@ -990,7 +990,7 @@ int rx_mode(message pkt, int b)
 													}
 													char mm[24+strlen(curr->data)+strlen(ms)+strlen(from)];
 													sprintf(mm, "You (%s) are now mode %s (%s)", curr->data, ms, from);
-													add_to_buffer(b2, MODE, NORMAL, 0, false, mm, "");
+													add_to_buffer(b2, MT_MODE, PRIO_NORMAL, 0, false, mm, "");
 												}
 												else
 												{
@@ -1008,7 +1008,7 @@ int rx_mode(message pkt, int b)
 													}
 													char mm[16+strlen(ms)+strlen(from)];
 													sprintf(mm, " is now mode %s (%s)", ms, from);
-													add_to_buffer(b2, MODE, NORMAL, 0, false, mm, curr->data);
+													add_to_buffer(b2, MT_MODE, PRIO_NORMAL, 0, false, mm, curr->data);
 												}
 											}
 										}
@@ -1037,7 +1037,7 @@ int rx_mode(message pkt, int b)
 											}
 											char mm[24+strlen(curr->data)+strlen(ms)+strlen(from)];
 											sprintf(mm, "You (%s) are now mode %s (%s)", curr->data, ms, from);
-											add_to_buffer(b2, MODE, NORMAL, 0, false, mm, "");
+											add_to_buffer(b2, MT_MODE, PRIO_NORMAL, 0, false, mm, "");
 										}
 										else
 										{
@@ -1055,7 +1055,7 @@ int rx_mode(message pkt, int b)
 											}
 											char mm[16+strlen(ms)+strlen(from)];
 											sprintf(mm, " is now mode %s (%s)", ms, from);
-											add_to_buffer(b2, MODE, NORMAL, 0, false, mm, curr->data);
+											add_to_buffer(b2, MT_MODE, PRIO_NORMAL, 0, false, mm, curr->data);
 										}
 									}
 									break;
@@ -1063,7 +1063,7 @@ int rx_mode(message pkt, int b)
 								curr=curr->next;
 							}
 							if(!curr)
-								e_buf_print(b, ERR, pkt, "No such nick: ");
+								e_buf_print(b, MT_ERR, pkt, "No such nick: ");
 							break;
 						}
 					}
@@ -1096,7 +1096,7 @@ int rx_mode(message pkt, int b)
 									}
 									char mm[16+strlen(ms)+strlen(from)];
 									sprintf(mm, " is now mode %s (%s)", ms, from);
-									add_to_buffer(b2, MODE, QUIET, 0, false, mm, bufs[b2].bname);
+									add_to_buffer(b2, MT_MODE, PRIO_QUIET, 0, false, mm, bufs[b2].bname);
 								}
 							}
 						}
@@ -1122,12 +1122,12 @@ int rx_mode(message pkt, int b)
 							}
 							char mm[16+strlen(ms)+strlen(from)];
 							sprintf(mm, " is now mode %s (%s)", ms, from);
-							add_to_buffer(b2, MODE, QUIET, 0, false, mm, bufs[b2].bname);
+							add_to_buffer(b2, MT_MODE, PRIO_QUIET, 0, false, mm, bufs[b2].bname);
 						}
 					}
 				break;
 				default:
-					e_buf_print(b, ERR, pkt, "Malformed modespec - missing +/-: ");
+					e_buf_print(b, MT_ERR, pkt, "Malformed modespec - missing +/-: ");
 				break;
 			}
 		}
@@ -1139,7 +1139,7 @@ int rx_mode(message pkt, int b)
 	bool found=false;
 	for(int b2=0;b2<nbufs;b2++)
 	{
-		if((bufs[b2].type==CHANNEL)&&(bufs[b2].server==b))
+		if((bufs[b2].type==BT_CHANNEL)&&(bufs[b2].server==b))
 		{
 			name *curr=bufs[b].nlist;
 			while(curr)
@@ -1202,7 +1202,7 @@ int rx_mode(message pkt, int b)
 						}
 					}
 					if(malformed)
-						e_buf_print(b, ERR, pkt, "Malformed modespec - missing +/-: ");
+						e_buf_print(b, MT_ERR, pkt, "Malformed modespec - missing +/-: ");
 					break;
 				}
 				curr=curr->next;
@@ -1211,7 +1211,7 @@ int rx_mode(message pkt, int b)
 		}
 	}
 	if(!found)
-		e_buf_print(b, ERR, pkt, "No such nick: ");
+		e_buf_print(b, MT_ERR, pkt, "No such nick: ");
 #endif
 	return(0);
 }
@@ -1221,7 +1221,7 @@ int rx_kill(message pkt, int b, fd_set *master)
 	// KILL <nick> <comment>
 	if(pkt.nargs<1)
 	{
-		e_buf_print(b, ERR, pkt, "Not enough arguments: ");
+		e_buf_print(b, MT_ERR, pkt, "Not enough arguments: ");
 		return(0);
 	}
 	int fd=bufs[b].handle;
@@ -1234,7 +1234,7 @@ int rx_kill(message pkt, int b, fd_set *master)
 		{
 			if((bufs[b2].server==b) || (bufs[b2].server==0))
 			{
-				add_to_buffer(b2, QUIT_PREFORMAT, NORMAL, 0, false, pkt.nargs<2?"":pkt.args[1], "KILLed: ");
+				add_to_buffer(b2, MT_QUIT_PREFORMAT, PRIO_NORMAL, 0, false, pkt.nargs<2?"":pkt.args[1], "KILLed: ");
 				bufs[b2].live=false;
 				close(bufs[b2].handle);
 				bufs[b2].handle=0; // de-bind fd
@@ -1256,13 +1256,13 @@ int rx_kill(message pkt, int b, fd_set *master)
 					{
 						char kmsg[24+strlen(bufs[b].bname)];
 						sprintf(kmsg, "has left %s (Killed)", bufs[b].bname);
-						add_to_buffer(b2, QUIT, NORMAL, 0, false, kmsg, pkt.args[0]);
+						add_to_buffer(b2, MT_QUIT, PRIO_NORMAL, 0, false, kmsg, pkt.args[0]);
 					}
 					else
 					{
 						char kmsg[28+strlen(pkt.args[1])+strlen(bufs[b].bname)];
 						sprintf(kmsg, "has left %s (Killed: %s)", bufs[b].bname, pkt.args[1]);
-						add_to_buffer(b2, QUIT, NORMAL, 0, false, kmsg, pkt.args[0]);
+						add_to_buffer(b2, MT_QUIT, PRIO_NORMAL, 0, false, kmsg, pkt.args[0]);
 					}
 				}
 			}
@@ -1277,7 +1277,7 @@ int rx_kick(message pkt, int b)
 	// From RFC2812: "The server MUST NOT send KICK messages with multiple channels or users to clients.  This is necessarily to maintain backward compatibility with old client software."
 	if(pkt.nargs<2)
 	{
-		e_buf_print(b, ERR, pkt, "Not enough arguments: ");
+		e_buf_print(b, MT_ERR, pkt, "Not enough arguments: ");
 		return(0);
 	}
 	if(irc_strcasecmp(pkt.args[1], bufs[b].nick, bufs[b].casemapping)==0) // if it's us, generate a message and de-live the channel
@@ -1285,9 +1285,9 @@ int rx_kick(message pkt, int b)
 		int b2;
 		for(b2=1;b2<nbufs;b2++)
 		{
-			if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(pkt.args[0], bufs[b2].bname, bufs[b].casemapping)==0))
+			if((bufs[b2].server==b) && (bufs[b2].type==BT_CHANNEL) && (irc_strcasecmp(pkt.args[0], bufs[b2].bname, bufs[b].casemapping)==0))
 			{
-				add_to_buffer(b2, QUIT_PREFORMAT, NORMAL, 0, false, pkt.nargs<3?"(No reason)":pkt.args[2], "Kicked: ");
+				add_to_buffer(b2, MT_QUIT_PREFORMAT, PRIO_NORMAL, 0, false, pkt.nargs<3?"(No reason)":pkt.args[2], "Kicked: ");
 				bufs[b2].live=false;
 				bufs[b2].hi_alert=5;
 			}
@@ -1299,19 +1299,19 @@ int rx_kick(message pkt, int b)
 		int b2;
 		for(b2=1;b2<nbufs;b2++)
 		{
-			if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(pkt.args[0], bufs[b2].bname, bufs[b].casemapping)==0))
+			if((bufs[b2].server==b) && (bufs[b2].type==BT_CHANNEL) && (irc_strcasecmp(pkt.args[0], bufs[b2].bname, bufs[b].casemapping)==0))
 			{
 				if(n_cull(&bufs[b2].nlist, pkt.args[1], bufs[b2].casemapping))
 				{
 					if(pkt.nargs<3)
 					{
-						add_to_buffer(b2, QUIT, NORMAL, 0, false, "was kicked.  (No reason)", pkt.args[1]);
+						add_to_buffer(b2, MT_QUIT, PRIO_NORMAL, 0, false, "was kicked.  (No reason)", pkt.args[1]);
 					}
 					else
 					{
 						char kmsg[32+strlen(pkt.args[2])];
 						sprintf(kmsg, "was kicked.  Reason: %s", pkt.args[2]);
-						add_to_buffer(b2, QUIT, NORMAL, 0, false, kmsg, pkt.args[1]);
+						add_to_buffer(b2, MT_QUIT, PRIO_NORMAL, 0, false, kmsg, pkt.args[1]);
 					}
 				}
 			}
@@ -1333,9 +1333,9 @@ int rx_error(message pkt, int b, fd_set *master)
 		if((bufs[b2].server==b) || (bufs[b2].server==0))
 		{
 			if(pkt.nargs<1)
-				add_to_buffer(b2, QUIT_PREFORMAT, NORMAL, 0, false, "ERROR", "Disconnected: ");
+				add_to_buffer(b2, MT_QUIT_PREFORMAT, PRIO_NORMAL, 0, false, "ERROR", "Disconnected: ");
 			else
-				add_to_buffer(b2, QUIT_PREFORMAT, NORMAL, 0, false, pkt.args[0], "Disconnected: ");
+				add_to_buffer(b2, MT_QUIT_PREFORMAT, PRIO_NORMAL, 0, false, pkt.args[0], "Disconnected: ");
 			bufs[b2].live=false;
 			close(bufs[b2].handle);
 			bufs[b2].handle=0; // de-bind fd
@@ -1351,7 +1351,7 @@ int rx_privmsg(message pkt, int b, bool notice)
 	// :nick[[!user]@host] NOTICE msgtarget text
 	if(pkt.nargs<2)
 	{
-		e_buf_print(b, ERR, pkt, "Not enough arguments: ");
+		e_buf_print(b, MT_ERR, pkt, "Not enough arguments: ");
 		return(0);
 	}
 	char *src, *user, *host;
@@ -1363,7 +1363,7 @@ int rx_privmsg(message pkt, int b, bool notice)
 	bool ha=strstr(pkt.args[1], bufs[b].nick);
 	for(b2=0;b2<nbufs;b2++)
 	{
-		if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(pkt.args[0], bufs[b2].bname, bufs[b].casemapping)==0))
+		if((bufs[b2].server==b) && (bufs[b2].type==BT_CHANNEL) && (irc_strcasecmp(pkt.args[0], bufs[b2].bname, bufs[b].casemapping)==0))
 		{
 			match=true;
 			if(i_match(bufs[b].ilist, nm, false, bufs[b].casemapping)||i_match(bufs[0].ilist, nm, false, bufs[b].casemapping))
@@ -1395,7 +1395,7 @@ int rx_privmsg(message pkt, int b, bool notice)
 					}
 					curr=curr->next;
 				}
-				add_to_buffer(b2, notice?NOTICE:MSG, NORMAL, lp, false, pkt.args[1], src);
+				add_to_buffer(b2, notice?MT_NOTICE:MT_MSG, PRIO_NORMAL, lp, false, pkt.args[1], src);
 				if(ha)
 					bufs[b2].hi_alert=5;
 			}
@@ -1416,25 +1416,25 @@ int rx_privmsg(message pkt, int b, bool notice)
 					if(b2<0)
 					{
 						bufs=(buffer *)realloc(bufs, ++nbufs*sizeof(buffer));
-						init_buffer(nbufs-1, PRIVATE, src, buflines);
+						init_buffer(nbufs-1, BT_PRIVATE, src, buflines);
 						b2=nbufs-1;
 						bufs[b2].server=bufs[b].server;
 						bufs[b2].live=true;
 						n_add(&bufs[b2].nlist, SERVER(b2).nick, bufs[b].casemapping);
 						n_add(&bufs[b2].nlist, src, bufs[b].casemapping);
 					}
-					add_to_buffer(b2, MSG, NORMAL, 0, false, pkt.args[1], src);
+					add_to_buffer(b2, MT_MSG, PRIO_NORMAL, 0, false, pkt.args[1], src);
 					bufs[b2].hi_alert=5;
 				}
 				else
 				{
-					add_to_buffer(b, NOTICE, NORMAL, 0, false, pkt.args[1], src);
+					add_to_buffer(b, MT_NOTICE, PRIO_NORMAL, 0, false, pkt.args[1], src);
 				}
 			}
 		}
 		else
 		{
-			e_buf_print(b, ERR, pkt, "Bad destination: ");
+			e_buf_print(b, MT_ERR, pkt, "Bad destination: ");
 		}
 	}
 	return(0);
@@ -1445,7 +1445,7 @@ int rx_topic(message pkt, int b)
 	// TOPIC <dest> [<topic>]
 	if(pkt.nargs<1)
 	{
-		e_buf_print(b, ERR, pkt, "Not enough arguments: ");
+		e_buf_print(b, MT_ERR, pkt, "Not enough arguments: ");
 		return(0);
 	}
 	char *src, *user, *host;
@@ -1457,9 +1457,9 @@ int rx_topic(message pkt, int b)
 		int b2;
 		for(b2=0;b2<nbufs;b2++)
 		{
-			if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(pkt.args[0], bufs[b2].bname, bufs[b].casemapping)==0))
+			if((bufs[b2].server==b) && (bufs[b2].type==BT_CHANNEL) && (irc_strcasecmp(pkt.args[0], bufs[b2].bname, bufs[b].casemapping)==0))
 			{
-				add_to_buffer(b2, PREFORMAT, NORMAL, 0, false, "removed the Topic", tag);
+				add_to_buffer(b2, MT_PREFORMAT, PRIO_NORMAL, 0, false, "removed the Topic", tag);
 				match=true;
 				free(bufs[b2].topic);
 				bufs[b2].topic=NULL;
@@ -1474,9 +1474,9 @@ int rx_topic(message pkt, int b)
 		int b2;
 		for(b2=0;b2<nbufs;b2++)
 		{
-			if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(pkt.args[0], bufs[b2].bname, bufs[b].casemapping)==0))
+			if((bufs[b2].server==b) && (bufs[b2].type==BT_CHANNEL) && (irc_strcasecmp(pkt.args[0], bufs[b2].bname, bufs[b].casemapping)==0))
 			{
-				add_to_buffer(b2, PREFORMAT, NORMAL, 0, false, pkt.args[1], tag);
+				add_to_buffer(b2, MT_PREFORMAT, PRIO_NORMAL, 0, false, pkt.args[1], tag);
 				match=true;
 				free(bufs[b2].topic);
 				bufs[b2].topic=strdup(pkt.args[1]);
@@ -1493,7 +1493,7 @@ int rx_join(message pkt, int b)
 	// :nick[[!user]@host] JOIN #chan
 	if(pkt.nargs<1)
 	{
-		e_buf_print(b, ERR, pkt, "Not enough arguments: ");
+		e_buf_print(b, MT_ERR, pkt, "Not enough arguments: ");
 		return(0);
 	}
 	char *src, *user, *host;
@@ -1505,7 +1505,7 @@ int rx_join(message pkt, int b)
 		int b2;
 		for(b2=1;b2<nbufs;b2++)
 		{
-			if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(pkt.args[0], bufs[b2].bname, bufs[b].casemapping)==0))
+			if((bufs[b2].server==b) && (bufs[b2].type==BT_CHANNEL) && (irc_strcasecmp(pkt.args[0], bufs[b2].bname, bufs[b].casemapping)==0))
 			{
 				cbuf=b2;
 				if(bufs[cbuf].lastkey)
@@ -1519,7 +1519,7 @@ int rx_join(message pkt, int b)
 		if(b2>=nbufs)
 		{
 			bufs=(buffer *)realloc(bufs, ++nbufs*sizeof(buffer));
-			init_buffer(nbufs-1, CHANNEL, pkt.args[0], buflines);
+			init_buffer(nbufs-1, BT_CHANNEL, pkt.args[0], buflines);
 			cbuf=nbufs-1;
 			bufs[cbuf].server=bufs[b].server;
 			if(bufs[b].autoent)
@@ -1539,7 +1539,7 @@ int rx_join(message pkt, int b)
 				}
 			}
 		}
-		add_to_buffer(cbuf, JOIN, NORMAL, 0, true, dstr, "");
+		add_to_buffer(cbuf, MT_JOIN, PRIO_NORMAL, 0, true, dstr, "");
 		bufs[cbuf].live=true;
 		redraw_buffer();
 	}
@@ -1549,18 +1549,18 @@ int rx_join(message pkt, int b)
 		int b2;
 		for(b2=0;b2<nbufs;b2++)
 		{
-			if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(pkt.args[0], bufs[b2].bname, bufs[b].casemapping)==0))
+			if((bufs[b2].server==b) && (bufs[b2].type==BT_CHANNEL) && (irc_strcasecmp(pkt.args[0], bufs[b2].bname, bufs[b].casemapping)==0))
 			{
 				match=true;
 				char dstr[16+strlen(pkt.args[0])];
 				sprintf(dstr, "has joined %s", pkt.args[0]);
-				add_to_buffer(b2, JOIN, NORMAL, 0, false, dstr, src);
+				add_to_buffer(b2, MT_JOIN, PRIO_NORMAL, 0, false, dstr, src);
 				n_add(&bufs[b2].nlist, src, bufs[b].casemapping);
 			}
 		}
 		if(!match)
 		{
-			e_buf_print(b, ERR, pkt, "Bad destination: ");
+			e_buf_print(b, MT_ERR, pkt, "Bad destination: ");
 		}
 	}
 	return(0);
@@ -1571,7 +1571,7 @@ int rx_part(message pkt, int b)
 	// :nick[[!user]@host] PART #chan [#chan ...]
 	if(pkt.nargs<1)
 	{
-		e_buf_print(b, ERR, pkt, "Not enough arguments: ");
+		e_buf_print(b, MT_ERR, pkt, "Not enough arguments: ");
 		return(0);
 	}
 	char *src, *user, *host;
@@ -1581,7 +1581,7 @@ int rx_part(message pkt, int b)
 		int b2;
 		for(b2=0;b2<nbufs;b2++)
 		{
-			if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(pkt.args[0], bufs[b2].bname, bufs[b].casemapping)==0))
+			if((bufs[b2].server==b) && (bufs[b2].type==BT_CHANNEL) && (irc_strcasecmp(pkt.args[0], bufs[b2].bname, bufs[b].casemapping)==0))
 			{
 				if(b2==cbuf)
 				{
@@ -1600,19 +1600,19 @@ int rx_part(message pkt, int b)
 		{
 			for(int b2=0;b2<nbufs;b2++)
 			{
-				if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(pkt.args[p], bufs[b2].bname, bufs[b].casemapping)==0))
+				if((bufs[b2].server==b) && (bufs[b2].type==BT_CHANNEL) && (irc_strcasecmp(pkt.args[p], bufs[b2].bname, bufs[b].casemapping)==0))
 				{
 					match=true;
 					char dstr[16+strlen(pkt.args[p])];
 					sprintf(dstr, "has left %s", pkt.args[p]);
-					add_to_buffer(b2, PART, NORMAL, 0, false, dstr, src);
+					add_to_buffer(b2, MT_PART, PRIO_NORMAL, 0, false, dstr, src);
 					n_cull(&bufs[b2].nlist, src, bufs[b].casemapping);
 				}
 			}
 		}
 		if(!match)
 		{
-			e_buf_print(b, ERR, pkt, "Bad destination: ");
+			e_buf_print(b, MT_ERR, pkt, "Bad destination: ");
 		}
 	}
 	return(0);
@@ -1626,18 +1626,18 @@ int rx_quit(message pkt, int b)
 	char *reason=pkt.nargs>0?pkt.args[0]:"";
 	if(strcmp(src, bufs[b].nick)==0) // this shouldn't happen
 	{
-		e_buf_print(b, ERR, pkt, "Should not be from us: ");
+		e_buf_print(b, MT_ERR, pkt, "Should not be from us: ");
 	}
 	else
 	{
 		int b2;
 		for(b2=0;b2<nbufs;b2++)
 		{
-			if((bufs[b2].server==b) && ((bufs[b2].type==CHANNEL)||(bufs[b2].type==PRIVATE)))
+			if((bufs[b2].server==b) && ((bufs[b2].type==BT_CHANNEL)||(bufs[b2].type==BT_PRIVATE)))
 			{
 				if(n_cull(&bufs[b2].nlist, src, bufs[b].casemapping))
 				{
-					add_to_buffer(b2, QUIT, NORMAL, 0, false, reason, src);
+					add_to_buffer(b2, MT_QUIT, PRIO_NORMAL, 0, false, reason, src);
 				}
 			}
 		}
@@ -1650,7 +1650,7 @@ int rx_nick(message pkt, int b)
 	// :nick[[!user]@host] NICK newnick
 	if(pkt.nargs<1)
 	{
-		e_buf_print(b, ERR, pkt, "Not enough arguments: ");
+		e_buf_print(b, MT_ERR, pkt, "Not enough arguments: ");
 		return(0);
 	}
 	char *src, *user, *host;
@@ -1664,7 +1664,7 @@ int rx_nick(message pkt, int b)
 		{
 			if(bufs[b2].server==b)
 			{
-				add_to_buffer(b2, NICK, NORMAL, 0, true, dstr, "");
+				add_to_buffer(b2, MT_NICK, PRIO_NORMAL, 0, true, dstr, "");
 				n_cull(&bufs[b2].nlist, src, bufs[b].casemapping);
 				bufs[b2].us=n_add(&bufs[b2].nlist, pkt.args[0], bufs[b].casemapping);
 			}
@@ -1676,17 +1676,17 @@ int rx_nick(message pkt, int b)
 		bool match=false;
 		for(b2=0;b2<nbufs;b2++)
 		{
-			if((bufs[b2].server==b) && ((bufs[b2].type==CHANNEL)||(bufs[b2].type==PRIVATE)))
+			if((bufs[b2].server==b) && ((bufs[b2].type==BT_CHANNEL)||(bufs[b2].type==BT_PRIVATE)))
 			{
 				match=true;
-				add_to_buffer(b2, NICK, QUIET, 0, false, src, bufs[b2].bname);
+				add_to_buffer(b2, MT_NICK, PRIO_QUIET, 0, false, src, bufs[b2].bname);
 				if(n_cull(&bufs[b2].nlist, src, bufs[b].casemapping))
 				{
 					n_add(&bufs[b2].nlist, pkt.args[0], bufs[b].casemapping);
 					char dstr[30+strlen(pkt.args[0])];
 					sprintf(dstr, "is now known as %s", pkt.args[0]);
-					add_to_buffer(b2, NICK, NORMAL, 0, false, dstr, src);
-					if((bufs[b2].type==PRIVATE)&&(irc_strcasecmp(src, bufs[b2].bname, bufs[b].casemapping)==0))
+					add_to_buffer(b2, MT_NICK, PRIO_NORMAL, 0, false, dstr, src);
+					if((bufs[b2].type==BT_PRIVATE)&&(irc_strcasecmp(src, bufs[b2].bname, bufs[b].casemapping)==0))
 					{
 						free(bufs[b2].bname);
 						bufs[b2].bname=strdup(pkt.args[0]);
@@ -1696,7 +1696,7 @@ int rx_nick(message pkt, int b)
 		}
 		if(!match)
 		{
-			e_buf_print(b, ERR, pkt, "Bad destination: ");
+			e_buf_print(b, MT_ERR, pkt, "Bad destination: ");
 		}
 	}
 	return(0);
@@ -1704,7 +1704,7 @@ int rx_nick(message pkt, int b)
 
 int talk(char *iinput)
 {
-	if((bufs[cbuf].type==CHANNEL)||(bufs[cbuf].type==PRIVATE))
+	if((bufs[cbuf].type==BT_CHANNEL)||(bufs[cbuf].type==BT_PRIVATE))
 	{
 		if(SERVER(cbuf).handle)
 		{
@@ -1713,7 +1713,7 @@ int talk(char *iinput)
 				char pmsg[12+strlen(bufs[cbuf].bname)+strlen(iinput)];
 				sprintf(pmsg, "PRIVMSG %s :%s", bufs[cbuf].bname, iinput);
 				irc_tx(SERVER(cbuf).handle, pmsg);
-				ctcp_strip(iinput, SERVER(cbuf).nick, cbuf, false, false, bufs[cbuf].type==PRIVATE, true);
+				ctcp_strip(iinput, SERVER(cbuf).nick, cbuf, false, false, bufs[cbuf].type==BT_PRIVATE, true);
 				if(*iinput)
 				{
 					char lp=0;
@@ -1732,22 +1732,22 @@ int talk(char *iinput)
 							}
 						}
 					}
-					add_to_buffer(cbuf, MSG, NORMAL, lp, true, iinput, SERVER(cbuf).nick);
+					add_to_buffer(cbuf, MT_MSG, PRIO_NORMAL, lp, true, iinput, SERVER(cbuf).nick);
 				}
 			}
 			else
 			{
-				add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Can't talk - tab is not live!", "");
+				add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "Can't talk - tab is not live!", "");
 			}
 		}
 		else
 		{
-			add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Can't talk - tab is disconnected!", "");
+			add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "Can't talk - tab is disconnected!", "");
 		}
 	}
 	else
 	{
-		add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Can't talk - view is not a channel!", "");
+		add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "Can't talk - view is not a channel!", "");
 	}
 	return(0);
 }

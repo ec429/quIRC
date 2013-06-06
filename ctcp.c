@@ -40,7 +40,7 @@ int ctcp_strip(char *msg, const char *src, int b2, bool ha, bool notice, bool pr
 
 int ctcp_action(__attribute__((unused)) int fd, const char *msg, const char *src, int b2, bool ha, bool tx)
 {
-	add_to_buffer(b2, ACT, NORMAL, 0, tx, msg+7, src);
+	add_to_buffer(b2, MT_ACT, PRIO_NORMAL, 0, tx, msg+7, src);
 	ha=ha||strstr(msg+7, SERVER(b2).nick);
 	if(ha)
 		bufs[b2].hi_alert=5;
@@ -49,7 +49,7 @@ int ctcp_action(__attribute__((unused)) int fd, const char *msg, const char *src
 
 int ctcp_notice_generic(const char *msg, const char *src, int b2, bool ha)
 {
-	add_to_buffer(b2, NOTICE, NORMAL, 0, false, msg, src);
+	add_to_buffer(b2, MT_NOTICE, PRIO_NORMAL, 0, false, msg, src);
 	if(ha)
 		bufs[b2].hi_alert=5;
 	return(0);
@@ -88,11 +88,11 @@ int ctcp_notice_ping(const char *msg, const char *src, int b2, bool ha)
 			dt=difftime(time(NULL), t);
 		char tm[32];
 		snprintf(tm, 32, "%gs", dt);
-		add_to_buffer(b2, STA, NORMAL, 0, false, tm, "/ping: ");
+		add_to_buffer(b2, MT_STATUS, PRIO_NORMAL, 0, false, tm, "/ping: ");
 	}
 	else
 	{
-		add_to_buffer(b2, NOTICE, NORMAL, 0, false, msg, src);
+		add_to_buffer(b2, MT_NOTICE, PRIO_NORMAL, 0, false, msg, src);
 	}
 	if(ha)
 		bufs[b2].hi_alert=5;
@@ -131,7 +131,7 @@ int ctcp_time(int fd, __attribute__((unused)) const char *msg, const char *src, 
 	struct tm *tm=localtime(&now);
 	if(!tm)
 	{
-		add_to_buffer(b2, ERR, QUIET, 0, false, strerror(errno), "CTCP TIME");
+		add_to_buffer(b2, MT_ERR, PRIO_QUIET, 0, false, strerror(errno), "CTCP TIME");
 		char resp[48+strlen(src)];
 		sprintf(resp, "NOTICE %s :\001ERRMSG TIME :localtime()\001", src);
 		irc_tx(fd, resp);
@@ -178,13 +178,13 @@ int ctcp(const char *msg, const char *src, int b2, bool ha, bool notice, bool pr
 		}
 	}
 	// no match
-	add_to_buffer(b2, NOTICE, NORMAL, 0, false, msg, src);
+	add_to_buffer(b2, MT_NOTICE, PRIO_NORMAL, 0, false, msg, src);
 	if(ha)
 		bufs[b2].hi_alert=5;
 	int space=strcspn(msg, " ");
 	char cmsg[32+space];
 	sprintf(cmsg, "Unrecognised CTCP %.*s (ignoring)", space, msg);
-	add_to_buffer(b2, UNK_NOTICE, QUIET, 0, false, cmsg, src);
+	add_to_buffer(b2, MT_UNK_NOTICE, PRIO_QUIET, 0, false, cmsg, src);
 	if(!notice)
 	{
 		char resp[40+strlen(src)+strlen(msg)];

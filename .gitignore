@@ -13,4 +13,6 @@ config_*
 c_init.c
 keymap.c
 keymod.h
+types.c
+types.h
 *.pyc

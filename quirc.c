@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
 	{
 		fprintf(stderr, "Failed to set SIGPIPE handler\n");
 		perror("sigaction");
-		push_ring(&s_buf, QUIET);
+		push_ring(&s_buf, PRIO_QUIET);
 		termsgr0();
 		return(1);
 	}
@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
 	{
 		fprintf(stderr, "Failed to set SIGWINCH handler\n");
 		perror("sigaction");
-		push_ring(&s_buf, QUIET);
+		push_ring(&s_buf, PRIO_QUIET);
 		termsgr0();
 		return(1);
 	}
@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
 	{
 		fprintf(stderr, "Failed to set SIGUSR1 handler\n");
 		perror("sigaction");
-		push_ring(&s_buf, QUIET);
+		push_ring(&s_buf, PRIO_QUIET);
 		termsgr0();
 		return(1);
 	}
@@ -90,27 +90,27 @@ int main(int argc, char *argv[])
 			char *err=strerror(errno);
 			char msg[48+strlen(err)];
 			sprintf(msg, "Failed to mark stdin non-blocking: fcntl: %s", err);
-			atr_failsafe(&s_buf, STA, msg, "init: ");
+			atr_failsafe(&s_buf, MT_STATUS, msg, "init: ");
 		}
 	}
 	if(initkeys())
 	{
 		fprintf(stderr, "Failed to initialise keymapping\n");
-		push_ring(&s_buf, QUIET);
+		push_ring(&s_buf, PRIO_QUIET);
 		termsgr0();
 		return(1);
 	}
 	if(c_init()) // should be impossible
 	{
 		fprintf(stderr, "Failed to initialise colours\n");
-		push_ring(&s_buf, QUIET);
+		push_ring(&s_buf, PRIO_QUIET);
 		termsgr0();
 		return(1);
 	}
 	if(def_config())
 	{
 		fprintf(stderr, "Failed to apply default configuration\n");
-		push_ring(&s_buf, QUIET);
+		push_ring(&s_buf, PRIO_QUIET);
 		termsgr0();
 		return(1);
 	}
@@ -129,7 +129,7 @@ int main(int argc, char *argv[])
 				char *err=strerror(errno);
 				char msg[48+strlen(err)+strlen(qfld)];
 				sprintf(msg, "Failed to change directory into %s: chdir: %s", qfld, err);
-				atr_failsafe(&s_buf, STA, msg, "init: ");
+				atr_failsafe(&s_buf, MT_STATUS, msg, "init: ");
 				haveqfld=false;
 			}
 			free(qfld);
@@ -137,7 +137,7 @@ int main(int argc, char *argv[])
 		else
 		{
 			perror("Failed to allocate space for 'qfld'");
-			push_ring(&s_buf, QUIET);
+			push_ring(&s_buf, PRIO_QUIET);
 			termsgr0();
 			return(1);
 		}
@@ -145,7 +145,7 @@ int main(int argc, char *argv[])
 	else
 	{
 		fprintf(stderr, "Environment variable $HOME not set!  Exiting\n");
-		push_ring(&s_buf, QUIET);
+		push_ring(&s_buf, PRIO_QUIET);
 		termsgr0();
 		return(1);
 	}
@@ -159,12 +159,12 @@ int main(int argc, char *argv[])
 		{
 			char msg[32];
 			sprintf(msg, "%d errors in ~/.quirc/rc", rc_err);
-			atr_failsafe(&s_buf, STA, msg, "init: ");
+			atr_failsafe(&s_buf, MT_STATUS, msg, "init: ");
 		}
 	}
 	else
 	{
-		atr_failsafe(&s_buf, STA, "no config file found.  Install one at ~/.quirc/rc", "init: ");
+		atr_failsafe(&s_buf, MT_STATUS, "no config file found.  Install one at ~/.quirc/rc", "init: ");
 	}
 	FILE *keyfp=fopen("keys", "r");
 	if(haveqfld&&keyfp)
@@ -175,7 +175,7 @@ int main(int argc, char *argv[])
 	signed int e=pargs(argc, argv);
 	if(e>=0)
 	{
-		push_ring(&s_buf, QUIET);
+		push_ring(&s_buf, PRIO_QUIET);
 		termsgr0();
 		return(e);
 	}
@@ -184,8 +184,8 @@ int main(int argc, char *argv[])
 	
 	if(ttyraw(fileno(stdout)))
 	{
-		atr_failsafe(&s_buf, ERR, "Failed to set raw mode on tty: ttyraw:", "init: ");
-		atr_failsafe(&s_buf, ERR, strerror(errno), "init: ");
+		atr_failsafe(&s_buf, MT_ERR, "Failed to set raw mode on tty: ttyraw:", "init: ");
+		atr_failsafe(&s_buf, MT_ERR, strerror(errno), "init: ");
 	}
 	
 	unsigned int i;
@@ -196,19 +196,19 @@ int main(int argc, char *argv[])
 	if(e)
 	{
 		fprintf(stderr, "Failed to set up buffers\n");
-		push_ring(&s_buf, QUIET);
+		push_ring(&s_buf, PRIO_QUIET);
 		termsgr0();
 		return(1);
 	}
 	
-	push_ring(&s_buf, QUIET);
+	push_ring(&s_buf, PRIO_QUIET);
 	
 	fd_set master, readfds;
 	FD_ZERO(&master);
 	FD_SET(fileno(stdin), &master);
 	int fdmax=fileno(stdin);
 	if(!autoconnect(&master, &fdmax, servs))
-		add_to_buffer(0, STA, QUIET, 0, false, "Not connected - use /server to connect", "");
+		add_to_buffer(0, MT_STATUS, PRIO_QUIET, 0, false, "Not connected - use /server to connect", "");
 	iline inp={{NULL, 0, 0}, {NULL, 0, 0}};
 	in_update(inp);
 	struct timeval timeout;
@@ -222,7 +222,7 @@ int main(int argc, char *argv[])
 				int l, c;
 				if(termsize(fileno(stdin), &c, &l))
 				{
-					add_to_buffer(0, ERR, NORMAL, 0, false, strerror(errno), "termsize: ioctl: ");
+					add_to_buffer(0, MT_ERR, PRIO_NORMAL, 0, false, strerror(errno), "termsize: ioctl: ");
 				}
 				else
 				{
@@ -264,12 +264,12 @@ int main(int argc, char *argv[])
 					bufs[list->reconn_b].realsname=NULL;
 					if(list->autoent)
 						bufs[list->reconn_b].autoent=list->autoent;
-					add_to_buffer(list->reconn_b, STA, QUIET, 0, false, dstr, "/server: ");
+					add_to_buffer(list->reconn_b, MT_STATUS, PRIO_QUIET, 0, false, dstr, "/server: ");
 				}
 				else
 				{
 					bufs=(buffer *)realloc(bufs, ++nbufs*sizeof(buffer));
-					init_buffer(nbufs-1, SERVER, server, buflines);
+					init_buffer(nbufs-1, BT_SERVER, server, buflines);
 					cbuf=nbufs-1;
 					bufs[cbuf].handle=serverhandle;
 					bufs[cbuf].nick=bufs[0].nick?strdup(bufs[0].nick):NULL;
@@ -282,7 +282,7 @@ int main(int argc, char *argv[])
 						bufs[cbuf].ilist=n_dup(list->autoent->igns);
 						bufs[cbuf].autoent=list->autoent;
 					}
-					add_to_buffer(cbuf, STA, QUIET, 0, false, dstr, "/server: ");
+					add_to_buffer(cbuf, MT_STATUS, PRIO_QUIET, 0, false, dstr, "/server: ");
 				}
 				free((char *)list->nl_details->ar_name);
 				free((char *)list->nl_details->ar_service);
@@ -303,7 +303,7 @@ int main(int argc, char *argv[])
 			{
 				if(bufs[b].live)
 				{
-					if(bufs[b].type==SERVER)
+					if(bufs[b].type==BT_SERVER)
 					{
 						unsigned int idle=now-bufs[b].last;
 						if(tping && (idle>tping)) // a tping value of 0 means "don't ping"
@@ -316,7 +316,7 @@ int main(int argc, char *argv[])
 									close(bufs[b].handle);
 									FD_CLR(bufs[b].handle, &master);
 									bufs[b].handle=0; // de-bind fd
-									add_to_buffer(b, ERR, NORMAL, 0, false, "Outbound ping timeout", "Disconnected: ");
+									add_to_buffer(b, MT_ERR, PRIO_NORMAL, 0, false, "Outbound ping timeout", "Disconnected: ");
 								}
 								bufs[b].alert=true;
 								bufs[b].hi_alert=5;
@@ -336,7 +336,7 @@ int main(int argc, char *argv[])
 					{
 						bufs[b].live=false;
 						bufs[b].handle=0; // just in case
-						add_to_buffer(b, ERR, NORMAL, 0, false, "Connection to server lost", "Disconnected: ");
+						add_to_buffer(b, MT_ERR, PRIO_NORMAL, 0, false, "Connection to server lost", "Disconnected: ");
 					}
 				}
 			}
@@ -348,7 +348,7 @@ int main(int argc, char *argv[])
 		if(select(fdmax+1, &readfds, NULL, NULL, &timeout)==-1)
 		{
 			if(errno!=EINTR) // nobody cares if select() was interrupted by a signal
-				add_to_buffer(0, ERR, NORMAL, 0, false, strerror(errno), "select: ");
+				add_to_buffer(0, MT_ERR, PRIO_NORMAL, 0, false, strerror(errno), "select: ");
 		}
 		else
 		{
@@ -400,7 +400,7 @@ int main(int argc, char *argv[])
 						int b;
 						for(b=0;b<nbufs;b++)
 						{
-							if((fd==bufs[b].handle) && (bufs[b].type==SERVER))
+							if((fd==bufs[b].handle) && (bufs[b].type==BT_SERVER))
 							{
 								if(bufs[b].live)
 								{
@@ -414,7 +414,7 @@ int main(int argc, char *argv[])
 										bufs[b].handle=0; // de-bind fd
 										FD_CLR(fd, &master);
 										bufs[b].live=false;
-										add_to_buffer(0, ERR, NORMAL, 0, false, emsg, "error: ");
+										add_to_buffer(0, MT_ERR, PRIO_NORMAL, 0, false, emsg, "error: ");
 										redraw_buffer();
 									}
 									else if(packet)
@@ -484,7 +484,7 @@ int main(int argc, char *argv[])
 											}
 											else
 											{
-												e_buf_print(b, UNK, pkt, "Unrecognised command: ");
+												e_buf_print(b, MT_UNK, pkt, "Unrecognised command: ");
 											}
 											message_free(pkt);
 										}
@@ -506,7 +506,7 @@ int main(int argc, char *argv[])
 									bufs[b].handle=0; // de-bind fd
 									FD_CLR(fd, &master);
 									bufs[b].live=false;
-									add_to_buffer(0, ERR, NORMAL, 0, false, emsg, "error: read on a dead tab: ");
+									add_to_buffer(0, MT_ERR, PRIO_NORMAL, 0, false, emsg, "error: read on a dead tab: ");
 									redraw_buffer();
 								}
 								in_update(inp);
@@ -517,7 +517,7 @@ int main(int argc, char *argv[])
 						{
 							char fmsg[48];
 							sprintf(fmsg, "select() returned data on unknown fd %d!", fd);
-							add_to_buffer(0, ERR, QUIET, 0, false, fmsg, "main loop:");
+							add_to_buffer(0, MT_ERR, PRIO_QUIET, 0, false, fmsg, "main loop:");
 							FD_CLR(fd, &master); // prevent it from happening again
 						}
 					}
@@ -562,7 +562,7 @@ int main(int argc, char *argv[])
 	int b;
 	for(b=1;b<nbufs;b++)
 	{
-		if((bufs[b].live) && (bufs[b].type==SERVER) && (bufs[b].handle!=0))
+		if((bufs[b].live) && (bufs[b].type==BT_SERVER) && (bufs[b].handle!=0))
 		{
 			if(!qmsg) qmsg="quIRC Quit";
 			char quit[7+strlen(qmsg)];

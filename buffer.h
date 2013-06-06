@@ -33,13 +33,13 @@ typedef struct _buf
 	char *bname; // Buffer display name: "status" or serverloc(or NETWORK) or #channel or @nick (resp. types)
 	char *serverloc; // address of server roundrobin
 	char *realsname; // real server name (not the same as bname)
-	name *nlist; // only used for CHANNELs and PRIVATE: linked-list of nicks
+	name *nlist; // only used for BT_CHANNEL and BT_PRIVATE: linked-list of nicks
 	name *us; // pointer to our entry in the nlist
 	name *ilist; // ignore-list
-	int handle; // used for SERVER: file descriptor
-	int server; // used by CHANNELs and PRIVATE to denote their 'parent' server.  In SERVER||STATUS, points to self.  Is an offset into 'bufs'
-	char *nick; // used for SERVER: user's nick on this server
-	char *topic; // used for CHANNELs
+	int handle; // used for BT_SERVER: file descriptor
+	int server; // used by BT_CHANNEL and BT_PRIVATE to denote their 'parent' server.  In BT_SERVER||BT_STATUS, points to self.  Is an offset into 'bufs'
+	char *nick; // used for BT_SERVER: user's nick on this server
+	char *topic; // used for BT_CHANNEL
 	FILE *logf;
 	logtype logt;
 	int nlines; // number of lines allocated
@@ -60,14 +60,14 @@ typedef struct _buf
 	char ***lpt; // array of processed lines for each line
 	bool alert; // tab has new messages?
 	int hi_alert; // high-level alert status: 0 = none; 1: on (if alert then flashing else single flash); 2: off (flashing)
-	int ping; // ping/idleness status (SERVER)
-	time_t last; // when was the last RX? (SERVER)
+	int ping; // ping/idleness status (BT_SERVER)
+	time_t last; // when was the last RX? (BT_SERVER)
 	bool namreply; // tab is in the middle of reading a list of NAMES replies (RPL_NAMREPLY)?
-	bool live; // tab is connected?  when checking in a CHANNEL, remember to AND it with the parent's live (use LIVE(buf), defined further up this file)
-	bool conninpr; // connection in progress? (SERVER only)
+	bool live; // tab is connected?  when checking in a BT_CHANNEL, remember to AND it with the parent's live (use LIVE(buf), defined further up this file)
+	bool conninpr; // connection in progress? (BT_SERVER only)
 	ibuffer input; // input history
-	cmap casemapping; // the SERVER's value is authoritative; the CHANNEL's value is ignored.  STATUS's value is irrelevant.  Set by ISUPPORT
-	unsigned int npfx;// the SERVER's value denotes the available list (set by ISUPPORT); the CHANNEL's value lists the modes set on that channel (letter only)
+	cmap casemapping; // the BT_SERVER's value is authoritative; the BT_CHANNEL's value is ignored.  BT_STATUS's value is irrelevant.  Set by ISUPPORT
+	unsigned int npfx;// the BT_SERVER's value denotes the available list (set by ISUPPORT); the BT_CHANNEL's value lists the modes set on that channel (letter only)
 	prefix *prefixes; // ^^
 	servlist * autoent; // if this was opened by autoconnect(), this is filled in to point to the server's servlist entry
 	bool conf; // Conference Mode (hides joins, parts, quits, and /nicks)

@@ -32,7 +32,7 @@ enables rx events on the specified buffer, with format <mode>; or disables them 
 The modes are detailed in the 2.1.* subsections.  Further modes may be added as extensions to this protocol, but they must not be called "nil".  Single-character mode names are reserved for future versions of this protocol.  Mode names are case-sensitive.
 2.1.1 Mode "0"
 rx <bufspec> <type> <nick> :<line>
-<type> in MSG NOTICE PREFORMAT ACT JOIN PART QUIT QUIT_PREFORMAT NICK MODE STA ERR UNK UNK_NOTICE UNN.
+<type> in MSG NOTICE PREFORMAT ACT JOIN PART QUIT QUIT_PREFORMAT NICK MODE STATUS ERR UNK UNK_NOTICE UNN.
 <nick> may be "!", meaning it's a server message.  Otherwise, it's the nick which sent the message.
 <line> may contain [[:space:]]s.
 2.1.2 Mode "l"

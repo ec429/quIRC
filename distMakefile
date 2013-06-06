@@ -38,7 +38,7 @@ clean:
 	-rm -f *.o *.d quirc genconfig genkeymap
 
 realclean: clean
-	-rm -f c_init.c README version.h config_* keymap.c keymod.h quirc.1 numeric.h numeric_text.c
+	-rm -f c_init.c README version.h config_* keymap.c keymod.h quirc.1 numeric.h numeric_text.c types.h types.c
 
 doc: README config_ref.htm quirc.1
 
@@ -78,7 +78,7 @@ config.o: config_c.d config_h.d names.h bits.h colour.h text.h ttyesc.h version.
 
 config_c.d: config.c config_check.c config_def.c config_need.c config_rcread.c config_pargs.c config_help.c keymap.c
 
-config_h.d: config.h config_globals.h version.h keymod.h
+config_h.d: config.h config_globals.h version.h keymod.h types.h
 
 config_%: config.cdl genconfig
 	./genconfig $@ < config.cdl > $@ || (rm $@ && false)
@@ -98,6 +98,12 @@ numeric.h: gen_numerics.py numerics.py
 	./$< > $@
 
 numeric_text.c: gen_numerics_text.py numerics.py
+	./$< > $@
+
+types.h: gen_types.py ctypes.py
+	./$< -h > $@
+
+types.c: gen_types.py ctypes.py
 	./$< > $@
 
 c_init.c: colour.def c_init.awk

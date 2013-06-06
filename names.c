@@ -227,7 +227,7 @@ int i_cull(name ** list, const char *nm)
 void i_list(void)
 {
 	int count=0;
-	if(bufs[cbuf].type==CHANNEL)
+	if(bufs[cbuf].type==BT_CHANNEL)
 	{
 		name *curr=bufs[cbuf].ilist;
 		while(curr)
@@ -235,7 +235,7 @@ void i_list(void)
 			name *next=curr->next;
 			char tag[20];
 			sprintf(tag, "/ignore -l: C%s%s\t", curr->pms?"p":"", curr->icase?"i":"");
-			add_to_buffer(cbuf, STA, NORMAL, 0, false, curr->data, tag);
+			add_to_buffer(cbuf, MT_STATUS, PRIO_NORMAL, 0, false, curr->data, tag);
 			count++;
 			curr=next;
 		}
@@ -248,7 +248,7 @@ void i_list(void)
 			name *next=curr->next;
 			char tag[20];
 			sprintf(tag, "/ignore -l: S%s%s\t", curr->pms?"p":"", curr->icase?"i":"");
-			add_to_buffer(cbuf, STA, NORMAL, 0, false, curr->data, tag);
+			add_to_buffer(cbuf, MT_STATUS, PRIO_NORMAL, 0, false, curr->data, tag);
 			count++;
 			curr=next;
 		}
@@ -259,12 +259,12 @@ void i_list(void)
 		name *next=curr->next;
 		char tag[20];
 		sprintf(tag, "/ignore -l: *%s%s\t", curr->pms?"p":"", curr->icase?"i":"");
-		add_to_buffer(cbuf, STA, NORMAL, 0, false, curr->data, tag);
+		add_to_buffer(cbuf, MT_STATUS, PRIO_NORMAL, 0, false, curr->data, tag);
 		count++;
 		curr=next;
 	}
 	if(!count)
 	{
-		add_to_buffer(cbuf, STA, NORMAL, 0, false, "No active ignores for this view.", "/ignore -l: ");
+		add_to_buffer(cbuf, MT_STATUS, PRIO_NORMAL, 0, false, "No active ignores for this view.", "/ignore -l: ");
 	}
 }

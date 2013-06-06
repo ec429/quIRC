@@ -100,14 +100,14 @@ int initialise_buffers(int buflines)
 	bufs=malloc(sizeof(buffer));
 	if(!bufs)
 		return(1);
-	init_buffer(0, STATUS, "status", buflines); // buf 0 is always STATUS
+	init_buffer(0, BT_STATUS, "status", buflines); // buf 0 is always BT_STATUS
 	nbufs=1;
 	cbuf=0;
-	bufs[0].live=true; // STATUS is never dead
+	bufs[0].live=true; // BT_STATUS is never dead
 	bufs[0].nick=nick;
 	nick=NULL;
 	bufs[0].ilist=igns;
-	add_to_buffer(0, STA, QUIET, 0, false, GPL_TAIL, "quirc -- ");
+	add_to_buffer(0, MT_STATUS, PRIO_QUIET, 0, false, GPL_TAIL, "quirc -- ");
 	init_ring(&d_buf);
 	d_buf.loop=true;
 	return(0);
@@ -117,7 +117,7 @@ int init_buffer(int buf, btype type, const char *bname, int nlines)
 {
 	bufs[buf].type=type;
 	bufs[buf].bname=strdup(bname);
-	if(type==SERVER)
+	if(type==BT_SERVER)
 		bufs[buf].serverloc=strdup(bname);
 	else
 		bufs[buf].serverloc=NULL;
@@ -170,7 +170,7 @@ int init_buffer(int buf, btype type, const char *bname, int nlines)
 	bufs[buf].conninpr=false;
 	initibuf(&bufs[buf].input);
 	bufs[buf].casemapping=RFC1459;
-	if(type==SERVER)
+	if(type==BT_SERVER)
 	{
 		bufs[buf].npfx=2;
 		bufs[buf].prefixes=malloc(2*sizeof(prefix));
@@ -193,7 +193,7 @@ int free_buffer(int buf)
 {
 	if(bufs[buf].live)
 	{
-		add_to_buffer(buf, ERR, NORMAL, 0, false, "Buffer is still live!", "free_buffer:");
+		add_to_buffer(buf, MT_ERR, PRIO_NORMAL, 0, false, "Buffer is still live!", "free_buffer:");
 		return(1);
 	}
 	else
@@ -284,12 +284,12 @@ int add_to_buffer(int buf, mtype lm, prio lq, char lp, bool ls, const char *lt, 
 	{
 		if(bufs&&buf)
 		{
-			add_to_buffer(0, ERR, NORMAL, 0, false, "Line was written to bad buffer!  Contents below.", "add_to_buffer(): ");
-			add_to_buffer(0, lm, NORMAL, lp, ls, lt, ltag);
+			add_to_buffer(0, MT_ERR, PRIO_NORMAL, 0, false, "Line was written to bad buffer!  Contents below.", "add_to_buffer(): ");
+			add_to_buffer(0, lm, PRIO_NORMAL, lp, ls, lt, ltag);
 		}
 		return(1);
 	}
-	if(!debug&&(lq==DEBUG))
+	if(!debug&&(lq==PRIO_DEBUG))
 	{
 		if(!d_buf.nlines)
 		{
@@ -326,11 +326,11 @@ int add_to_buffer(int buf, mtype lm, prio lq, char lp, bool ls, const char *lt, 
 	else
 	{
 		if(!(
-			(bufs[buf].conf&&((lm==JOIN)||(lm==PART)||(lm==NICK)||(lm==MODE)||(lm==QUIT)))
+			(bufs[buf].conf&&((lm==MT_JOIN)||(lm==MT_PART)||(lm==MT_NICK)||(lm==MT_MODE)||(lm==MT_QUIT)))
 			||
-				(quiet&&(lq==QUIET))
+				(quiet&&(lq==PRIO_QUIET))
 			||
-				(!debug&&(lq==DEBUG))
+				(!debug&&(lq==PRIO_DEBUG))
 			))
 		bufs[buf].alert=true;
 	}
@@ -445,24 +445,24 @@ int redraw_buffer(void)
 	}
 	switch(bufs[cbuf].type)
 	{
-		case STATUS:
+		case BT_STATUS:
 			settitle("quIRC - status");
 		break;
-		case SERVER: // have to scope it for the cstr 'variably modified type'
+		case BT_SERVER: // have to scope it for the cstr 'variably modified type'
 			{
 				char cstr[16+strlen(bufs[cbuf].bname)];
 				sprintf(cstr, "quIRC - %s", bufs[cbuf].bname);
 				settitle(cstr);
 			}
 		break;
-		case CHANNEL: // have to scope it for the cstr 'variably modified type'
+		case BT_CHANNEL: // have to scope it for the cstr 'variably modified type'
 			{
 				char cstr[16+strlen(bufs[cbuf].bname)+strlen(SERVER(cbuf).bname)];
 				sprintf(cstr, "quIRC - %s on %s", bufs[cbuf].bname, SERVER(cbuf).bname);
 				settitle(cstr);
 			}
 		break;
-		case PRIVATE: // have to scope it for the cstr 'variably modified type'
+		case BT_PRIVATE: // have to scope it for the cstr 'variably modified type'
 			{
 				char cstr[16+strlen(bufs[cbuf].bname)+strlen(SERVER(cbuf).bname)];
 				sprintf(cstr, "quIRC - <%s> on %s", bufs[cbuf].bname, SERVER(cbuf).bname);
@@ -509,17 +509,17 @@ int render_line(int buf, int uline)
 	}
 	if( // this is quite a complicated conditional, so I've split it up.  It handles conference mode, quiet mode and debug mode
 		(bufs[buf].conf&&(
-			(bufs[buf].lm[uline]==JOIN)
-			||(bufs[buf].lm[uline]==PART)
-			||(bufs[buf].lm[uline]==NICK)
-			||(bufs[buf].lm[uline]==MODE)
-			||(bufs[buf].lm[uline]==QUIT)
+			(bufs[buf].lm[uline]==MT_JOIN)
+			||(bufs[buf].lm[uline]==MT_PART)
+			||(bufs[buf].lm[uline]==MT_NICK)
+			||(bufs[buf].lm[uline]==MT_MODE)
+			||(bufs[buf].lm[uline]==MT_QUIT)
 			)
 		)
 		||
-			(quiet&&(bufs[buf].lq[uline]==QUIET))
+			(quiet&&(bufs[buf].lq[uline]==PRIO_QUIET))
 		||
-			(!debug&&(bufs[buf].lq[uline]==DEBUG))
+			(!debug&&(bufs[buf].lq[uline]==PRIO_DEBUG))
 		)
 	{
 		bufs[buf].lpt[uline]=NULL;
@@ -527,9 +527,9 @@ int render_line(int buf, int uline)
 		return(0);
 	}
 	char *tag=strdup(bufs[buf].ltag[uline]?bufs[buf].ltag[uline]:"");
-	bool mergetype=((bufs[buf].lm[uline]==JOIN)&&*tag)||(bufs[buf].lm[uline]==PART)||(bufs[buf].lm[uline]==QUIT);
+	bool mergetype=((bufs[buf].lm[uline]==MT_JOIN)&&*tag)||(bufs[buf].lm[uline]==MT_PART)||(bufs[buf].lm[uline]==MT_QUIT);
 	bool merged=false;
-	if(merge&&(bufs[buf].type==CHANNEL)&&mergetype)
+	if(merge&&(bufs[buf].type==BT_CHANNEL)&&mergetype)
 	{
 		int prevline=uline;
 		while(1)
@@ -542,10 +542,10 @@ int render_line(int buf, int uline)
 			if(fabs(difftime(bufs[buf].ts[prevline], bufs[buf].ts[uline]))>5) break;
 			if(bufs[buf].lm[prevline]==bufs[buf].lm[uline])
 			{
-				if((bufs[buf].lm[uline]==QUIT)&&strcmp(bufs[buf].lt[uline], bufs[buf].lt[prevline])) break;
+				if((bufs[buf].lm[uline]==MT_QUIT)&&strcmp(bufs[buf].lt[uline], bufs[buf].lt[prevline])) break;
 				const char *ltag=bufs[buf].ltag[prevline];
 				if(!ltag) ltag="";
-				if((bufs[buf].lm[uline]==JOIN)&&!*ltag) break;
+				if((bufs[buf].lm[uline]==MT_JOIN)&&!*ltag) break;
 				size_t nlen=strlen(tag)+strlen(ltag)+2;
 				char *ntag=malloc(nlen);
 				snprintf(ntag, nlen, "%s=%s", ltag, tag);
@@ -571,7 +571,7 @@ int render_line(int buf, int uline)
 	colour c={.fore=7, .back=0, .hi=false, .ul=false};
 	switch(bufs[buf].lm[uline])
 	{
-		case MSG:
+		case MT_MSG:
 		{
 			c=c_msg[bufs[buf].ls[uline]?0:1];
 			char mk[6]="<%s> ";
@@ -585,7 +585,7 @@ int render_line(int buf, int uline)
 			tag=ntag;
 		}
 		break;
-		case NOTICE:
+		case MT_NOTICE:
 		{
 			c=c_notice[bufs[buf].ls[uline]?0:1];
 			if(*tag)
@@ -597,10 +597,10 @@ int render_line(int buf, int uline)
 			}
 		}
 		break;
-		case PREFORMAT:
+		case MT_PREFORMAT:
 			c=c_notice[bufs[buf].ls[uline]?0:1];
 		break;
-		case ACT:
+		case MT_ACT:
 		{
 			c=c_actn[bufs[buf].ls[uline]?0:1];
 			crush(&tag, maxnlen);
@@ -609,7 +609,7 @@ int render_line(int buf, int uline)
 			tag=ntag;
 		}
 		break;
-		case JOIN:
+		case MT_JOIN:
 			c=c_join[bufs[buf].ls[uline]?0:1];
 			if(tag&&*tag)
 			{
@@ -624,7 +624,7 @@ int render_line(int buf, int uline)
 					snprintf(message, l, "has joined %s", bufs[buf].bname);
 			}
 			goto eqtag;
-		case PART:
+		case MT_PART:
 			c=c_part[bufs[buf].ls[uline]?0:1];
 			if(tag&&*tag)
 			{
@@ -639,7 +639,7 @@ int render_line(int buf, int uline)
 					snprintf(message, l, "has left %s", bufs[buf].bname);
 			}
 			goto eqtag;
-		case QUIT:
+		case MT_QUIT:
 			c=c_quit[bufs[buf].ls[uline]?0:1];
 			if(tag&&*tag)
 			{
@@ -655,10 +655,10 @@ int render_line(int buf, int uline)
 				message=nmessage;
 			}
 			goto eqtag;
-		case QUIT_PREFORMAT:
+		case MT_QUIT_PREFORMAT:
 			c=c_quit[bufs[buf].ls[uline]?0:1];
 		break;
-		case NICK:
+		case MT_NICK:
 		{
 			c=c_nick[bufs[buf].ls[uline]?0:1];
 			eqtag:
@@ -669,19 +669,19 @@ int render_line(int buf, int uline)
 			tag=ntag;
 		}
 		break;
-		case MODE:
+		case MT_MODE:
 			c=c_nick[bufs[buf].ls[uline]?0:1];
 		break;
-		case STA:
+		case MT_STATUS:
 			c=c_status;
 		break;
-		case ERR:
+		case MT_ERR:
 			c=c_err;
 		break;
-		case UNK:
+		case MT_UNK:
 			c=c_unk;
 		break;
-		case UNK_NOTICE:
+		case MT_UNK_NOTICE:
 			c=c_unk;
 			if(*tag)
 			{
@@ -691,7 +691,7 @@ int render_line(int buf, int uline)
 				tag=ntag;
 			}
 		break;
-		case UNN:
+		case MT_UNN:
 			c=c_unn;
 		break;
 		default:
@@ -712,7 +712,7 @@ int render_line(int buf, int uline)
 		char **nlpt=realloc(bufs[buf].lpt[uline], bufs[buf].lpl[uline]*sizeof(char *));
 		if(!nlpt)
 		{
-			add_to_buffer(0, ERR, NORMAL, 0, false, "realloc failed; buffer may be corrupted", "render_buffer: ");
+			add_to_buffer(0, MT_ERR, PRIO_NORMAL, 0, false, "realloc failed; buffer may be corrupted", "render_buffer: ");
 			free(proc);
 			return(1);
 		}
@@ -743,16 +743,16 @@ void in_update(iline inp)
 			char brack[2]={'!', '!'};
 			switch(bufs[b].type)
 			{
-				case STATUS:
+				case BT_STATUS:
 					brack[0]='(';brack[1]=')';
 				break;
-				case SERVER:
+				case BT_SERVER:
 					brack[0]='{';brack[1]='}';
 				break;
-				case CHANNEL:
+				case BT_CHANNEL:
 					brack[0]='[';brack[1]=']';
 				break;
-				case PRIVATE:
+				case BT_PRIVATE:
 					brack[0]='<';brack[1]='>';
 				break;
 			}
@@ -786,7 +786,7 @@ void in_update(iline inp)
 			if(mbw>3)
 			{
 				char *tab=strdup(bufs[b].bname);
-				if(bufs[b].type==SERVER)
+				if(bufs[b].type==BT_SERVER)
 				{
 					scrush(&tab, mbw-3);
 				}
@@ -823,7 +823,7 @@ void in_update(iline inp)
 		{
 			stamp[0]=0;
 			its=false;
-			add_to_buffer(0, STA, NORMAL, 0, false, "disabled due to insufficient display width", "its: ");
+			add_to_buffer(0, MT_STATUS, PRIO_NORMAL, 0, false, "disabled due to insufficient display width", "its: ");
 		}
 		wwidth-=strlen(stamp);
 	}
@@ -984,7 +984,7 @@ int e_buf_print(int buf, mtype lm, message pkt, const char *lead)
 		strcat(text, " _ ");
 		strcat(text, pkt.args[arg]);
 	}
-	return(add_to_buffer(buf, lm, QUIET, 0, false, text, lead));
+	return(add_to_buffer(buf, lm, PRIO_QUIET, 0, false, text, lead));
 }
 
 int transfer_ring(ring *r, prio lq)
@@ -1012,7 +1012,7 @@ int push_ring(ring *r, prio lq)
 {
 	if(!bufs || transfer_ring(r, lq))
 	{
-		if(bufs) add_to_buffer(0, ERR, NORMAL, 0, false, "Failed to transfer ring", "init[xr]: ");
+		if(bufs) add_to_buffer(0, MT_ERR, PRIO_NORMAL, 0, false, "Failed to transfer ring", "init[xr]: ");
 		int i;
 		for(i=0;i<s_buf.ptr;i++)
 		{
@@ -1022,14 +1022,14 @@ int push_ring(ring *r, prio lq)
 		{
 			char msg[32];
 			sprintf(msg, "%d messages written to stderr", r->nlines);
-			add_to_buffer(0, STA, NORMAL, 0, false, msg, "init[xr]: ");
+			add_to_buffer(0, MT_STATUS, PRIO_NORMAL, 0, false, msg, "init[xr]: ");
 		}
 	}
 	if(bufs&&r->errs)
 	{
 		char msg[80];
 		sprintf(msg, "%d messages were written to stderr due to ring errors", r->errs);
-		add_to_buffer(0, ERR, NORMAL, 0, false, msg, "init[errs]: ");
+		add_to_buffer(0, MT_ERR, PRIO_NORMAL, 0, false, msg, "init[errs]: ");
 	}
 	return(free_ring(r));
 }
@@ -1046,14 +1046,14 @@ void titlebar(void)
 		hashgit++;
 	char *cserv=strdup(SERVER(cbuf).bname?SERVER(cbuf).bname:"");
 	char *cnick=strdup(SERVER(cbuf).nick?SERVER(cbuf).nick:"");
-	char *cchan=strdup(((bufs[cbuf].type==CHANNEL)||(bufs[cbuf].type==PRIVATE))&&bufs[cbuf].bname?bufs[cbuf].bname:"");
+	char *cchan=strdup(((bufs[cbuf].type==BT_CHANNEL)||(bufs[cbuf].type==BT_PRIVATE))&&bufs[cbuf].bname?bufs[cbuf].bname:"");
 	size_t chanlen=strlen(cchan)+1, nicklen=strlen(cnick)+1;
-	if(bufs[cbuf].type==CHANNEL)
+	if(bufs[cbuf].type==BT_CHANNEL)
 	{
 		if(bufs[cbuf].npfx) chanlen+=2+bufs[cbuf].npfx;
 		if((bufs[cbuf].us)&&(bufs[cbuf].us->npfx)) nicklen+=2+bufs[cbuf].us->npfx;
 	}
-	char *topic=(bufs[cbuf].type==CHANNEL)?bufs[cbuf].topic:NULL;
+	char *topic=(bufs[cbuf].type==BT_CHANNEL)?bufs[cbuf].topic:NULL;
 	scrush(&cserv, 16);
 	crush(&cnick, 16);
 	crush(&cchan, 16);
@@ -1146,7 +1146,7 @@ void titlebar(void)
 	{
 		memcpy(tbar+p, cchan, strlen(cchan));
 		p+=strlen(cchan);
-		if((bufs[cbuf].type==CHANNEL)&&(bufs[cbuf].npfx))
+		if((bufs[cbuf].type==BT_CHANNEL)&&(bufs[cbuf].npfx))
 		{
 			tbar[p++]='(';
 			for(unsigned int i=0;i<bufs[cbuf].npfx;i++)
@@ -1159,7 +1159,7 @@ void titlebar(void)
 	{
 		memcpy(tbar+p, cnick, strlen(cnick));
 		p+=strlen(cnick);
-		if((bufs[cbuf].type==CHANNEL)&&(bufs[cbuf].us)&&(bufs[cbuf].us->npfx))
+		if((bufs[cbuf].type==BT_CHANNEL)&&(bufs[cbuf].us)&&(bufs[cbuf].us->npfx))
 		{
 			tbar[p++]='(';
 			for(unsigned int i=0;i<bufs[cbuf].us->npfx;i++)
@@ -1186,7 +1186,7 @@ int findptab(int b, const char *src)
 	int b2;
 	for(b2=0;b2<nbufs;b2++)
 	{
-		if((bufs[b2].server==b)&&(bufs[b2].type==PRIVATE)&&(irc_strcasecmp(bufs[b2].bname, src, bufs[b].casemapping)==0))
+		if((bufs[b2].server==b)&&(bufs[b2].type==BT_PRIVATE)&&(irc_strcasecmp(bufs[b2].bname, src, bufs[b].casemapping)==0))
 			return(b2);
 	}
 	return(-1);
@@ -1198,7 +1198,7 @@ int makeptab(int b, const char *src)
 	if(b2<0)
 	{
 		bufs=(buffer *)realloc(bufs, ++nbufs*sizeof(buffer));
-		init_buffer(nbufs-1, PRIVATE, src, buflines);
+		init_buffer(nbufs-1, BT_PRIVATE, src, buflines);
 		b2=nbufs-1;
 		bufs[b2].server=bufs[b].server;
 		bufs[b2].live=true;

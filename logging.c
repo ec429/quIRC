@@ -67,7 +67,7 @@ int log_add_plain(FILE *logf, mtype lm, __attribute__((unused)) prio lq, char lp
 	char *tag=strdup(ltag?ltag:"");
 	switch(lm)
 	{
-		case MSG:
+		case MT_MSG:
 		{
 			char mk[6]="<%s> ";
 			if(lp)
@@ -78,20 +78,21 @@ int log_add_plain(FILE *logf, mtype lm, __attribute__((unused)) prio lq, char lp
 			tag=ntag;
 		}
 		break;
-		case NOTICE:
+		case MT_NOTICE:
+		case MT_UNK_NOTICE:
 		{
 			if(*tag)
 			{
 				crush(&tag, 16);
-				char *ntag=mktag("(from %s) ", tag);
+				char *ntag=mktag("(%s) ", tag);
 				free(tag);
 				tag=ntag;
 			}
 		}
 		break;
-		case PREFORMAT:
+		case MT_PREFORMAT:
 		break;
-		case ACT:
+		case MT_ACT:
 		{
 			crush(&tag, 16);
 			char *ntag=mktag("* %s ", tag);
@@ -99,12 +100,12 @@ int log_add_plain(FILE *logf, mtype lm, __attribute__((unused)) prio lq, char lp
 			tag=ntag;
 		}
 		break;
-		case QUIT_PREFORMAT:
+		case MT_QUIT_PREFORMAT:
 		break;
-		case JOIN:
-		case PART:
-		case QUIT:
-		case NICK:
+		case MT_JOIN:
+		case MT_PART:
+		case MT_QUIT:
+		case MT_NICK:
 		{
 			crush(&tag, 16);
 			char *ntag=mktag("=%s= ", tag);
@@ -112,26 +113,17 @@ int log_add_plain(FILE *logf, mtype lm, __attribute__((unused)) prio lq, char lp
 			tag=ntag;
 		}
 		break;
-		case MODE:
+		case MT_MODE:
 		break;
-		case STA:
+		case MT_STATUS:
 			free(tag);
 			return(0);
 		break;
-		case ERR:
+		case MT_ERR:
 		break;
-		case UNK:
+		case MT_UNK:
 		break;
-		case UNK_NOTICE:
-			if(*tag)
-			{
-				crush(&tag, 16);
-				char *ntag=mktag("(from %s) ", tag);
-				free(tag);
-				tag=ntag;
-			}
-		break;
-		case UNN:
+		case MT_UNN:
 		break;
 		default:
 		break;

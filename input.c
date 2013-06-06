@@ -171,7 +171,7 @@ int inputchar(iline *inp, int *state)
 				}
 				else if((count>16)&&!ttab)
 				{
-					add_to_buffer(cbuf, STA, NORMAL, 0, false, "Multiple matches (over 16; tab again to list)", "[tab] ");
+					add_to_buffer(cbuf, MT_STATUS, PRIO_NORMAL, 0, false, "Multiple matches (over 16; tab again to list)", "[tab] ");
 					ttab=true;
 				}
 				else if(found->next||(count>1))
@@ -190,8 +190,8 @@ int inputchar(iline *inp, int *state)
 						}
 					}
 					if(!ttab)
-						add_to_buffer(cbuf, STA, NORMAL, 0, false, "Multiple matches", "[tab] ");
-					add_to_buffer(cbuf, STA, NORMAL, 0, false, fmsg, "[tab] ");
+						add_to_buffer(cbuf, MT_STATUS, PRIO_NORMAL, 0, false, "Multiple matches", "[tab] ");
+					add_to_buffer(cbuf, MT_STATUS, PRIO_NORMAL, 0, false, fmsg, "[tab] ");
 					free(fmsg);
 					ttab=false;
 				}
@@ -214,7 +214,7 @@ int inputchar(iline *inp, int *state)
 			}
 			else
 			{
-				add_to_buffer(cbuf, STA, NORMAL, 0, false, "No nicks match", "[tab] ");
+				add_to_buffer(cbuf, MT_STATUS, PRIO_NORMAL, 0, false, "No nicks match", "[tab] ");
 			}
 			n_free(found);
 			return(0);
@@ -566,10 +566,10 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 	{
 		switch(bufs[cbuf].type)
 		{
-			case STATUS:
+			case BT_STATUS:
 				cmd="quit";
 			break;
-			case SERVER:
+			case BT_SERVER:
 				if(bufs[cbuf].live)
 				{
 					cmd="disconnect";
@@ -580,7 +580,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					return(0);
 				}
 			break;
-			case CHANNEL:
+			case BT_CHANNEL:
 				if(bufs[cbuf].live)
 				{
 					cmd="part";
@@ -601,14 +601,14 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 	if((strcmp(cmd, "quit")==0)||(strcmp(cmd, "exit")==0))
 	{
 		if(args) {free(*qmsg); *qmsg=strdup(args);}
-		add_to_buffer(cbuf, STA, NORMAL, 0, false, "Exited quirc", "/quit: ");
+		add_to_buffer(cbuf, MT_STATUS, PRIO_NORMAL, 0, false, "Exited quirc", "/quit: ");
 		return(-1);
 	}
 	if(strcmp(cmd, "log")==0) // start/stop logging
 	{
 		if(!args)
 		{
-			add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Must specify a log type or /log -", "/log: ");
+			add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "Must specify a log type or /log -", "/log: ");
 			return(0);
 		}
 		if(bufs[cbuf].logf)
@@ -618,7 +618,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		}
 		if(strcmp(args, "-")==0)
 		{
-			add_to_buffer(cbuf, STA, QUIET, 0, false, "Disabled logging of this buffer", "/log: ");
+			add_to_buffer(cbuf, MT_STATUS, PRIO_QUIET, 0, false, "Disabled logging of this buffer", "/log: ");
 			return(0);
 		}
 		else
@@ -629,38 +629,38 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 				char *fn=strtok(NULL, "");
 				if(fn)
 				{
-					logtype logt;
+					logtype logt; // TODO maybe use logtype_from_name?  (perhaps after converting case... or should types.c use strcasecmp?)
 					if(strcasecmp(type, "plain")==0)
 						logt=LOGT_PLAIN;
 					else if(strcasecmp(type, "symbolic")==0)
 						logt=LOGT_SYMBOLIC;
 					else
 					{
-						add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Unrecognised log type (valid types are: plain, symbolic)", "/log: ");
+						add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "Unrecognised log type (valid types are: plain, symbolic)", "/log: ");
 						return(0);
 					}
 					FILE *fp=fopen(fn, "a");
 					if(!fp)
 					{
-						add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Failed to open log file for append", "/log: ");
-						add_to_buffer(cbuf, ERR, NORMAL, 0, false, strerror(errno), "fopen: ");
+						add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "Failed to open log file for append", "/log: ");
+						add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, strerror(errno), "fopen: ");
 						return(0);
 					}
 					log_init(fp, logt);
 					bufs[cbuf].logf=fp;
 					bufs[cbuf].logt=logt;
-					add_to_buffer(cbuf, STA, QUIET, 0, false, "Enabled logging of this buffer", "/log: ");
+					add_to_buffer(cbuf, MT_STATUS, PRIO_QUIET, 0, false, "Enabled logging of this buffer", "/log: ");
 					return(0);
 				}
 				else
 				{
-					add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Must specify a log file", "/log: ");
+					add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "Must specify a log file", "/log: ");
 					return(0);
 				}
 			}
 			else
 			{
-				add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Must specify a log type or /log -", "/log: ");
+				add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "Must specify a log type or /log -", "/log: ");
 				return(0);
 			}
 		}
@@ -678,7 +678,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 #include "config_set.c"
 				else if(strcmp(opt, "conf")==0)
 				{
-					if(bufs[cbuf].type==CHANNEL)
+					if(bufs[cbuf].type==BT_CHANNEL)
 					{
 						if(val)
 						{
@@ -698,21 +698,21 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 							}
 							else
 							{
-								add_to_buffer(cbuf, ERR, NORMAL, 0, false, "option 'conf' is boolean, use only 0/1 or -/+ to set", "/set: ");
+								add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "option 'conf' is boolean, use only 0/1 or -/+ to set", "/set: ");
 							}
 						}
 						else
 							bufs[cbuf].conf=true;
 						if(bufs[cbuf].conf)
-							add_to_buffer(cbuf, STA, QUIET, 0, false, "conference mode enabled for this channel", "/set: ");
+							add_to_buffer(cbuf, MT_STATUS, PRIO_QUIET, 0, false, "conference mode enabled for this channel", "/set: ");
 						else
-							add_to_buffer(cbuf, STA, QUIET, 0, false, "conference mode disabled for this channel", "/set: ");
+							add_to_buffer(cbuf, MT_STATUS, PRIO_QUIET, 0, false, "conference mode disabled for this channel", "/set: ");
 						mark_buffer_dirty(cbuf);
 						redraw_buffer();
 					}
 					else
 					{
-						add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Not a channel!", "/set conf: ");
+						add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "Not a channel!", "/set conf: ");
 					}
 				}
 				else if(strcmp(opt, "uname")==0)
@@ -721,10 +721,10 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					{
 						free(username);
 						username=strdup(val);
-						add_to_buffer(cbuf, STA, QUIET, 0, false, username, "/set uname ");
+						add_to_buffer(cbuf, MT_STATUS, PRIO_QUIET, 0, false, username, "/set uname ");
 					}
 					else
-						add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Non-null value required for uname", "/set uname: ");
+						add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "Non-null value required for uname", "/set uname: ");
 				}
 				else if(strcmp(opt, "fname")==0)
 				{
@@ -732,10 +732,10 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					{
 						free(fname);
 						fname=strdup(val);
-						add_to_buffer(cbuf, STA, QUIET, 0, false, fname, "/set fname ");
+						add_to_buffer(cbuf, MT_STATUS, PRIO_QUIET, 0, false, fname, "/set fname ");
 					}
 					else
-						add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Non-null value required for fname", "/set fname: ");
+						add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "Non-null value required for fname", "/set fname: ");
 				}
 				else if(strcmp(opt, "pass")==0)
 				{
@@ -745,24 +745,24 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 						pass=strdup(val);
 						char *p=val;
 						while(*p) *p++='*';
-						add_to_buffer(cbuf, STA, QUIET, 0, false, val, "/set pass ");
+						add_to_buffer(cbuf, MT_STATUS, PRIO_QUIET, 0, false, val, "/set pass ");
 					}
 					else
-						add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Non-null value required for pass", "/set pass: ");
+						add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "Non-null value required for pass", "/set pass: ");
 				}
 				else
 				{
-					add_to_buffer(cbuf, ERR, NORMAL, 0, false, "No such option!", "/set: ");
+					add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "No such option!", "/set: ");
 				}
 			}
 			else
 			{
-				add_to_buffer(cbuf, ERR, NORMAL, 0, false, "But what do you want to set?", "/set: ");
+				add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "But what do you want to set?", "/set: ");
 			}
 		}
 		else
 		{
-			add_to_buffer(cbuf, ERR, NORMAL, 0, false, "But what do you want to set?", "/set: ");
+			add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "But what do you want to set?", "/set: ");
 		}
 		if((show_prefix!=osp)||(maxnlen!=omln)||(indent!=oind))
 		{
@@ -771,7 +771,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		}
 		if(debug&&!odbg)
 		{
-			push_ring(&d_buf, DEBUG);
+			push_ring(&d_buf, PRIO_DEBUG);
 		}
 		else if(odbg&&!debug)
 		{
@@ -798,7 +798,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 			int b;
 			for(b=1;b<nbufs;b++)
 			{
-				if((bufs[b].type==SERVER) && (irc_strcasecmp(server, bufs[b].bname, bufs[b].casemapping)==0))
+				if((bufs[b].type==BT_SERVER) && (irc_strcasecmp(server, bufs[b].bname, bufs[b].casemapping)==0))
 				{
 					if(bufs[b].live)
 					{
@@ -825,7 +825,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 				if(nl)
 				{
 					nl->reconn_b=0;
-					add_to_buffer(0, STA, QUIET, 0, false, dstr, "/server: ");
+					add_to_buffer(0, MT_STATUS, PRIO_QUIET, 0, false, dstr, "/server: ");
 					redraw_buffer();
 				}
 				#else
@@ -833,13 +833,13 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 				if(serverhandle)
 				{
 					bufs=(buffer *)realloc(bufs, ++nbufs*sizeof(buffer));
-					init_buffer(nbufs-1, SERVER, server, buflines);
+					init_buffer(nbufs-1, BT_SERVER, server, buflines);
 					cbuf=nbufs-1;
 					bufs[cbuf].handle=serverhandle;
 					bufs[cbuf].nick=bufs[0].nick?strdup(bufs[0].nick):NULL;
 					bufs[cbuf].server=cbuf;
 					bufs[cbuf].conninpr=true;
-					add_to_buffer(cbuf, STA, QUIET, 0, false, dstr, "/server: ");
+					add_to_buffer(cbuf, MT_STATUS, PRIO_QUIET, 0, false, dstr, "/server: ");
 					redraw_buffer();
 				}
 				#endif
@@ -847,7 +847,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		}
 		else
 		{
-			add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Must specify a server!", "/server: ");
+			add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "Must specify a server!", "/server: ");
 		}
 		return(0);
 	}
@@ -877,12 +877,12 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 				if(nl)
 				{
 					nl->reconn_b=bufs[cbuf].server;
-					add_to_buffer(bufs[cbuf].server, STA, QUIET, 0, false, dstr, "/server: ");
+					add_to_buffer(bufs[cbuf].server, MT_STATUS, PRIO_QUIET, 0, false, dstr, "/server: ");
 					redraw_buffer();
 				}
 				else
 				{
-					add_to_buffer(bufs[cbuf].server, ERR, NORMAL, 0, false, "malloc failure (see status)", "/server: ");
+					add_to_buffer(bufs[cbuf].server, MT_ERR, PRIO_NORMAL, 0, false, "malloc failure (see status)", "/server: ");
 					redraw_buffer();
 				}
 				#else /* ASYNCH_NL */
@@ -900,18 +900,18 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					bufs[cbuf].conninpr=true;
 					free(bufs[cbuf].realsname);
 					bufs[cbuf].realsname=NULL;
-					add_to_buffer(cbuf, STA, QUIET, 0, false, dstr, "/server: ");
+					add_to_buffer(cbuf, MT_STATUS, PRIO_QUIET, 0, false, dstr, "/server: ");
 				}
 				#endif /* ASYNCH_NL */
 			}
 			else
 			{
-				add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Already connected to server", "/reconnect: ");
+				add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "Already connected to server", "/reconnect: ");
 			}
 		}
 		else
 		{
-			add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Must be run in the context of a server!", "/reconnect: ");
+			add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "Must be run in the context of a server!", "/reconnect: ");
 		}
 		return(0);
 	}
@@ -934,7 +934,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 			int b2;
 			for(b2=1;b2<nbufs;b2++)
 			{
-				while((b2<nbufs) && (bufs[b2].type!=SERVER) && ((bufs[b2].server==b) || (bufs[b2].server==0)))
+				while((b2<nbufs) && (bufs[b2].type!=BT_SERVER) && ((bufs[b2].server==b) || (bufs[b2].server==0)))
 				{
 					bufs[b2].live=false;
 					free_buffer(b2);
@@ -947,7 +947,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		}
 		else
 		{
-			add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Can't disconnect (status)!", "/disconnect: ");
+			add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "Can't disconnect (status)!", "/disconnect: ");
 		}
 		return(0);
 	}
@@ -957,30 +957,30 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		if(b>0)
 		{
 			if(bufs[b].realsname)
-				add_to_buffer(cbuf, STA, NORMAL, 0, false, bufs[b].realsname, "/realsname: ");
+				add_to_buffer(cbuf, MT_STATUS, PRIO_NORMAL, 0, false, bufs[b].realsname, "/realsname: ");
 			else
-				add_to_buffer(cbuf, ERR, NORMAL, 0, false, "unknown", "/realsname ");
+				add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "unknown", "/realsname ");
 		}
 		else
-			add_to_buffer(cbuf, ERR, NORMAL, 0, false, "(status) is not a server", "/realsname: ");
+			add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "(status) is not a server", "/realsname: ");
 		return(0);
 	}
 	if(strcmp(cmd, "join")==0)
 	{
 		if(!SERVER(cbuf).handle)
 		{
-			add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Must be run in the context of a server!", "/join: ");
+			add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "Must be run in the context of a server!", "/join: ");
 		}
 		else if(!SERVER(cbuf).live)
 		{
-			add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Disconnected, can't send", "/join: ");
+			add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "Disconnected, can't send", "/join: ");
 		}
 		else if(args)
 		{
 			char *chan=strtok(args, " ");
 			if(!chan)
 			{
-				add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Must specify a channel!", "/join: ");
+				add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "Must specify a channel!", "/join: ");
 			}
 			else
 			{
@@ -1029,38 +1029,38 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		}
 		else
 		{
-			add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Must specify a channel!", "/join: ");
+			add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "Must specify a channel!", "/join: ");
 		}
 		return(0);
 	}
 	if(strcmp(cmd, "rejoin")==0)
 	{
-		if(bufs[cbuf].type==PRIVATE)
+		if(bufs[cbuf].type==BT_PRIVATE)
 		{
 			if(!(SERVER(cbuf).handle && SERVER(cbuf).live))
 			{
-				add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Disconnected, can't send", "/rejoin: ");
+				add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "Disconnected, can't send", "/rejoin: ");
 			}
 			else if(bufs[cbuf].live)
 			{
-				add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Already in this channel", "/rejoin: ");
+				add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "Already in this channel", "/rejoin: ");
 			}
 			else
 			{
 				bufs[cbuf].live=true;
 			}
 		}
-		else if(bufs[cbuf].type!=CHANNEL)
+		else if(bufs[cbuf].type!=BT_CHANNEL)
 		{
-			add_to_buffer(cbuf, ERR, NORMAL, 0, false, "View is not a channel!", "/rejoin: ");
+			add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "View is not a channel!", "/rejoin: ");
 		}
 		else if(!(SERVER(cbuf).handle && SERVER(cbuf).live))
 		{
-			add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Disconnected, can't send", "/rejoin: ");
+			add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "Disconnected, can't send", "/rejoin: ");
 		}
 		else if(bufs[cbuf].live)
 		{
-			add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Already in this channel", "/rejoin: ");
+			add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "Already in this channel", "/rejoin: ");
 		}
 		else
 		{
@@ -1080,9 +1080,9 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 	}
 	if((strcmp(cmd, "part")==0)||(strcmp(cmd, "leave")==0))
 	{
-		if(bufs[cbuf].type!=CHANNEL)
+		if(bufs[cbuf].type!=BT_CHANNEL)
 		{
-			add_to_buffer(cbuf, ERR, NORMAL, 0, false, "This view is not a channel!", "/part: ");
+			add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "This view is not a channel!", "/part: ");
 		}
 		else
 		{
@@ -1091,7 +1091,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 				char partmsg[8+strlen(bufs[cbuf].bname)];
 				sprintf(partmsg, "PART %s", bufs[cbuf].bname);
 				irc_tx(SERVER(cbuf).handle, partmsg);
-				add_to_buffer(cbuf, PART, NORMAL, 0, true, "Leaving", "/part: ");
+				add_to_buffer(cbuf, MT_PART, PRIO_NORMAL, 0, true, "Leaving", "/part: ");
 			}
 			// when you try to /part a dead tab, interpret it as a /close
 			int parent=bufs[cbuf].server;
@@ -1129,19 +1129,19 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 			}
 			else
 			{
-				add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Tab not live, can't send", "/away: ");
+				add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "Tab not live, can't send", "/away: ");
 			}
 		}
 		else
 		{
 			if(cbuf)
-				add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Tab not live, can't send", "/away: ");
+				add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "Tab not live, can't send", "/away: ");
 			else
 			{
 				int b;
 				for(b=0;b<nbufs;b++)
 				{
-					if(bufs[b].type==SERVER)
+					if(bufs[b].type==BT_SERVER)
 					{
 						if(bufs[b].handle)
 						{
@@ -1159,10 +1159,10 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 								}
 							}
 							else
-								add_to_buffer(b, ERR, NORMAL, 0, false, "Tab not live, can't send", "/away: ");
+								add_to_buffer(b, MT_ERR, PRIO_NORMAL, 0, false, "Tab not live, can't send", "/away: ");
 						}
 						else
-							add_to_buffer(b, ERR, NORMAL, 0, false, "Tab not live, can't send", "/away: ");
+							add_to_buffer(b, MT_ERR, PRIO_NORMAL, 0, false, "Tab not live, can't send", "/away: ");
 					}
 				}
 			}
@@ -1206,29 +1206,29 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					char nmsg[8+strlen(SERVER(cbuf).nick)];
 					sprintf(nmsg, "NICK %s", SERVER(cbuf).nick);
 					irc_tx(SERVER(cbuf).handle, nmsg);
-					add_to_buffer(cbuf, STA, QUIET, 0, false, "Changing nick", "/nick: ");
+					add_to_buffer(cbuf, MT_STATUS, PRIO_QUIET, 0, false, "Changing nick", "/nick: ");
 				}
 				else
 				{
-					add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Tab not live, can't send", "/nick: ");
+					add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "Tab not live, can't send", "/nick: ");
 				}
 			}
 			else
 			{
 				if(cbuf)
-					add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Tab not live, can't send", "/nick: ");
+					add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "Tab not live, can't send", "/nick: ");
 				else
 				{
 					free(bufs[0].nick);
 					bufs[0].nick=strdup(nn);
 					defnick=false;
-					add_to_buffer(cbuf, STA, QUIET, 0, false, "Default nick changed", "/nick: ");
+					add_to_buffer(cbuf, MT_STATUS, PRIO_QUIET, 0, false, "Default nick changed", "/nick: ");
 				}
 			}
 		}
 		else
 		{
-			add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Must specify a nickname!", "/nick: ");
+			add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "Must specify a nickname!", "/nick: ");
 		}
 		if(aalloc) free(args);
 		return(0);
@@ -1237,7 +1237,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 	{
 		if(args)
 		{
-			if(bufs[cbuf].type==CHANNEL)
+			if(bufs[cbuf].type==BT_CHANNEL)
 			{
 				if(SERVER(cbuf).handle)
 				{
@@ -1249,22 +1249,22 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					}
 					else
 					{
-						add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Tab not live, can't send", "/topic: ");
+						add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "Tab not live, can't send", "/topic: ");
 					}
 				}
 				else
 				{
-					add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Can't send to channel - not connected!", "/topic: ");
+					add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "Can't send to channel - not connected!", "/topic: ");
 				}
 			}
 			else
 			{
-				add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Can't set topic - view is not a channel!", "/topic: ");
+				add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "Can't set topic - view is not a channel!", "/topic: ");
 			}
 		}
 		else
 		{
-			if(bufs[cbuf].type==CHANNEL)
+			if(bufs[cbuf].type==BT_CHANNEL)
 			{
 				if(SERVER(cbuf).handle)
 				{
@@ -1276,17 +1276,17 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					}
 					else
 					{
-						add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Tab not live, can't send", "/topic: ");
+						add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "Tab not live, can't send", "/topic: ");
 					}
 				}
 				else
 				{
-					add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Can't send to channel - not connected!", "/topic: ");
+					add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "Can't send to channel - not connected!", "/topic: ");
 				}
 			}
 			else
 			{
-				add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Can't get topic - view is not a channel!", "/topic: ");
+				add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "Can't get topic - view is not a channel!", "/topic: ");
 			}
 		}
 		return(0);
@@ -1295,7 +1295,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 	{
 		if(!SERVER(cbuf).handle)
 		{
-			add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Must be run in the context of a server!", "/msg: ");
+			add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "Must be run in the context of a server!", "/msg: ");
 		}
 		else if(args)
 		{
@@ -1308,7 +1308,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 			}
 			if(!dest)
 			{
-				add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Must specify a recipient!", "/msg: ");
+				add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "Must specify a recipient!", "/msg: ");
 				return(0);
 			}
 			char *text=strtok(NULL, "");
@@ -1330,29 +1330,29 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 						ctcp_strip(text, SERVER(cbuf).nick, cbuf, false, false, true, true);
 						if(no_tab)
 						{
-							add_to_buffer(cbuf, STA, QUIET, 0, false, "sent", "/msg -n: ");
+							add_to_buffer(cbuf, MT_STATUS, PRIO_QUIET, 0, false, "sent", "/msg -n: ");
 						}
 						else
 						{
 							while(text[strlen(text)-1]=='\n')
 								text[strlen(text)-1]=0; // stomp out trailing newlines, they break things
-							add_to_buffer(cbuf, MSG, NORMAL, 0, true, text, SERVER(cbuf).nick);
+							add_to_buffer(cbuf, MT_MSG, PRIO_NORMAL, 0, true, text, SERVER(cbuf).nick);
 						}
 					}
 					else
 					{
-						add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Tab not live, can't send", "/msg: ");
+						add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "Tab not live, can't send", "/msg: ");
 					}
 				}
 				else
 				{
-					add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Can't send to channel - not connected!", "/msg: ");
+					add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "Can't send to channel - not connected!", "/msg: ");
 				}
 			}
 		}
 		else
 		{
-			add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Must specify a recipient!", "/msg: ");
+			add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "Must specify a recipient!", "/msg: ");
 		}
 		return(0);
 	}
@@ -1360,14 +1360,14 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 	{
 		if(!SERVER(cbuf).handle)
 		{
-			add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Must be run in the context of a server!", "/ping: ");
+			add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "Must be run in the context of a server!", "/ping: ");
 		}
 		else
 		{
 			const char *dest=NULL;
 			if(args)
 				dest=strtok(args, " ");
-			if(!dest&&bufs[cbuf].type==PRIVATE)
+			if(!dest&&bufs[cbuf].type==BT_PRIVATE)
 				dest=bufs[cbuf].bname;
 			if(dest)
 			{
@@ -1383,17 +1383,17 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					}
 					else
 					{
-						add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Tab not live, can't send", "/ping: ");
+						add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "Tab not live, can't send", "/ping: ");
 					}
 				}
 				else
 				{
-					add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Can't send - not connected!", "/ping: ");
+					add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "Can't send - not connected!", "/ping: ");
 				}
 			}
 			else
 			{
-				add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Must specify a recipient!", "/ping: ");
+				add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "Must specify a recipient!", "/ping: ");
 			}
 		}
 		return(0);
@@ -1402,14 +1402,14 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 	{
 		if(!bufs[cbuf].server)
 		{
-			add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Must be run in the context of a server!", "/amsg: ");
+			add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "Must be run in the context of a server!", "/amsg: ");
 		}
 		else if(args)
 		{
 			int b2;
 			for(b2=1;b2<nbufs;b2++)
 			{
-				if((bufs[b2].server==bufs[cbuf].server) && (bufs[b2].type==CHANNEL))
+				if((bufs[b2].server==bufs[cbuf].server) && (bufs[b2].type==BT_CHANNEL))
 				{
 					if(LIVE(b2))
 					{
@@ -1420,28 +1420,28 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 							args[strlen(args)-1]=0; // stomp out trailing newlines, they break things
 						bool al=bufs[b2].alert; // save alert status...
 						int hi=bufs[b2].hi_alert;
-						add_to_buffer(b2, MSG, NORMAL, 0, true, args, SERVER(b2).nick);
+						add_to_buffer(b2, MT_MSG, PRIO_NORMAL, 0, true, args, SERVER(b2).nick);
 						bufs[b2].alert=al; // and restore it
 						bufs[b2].hi_alert=hi;
 					}
 					else
 					{
-						add_to_buffer(b2, ERR, NORMAL, 0, false, "Tab not live, can't send", "/amsg: ");
+						add_to_buffer(b2, MT_ERR, PRIO_NORMAL, 0, false, "Tab not live, can't send", "/amsg: ");
 					}
 				}
 			}
 		}
 		else
 		{
-			add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Must specify a message!", "/amsg: ");
+			add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "Must specify a message!", "/amsg: ");
 		}
 		return(0);
 	}
 	if(strcmp(cmd, "me")==0)
 	{
-		if(!((bufs[cbuf].type==CHANNEL)||(bufs[cbuf].type==PRIVATE)))
+		if(!((bufs[cbuf].type==BT_CHANNEL)||(bufs[cbuf].type==BT_PRIVATE)))
 		{
-			add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Can't talk here, not a channel/private chat", "/me: ");
+			add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "Can't talk here, not a channel/private chat", "/me: ");
 		}
 		else if(args)
 		{
@@ -1454,21 +1454,21 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					irc_tx(SERVER(cbuf).handle, privmsg);
 					while(args[strlen(args)-1]=='\n')
 						args[strlen(args)-1]=0; // stomp out trailing newlines, they break things
-					add_to_buffer(cbuf, ACT, NORMAL, 0, true, args, SERVER(cbuf).nick);
+					add_to_buffer(cbuf, MT_ACT, PRIO_NORMAL, 0, true, args, SERVER(cbuf).nick);
 				}
 				else
 				{
-					add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Tab not live, can't send", "/me: ");
+					add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "Tab not live, can't send", "/me: ");
 				}
 			}
 			else
 			{
-				add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Can't send to channel - not connected!", "/msg: ");
+				add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "Can't send to channel - not connected!", "/msg: ");
 			}
 		}
 		else
 		{
-			add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Must specify an action!", "/me: ");
+			add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "Must specify an action!", "/me: ");
 		}
 		return(0);
 	}
@@ -1476,7 +1476,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 	{
 		if(!args)
 		{
-			add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Must specify a tab!", "/tab: ");
+			add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "Must specify a tab!", "/tab: ");
 		}
 		else
 		{
@@ -1490,12 +1490,12 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 				}
 				else
 				{
-					add_to_buffer(cbuf, ERR, NORMAL, 0, false, "No such tab!", "/tab: ");
+					add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "No such tab!", "/tab: ");
 				}
 			}
 			else
 			{
-				add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Must specify a tab!", "/tab: ");
+				add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "Must specify a tab!", "/tab: ");
 			}
 		}
 		return(0);
@@ -1509,7 +1509,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		for(b=0;b<nbufs;b++)
 		{
 			bi[b]=bufs[b];
-			if(bufs[b].type==SERVER)
+			if(bufs[b].type==BT_SERVER)
 			{
 				newbufs[buf++]=b;
 				int b2;
@@ -1524,14 +1524,14 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		}
 		if(buf!=nbufs)
 		{
-			add_to_buffer(cbuf, ERR, QUIET, 0, false, "Internal error (bad count)", "/sort: ");
+			add_to_buffer(cbuf, MT_ERR, PRIO_QUIET, 0, false, "Internal error (bad count)", "/sort: ");
 			return(0);
 		}
 		int serv=0, cb=0;
 		for(b=0;b<nbufs;b++)
 		{
 			bufs[b]=bi[newbufs[b]];
-			if(bufs[b].type==SERVER)
+			if(bufs[b].type==BT_SERVER)
 				serv=b;
 			bufs[b].server=serv;
 			if(newbufs[b]==cbuf)
@@ -1545,7 +1545,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 	{
 		if(cbuf<2)
 		{
-			add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Can't move (status) tab!", "/left: ");
+			add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "Can't move (status) tab!", "/left: ");
 		}
 		else
 		{
@@ -1573,11 +1573,11 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 	{
 		if(!cbuf)
 		{
-			add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Can't move (status) tab!", "/right: ");
+			add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "Can't move (status) tab!", "/right: ");
 		}
 		else if(cbuf==nbufs-1)
 		{
-			add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Nowhere to move to!", "/right: ");
+			add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "Nowhere to move to!", "/right: ");
 		}
 		else
 		{
@@ -1605,7 +1605,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 	{
 		if(!args)
 		{
-			add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Missing arguments!", "/ignore: ");
+			add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "Missing arguments!", "/ignore: ");
 		}
 		else
 		{
@@ -1651,11 +1651,11 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					{
 						if(i_cull(&bufs[cbuf].ilist, arg))
 						{
-							add_to_buffer(cbuf, STA, QUIET, 0, false, "Entries deleted", "/ignore -d: ");
+							add_to_buffer(cbuf, MT_STATUS, PRIO_QUIET, 0, false, "Entries deleted", "/ignore -d: ");
 						}
 						else
 						{
-							add_to_buffer(cbuf, ERR, NORMAL, 0, false, "No entries deleted", "/ignore -d: ");
+							add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "No entries deleted", "/ignore -d: ");
 						}
 					}
 					else if(regex)
@@ -1663,7 +1663,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 						name *new=n_add(&bufs[cbuf].ilist, arg, bufs[cbuf].casemapping);
 						if(new)
 						{
-							add_to_buffer(cbuf, STA, QUIET, 0, false, "Entry added", "/ignore: ");
+							add_to_buffer(cbuf, MT_STATUS, PRIO_QUIET, 0, false, "Entry added", "/ignore: ");
 							new->icase=icase;
 							new->pms=pms;
 						}
@@ -1683,7 +1683,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 						name *new=n_add(&bufs[cbuf].ilist, expr, bufs[cbuf].casemapping);
 						if(new)
 						{
-							add_to_buffer(cbuf, STA, QUIET, 0, false, "Entry added", "/ignore: ");
+							add_to_buffer(cbuf, MT_STATUS, PRIO_QUIET, 0, false, "Entry added", "/ignore: ");
 							new->icase=icase;
 							new->pms=pms;
 						}
@@ -1699,7 +1699,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 	{
 		if(!SERVER(cbuf).handle)
 		{
-			add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Must be run in the context of a server!", "/mode: ");
+			add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "Must be run in the context of a server!", "/mode: ");
 		}
 		else
 		{
@@ -1712,21 +1712,21 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 				{
 					if(LIVE(cbuf))
 					{
-						if(bufs[cbuf].type==CHANNEL)
+						if(bufs[cbuf].type==BT_CHANNEL)
 						{
 							char mmsg[8+strlen(bufs[cbuf].bname)+strlen(modes)+strlen(user)];
 							sprintf(mmsg, "MODE %s %s %s", bufs[cbuf].bname, modes, user);
 							irc_tx(SERVER(cbuf).handle, mmsg);
 						}
 						else
-							add_to_buffer(cbuf, ERR, NORMAL, 0, false, "This is not a channel", "/mode: ");
+							add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "This is not a channel", "/mode: ");
 					}
 					else
-						add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Tab not live, can't send", "/mode: ");
+						add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "Tab not live, can't send", "/mode: ");
 				}
 				else
 				{
-					if(bufs[cbuf].type==CHANNEL)
+					if(bufs[cbuf].type==BT_CHANNEL)
 					{
 						name *curr=bufs[cbuf].nlist;
 						while(curr)
@@ -1742,10 +1742,10 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 									for(unsigned int i=0;i<curr->npfx;i++)
 										mm[mpos++]=curr->prefixes[i].letter;
 									if(curr->npfx) mm[mpos]=0;
-									add_to_buffer(cbuf, MODE, NORMAL, 0, false, mm, "/mode: ");
+									add_to_buffer(cbuf, MT_MODE, PRIO_NORMAL, 0, false, mm, "/mode: ");
 								}
 								else
-									add_to_buffer(cbuf, ERR, NORMAL, 0, false, "\"Impossible\" error (mpos==0)", "/mode: ");
+									add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "\"Impossible\" error (mpos==0)", "/mode: ");
 								break;
 							}
 							curr=curr->next;
@@ -1754,17 +1754,17 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 						{
 							char mm[16+strlen(user)];
 							sprintf(mm, "No such nick: %s", user);
-							add_to_buffer(cbuf, ERR, NORMAL, 0, false, mm, "/mode: ");
+							add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, mm, "/mode: ");
 						}
 					}
 					else
-						add_to_buffer(cbuf, ERR, NORMAL, 0, false, "This is not a channel", "/mode: ");
+						add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "This is not a channel", "/mode: ");
 				}
 			}
 			else
 			{
 				youmode:
-				if(bufs[cbuf].type==CHANNEL)
+				if(bufs[cbuf].type==BT_CHANNEL)
 				{
 					if(bufs[cbuf].us)
 					{
@@ -1776,16 +1776,16 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 							for(unsigned int i=0;i<bufs[cbuf].us->npfx;i++)
 								mm[mpos++]=bufs[cbuf].us->prefixes[i].letter;
 							if(bufs[cbuf].us->npfx) mm[mpos]=0;
-							add_to_buffer(cbuf, MODE, NORMAL, 0, true, mm, "/mode: ");
+							add_to_buffer(cbuf, MT_MODE, PRIO_NORMAL, 0, true, mm, "/mode: ");
 						}
 						else
-							add_to_buffer(cbuf, ERR, NORMAL, 0, false, "\"Impossible\" error (mpos==0)", "/mode: ");
+							add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "\"Impossible\" error (mpos==0)", "/mode: ");
 					}
 					else
-						add_to_buffer(cbuf, ERR, NORMAL, 0, false, "\"Impossible\" error (us==NULL)", "/mode: ");
+						add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "\"Impossible\" error (us==NULL)", "/mode: ");
 				}
 				else
-					add_to_buffer(cbuf, ERR, NORMAL, 0, false, "This is not a channel", "/mode: ");
+					add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "This is not a channel", "/mode: ");
 			}
 		}
 		return(0);
@@ -1794,7 +1794,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 	{
 		if(!SERVER(cbuf).handle)
 		{
-			add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Must be run in the context of a server!", "/cmd: ");
+			add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "Must be run in the context of a server!", "/cmd: ");
 		}
 		else
 		{
@@ -1808,11 +1808,11 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 			if(force||LIVE(cbuf))
 			{
 				irc_tx(SERVER(cbuf).handle, args);
-				add_to_buffer(cbuf, STA, NORMAL, 0, false, args, "/cmd: ");
+				add_to_buffer(cbuf, MT_STATUS, PRIO_NORMAL, 0, false, args, "/cmd: ");
 			}
 			else
 			{
-				add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Tab not live, can't send", "/cmd: ");
+				add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "Tab not live, can't send", "/cmd: ");
 			}
 		}
 		return(0);
@@ -1820,7 +1820,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 	if(!cmd) cmd="";
 	char dstr[8+strlen(cmd)];
 	sprintf(dstr, "/%s: ", cmd);
-	add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Unrecognised command!", dstr);
+	add_to_buffer(cbuf, MT_ERR, PRIO_NORMAL, 0, false, "Unrecognised command!", dstr);
 	return(0);
 }
 
