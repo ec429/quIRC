@@ -100,8 +100,6 @@ numeric.h: gen_numerics.py numerics.py
 numeric_text.c: gen_numerics_text.py numerics.py
 	./$< > $@
 
-script.o: script.c script.h bits.h buffer_h.d
-
 c_init.c: colour.def c_init.awk
 	$(AWK) -f c_init.awk colour.def > c_init.c
 
