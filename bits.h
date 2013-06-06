@@ -2,7 +2,7 @@
 
 /*
 	quIRC - simple terminal-based IRC client
-	Copyright (C) 2010-12 Edward Cree
+	Copyright (C) 2010-13 Edward Cree
 
 	See quirc.c for license information
 	bits: general helper functions (chiefly string manipulation)
@@ -11,10 +11,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "strbuf.h"
-#include "ttyesc.h"
 #include "colour.h"
-#include "config.h"
 
 // helper fn macros
 #define max(a,b)	((a)>(b)?(a):(b))

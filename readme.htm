@@ -37,7 +37,6 @@
 <p>First port of call is the website, <a href="http://jttlov.no-ip.org/projects/quirc.htm">http://jttlov.no-ip.org</a>.<br />
 Then there&apos;s the github page, <a href="http://github.com/ec429/quIRC">http://github.com/ec429/quIRC</a>.</p>
 <p>Or try our IRC channel, #quirc on irc.newnet.net (if your problem doesn&apos;t prevent you from joining us there!)</p>
-<p>Note: before reporting a bug, check the file <small>wontfix</small>, which lists things which are known to be wrong but whose fixes would be unacceptably crocky.</p>
 </div><!--#furtherhelp-->
 <div id="commands">
 <h2>Commands</h2>
@@ -100,7 +99,7 @@ Then there&apos;s the github page, <a href="http://github.com/ec429/quIRC">http:
 	</dl>
 	</dd>
 <dt>/rejoin [<em>key</em>]</dt>
-	<dd>Rejoins a channel tab which is dead (eg after losing server connection).</dd>
+	<dd>Rejoins a channel tab which is dead (eg after losing server connection).  If <em>key</em> is not specified, the previous key (if any) will be used.</dd>
 <dt>/reconnect</dt>
 	<dd>Reconnects to a server from which you have become disconnected.</dd>
 <dt>/realsname</dt>
@@ -158,10 +157,6 @@ The logfile (for &gt;log) is relative to <small>~/.quirc/</small>, as with the /
 <p>You can also set mirc-colour-compatibility, with<br />
 <tt>mcc <em>mcc-level</em></tt><br />
 where 0 doesn&apos;t scan for mirc-colours, 1 silently strips them out, and 2 displays the appropriate colour.  The default is mcc 1.</p>
-<p>Another setting here is force-redraw, with<br />
-<tt>fred <em>force-redraw</em></tt><br />
-which will redraw the whole screen when things change; the number controls how often.<br />
-0 won't redraw at all, while 3 will redraw every 0.25 seconds.  The default is now 0 (it used to be 2, which redraws whenever any buffer is written to or input is entered).  Since some improvements were made to the drawing code, fred's assistance should no longer be needed, but we've kept him around just in case.</p>
 <p>The size of each scrollback buffer, in lines, can be set with<br />
 <tt>buf <em>buf-lines</em></tt><br />
 the default being 1024.  Larger values will, of course, increase memory consumption.</p>

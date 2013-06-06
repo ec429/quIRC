@@ -1,12 +1,15 @@
 /*
 	quIRC - simple terminal-based IRC client
-	Copyright (C) 2010-12 Edward Cree
+	Copyright (C) 2010-13 Edward Cree
 
 	See quirc.c for license information
 	bits: general helper functions (chiefly string manipulation)
 */
 
 #include "bits.h"
+#include "strbuf.h"
+#include "ttyesc.h"
+#include "config.h"
 
 int wordline(const char *msg, unsigned int x, char **out, size_t *l, size_t *i, colour lc)
 {

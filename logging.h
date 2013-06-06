@@ -1,4 +1,11 @@
 #pragma once
+/*
+	quIRC - simple terminal-based IRC client
+	Copyright (C) 2010-13 Edward Cree
+
+	See quirc.c for license information
+	logging: routines to log activity
+*/
 
 #include <stdio.h>
 #include <stdbool.h>

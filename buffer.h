@@ -2,7 +2,7 @@
 
 /*
 	quIRC - simple terminal-based IRC client
-	Copyright (C) 2010-12 Edward Cree
+	Copyright (C) 2010-13 Edward Cree
 
 	See quirc.c for license information
 	buffer: multiple-buffer control & buffer rendering
@@ -17,18 +17,14 @@
 #include <time.h>
 #include <ctype.h>
 #include <math.h>
-#include "ttyesc.h"
 #include "colour.h"
 #include "config.h"
-#include "bits.h"
 #include "input.h"
 #include "irc.h"
-#include "names.h"
-#include "text.h"
 #include "types.h"
-#include "version.h"
 
-#define LIVE(buf)	(bufs[buf].live && bufs[bufs[buf].server].live)	// Check liveness
+#define SERVER(buf)	(bufs[bufs[buf].server]) // server of a buf
+#define LIVE(buf)	(bufs[buf].live && SERVER(buf).live)	// Check liveness
 #define STAMP_LEN	40
 
 typedef struct _buf
@@ -75,6 +71,8 @@ typedef struct _buf
 	prefix *prefixes; // ^^
 	servlist * autoent; // if this was opened by autoconnect(), this is filled in to point to the server's servlist entry
 	bool conf; // Conference Mode (hides joins, parts, quits, and /nicks)
+	char *key; // channel key
+	char *lastkey; // last key passed to /rejoin; copied to .key if rejoin succeeds
 }
 buffer;
 
@@ -118,3 +116,4 @@ void titlebar(void);
 int findptab(int b, const char *src);
 int makeptab(int b, const char *src);
 void timestamp(char stamp[STAMP_LEN], time_t t);
+bool isutf8(const char *src, size_t *len); // determine if a string starts with a non-ASCII UTF8 character; if so, give its length (in bytes) in len.  If this function returns false, the value of *len is undefined

@@ -1,12 +1,13 @@
 /*
 	quIRC - simple terminal-based IRC client
-	Copyright (C) 2010-12 Edward Cree
+	Copyright (C) 2010-13 Edward Cree
 
 	See quirc.c for license information
 	strbuf: auto-reallocating string buffers
 */
 
 #include <stdlib.h>
+#include <string.h> // for memmove()
 #include "strbuf.h"
 
 void append_char(char **buf, size_t *l, size_t *i, char c)
@@ -36,6 +37,13 @@ void append_char(char **buf, size_t *l, size_t *i, char c)
 		free(*buf);
 		init_char(buf, l, i);
 	}
+}
+
+void prepend_char(char **buf, size_t *l, size_t *i, char c)
+{
+	append_char(buf, l, i, 0);
+	memmove((*buf)+1, *buf, *i);
+	(*buf)[0]=c;
 }
 
 void append_str(char **buf, size_t *l, size_t *i, const char *str)

@@ -2,7 +2,7 @@
 
 /*
 	quIRC - simple terminal-based IRC client
-	Copyright (C) 2010-12 Edward Cree
+	Copyright (C) 2010-13 Edward Cree
 
 	See quirc.c for license information
 	config: rc file and option parsing
@@ -11,6 +11,8 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
+
+#define CLIENT_SOURCE	"http://github.com/ec429/quIRC"
 
 #include "types.h"
 
@@ -39,11 +41,6 @@ typedef struct _servlist
 servlist;
 
 #include "names.h"
-#include "bits.h"
-#include "colour.h"
-#include "text.h"
-#include "version.h"
-#include "buffer.h"
 #include "keymod.h"
 
 // global settings & state
@@ -54,7 +51,7 @@ bool defnick;
 servlist *servs;
 name *igns;
 char *version;
-int nkeys;
+unsigned int nkeys;
 keymod *kmap;
 
 int initkeys(void);

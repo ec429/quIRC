@@ -1,14 +1,17 @@
 # gitless Makefile for quIRC
 
 CC ?= gcc
-OPTFLAGS = -g
-CFLAGS ?= -Wall -Wextra -Werror -pedantic -std=gnu99 $(OPTFLAGS)
-AWK ?= gawk
-PREFIX ?= /usr/local
-# -lanl is for ASYNCH_NL
-OPTLIBS := -lanl
-LIBS := -lncurses ttyraw.o ttyesc.o irc.o bits.o colour.o buffer.o names.o config.o input.o logging.o types.o $(OPTLIBS)
-INCLUDE := ttyraw.h ttyesc.h irc.h bits.h colour.h buffer.h names.h config.h input.h logging.h types.h quirc.h version.h osconf.h
+OPTFLAGS := -g
+CFLAGS = -Wall -Wextra -Werror -pedantic -std=gnu99 -D_GNU_SOURCE $(OPTFLAGS)
+AWK := gawk
+PREFIX := /usr/local
+LIBS_ASYNCH_NL := -lanl
+OPTLIBS = $(LIBS_ASYNCH_NL)
+LIBS = -lm -lncurses $(OBJS) $(OPTLIBS)
+OBJS := ttyraw.o ttyesc.o irc.o ctcp.o bits.o strbuf.o ctbuf.o colour.o buffer.o names.o numeric_text.o config.o input.o logging.o types.o
+INCLUDE := $(OBJS:.o=.h) version.h osconf.h ctbuf_h.d buffer_h.d config_c.d config_h.d input_h.d
+
+-include config.mak
 
 all: quirc doc
 
@@ -16,6 +19,7 @@ install: all doc
 	install -D -m0755 quirc $(PREFIX)/bin/quirc
 	install -D -m0644 quirc.1 $(PREFIX)/man/man1/quirc.1
 	install -D -m0644 readme.htm $(PREFIX)/share/doc/quirc/readme.htm
+	install -D -m0644 readme.css $(PREFIX)/share/doc/quirc/readme.css
 	install -D -m0644 config_ref.htm $(PREFIX)/share/doc/quirc/config_ref.htm
 	install -D -m0644 tutorial.htm $(PREFIX)/share/doc/quirc/tutorial.htm
 
@@ -23,20 +27,18 @@ uninstall:
 	-rm $(PREFIX)/bin/quirc
 	-rm $(PREFIX)/man/man1/quirc.1
 	-rm $(PREFIX)/share/doc/quirc/readme.htm
+	-rm $(PREFIX)/share/doc/quirc/readme.css
 	-rm $(PREFIX)/share/doc/quirc/config_ref.htm
 	-rm $(PREFIX)/share/doc/quirc/tutorial.htm
 
-quirc: quirc.c $(LIBS) $(INCLUDE)
-	$(CC) $(CFLAGS) $(CPPFLAGS) -o $@ $< $(LIBS) -lm $(DEFINES)
-
-quirc.h: config.h version.h
-	touch quirc.h
+quirc: quirc.c $(OBJS) $(INCLUDE)
+	$(CC) $(CFLAGS) $(CPPFLAGS) -o $@ $< $(LIBS) $(DEFINES)
 
 clean:
-	-rm *.o quirc genconfig genkeymap
+	-rm -f *.o *.d quirc genconfig genkeymap
 
 realclean: clean
-	-rm c_init.c README version.h config_* keymap.c keymod.h
+	-rm -f c_init.c README version.h config_* keymap.c keymod.h quirc.1 numeric.h numeric_text.c
 
 doc: README config_ref.htm quirc.1
 
@@ -48,61 +50,61 @@ quirc.1: man.in
 	echo ".\\\"\n.\\\"This man page is automatically generated from man.in by a sedscript; edit man.in, not this file, and 'make doc' to apply the changes.">quirc.1
 	sed -e "s!\$$PREFIX!$(PREFIX)!g" < man.in >> quirc.1
 
-# funky make cleverness to generate object files; a %.o /always/ depends on its %.h as well as its %.c
-
+# a %.o /always/ depends on its %.h as well as its %.c
 %.o: %.c %.h
 	$(CC) -c $(CFLAGS) $(CPPFLAGS) $< -o $@ $(DEFINES)
 
-ttyesc.o: ttyesc.c ttyesc.h bits.h
+# dependency files have no work to do
+%.d:
+	touch $@
 
-irc.o: irc.c irc.h bits.h buffer.h colour.h names.h numeric.h osconf.h
+ttyesc.o: ttyesc.c ttyesc.h bits.h config_h.d
 
-irc.h: config.h
-	touch irc.h
+irc.o: irc.c irc.h bits.h buffer_h.d colour.h names.h numeric.h numeric_text.h osconf.h ctcp.h
 
 bits.o: bits.c bits.h ttyesc.h colour.h
 
-bits.h: config.h
-	touch bits.h
+ctbuf_h.d: ctbuf.h colour.h
+
+ctcp.c: types.h buffer_h.d config_h.d version.h
 
 colour.o: colour.c colour.h c_init.c ttyesc.h
 
-buffer.o: buffer.c buffer.h ttyesc.h colour.h bits.h names.h text.h irc.h version.h input.h logging.h
+buffer.o: buffer.c buffer.h ttyesc.h colour.h bits.h names.h text.h irc.h version.h input_h.d logging.h osconf.h ctbuf_h.d
 
-buffer.h: config.h version.h types.h
-	touch buffer.h
+buffer_h.d: buffer.h colour.h config_h.d input_h.d irc.h types.h
 
-config.o: config.c config.h names.h bits.h colour.h text.h version.h
+config.o: config_c.d config_h.d names.h bits.h colour.h text.h ttyesc.h version.h
 
-config.c: config_check.c config_def.c config_need.c config_rcread.c config_pargs.c config_help.c keymap.c
-	touch config.c
+config_c.d: config.c config_check.c config_def.c config_need.c config_rcread.c config_pargs.c config_help.c keymap.c
 
-config.h: config_globals.h version.h keymod.h
-	touch config.h
+config_h.d: config.h config_globals.h version.h keymod.h
 
 config_%: config.cdl genconfig
 	./genconfig $@ < config.cdl > $@ || (rm $@ && false)
 
-genconfig: genconfig.c
+genconfig: genconfig.c strbuf.h strbuf.o
+	$(CC) $(CFLAGS) $(CPPFLAGS) $< $(LDFLAGS) strbuf.o -o $@
 
-input.h: keymod.h
-	touch input.h
+input_h.d: input.h keymod.h
 
-input.o: input.c input.h ttyesc.h names.h buffer.h irc.h bits.h config.h logging.h
-
-input.c: config_set.c
-	touch input.c
+input.o: input.c input_h.d ttyesc.h names.h buffer_h.d irc.h bits.h config_h.d logging.h config_set.c
 
 logging.o: types.h bits.h
 
-names.o: names.c names.h buffer.h irc.h
+names.o: names.c names.h buffer_h.d irc.h
 
-script.o: script.c script.h bits.h buffer.h
+numeric.h: gen_numerics.py numerics.py
+	./$< > $@
 
-c_init.c: colour.d c_init.awk
-	$(AWK) -f c_init.awk colour.d > c_init.c
+numeric_text.c: gen_numerics_text.py numerics.py
+	./$< > $@
 
-genkeymap: genkeymap.c
+c_init.c: colour.def c_init.awk
+	$(AWK) -f c_init.awk colour.def > c_init.c
+
+genkeymap: genkeymap.c strbuf.h strbuf.o
+	$(CC) $(CFLAGS) $(CPPFLAGS) $< $(LDFLAGS) strbuf.o -o $@
 
 keymod.h: keys genkeymap
 	./genkeymap h < keys > $@ || (rm $@ && false)

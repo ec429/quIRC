@@ -2,7 +2,7 @@
 
 /*
 	quIRC - simple terminal-based IRC client
-	Copyright (C) 2010-12 Edward Cree
+	Copyright (C) 2010-13 Edward Cree
 
 	See quirc.c for license information
 	osconf.h: platform-specific configuration settings
@@ -18,8 +18,9 @@
 
 #if INTMAX_BUG
 	#define PRINTMAX	"%lld"
-	#define CASTINTMAX	(long long int)
+	#define TYPEINTMAX	long long int
 #else
 	#define PRINTMAX	"%jd"
-	#define CASTINTMAX	(intmax_t)
+	#define TYPEINTMAX	intmax_t
 #endif
+#define CASTINTMAX	(TYPEINTMAX)

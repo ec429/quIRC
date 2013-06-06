@@ -1,12 +1,18 @@
 /*
 	quIRC - simple terminal-based IRC client
-	Copyright (C) 2010-12 Edward Cree
+	Copyright (C) 2010-13 Edward Cree
 
 	See quirc.c for license information
 	irc: networking functions
 */
 
 #include "irc.h"
+#include "bits.h"
+#include "buffer.h"
+#include "config.h"
+#include "ctcp.h"
+#include "numeric.h"
+#include "numeric_text.h"
 
 void handle_signals(int sig)
 {
@@ -159,7 +165,7 @@ int irc_conn_rest(int b, char *nick, char *username, char *passwd, char *fullnam
 	return(0);
 }
 
-int autoconnect(fd_set *master, int *fdmax, servlist *serv) // XXX broken in the face of asynch nl
+int autoconnect(fd_set *master, int *fdmax, servlist *serv) // XXX broken in the face of asynch nl [I have forgotten what was meant by this; I'm not aware of anything broken about this function]
 {
 	servlist *curr=serv;
 	if(!curr) return(0);
@@ -188,7 +194,7 @@ int autoconnect(fd_set *master, int *fdmax, servlist *serv) // XXX broken in the
 		bufs[cbuf].server=cbuf;
 		bufs[cbuf].conninpr=true;
 		add_to_buffer(cbuf, STA, QUIET, 0, false, cstr, "auto: ");
-		if(force_redraw<3) redraw_buffer();
+		redraw_buffer();
 	}
 	#endif /* ASYNCH_NL */
 	autoconnect(master, fdmax, serv->next);
@@ -770,7 +776,7 @@ int irc_numeric(message pkt, int b)
 				}
 			}
 		break;
-		case RPL_X_TOPICWASSET: // 331 dest <channel> <nick> <time>
+		case RPL_X_TOPICWASSET: // 333 dest <channel> <nick> <time>
 			if(pkt.nargs<3)
 			{
 				e_buf_print(b, ERR, pkt, "RPL_X_TOPICWASSET: Not enough arguments: ");
@@ -780,10 +786,11 @@ int irc_numeric(message pkt, int b)
 			{
 				if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(pkt.args[1], bufs[b2].bname, bufs[b].casemapping)==0))
 				{
-					time_t when;
-					sscanf(pkt.args[3], "%u", (unsigned int *)&when);
+					TYPEINTMAX when;
+					sscanf(pkt.args[3], PRINTMAX, &when);
+					time_t t=when;
 					char ts[256];
-					struct tm *tm = gmtime(&when);
+					struct tm *tm = gmtime(&t);
 					size_t tslen = strftime(ts, sizeof(ts), "%H:%M:%S GMT on %a, %d %b %Y", tm); // TODO options controlling date format (eg. ISO 8601)
 					char tmsg[32+strlen(pkt.args[2])+tslen];
 					sprintf(tmsg, "Topic was set by %s at %s", pkt.args[2], ts);
@@ -874,7 +881,14 @@ int irc_numeric(message pkt, int b)
 			}
 			// else fall through
 		default:
-			e_buf_print(b, UNN, pkt, "Unknown numeric: ");
+			if((num>=0)&&(num<1000)&&numeric_names[num])
+			{
+				char tag[40];
+				snprintf(tag, 40, "Unhandled %s: ", numeric_names[num]);
+				add_to_buffer(b, UNN, QUIET, 0, false, pkt.args[pkt.nargs-1], tag);
+			}
+			else
+				e_buf_print(b, UNN, pkt, "Unknown numeric: ");
 		break;
 	}
 	return(num);
@@ -902,7 +916,7 @@ int rx_mode(message pkt, int b)
 	servlist *serv=bufs[b].autoent;
 	if(autojoin && serv && serv->chans && !serv->join)
 	{
-		chanlist * curr=serv->chans;
+		chanlist *curr=serv->chans;
 		while(curr)
 		{
 			char joinmsg[8+strlen(curr->name)];
@@ -1318,10 +1332,10 @@ int rx_error(message pkt, int b, fd_set *master)
 	{
 		if((bufs[b2].server==b) || (bufs[b2].server==0))
 		{
-			if(pkt.nargs<2)
+			if(pkt.nargs<1)
 				add_to_buffer(b2, QUIT_PREFORMAT, NORMAL, 0, false, "ERROR", "Disconnected: ");
 			else
-				add_to_buffer(b2, QUIT_PREFORMAT, NORMAL, 0, false, pkt.args[1], "Disconnected: ");
+				add_to_buffer(b2, QUIT_PREFORMAT, NORMAL, 0, false, pkt.args[0], "Disconnected: ");
 			bufs[b2].live=false;
 			close(bufs[b2].handle);
 			bufs[b2].handle=0; // de-bind fd
@@ -1406,7 +1420,7 @@ int rx_privmsg(message pkt, int b, bool notice)
 						b2=nbufs-1;
 						bufs[b2].server=bufs[b].server;
 						bufs[b2].live=true;
-						n_add(&bufs[b2].nlist, bufs[bufs[b2].server].nick, bufs[b].casemapping);
+						n_add(&bufs[b2].nlist, SERVER(b2).nick, bufs[b].casemapping);
 						n_add(&bufs[b2].nlist, src, bufs[b].casemapping);
 					}
 					add_to_buffer(b2, MSG, NORMAL, 0, false, pkt.args[1], src);
@@ -1494,6 +1508,11 @@ int rx_join(message pkt, int b)
 			if((bufs[b2].server==b) && (bufs[b2].type==CHANNEL) && (irc_strcasecmp(pkt.args[0], bufs[b2].bname, bufs[b].casemapping)==0))
 			{
 				cbuf=b2;
+				if(bufs[cbuf].lastkey)
+				{
+					free(bufs[cbuf].key);
+					bufs[cbuf].key=strdup(bufs[cbuf].lastkey);
+				}
 				break;
 			}
 		}
@@ -1510,6 +1529,7 @@ int rx_join(message pkt, int b)
 				{
 					if(irc_strcasecmp(c->name, pkt.args[0], bufs[b].casemapping)==0)
 					{
+						bufs[cbuf].key=c->key?strdup(c->key):NULL;
 						bufs[cbuf].logf=c->logf;
 						bufs[cbuf].logt=c->logt;
 						c->logf=NULL;
@@ -1521,7 +1541,7 @@ int rx_join(message pkt, int b)
 		}
 		add_to_buffer(cbuf, JOIN, NORMAL, 0, true, dstr, "");
 		bufs[cbuf].live=true;
-		if(force_redraw<3) redraw_buffer();
+		redraw_buffer();
 	}
 	else
 	{
@@ -1566,7 +1586,7 @@ int rx_part(message pkt, int b)
 				if(b2==cbuf)
 				{
 					cbuf=b;
-					if(force_redraw<3) redraw_buffer();
+					redraw_buffer();
 				}
 				bufs[b2].live=false;
 				free_buffer(b2);
@@ -1659,12 +1679,18 @@ int rx_nick(message pkt, int b)
 			if((bufs[b2].server==b) && ((bufs[b2].type==CHANNEL)||(bufs[b2].type==PRIVATE)))
 			{
 				match=true;
+				add_to_buffer(b2, NICK, QUIET, 0, false, src, bufs[b2].bname);
 				if(n_cull(&bufs[b2].nlist, src, bufs[b].casemapping))
 				{
 					n_add(&bufs[b2].nlist, pkt.args[0], bufs[b].casemapping);
 					char dstr[30+strlen(pkt.args[0])];
 					sprintf(dstr, "is now known as %s", pkt.args[0]);
 					add_to_buffer(b2, NICK, NORMAL, 0, false, dstr, src);
+					if((bufs[b2].type==PRIVATE)&&(irc_strcasecmp(src, bufs[b2].bname, bufs[b].casemapping)==0))
+					{
+						free(bufs[b2].bname);
+						bufs[b2].bname=strdup(pkt.args[0]);
+					}
 				}
 			}
 		}
@@ -1676,162 +1702,18 @@ int rx_nick(message pkt, int b)
 	return(0);
 }
 
-int ctcp_strip(char *msg, const char *src, int b2, bool ha, bool notice, bool priv, bool tx)
-{
-	int e=0;
-	char *in=msg, *out=msg;
-	while(*in)
-	{
-		if(*in==1)
-		{
-			char *t=strchr(in+1, 1);
-			if(t)
-			{
-				*t=0;
-				e|=ctcp(in+1, src, b2, ha, notice, priv, tx);
-				in=t+1;
-				continue;
-			}
-		}
-		*out++=*in++;
-	}
-	*out=0;
-	return(e);
-}
-
-int ctcp(const char *msg, const char *src, int b2, bool ha, bool notice, bool priv, bool tx)
-{
-	int b=bufs[b2].server;
-	int fd=bufs[b].handle;
-	if(strncmp(msg, "ACTION ", 7)==0)
-	{
-		if(priv) b2=makeptab(b, src);
-		add_to_buffer(b2, ACT, NORMAL, 0, tx, msg+7, src);
-		ha=ha||strstr(msg+7, bufs[bufs[b2].server].nick);
-		if(ha)
-			bufs[b2].hi_alert=5;
-	}
-	else if(!tx)
-	{
-		if(strncmp(msg, "FINGER", 6)==0)
-		{
-			if(notice)
-			{
-				if(priv) b2=makeptab(b, src);
-				add_to_buffer(b2, NOTICE, NORMAL, 0, false, msg, src);
-				if(ha)
-					bufs[b2].hi_alert=5;
-			}
-			else
-			{
-				char resp[32+strlen(src)+strlen(fname)];
-				sprintf(resp, "NOTICE %s :\001FINGER %s\001", src, fname);
-				irc_tx(fd, resp);
-			}
-		}
-		else if(strncmp(msg, "PING", 4)==0)
-		{
-			if(notice)
-			{
-				if(priv) b2=makeptab(b, src);
-				unsigned int t, u;
-				ssize_t n;
-				if((msg[4]==' ')&&(sscanf(msg+5, "%u%zn", &t, &n)==1))
-				{
-					double dt=0;
-					if((msg[5+n]==' ')&&(sscanf(msg+6+n, "%u", &u)==1))
-					{
-						struct timeval tv;
-						gettimeofday(&tv, NULL);
-						dt=(tv.tv_sec-t)+1e-6*(tv.tv_usec-(suseconds_t)u);
-					}
-					else
-						dt=difftime(time(NULL), t);
-					char tm[32];
-					snprintf(tm, 32, "%gs", dt);
-					add_to_buffer(b2, STA, NORMAL, 0, false, tm, "/ping: ");
-				}
-				else
-				{
-					add_to_buffer(b2, NOTICE, NORMAL, 0, false, msg, src);
-				}
-				if(ha)
-					bufs[b2].hi_alert=5;
-			}
-			else
-			{
-				char resp[16+strlen(src)+strlen(msg)];
-				sprintf(resp, "NOTICE %s :\001%s\001", src, msg);
-				irc_tx(fd, resp);
-			}
-		}
-		else if(strncmp(msg, "CLIENTINFO", 10)==0)
-		{
-			if(notice)
-			{
-				if(priv) b2=makeptab(b, src);
-				add_to_buffer(b2, NOTICE, NORMAL, 0, false, msg, src);
-				if(ha)
-					bufs[b2].hi_alert=5;
-			}
-			else
-			{
-				char resp[64+strlen(src)];
-				sprintf(resp, "NOTICE %s :\001CLIENTINFO ACTION FINGER PING CLIENTINFO VERSION\001", src);
-				irc_tx(fd, resp);
-			}
-		}
-		else if(strncmp(msg, "VERSION", 7)==0)
-		{
-			if(notice)
-			{
-				if(priv) b2=makeptab(b, src);
-				add_to_buffer(b2, NOTICE, NORMAL, 0, false, msg, src);
-				if(ha)
-					bufs[b2].hi_alert=5;
-			}
-			else
-			{
-				char resp[32+strlen(src)+strlen(version)+strlen(CC_VERSION)];
-				sprintf(resp, "NOTICE %s :\001VERSION %s:%s:%s\001", src, "quIRC", version, CC_VERSION);
-				irc_tx(fd, resp);
-			}
-		}
-		else
-		{
-			if(priv) b2=makeptab(b, src);
-			add_to_buffer(b2, NOTICE, NORMAL, 0, false, msg, src);
-			if(ha)
-				bufs[b2].hi_alert=5;
-			int space=strcspn(msg, " ");
-			char cmsg[32+space];
-			sprintf(cmsg, "Unrecognised CTCP %.*s (ignoring)", space, msg);
-			add_to_buffer(b2, UNK_NOTICE, QUIET, 0, false, cmsg, src);
-			if(!notice)
-			{
-				char resp[32+strlen(src)+space];
-				sprintf(resp, "NOTICE %s \001ERRMSG %.*s\001", src, space, msg);
-				irc_tx(fd, resp);
-			}
-			if(ha)
-				bufs[b2].hi_alert=5;
-		}
-	}
-	return(0);
-}
-
 int talk(char *iinput)
 {
 	if((bufs[cbuf].type==CHANNEL)||(bufs[cbuf].type==PRIVATE))
 	{
-		if(bufs[bufs[cbuf].server].handle)
+		if(SERVER(cbuf).handle)
 		{
 			if(LIVE(cbuf))
 			{
 				char pmsg[12+strlen(bufs[cbuf].bname)+strlen(iinput)];
 				sprintf(pmsg, "PRIVMSG %s :%s", bufs[cbuf].bname, iinput);
-				irc_tx(bufs[bufs[cbuf].server].handle, pmsg);
-				ctcp_strip(iinput, bufs[bufs[cbuf].server].nick, cbuf, false, false, bufs[cbuf].type==PRIVATE, true);
+				irc_tx(SERVER(cbuf).handle, pmsg);
+				ctcp_strip(iinput, SERVER(cbuf).nick, cbuf, false, false, bufs[cbuf].type==PRIVATE, true);
 				if(*iinput)
 				{
 					char lp=0;
@@ -1840,9 +1722,9 @@ int talk(char *iinput)
 						int po=-1;
 						for(unsigned int i=0;i<bufs[cbuf].us->npfx;i++)
 						{
-							for(unsigned int j=0;j<(po<0?bufs[bufs[cbuf].server].npfx:(unsigned)po);j++)
+							for(unsigned int j=0;j<(po<0?SERVER(cbuf).npfx:(unsigned)po);j++)
 							{
-								if(bufs[bufs[cbuf].server].prefixes[j].letter==bufs[cbuf].us->prefixes[i].letter)
+								if(SERVER(cbuf).prefixes[j].letter==bufs[cbuf].us->prefixes[i].letter)
 								{
 									po=j;
 									lp=bufs[cbuf].us->prefixes[i].pfx;
@@ -1850,7 +1732,7 @@ int talk(char *iinput)
 							}
 						}
 					}
-					add_to_buffer(cbuf, MSG, NORMAL, lp, true, iinput, bufs[bufs[cbuf].server].nick);
+					add_to_buffer(cbuf, MSG, NORMAL, lp, true, iinput, SERVER(cbuf).nick);
 				}
 			}
 			else

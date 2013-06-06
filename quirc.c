@@ -1,6 +1,6 @@
 /*
 	quIRC - simple terminal-based IRC client
-	Copyright (C) 2010-12 Edward Cree
+	Copyright (C) 2010-13 Edward Cree
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -16,7 +16,26 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "quirc.h"
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/time.h>
+#include <ctype.h>
+#include <errno.h>
+#include <signal.h>
+#ifdef	USE_MTRACE
+	#include <mcheck.h>
+#endif // USE_MTRACE
+
+#include "ttyraw.h"
+#include "ttyesc.h"
+#include "colour.h"
+#include "irc.h"
+#include "bits.h"
+#include "buffer.h"
+#include "config.h"
+#include "input.h"
+#include "version.h"
 
 int main(int argc, char *argv[])
 {
@@ -230,7 +249,7 @@ int main(int argc, char *argv[])
 				if(!port) port="port";
 				char dstr[32+strlen(server)+strlen(port)];
 				sprintf(dstr, "Found %s, connecting on %s...", server, port);
-				if(force_redraw<3) redraw_buffer();
+				redraw_buffer();
 				if(list->reconn_b)
 				{
 					bufs[list->reconn_b].handle=serverhandle;
@@ -253,7 +272,7 @@ int main(int argc, char *argv[])
 					init_buffer(nbufs-1, SERVER, server, buflines);
 					cbuf=nbufs-1;
 					bufs[cbuf].handle=serverhandle;
-					bufs[cbuf].nick=strdup(nick);
+					bufs[cbuf].nick=bufs[0].nick?strdup(bufs[0].nick):NULL;
 					bufs[cbuf].server=cbuf;
 					bufs[cbuf].conninpr=true;
 					if(list->autoent)
@@ -268,6 +287,7 @@ int main(int argc, char *argv[])
 				free((char *)list->nl_details->ar_name);
 				free((char *)list->nl_details->ar_service);
 				freeaddrinfo((void *)list->nl_details->ar_request);
+				free(list->nl_details);
 				if(list->prev) list->prev->next=list->next;
 				else nl_active=list->next;
 				if(list->next) list->next->prev=list->prev;
@@ -372,6 +392,7 @@ int main(int argc, char *argv[])
 								loop=false;
 							}
 						}
+						in_update(inp);
 						break; // handle the input; everyone else can wait
 					}
 					else
@@ -475,7 +496,7 @@ int main(int argc, char *argv[])
 								}
 								else if(bufs[b].conninpr)
 								{
-									irc_conn_rest(b, nick, username, pass, fname);
+									irc_conn_rest(b, bufs[0].nick, username, pass, fname);
 								}
 								else
 								{
@@ -534,20 +555,8 @@ int main(int argc, char *argv[])
 				{
 					state=0;
 				}
-				if(force_redraw==2) // 'slight paranoia' mode
-				{
-					redraw_buffer();
-				}
-				if(force_redraw<3)
-				{
-					in_update(inp);
-				}
+				in_update(inp);
 			break;
-		}
-		if(force_redraw>=3) // 'extremely paranoid' mode
-		{
-			redraw_buffer();
-			in_update(inp);
 		}
 	}
 	int b;
@@ -567,13 +576,18 @@ int main(int argc, char *argv[])
 	bufs[0].live=false;
 	free_buffer(0);
 	free(bufs);
+	free_ring(&d_buf);
 	free(username);
 	free(fname);
 	free(qmsg);
-	free(nick);
+	free(nick); // should be NULL by now anyway
 	free(portno);
 	freeservlist(servs);
 	n_free(igns);
+	for(unsigned int i=0;i<nkeys;i++)
+		free(kmap[i].mod);
+	free(kmap);
+	free(version);
 	locate(height-1, 0);
 	putchar('\n');
 	ttyreset(fileno(stdout));

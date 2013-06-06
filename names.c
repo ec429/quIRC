@@ -1,12 +1,13 @@
 /*
 	quIRC - simple terminal-based IRC client
-	Copyright (C) 2010-12 Edward Cree
+	Copyright (C) 2010-13 Edward Cree
 
 	See quirc.c for license information
 	names: handling for name lists
 */
 
 #include "names.h"
+#include "strbuf.h"
 
 name *n_dup(const name *list)
 {
@@ -241,7 +242,7 @@ void i_list(void)
 	}
 	if(bufs[cbuf].server)
 	{
-		name *curr=bufs[bufs[cbuf].server].ilist;
+		name *curr=SERVER(cbuf).ilist;
 		while(curr)
 		{
 			name *next=curr->next;

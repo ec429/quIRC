@@ -2,7 +2,7 @@
 
 /*
 	quIRC - simple terminal-based IRC client
-	Copyright (C) 2010-12 Edward Cree
+	Copyright (C) 2010-13 Edward Cree
 
 	See quirc.c for license information
 	irc: networking functions
@@ -41,11 +41,7 @@ typedef struct
 }
 message;
 
-#include "bits.h"
-#include "buffer.h"
 #include "colour.h"
-#include "config.h"
-#include "numeric.h"
 #include "names.h"
 #include "osconf.h"
 

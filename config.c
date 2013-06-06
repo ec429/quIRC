@@ -1,12 +1,19 @@
 /*
 	quIRC - simple terminal-based IRC client
-	Copyright (C) 2010-12 Edward Cree
+	Copyright (C) 2010-13 Edward Cree
 
 	See quirc.c for license information
 	config: rc file and option parsing
 */
 
 #include "config.h"
+#include "bits.h"
+#include "colour.h"
+#include "text.h"
+#include "version.h"
+#include "buffer.h"
+#include "strbuf.h"
+#include "ttyesc.h"
 
 #include "keymap.c"
 
@@ -77,7 +84,7 @@ void loadkeys(FILE *fp)
 				if(cont) continue;
 				new.mod[o>>1]=0;
 				bool match=false;
-				for(int i=0;i<nkeys;i++)
+				for(unsigned int i=0;i<nkeys;i++)
 				{
 					if(strcmp(new.name, kmap[i].name)==0)
 					{
@@ -126,7 +133,7 @@ int def_config(void)
 	nick=strdup(eu?eu:"ac");
 	defnick=true;
 	pass=NULL;
-	snprintf(fname, 64+strlen(VERSION_TXT), "quIRC %hhu.%hhu.%hhu%s%s : http://github.com/ec429/quIRC", VERSION_MAJ, VERSION_MIN, VERSION_REV, VERSION_TXT[0]?"-":"", VERSION_TXT);
+	snprintf(fname, 64+strlen(VERSION_TXT), "quIRC %hhu.%hhu.%hhu%s%s : %s", VERSION_MAJ, VERSION_MIN, VERSION_REV, VERSION_TXT[0]?"-":"", VERSION_TXT, CLIENT_SOURCE);
 	version=malloc(16+strlen(VERSION_TXT));
 	snprintf(version, 16+strlen(VERSION_TXT), "%hhu.%hhu.%hhu%s%s", VERSION_MAJ, VERSION_MIN, VERSION_REV, VERSION_TXT[0]?"-":"", VERSION_TXT);
 	return(0);
@@ -404,6 +411,8 @@ int rcread(FILE *rcfp)
 					new->key=strdup(new->key);
 				}
 				new->igns=NULL;
+				new->logt=LOGT_NONE;
+				new->logf=NULL;
 				servs->chans=new;
 			}
 			else if(servs && servs->chans && (strcmp(cmd, ">log")==0))
@@ -528,8 +537,11 @@ signed int pargs(int argc, char *argv[])
 			if((new->key=strpbrk(new->name, " \t")))
 			{
 				*new->key++=0;
+				new->key=strdup(new->key);
 			}
 			new->igns=NULL;
+			new->logt=LOGT_NONE;
+			new->logf=NULL;
 			servs->chans=new;
 		}
 #include "config_pargs.c"

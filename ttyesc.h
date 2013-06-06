@@ -1,7 +1,7 @@
 #pragma once
 /*
 	quIRC - simple terminal-based IRC client
-	Copyright (C) 2010-12 Edward Cree
+	Copyright (C) 2010-13 Edward Cree
 
 	See quirc.c for license information
 	ttyesc: terminfo-powered terminal escape sequences
@@ -12,7 +12,6 @@
 #include <sys/ioctl.h>
 #include <term.h>
 #undef tab
-#include "bits.h"
 
 int setcol(int fore, int back, bool hi, bool ul); // sets the text colour
 int s_setcol(int fore, int back, bool hi, bool ul, char **rv, size_t *l, size_t *i); // writes a setcol-like string with append_char (see bits.h)

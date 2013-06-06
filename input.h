@@ -2,7 +2,7 @@
 
 /*
 	quIRC - simple terminal-based IRC client
-	Copyright (C) 2010-12 Edward Cree
+	Copyright (C) 2010-13 Edward Cree
 
 	See quirc.c for license information
 	input: handle input routines
@@ -40,13 +40,7 @@ typedef struct
 }
 ibuffer;
 
-#include "ttyesc.h"
 #include "names.h"
-#include "buffer.h"
-#include "irc.h"
-#include "bits.h"
-#include "config.h"
-#include "keymod.h"
 
 bool ttab;
 
@@ -57,6 +51,7 @@ void initibuf(ibuffer *i);
 void addtoibuf(ibuffer *i, char *data);
 void freeibuf(ibuffer *i);
 char back_ichar(ichar *buf); // returns the deleted char
+char front_ichar(ichar *buf); // returns the deleted char
 void ifree(iline *buf);
 
 void i_home(iline *inp);

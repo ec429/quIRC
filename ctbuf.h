@@ -1,3 +1,11 @@
+/*
+	quIRC - simple terminal-based IRC client
+	Copyright (C) 2010-13 Edward Cree
+
+	See quirc.c for license information
+	ctbuf: coloured text buffers
+*/
+
 #include "colour.h"
 
 typedef struct

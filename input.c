@@ -1,6 +1,6 @@
 /*
 	quIRC - simple terminal-based IRC client
-	Copyright (C) 2010-12 Edward Cree
+	Copyright (C) 2010-13 Edward Cree
 
 	See quirc.c for license information
 	input: handle input routines
@@ -8,6 +8,17 @@
 
 #include "input.h"
 #include "logging.h"
+#include "strbuf.h"
+#include "ttyesc.h"
+#include "buffer.h"
+#include "irc.h"
+#include "bits.h"
+#include "config.h"
+#include "keymod.h"
+
+size_t i_firstlen(ichar src);
+size_t i_lastlen(ichar src);
+void i_move(iline *inp, ssize_t bytes);
 
 int inputchar(iline *inp, int *state)
 {
@@ -22,7 +33,7 @@ int inputchar(iline *inp, int *state)
 	{
 		append_char(&seq, &sl, &si, c);
 		match=false;
-		for(int i=0;i<nkeys;i++)
+		for(unsigned int i=0;i<nkeys;i++)
 		{
 			if(strncmp(seq, kmap[i].mod, si)==0)
 			{	
@@ -55,37 +66,50 @@ int inputchar(iline *inp, int *state)
 	if(c!='\t')
 		ttab=false;
 	if(mod==KEY_BS) // backspace
-		back_ichar(&inp->left);
-	else if((mod<0) && (c<32)) // this also stomps on the newline
+	{
+		size_t ll=i_lastlen(inp->left);
+		for(size_t i=0;i<ll;i++)
+			back_ichar(&inp->left);
+		return(0);
+	}
+	if((mod<0) && (c<32)) // this also stomps on the newline
 	{
 		back_ichar(&inp->left);
 		if(c==8) // C-h ~= backspace
 		{
-			back_ichar(&inp->left);
+			size_t ll=i_lastlen(inp->left);
+			for(size_t i=0;i<ll;i++)
+				back_ichar(&inp->left);
+			return(0);
 		}
 		if(c==1) // C-a ~= home
 		{
 			i_home(inp);
+			return(0);
 		}
 		if(c==5) // C-e ~= end
 		{
 			i_end(inp);
+			return(0);
 		}
 		if(c==3) // C-c ~= clear
 		{
 			ifree(inp);
+			return(0);
 		}
 		if(c==24) // C-x ~= clear to left
 		{
 			free(inp->left.data);
 			inp->left.data=NULL;
 			inp->left.i=inp->left.l=0;
+			return(0);
 		}
 		if(c==11) // C-k ~= clear to right
 		{
 			free(inp->right.data);
 			inp->right.data=NULL;
 			inp->right.i=inp->right.l=0;
+			return(0);
 		}
 		if(c==23) // C-w ~= backspace word
 		{
@@ -93,6 +117,7 @@ int inputchar(iline *inp, int *state)
 			while(!strchr(" ", back_ichar(&inp->left)));
 			if(inp->left.i)
 				append_char(&inp->left.data, &inp->left.l, &inp->left.i, ' ');
+			return(0);
 		}
 		if(c=='\t') // tab completion of nicks
 		{
@@ -192,6 +217,7 @@ int inputchar(iline *inp, int *state)
 				add_to_buffer(cbuf, STA, NORMAL, 0, false, "No nicks match", "[tab] ");
 			}
 			n_free(found);
+			return(0);
 		}
 	}
 	else if(mod>=0)
@@ -202,7 +228,8 @@ int inputchar(iline *inp, int *state)
 			if(mod==KEY_F(n))
 			{
 				cbuf=min(n%12, nbufs-1);
-				if(force_redraw<3) redraw_buffer();
+				redraw_buffer();
+				return(0);
 			}
 		}
 		if(mod==KEY_UP) // Up
@@ -221,7 +248,7 @@ int inputchar(iline *inp, int *state)
 				}
 			}
 		}
-		else if(mod==KEY_DOWN) // Down
+		if(mod==KEY_DOWN) // Down
 		{
 			gone=true;
 			if(!bufs[cbuf].input.scroll)
@@ -251,160 +278,159 @@ int inputchar(iline *inp, int *state)
 			{
 				ifree(inp);
 			}
+			return(0);
 		}
-		else if(mod==KEY_RIGHT)
+		if(mod==KEY_RIGHT)
 		{
-			if(inp->right.data && *inp->right.data)
-			{
-				append_char(&inp->left.data, &inp->left.l, &inp->left.i, inp->right.data[0]);
-				char *nr=strdup(inp->right.data+1);
-				free(inp->right.data);
-				inp->right.data=nr;
-				inp->right.i--;
-				inp->right.l=0;
-			}
+			i_move(inp, i_firstlen(inp->right));
+			return(0);
 		}
-		else if(mod==KEY_LEFT)
+		if(mod==KEY_LEFT)
 		{
-			if(inp->left.i)
-			{
-				unsigned char e=back_ichar(&inp->left);
-				if(e)
-				{
-					char *nr=(char *)malloc(inp->right.i+2);
-					*nr=e;
-					if(inp->right.data)
-					{
-						strcpy(nr+1, inp->right.data);
-						free(inp->right.data);
-					}
-					else
-					{
-						nr[1]=0;
-					}
-					inp->right.data=nr;
-					inp->right.i++;
-					inp->right.l=inp->right.i+1;
-				}
-			}
+			i_move(inp, -i_lastlen(inp->left));
+			return(0);
 		}
-		else if(mod==KEY_HOME)
+		if(mod==KEY_HOME)
+		{
 			i_home(inp);
-		else if(mod==KEY_END)
-			i_end(inp);
-		else if(mod==KEY_DELETE)
+			return(0);
+		}
+		if(mod==KEY_END)
 		{
-			if(inp->right.data && inp->right.i)
+			i_end(inp);
+			return(0);
+		}
+		if(mod==KEY_DELETE)
+		{
+			size_t fl=i_firstlen(inp->right);
+			if(inp->right.data&&(inp->right.i>fl))
 			{
-				char *nr=strdup(inp->right.data+1);
+				char *nr=strdup(inp->right.data+fl);
 				free(inp->right.data);
 				inp->right.data=nr;
-				inp->right.l=inp->right.i--;
+				inp->right.i-=fl;
+				inp->right.l=inp->right.i;
 			}
+			else
+			{
+				free(inp->right.data);
+				inp->right.data=NULL;
+				inp->right.l=inp->right.i=0;
+			}
+			return(0);
 		}
-		else if(mod==KEY_CPGUP)
+		if(mod==KEY_CPGUP)
 		{
 			bufs[cbuf].ascroll-=height-(tsb?3:2);
-			if(force_redraw<3) redraw_buffer();
+			redraw_buffer();
+			return(0);
 		}
-		else if(mod==KEY_CPGDN)
+		if(mod==KEY_CPGDN)
 		{
 			bufs[cbuf].ascroll+=height-(tsb?3:2);
-			if(force_redraw<3) redraw_buffer();
+			redraw_buffer();
+			return(0);
 		}
-		else
+		gone=false;
+		if(mod==KEY_PGUP)
 		{
-			bool gone=false;
-			if(mod==KEY_PGUP)
+			int old=bufs[cbuf].input.scroll;
+			bufs[cbuf].input.scroll=min(bufs[cbuf].input.scroll+10, bufs[cbuf].input.filled?bufs[cbuf].input.nlines-1:bufs[cbuf].input.ptr);
+			if(old!=bufs[cbuf].input.scroll) gone=true;
+			if(gone&&!old)
 			{
-				int old=bufs[cbuf].input.scroll;
-				bufs[cbuf].input.scroll=min(bufs[cbuf].input.scroll+10, bufs[cbuf].input.filled?bufs[cbuf].input.nlines-1:bufs[cbuf].input.ptr);
-				if(old!=bufs[cbuf].input.scroll) gone=true;
-				if(gone&&!old)
+				if(inp->left.i||inp->right.i)
 				{
-					if(inp->left.i||inp->right.i)
-					{
-						char out[inp->left.i+inp->right.i+1];
-						sprintf(out, "%s%s", inp->left.data?inp->left.data:"", inp->right.data?inp->right.data:"");
-						addtoibuf(&bufs[cbuf].input, out);
-						bufs[cbuf].input.scroll=2;
-					}
+					char out[inp->left.i+inp->right.i+1];
+					sprintf(out, "%s%s", inp->left.data?inp->left.data:"", inp->right.data?inp->right.data:"");
+					addtoibuf(&bufs[cbuf].input, out);
+					bufs[cbuf].input.scroll=2;
 				}
 			}
-			else if(mod==KEY_PGDN)
+			return(0);
+		}
+		if(mod==KEY_PGDN)
+		{
+			gone=true;
+			if(!bufs[cbuf].input.scroll)
 			{
-				gone=true;
-				if(!bufs[cbuf].input.scroll)
+				if(inp->left.i||inp->right.i)
 				{
-					if(inp->left.i||inp->right.i)
-					{
-						char out[inp->left.i+inp->right.i+1];
-						sprintf(out, "%s%s", inp->left.data?inp->left.data:"", inp->right.data?inp->right.data:"");
-						addtoibuf(&bufs[cbuf].input, out);
-						bufs[cbuf].input.scroll=0;
-					}
+					char out[inp->left.i+inp->right.i+1];
+					sprintf(out, "%s%s", inp->left.data?inp->left.data:"", inp->right.data?inp->right.data:"");
+					addtoibuf(&bufs[cbuf].input, out);
+					bufs[cbuf].input.scroll=0;
 				}
-				bufs[cbuf].input.scroll=max(bufs[cbuf].input.scroll-10, 0);
 			}
-			if(gone&&(bufs[cbuf].input.ptr||bufs[cbuf].input.filled))
+			bufs[cbuf].input.scroll=max(bufs[cbuf].input.scroll-10, 0);
+			return(0);
+		}
+		if(gone&&(bufs[cbuf].input.ptr||bufs[cbuf].input.filled))
+		{
+			if(bufs[cbuf].input.scroll)
 			{
-				if(bufs[cbuf].input.scroll)
-				{
-					char *ln=bufs[cbuf].input.line[(bufs[cbuf].input.ptr+bufs[cbuf].input.nlines-bufs[cbuf].input.scroll)%bufs[cbuf].input.nlines];
-					if(ln)
-					{
-						ifree(inp);
-						inp->left.data=strdup(ln);inp->left.i=strlen(inp->left.data);inp->left.l=0;
-					}
-				}
-				else
+				char *ln=bufs[cbuf].input.line[(bufs[cbuf].input.ptr+bufs[cbuf].input.nlines-bufs[cbuf].input.scroll)%bufs[cbuf].input.nlines];
+				if(ln)
 				{
 					ifree(inp);
+					inp->left.data=strdup(ln);inp->left.i=strlen(inp->left.data);inp->left.l=0;
 				}
 			}
-			else if((mod==KEY_SLEFT)||(mod==KEY_CLEFT)||(mod==KEY_ALEFT))
+			else
 			{
-				cbuf=max(cbuf-1, 0);
-				if(force_redraw<3) redraw_buffer();
+				ifree(inp);
 			}
-			else if((mod==KEY_SRIGHT)||(mod==KEY_CRIGHT)||(mod==KEY_ARIGHT))
-			{
-				cbuf=min(cbuf+1, nbufs-1);
-				if(force_redraw<3) redraw_buffer();
-			}
-			else if((mod==KEY_CUP)||(mod==KEY_AUP))
-			{
-				bufs[cbuf].ascroll--;
-				if(force_redraw<3) redraw_buffer();
-			}
-			else if((mod==KEY_CDOWN)||(mod==KEY_ADOWN))
-			{
-				bufs[cbuf].ascroll++;
-				if(force_redraw<3) redraw_buffer();
-			}
-			else if((mod==KEY_SHOME)||(mod==KEY_CHOME)||(mod==KEY_AHOME))
-			{
-				bufs[cbuf].scroll=bufs[cbuf].filled?(bufs[cbuf].ptr+1)%bufs[cbuf].nlines:0;
-				bufs[cbuf].ascroll=0;
-				if(force_redraw<3) redraw_buffer();
-			}
-			else if((mod==KEY_SEND)||(mod==KEY_CEND)||(mod==KEY_AEND))
-			{
-				bufs[cbuf].scroll=bufs[cbuf].ptr;
-				bufs[cbuf].ascroll=0;
-				if(force_redraw<3) redraw_buffer();
-			}
+			return(0);
+		}
+		if((mod==KEY_SLEFT)||(mod==KEY_CLEFT)||(mod==KEY_ALEFT))
+		{
+			cbuf=max(cbuf-1, 0);
+			redraw_buffer();
+			return(0);
+		}
+		if((mod==KEY_SRIGHT)||(mod==KEY_CRIGHT)||(mod==KEY_ARIGHT))
+		{
+			cbuf=min(cbuf+1, nbufs-1);
+			redraw_buffer();
+			return(0);
+		}
+		if((mod==KEY_CUP)||(mod==KEY_AUP))
+		{
+			bufs[cbuf].ascroll--;
+			redraw_buffer();
+			return(0);
+		}
+		if((mod==KEY_CDOWN)||(mod==KEY_ADOWN))
+		{
+			bufs[cbuf].ascroll++;
+			redraw_buffer();
+			return(0);
+		}
+		if((mod==KEY_SHOME)||(mod==KEY_CHOME)||(mod==KEY_AHOME))
+		{
+			bufs[cbuf].scroll=bufs[cbuf].filled?(bufs[cbuf].ptr+1)%bufs[cbuf].nlines:0;
+			bufs[cbuf].ascroll=0;
+			redraw_buffer();
+			return(0);
+		}
+		if((mod==KEY_SEND)||(mod==KEY_CEND)||(mod==KEY_AEND))
+		{
+			bufs[cbuf].scroll=bufs[cbuf].ptr;
+			bufs[cbuf].ascroll=0;
+			redraw_buffer();
+			return(0);
 		}
 	}
-	else if((c&0xe0)==0xc0) // 110xxxxx -> 2 bytes of UTF-8
+	if((c&0xe0)==0xc0) // 110xxxxx -> 2 bytes of UTF-8
 	{
 		int d=getchar();
 		if(d&&(d!=EOF)&&((d&0xc0)==0x80)) // 10xxxxxx - UTF middlebyte
 			append_char(&inp->left.data, &inp->left.l, &inp->left.i, d);
 		else
 			ungetc(d, stdin);
+		return(0);
 	}
-	else if((c&0xf0)==0xe0) // 1110xxxx -> 3 bytes of UTF-8
+	if((c&0xf0)==0xe0) // 1110xxxx -> 3 bytes of UTF-8
 	{
 		int d=getchar();
 		if(d&&(d!=EOF)&&((d&0xc0)==0x80)) // 10xxxxxx - UTF middlebyte
@@ -423,8 +449,9 @@ int inputchar(iline *inp, int *state)
 		}
 		else
 			ungetc(d, stdin);
+		return(0);
 	}
-	else if((c&0xf8)==0xf0) // 11110xxx -> 4 bytes of UTF-8
+	if((c&0xf8)==0xf0) // 11110xxx -> 4 bytes of UTF-8
 	{
 		int d=getchar();
 		if(d&&(d!=EOF)&&((d&0xc0)==0x80)) // 10xxxxxx - UTF middlebyte
@@ -454,6 +481,7 @@ int inputchar(iline *inp, int *state)
 		}
 		else
 			ungetc(d, stdin);
+		return(0);
 	}
 	if(c=='\n')
 	{
@@ -462,10 +490,7 @@ int inputchar(iline *inp, int *state)
 		sprintf(out, "%s%s", inp->left.data?inp->left.data:"", inp->right.data?inp->right.data:"");
 		addtoibuf(&bufs[cbuf].input, out);
 		ifree(inp);
-	}
-	else
-	{
-		in_update(*inp);
+		return(0);
 	}
 	return(0);
 }
@@ -778,14 +803,14 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					if(bufs[b].live)
 					{
 						cbuf=b;
-						if(force_redraw<3) redraw_buffer();
+						redraw_buffer();
 						return(0);
 					}
 					else
 					{
 						cbuf=b;
 						cmd="reconnect";
-						if(force_redraw<3) redraw_buffer();
+						redraw_buffer();
 						break;
 					}
 				}
@@ -801,7 +826,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 				{
 					nl->reconn_b=0;
 					add_to_buffer(0, STA, QUIET, 0, false, dstr, "/server: ");
-					if(force_redraw<3) redraw_buffer();
+					redraw_buffer();
 				}
 				#else
 				int serverhandle=irc_connect(server, newport, master, fdmax);
@@ -811,11 +836,11 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					init_buffer(nbufs-1, SERVER, server, buflines);
 					cbuf=nbufs-1;
 					bufs[cbuf].handle=serverhandle;
-					bufs[cbuf].nick=strdup(nick);
+					bufs[cbuf].nick=bufs[0].nick?strdup(bufs[0].nick):NULL;
 					bufs[cbuf].server=cbuf;
 					bufs[cbuf].conninpr=true;
 					add_to_buffer(cbuf, STA, QUIET, 0, false, dstr, "/server: ");
-					if(force_redraw<3) redraw_buffer();
+					redraw_buffer();
 				}
 				#endif
 			}
@@ -830,38 +855,38 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 	{
 		if(bufs[cbuf].server)
 		{
-			if(!bufs[bufs[cbuf].server].live)
+			if(!SERVER(cbuf).live)
 			{
 				char *newport;
 				if(args)
 				{
 					newport=args;
 				}
-				else if(bufs[bufs[cbuf].server].autoent && bufs[bufs[cbuf].server].autoent->portno)
+				else if(SERVER(cbuf).autoent && SERVER(cbuf).autoent->portno)
 				{
-					newport=bufs[bufs[cbuf].server].autoent->portno;
+					newport=SERVER(cbuf).autoent->portno;
 				}
 				else
 				{
 					newport=portno;
 				}
-				char dstr[30+strlen(bufs[bufs[cbuf].server].serverloc)+strlen(newport)];
-				sprintf(dstr, "Connecting to %s on port %s...", bufs[bufs[cbuf].server].serverloc, newport);
+				char dstr[30+strlen(SERVER(cbuf).serverloc)+strlen(newport)];
+				sprintf(dstr, "Connecting to %s on port %s...", SERVER(cbuf).serverloc, newport);
 				#if ASYNCH_NL
-				nl_list *nl=irc_connect(bufs[bufs[cbuf].server].serverloc, newport);
+				nl_list *nl=irc_connect(SERVER(cbuf).serverloc, newport);
 				if(nl)
 				{
 					nl->reconn_b=bufs[cbuf].server;
 					add_to_buffer(bufs[cbuf].server, STA, QUIET, 0, false, dstr, "/server: ");
-					if(force_redraw<3) redraw_buffer();
+					redraw_buffer();
 				}
 				else
 				{
 					add_to_buffer(bufs[cbuf].server, ERR, NORMAL, 0, false, "malloc failure (see status)", "/server: ");
-					if(force_redraw<3) redraw_buffer();
+					redraw_buffer();
 				}
 				#else /* ASYNCH_NL */
-				int serverhandle=irc_connect(bufs[bufs[cbuf].server].serverloc, newport, master, fdmax);
+				int serverhandle=irc_connect(SERVER(cbuf).serverloc, newport, master, fdmax);
 				if(serverhandle)
 				{
 					int b=bufs[cbuf].server;
@@ -918,7 +943,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 			bufs[b].live=false;
 			free_buffer(b);
 			cbuf=0;
-			if(force_redraw<3) redraw_buffer();
+			redraw_buffer();
 		}
 		else
 		{
@@ -942,11 +967,11 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 	}
 	if(strcmp(cmd, "join")==0)
 	{
-		if(!bufs[bufs[cbuf].server].handle)
+		if(!SERVER(cbuf).handle)
 		{
 			add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Must be run in the context of a server!", "/join: ");
 		}
-		else if(!bufs[bufs[cbuf].server].live)
+		else if(!SERVER(cbuf).live)
 		{
 			add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Disconnected, can't send", "/join: ");
 		}
@@ -960,10 +985,46 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 			else
 			{
 				char *pass=strtok(NULL, ", ");
+				servlist *serv=SERVER(cbuf).autoent;
+				if(!serv)
+				{
+					serv=SERVER(cbuf).autoent=malloc(sizeof(servlist));
+					serv->name=NULL;
+					serv->portno=NULL;
+					serv->nick=NULL;
+					serv->pass=NULL;
+					serv->chans=NULL;
+					serv->next=NULL;
+					serv->igns=NULL;
+				}
+				if(pass)
+				{
+					chanlist *curr=malloc(sizeof(chanlist));
+					if(curr)
+					{
+						curr->name=strdup(chan);
+						curr->key=strdup(pass);
+						curr->next=serv->chans;
+						serv->chans=curr;
+					}
+				}
+				else
+				{
+					chanlist *curr=serv->chans;
+					while(curr)
+					{
+						if(irc_strcasecmp(curr->name, chan, SERVER(cbuf).casemapping)==0)
+						{
+							pass=curr->key;
+							break;
+						}
+						curr=curr->next;
+					}
+				}
 				if(!pass) pass="";
 				char joinmsg[8+strlen(chan)+strlen(pass)];
 				sprintf(joinmsg, "JOIN %s %s", chan, pass);
-				irc_tx(bufs[bufs[cbuf].server].handle, joinmsg);
+				irc_tx(SERVER(cbuf).handle, joinmsg);
 			}
 		}
 		else
@@ -976,7 +1037,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 	{
 		if(bufs[cbuf].type==PRIVATE)
 		{
-			if(!(bufs[bufs[cbuf].server].handle && bufs[bufs[cbuf].server].live))
+			if(!(SERVER(cbuf).handle && SERVER(cbuf).live))
 			{
 				add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Disconnected, can't send", "/rejoin: ");
 			}
@@ -993,7 +1054,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		{
 			add_to_buffer(cbuf, ERR, NORMAL, 0, false, "View is not a channel!", "/rejoin: ");
 		}
-		else if(!(bufs[bufs[cbuf].server].handle && bufs[bufs[cbuf].server].live))
+		else if(!(SERVER(cbuf).handle && SERVER(cbuf).live))
 		{
 			add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Disconnected, can't send", "/rejoin: ");
 		}
@@ -1005,14 +1066,15 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		{
 			char *chan=bufs[cbuf].bname;
 			char *pass=args;
+			if(pass)
+				bufs[cbuf].lastkey=strdup(pass);
+			else
+				pass=bufs[cbuf].key;
 			if(!pass) pass="";
 			char joinmsg[8+strlen(chan)+strlen(pass)];
 			sprintf(joinmsg, "JOIN %s %s", chan, pass);
-			irc_tx(bufs[bufs[cbuf].server].handle, joinmsg);
-			if(force_redraw<3)
-			{
-				redraw_buffer();
-			}
+			irc_tx(SERVER(cbuf).handle, joinmsg);
+			redraw_buffer();
 		}
 		return(0);
 	}
@@ -1024,11 +1086,11 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		}
 		else
 		{
-			if(LIVE(cbuf) && bufs[bufs[cbuf].server].handle)
+			if(LIVE(cbuf) && SERVER(cbuf).handle)
 			{
 				char partmsg[8+strlen(bufs[cbuf].bname)];
 				sprintf(partmsg, "PART %s", bufs[cbuf].bname);
-				irc_tx(bufs[bufs[cbuf].server].handle, partmsg);
+				irc_tx(SERVER(cbuf).handle, partmsg);
 				add_to_buffer(cbuf, PART, NORMAL, 0, true, "Leaving", "/part: ");
 			}
 			// when you try to /part a dead tab, interpret it as a /close
@@ -1050,7 +1112,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		const char *am="Gone away, gone away, was it one of you took it away?";
 		if(args)
 			am=args;
-		if(bufs[bufs[cbuf].server].handle)
+		if(SERVER(cbuf).handle)
 		{
 			if(LIVE(cbuf))
 			{
@@ -1058,11 +1120,11 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 				{
 					char nmsg[8+strlen(am)];
 					sprintf(nmsg, "AWAY :%s", am);
-					irc_tx(bufs[bufs[cbuf].server].handle, nmsg);
+					irc_tx(SERVER(cbuf).handle, nmsg);
 				}
 				else
 				{
-					irc_tx(bufs[bufs[cbuf].server].handle, "AWAY"); // unmark away
+					irc_tx(SERVER(cbuf).handle, "AWAY"); // unmark away
 				}
 			}
 			else
@@ -1113,7 +1175,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		const char *afm="afk";
 		if(args)
 			afm=strtok(args, " ");
-		const char *p=bufs[bufs[cbuf].server].nick;
+		const char *p=SERVER(cbuf).nick;
 		int n=strcspn(p, "|");
 		char *nargs=malloc(n+strlen(afm)+2);
 		if(nargs)
@@ -1135,15 +1197,15 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		if(args)
 		{
 			char *nn=strtok(args, " ");
-			if(bufs[bufs[cbuf].server].handle)
+			if(SERVER(cbuf).handle)
 			{
 				if(LIVE(cbuf))
 				{
-					free(bufs[bufs[cbuf].server].nick);
-					bufs[bufs[cbuf].server].nick=strdup(nn);
-					char nmsg[8+strlen(bufs[bufs[cbuf].server].nick)];
-					sprintf(nmsg, "NICK %s", bufs[bufs[cbuf].server].nick);
-					irc_tx(bufs[bufs[cbuf].server].handle, nmsg);
+					free(SERVER(cbuf).nick);
+					SERVER(cbuf).nick=strdup(nn);
+					char nmsg[8+strlen(SERVER(cbuf).nick)];
+					sprintf(nmsg, "NICK %s", SERVER(cbuf).nick);
+					irc_tx(SERVER(cbuf).handle, nmsg);
 					add_to_buffer(cbuf, STA, QUIET, 0, false, "Changing nick", "/nick: ");
 				}
 				else
@@ -1159,8 +1221,6 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 				{
 					free(bufs[0].nick);
 					bufs[0].nick=strdup(nn);
-					free(nick);
-					nick=strdup(nn);
 					defnick=false;
 					add_to_buffer(cbuf, STA, QUIET, 0, false, "Default nick changed", "/nick: ");
 				}
@@ -1179,13 +1239,13 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		{
 			if(bufs[cbuf].type==CHANNEL)
 			{
-				if(bufs[bufs[cbuf].server].handle)
+				if(SERVER(cbuf).handle)
 				{
 					if(LIVE(cbuf))
 					{
 						char tmsg[10+strlen(bufs[cbuf].bname)+strlen(args)];
 						sprintf(tmsg, "TOPIC %s :%s", bufs[cbuf].bname, args);
-						irc_tx(bufs[bufs[cbuf].server].handle, tmsg);
+						irc_tx(SERVER(cbuf).handle, tmsg);
 					}
 					else
 					{
@@ -1206,13 +1266,13 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		{
 			if(bufs[cbuf].type==CHANNEL)
 			{
-				if(bufs[bufs[cbuf].server].handle)
+				if(SERVER(cbuf).handle)
 				{
 					if(LIVE(cbuf))
 					{
 						char tmsg[8+strlen(bufs[cbuf].bname)];
 						sprintf(tmsg, "TOPIC %s", bufs[cbuf].bname);
-						irc_tx(bufs[bufs[cbuf].server].handle, tmsg);
+						irc_tx(SERVER(cbuf).handle, tmsg);
 					}
 					else
 					{
@@ -1233,7 +1293,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 	}
 	if(strcmp(cmd, "msg")==0)
 	{
-		if(!bufs[bufs[cbuf].server].handle)
+		if(!SERVER(cbuf).handle)
 		{
 			add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Must be run in the context of a server!", "/msg: ");
 		}
@@ -1254,30 +1314,20 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 			char *text=strtok(NULL, "");
 			if(!no_tab)
 			{
-				int b2=findptab(bufs[cbuf].server, dest);
-				if(b2<0)
-				{
-					bufs=(buffer *)realloc(bufs, ++nbufs*sizeof(buffer));
-					init_buffer(nbufs-1, PRIVATE, dest, buflines);
-					b2=nbufs-1;
-					bufs[b2].server=bufs[cbuf].server;
-					bufs[b2].handle=bufs[bufs[b2].server].handle;
-					bufs[b2].live=true;
-					if(bufs[bufs[b2].server].nick) n_add(&bufs[b2].nlist, bufs[bufs[b2].server].nick, bufs[bufs[b2].server].casemapping);
-					n_add(&bufs[b2].nlist, dest, bufs[bufs[b2].server].casemapping);
-				}
+				int b2=makeptab(bufs[cbuf].server, dest);
 				cbuf=b2;
 				redraw_buffer();
 			}
 			if(text)
 			{
-				if(bufs[bufs[cbuf].server].handle)
+				if(SERVER(cbuf).handle)
 				{
 					if(LIVE(cbuf))
 					{
 						char privmsg[12+strlen(dest)+strlen(text)];
 						sprintf(privmsg, "PRIVMSG %s :%s", dest, text);
-						irc_tx(bufs[bufs[cbuf].server].handle, privmsg);
+						irc_tx(SERVER(cbuf).handle, privmsg);
+						ctcp_strip(text, SERVER(cbuf).nick, cbuf, false, false, true, true);
 						if(no_tab)
 						{
 							add_to_buffer(cbuf, STA, QUIET, 0, false, "sent", "/msg -n: ");
@@ -1286,7 +1336,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 						{
 							while(text[strlen(text)-1]=='\n')
 								text[strlen(text)-1]=0; // stomp out trailing newlines, they break things
-							add_to_buffer(cbuf, MSG, NORMAL, 0, true, text, bufs[bufs[cbuf].server].nick);
+							add_to_buffer(cbuf, MSG, NORMAL, 0, true, text, SERVER(cbuf).nick);
 						}
 					}
 					else
@@ -1308,7 +1358,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 	}
 	if(strcmp(cmd, "ping")==0)
 	{
-		if(!bufs[bufs[cbuf].server].handle)
+		if(!SERVER(cbuf).handle)
 		{
 			add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Must be run in the context of a server!", "/ping: ");
 		}
@@ -1321,7 +1371,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 				dest=bufs[cbuf].bname;
 			if(dest)
 			{
-				if(bufs[bufs[cbuf].server].handle)
+				if(SERVER(cbuf).handle)
 				{
 					if(LIVE(cbuf))
 					{
@@ -1329,7 +1379,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 						gettimeofday(&tv, NULL);
 						char privmsg[64+strlen(dest)];
 						snprintf(privmsg, 64+strlen(dest), "PRIVMSG %s :\001PING %u %u\001", dest, (unsigned int)tv.tv_sec, (unsigned int)tv.tv_usec);
-						irc_tx(bufs[bufs[cbuf].server].handle, privmsg);
+						irc_tx(SERVER(cbuf).handle, privmsg);
 					}
 					else
 					{
@@ -1370,7 +1420,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 							args[strlen(args)-1]=0; // stomp out trailing newlines, they break things
 						bool al=bufs[b2].alert; // save alert status...
 						int hi=bufs[b2].hi_alert;
-						add_to_buffer(b2, MSG, NORMAL, 0, true, args, bufs[bufs[b2].server].nick);
+						add_to_buffer(b2, MSG, NORMAL, 0, true, args, SERVER(b2).nick);
 						bufs[b2].alert=al; // and restore it
 						bufs[b2].hi_alert=hi;
 					}
@@ -1395,16 +1445,16 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		}
 		else if(args)
 		{
-			if(bufs[bufs[cbuf].server].handle)
+			if(SERVER(cbuf).handle)
 			{
 				if(LIVE(cbuf))
 				{
 					char privmsg[32+strlen(bufs[cbuf].bname)+strlen(args)];
 					sprintf(privmsg, "PRIVMSG %s :\001ACTION %s\001", bufs[cbuf].bname, args);
-					irc_tx(bufs[bufs[cbuf].server].handle, privmsg);
+					irc_tx(SERVER(cbuf).handle, privmsg);
 					while(args[strlen(args)-1]=='\n')
 						args[strlen(args)-1]=0; // stomp out trailing newlines, they break things
-					add_to_buffer(cbuf, ACT, NORMAL, 0, true, args, bufs[bufs[cbuf].server].nick);
+					add_to_buffer(cbuf, ACT, NORMAL, 0, true, args, SERVER(cbuf).nick);
 				}
 				else
 				{
@@ -1436,7 +1486,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 				if((bufn>=0) && (bufn<nbufs))
 				{
 					cbuf=bufn;
-					if(force_redraw<3) redraw_buffer();
+					redraw_buffer();
 				}
 				else
 				{
@@ -1488,7 +1538,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 				cb=b;
 		}
 		cbuf=cb;
-		if(force_redraw<3) redraw_buffer();
+		redraw_buffer();
 		return(0);
 	}
 	if(strcmp(cmd, "left")==0)
@@ -1515,7 +1565,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					bufs[i].server--;
 				}
 			}
-			if(force_redraw<3) redraw_buffer();
+			redraw_buffer();
 		}
 		return(0);
 	}
@@ -1547,7 +1597,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 					bufs[i].server--;
 				}
 			}
-			if(force_redraw<3) redraw_buffer();
+			redraw_buffer();
 		}
 		return(0);
 	}
@@ -1647,7 +1697,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 	}
 	if(strcmp(cmd, "mode")==0)
 	{
-		if(!bufs[bufs[cbuf].server].handle)
+		if(!SERVER(cbuf).handle)
 		{
 			add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Must be run in the context of a server!", "/mode: ");
 		}
@@ -1666,7 +1716,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 						{
 							char mmsg[8+strlen(bufs[cbuf].bname)+strlen(modes)+strlen(user)];
 							sprintf(mmsg, "MODE %s %s %s", bufs[cbuf].bname, modes, user);
-							irc_tx(bufs[bufs[cbuf].server].handle, mmsg);
+							irc_tx(SERVER(cbuf).handle, mmsg);
 						}
 						else
 							add_to_buffer(cbuf, ERR, NORMAL, 0, false, "This is not a channel", "/mode: ");
@@ -1681,7 +1731,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 						name *curr=bufs[cbuf].nlist;
 						while(curr)
 						{
-							if(irc_strcasecmp(curr->data, user, bufs[bufs[cbuf].server].casemapping)==0)
+							if(irc_strcasecmp(curr->data, user, SERVER(cbuf).casemapping)==0)
 							{
 								if(curr==bufs[cbuf].us) goto youmode;
 								char mm[12+strlen(curr->data)+curr->npfx];
@@ -1718,9 +1768,9 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 				{
 					if(bufs[cbuf].us)
 					{
-						char mm[20+strlen(bufs[bufs[cbuf].server].nick)+bufs[cbuf].us->npfx];
+						char mm[20+strlen(SERVER(cbuf).nick)+bufs[cbuf].us->npfx];
 						int mpos=0;
-						sprintf(mm, "You (%s) have mode %n-", bufs[bufs[cbuf].server].nick, &mpos);
+						sprintf(mm, "You (%s) have mode %n-", SERVER(cbuf).nick, &mpos);
 						if(mpos)
 						{
 							for(unsigned int i=0;i<bufs[cbuf].us->npfx;i++)
@@ -1742,7 +1792,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 	}
 	if((strcmp(cmd, "cmd")==0)||(strcmp(cmd, "quote")==0))
 	{
-		if(!bufs[bufs[cbuf].server].handle)
+		if(!SERVER(cbuf).handle)
 		{
 			add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Must be run in the context of a server!", "/cmd: ");
 		}
@@ -1757,7 +1807,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 			}
 			if(force||LIVE(cbuf))
 			{
-				irc_tx(bufs[bufs[cbuf].server].handle, args);
+				irc_tx(SERVER(cbuf).handle, args);
 				add_to_buffer(cbuf, STA, NORMAL, 0, false, args, "/cmd: ");
 			}
 			else
@@ -1825,6 +1875,59 @@ char back_ichar(ichar *buf)
 		buf->data[(buf->i)]=0;
 	}
 	return(c);
+}
+
+char front_ichar(ichar *buf)
+{
+	char c=0;
+	if(buf->i)
+	{
+		c=buf->data[0];
+		memmove(buf->data, buf->data+1, buf->i--);
+	}
+	return(c);
+}
+
+size_t i_firstlen(ichar src)
+{
+	if(!src.i) return(0);
+	size_t u;
+	if(isutf8(src.data, &u)) return(u);
+	return(1);
+}
+
+size_t i_lastlen(ichar src)
+{
+	size_t start=max(src.i, 4)-4, prev=start;
+	size_t u;
+	while(start<src.i)
+	{
+		prev=start;
+		if(isutf8(src.data+start, &u)) start+=u;
+		else if(src.data[start]&0x80) start++;
+		else
+		{
+			start++;
+			if(start+1>=src.i) break;
+		}
+	}
+	return(start-prev);
+}
+
+void i_move(iline *inp, ssize_t bytes)
+{
+	bool fw=(bytes>0);
+	size_t b=fw?bytes:-bytes; // can't use abs() because we don't know what length a size_t is (do we need labs()? llabs()?)
+	char c;
+	for(size_t i=0;i<b;i++)
+		if(fw)
+		{
+			if((c=front_ichar(&inp->right)))
+			    append_char(&inp->left.data, &inp->left.l, &inp->left.i, c);
+	    }
+		else
+			if((c=back_ichar(&inp->left)))
+			    prepend_char(&inp->right.data, &inp->right.l, &inp->right.i, c);
 }
 
 void ifree(iline *buf)

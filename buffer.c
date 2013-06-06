@@ -1,6 +1,6 @@
 /*
 	quIRC - simple terminal-based IRC client
-	Copyright (C) 2010-12 Edward Cree
+	Copyright (C) 2010-13 Edward Cree
 
 	See quirc.c for license information
 	buffer: multiple-buffer control & buffer rendering
@@ -10,6 +10,12 @@
 #include "logging.h"
 #include "osconf.h"
 #include "ctbuf.h"
+#include "strbuf.h"
+#include "ttyesc.h"
+#include "bits.h"
+#include "names.h"
+#include "text.h"
+#include "version.h"
 
 ctchar *highlight(const char *src, size_t *len); // use colours to highlight \escapes.  Returns a malloc-like pointer
 
@@ -99,6 +105,7 @@ int initialise_buffers(int buflines)
 	cbuf=0;
 	bufs[0].live=true; // STATUS is never dead
 	bufs[0].nick=nick;
+	nick=NULL;
 	bufs[0].ilist=igns;
 	add_to_buffer(0, STA, QUIET, 0, false, GPL_TAIL, "quirc -- ");
 	init_ring(&d_buf);
@@ -177,6 +184,8 @@ int init_buffer(int buf, btype type, const char *bname, int nlines)
 	}
 	bufs[buf].autoent=NULL;
 	bufs[buf].conf=conf;
+	bufs[buf].key=NULL;
+	bufs[buf].lastkey=NULL;
 	return(0);
 }
 
@@ -241,6 +250,8 @@ int free_buffer(int buf)
 		free(bufs[buf].ts);
 		freeibuf(&bufs[buf].input);
 		free(bufs[buf].prefixes);
+		free(bufs[buf].key);
+		free(bufs[buf].lastkey);
 		if(cbuf>=buf)
 			cbuf--;
 		nbufs--;
@@ -262,7 +273,7 @@ int free_buffer(int buf)
 				bufs[b].server--;
 			}
 		}
-		if(nbufs && (force_redraw<3)) redraw_buffer();
+		if(nbufs) redraw_buffer();
 		return(0);
 	}
 }
@@ -446,15 +457,15 @@ int redraw_buffer(void)
 		break;
 		case CHANNEL: // have to scope it for the cstr 'variably modified type'
 			{
-				char cstr[16+strlen(bufs[cbuf].bname)+strlen(bufs[bufs[cbuf].server].bname)];
-				sprintf(cstr, "quIRC - %s on %s", bufs[cbuf].bname, bufs[bufs[cbuf].server].bname);
+				char cstr[16+strlen(bufs[cbuf].bname)+strlen(SERVER(cbuf).bname)];
+				sprintf(cstr, "quIRC - %s on %s", bufs[cbuf].bname, SERVER(cbuf).bname);
 				settitle(cstr);
 			}
 		break;
 		case PRIVATE: // have to scope it for the cstr 'variably modified type'
 			{
-				char cstr[16+strlen(bufs[cbuf].bname)+strlen(bufs[bufs[cbuf].server].bname)];
-				sprintf(cstr, "quIRC - <%s> on %s", bufs[cbuf].bname, bufs[bufs[cbuf].server].bname);
+				char cstr[16+strlen(bufs[cbuf].bname)+strlen(SERVER(cbuf).bname)];
+				sprintf(cstr, "quIRC - <%s> on %s", bufs[cbuf].bname, SERVER(cbuf).bname);
 				settitle(cstr);
 			}
 		break;
@@ -528,7 +539,6 @@ int render_line(int buf, int uline)
 				prevline+=bufs[buf].nlines;
 				if(!bufs[buf].filled) break;
 			}
-			if(!bufs[buf].lpl[prevline]) continue;
 			if(fabs(difftime(bufs[buf].ts[prevline], bufs[buf].ts[uline]))>5) break;
 			if(bufs[buf].lm[prevline]==bufs[buf].lm[uline])
 			{
@@ -581,7 +591,7 @@ int render_line(int buf, int uline)
 			if(*tag)
 			{
 				crush(&tag, maxnlen);
-				char *ntag=mktag("(from %s) ", tag);
+				char *ntag=mktag("(%s) ", tag);
 				free(tag);
 				tag=ntag;
 			}
@@ -676,7 +686,7 @@ int render_line(int buf, int uline)
 			if(*tag)
 			{
 				crush(&tag, maxnlen);
-				char *ntag=mktag("(from %s) ", tag);
+				char *ntag=mktag("(%s) ", tag);
 				free(tag);
 				tag=ntag;
 			}
@@ -886,7 +896,7 @@ void in_update(iline inp)
 
 ctchar *highlight(const char *src, size_t *len)
 {
-	size_t l,i;ctchar *rv;
+	size_t l,i,u;ctchar *rv;
 	ct_init_char(&rv, &l, &i);
 	while(*src)
 	{
@@ -926,6 +936,12 @@ ctchar *highlight(const char *src, size_t *len)
 					ct_append_char_c(&rv, &l, &i, (colour){1, 0, 1, 0}, '\\');
 				break;
 			}
+		}
+		else if(isutf8(src, &u))
+		{
+		    ct_append_char_c(&rv, &l, &i, (colour){7, 0, 0, 0}, *src);
+		    while(--u)
+    		    ct_append_char(&rv, &l, &i, *++src);
 		}
 		else if(!isprint(*src))
 		{
@@ -1028,8 +1044,8 @@ void titlebar(void)
 	const char *hashgit=strchr(VERSION_TXT, ' ');
 	if(hashgit)
 		hashgit++;
-	char *cserv=strdup(bufs[bufs[cbuf].server].bname?bufs[bufs[cbuf].server].bname:"");
-	char *cnick=strdup(bufs[bufs[cbuf].server].nick?bufs[bufs[cbuf].server].nick:"");
+	char *cserv=strdup(SERVER(cbuf).bname?SERVER(cbuf).bname:"");
+	char *cnick=strdup(SERVER(cbuf).nick?SERVER(cbuf).nick:"");
 	char *cchan=strdup(((bufs[cbuf].type==CHANNEL)||(bufs[cbuf].type==PRIVATE))&&bufs[cbuf].bname?bufs[cbuf].bname:"");
 	size_t chanlen=strlen(cchan)+1, nicklen=strlen(cnick)+1;
 	if(bufs[cbuf].type==CHANNEL)
@@ -1186,7 +1202,7 @@ int makeptab(int b, const char *src)
 		b2=nbufs-1;
 		bufs[b2].server=bufs[b].server;
 		bufs[b2].live=true;
-		n_add(&bufs[b2].nlist, bufs[bufs[b2].server].nick, bufs[b].casemapping);
+		n_add(&bufs[b2].nlist, SERVER(b2).nick, bufs[b].casemapping);
 		n_add(&bufs[b2].nlist, src, bufs[b].casemapping);
 	}
 	return(b2);
@@ -1226,4 +1242,27 @@ void timestamp(char stamp[STAMP_LEN], time_t t)
 			stamp[0]=0;
 		break;
 	}
+}
+
+bool isutf8(const char *src, size_t *len)
+{
+    if((src[0]&0xe0)==0xc0) // 110xxxxx -> 2 bytes of UTF-8
+	{
+		if(len) *len=2;
+		return(src[1]&&((src[1]&0xc0)==0x80)); // 10xxxxxx - UTF middlebyte
+	}
+	else if((src[0]&0xf0)==0xe0) // 1110xxxx -> 3 bytes of UTF-8
+	{
+	    if(len) *len=3;
+		if(src[1]&&((src[1]&0xc0)==0x80)) // 10xxxxxx - UTF middlebyte
+			return(src[2]&&((src[2]&0xc0)==0x80)); // 10xxxxxx - UTF middlebyte
+	}
+	else if((src[0]&0xf8)==0xf0) // 11110xxx -> 4 bytes of UTF-8
+	{
+		if(len) *len=4;
+		if(src[1]&&((src[1]&0xc0)==0x80)) // 10xxxxxx - UTF middlebyte
+			if(src[2]&&((src[2]&0xc0)==0x80)) // 10xxxxxx - UTF middlebyte
+			    return(src[3]&&((src[3]&0xc0)==0x80)); // 10xxxxxx - UTF middlebyte
+	}
+    return(false);
 }
