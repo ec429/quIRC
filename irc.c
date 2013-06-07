@@ -1679,7 +1679,6 @@ int rx_nick(message pkt, int b)
 			if((bufs[b2].server==b) && ((bufs[b2].type==CHANNEL)||(bufs[b2].type==PRIVATE)))
 			{
 				match=true;
-				add_to_buffer(b2, NICK, QUIET, 0, false, src, bufs[b2].bname);
 				if(n_cull(&bufs[b2].nlist, src, bufs[b].casemapping))
 				{
 					n_add(&bufs[b2].nlist, pkt.args[0], bufs[b].casemapping);
