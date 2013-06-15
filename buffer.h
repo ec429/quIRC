@@ -109,6 +109,7 @@ int redraw_buffer(void);
 int render_buffer(int buf);
 int render_line(int buf, int uline);
 int e_buf_print(int buf, mtype lm, message pkt, const char *lead);
+int errno_print(int buf, const char *lead);
 int transfer_ring(ring *r, prio lq);
 int push_ring(ring *r, prio lq);
 void in_update(iline inp);

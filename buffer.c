@@ -7,6 +7,7 @@
 */
 
 #include "buffer.h"
+#include <errno.h>
 #include "logging.h"
 #include "osconf.h"
 #include "ctbuf.h"
@@ -985,6 +986,11 @@ int e_buf_print(int buf, mtype lm, message pkt, const char *lead)
 		strcat(text, pkt.args[arg]);
 	}
 	return(add_to_buffer(buf, lm, PRIO_QUIET, 0, false, text, lead));
+}
+
+int errno_print(int buf, const char *lead)
+{
+	return(add_to_buffer(buf, MT_ERR, PRIO_NORMAL, 0, false, strerror(errno), lead));
 }
 
 int transfer_ring(ring *r, prio lq)
