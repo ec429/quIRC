@@ -97,7 +97,7 @@ int irc_connect(char *server, const char *portno, fd_set *master, int *fdmax)
 			add_to_buffer(0, MT_ERR, PRIO_NORMAL, 0, false, strerror(errno), "socket: ");
 			continue;
 		}
-		if(fcntl(serverhandle, F_SETFD, O_NONBLOCK)==-1)
+		if(fcntl(serverhandle, F_SETFD, O_NONBLOCK|O_CLOEXEC)==-1)
 		{
 			close(serverhandle);
 			add_to_buffer(0, MT_ERR, PRIO_NORMAL, 0, false, strerror(errno), "fcntl: ");

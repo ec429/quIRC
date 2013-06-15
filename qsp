@@ -22,7 +22,7 @@ qsp: quIRC symbiont protocol
 <sp>      ::= [[:space:]]+
 1.1 Notes on the syntax
 An ':' which should begin an <arg> is encoded as "\072" to distinguish the resulting <arg> from an <argsp>.  In general \ooo octal escapes should be recognised in <arg> and <argsp> words.
-<server>, <channel> and <nick> are as defined in RFC1459.
+<server>, <channel> and <nick> are as defined in RFC1459.  However, clients should treat them as anything "matching [^[:space:]]+".
 The <specbuf>s "any" and "home" may only appear in <request>s, never in <event>s.
 If a <bufspec> could match more than one buffer, the resulting behaviour is implementation-defined.
 
@@ -36,7 +36,7 @@ rx <bufspec> <type> <nick> :<line>
 <type> in MSG NOTICE PREFORMAT ACT JOIN PART QUIT QUIT_PREFORMAT NICK MODE STATUS ERR UNK UNK_NOTICE UNN.
 <nick> may be "!", meaning it's a server message.  Otherwise, it's the nick which sent the message.
 <line> may contain [[:space:]]s.
-2.1.2 Mode "l"
+2.1.2 Mode "sym"
 This format is broadly similar to LOGT_SYMBOLIC logging.
 rx <bufspec> u+<ts> <type> <prio> <prefix> '<' <tag> :<text>
 <ts> is the timestamp, in seconds since the Epoch.
