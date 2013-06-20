@@ -24,7 +24,7 @@ qsp: quIRC symbiont protocol
 An ':' which should begin an <arg> is encoded as "\072" to distinguish the resulting <arg> from an <argsp>.  In general \ooo octal escapes should be recognised in <arg> and <argsp> words.
 <server>, <channel> and <nick> are as defined in RFC1459.  However, clients should treat them as anything "matching [^[:space:]]+".
 The <specbuf>s "any" and "home" may only appear in <request>s, never in <event>s.
-If a <bufspec> could match more than one buffer, the resulting behaviour is implementation-defined.
+If a non-"any" <bufspec> could match more than one buffer, the resulting behaviour is implementation-defined.
 
 2 Requests
 2.1 rxmode

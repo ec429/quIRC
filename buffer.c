@@ -15,6 +15,7 @@
 #include "ttyesc.h"
 #include "bits.h"
 #include "names.h"
+#include "process.h"
 #include "text.h"
 #include "version.h"
 
@@ -335,12 +336,19 @@ int add_to_buffer(int buf, mtype lm, prio lq, char lp, bool ls, const char *lt, 
 			))
 		bufs[buf].alert=true;
 	}
+	int e=0;
 	if(bufs[buf].logf)
+		e|=log_add(bufs[buf].logf, bufs[buf].logt, lm, lq, lp, ls, lt, ltag, ts);
+	for(symbiont_list *sl=symbionts;sl!=NULL;sl=sl->cdr)
 	{
-		int e=log_add(bufs[buf].logf, bufs[buf].logt, lm, lq, lp, ls, lt, ltag, ts);
-		if(e) return(e);
+		symbiont *sym=sl->car;
+		for(listen_t *listen=sym->listen;listen!=NULL;listen=listen->next)
+		{
+			if(match_bufspec(buf, listen->where))
+				e|=rx_event(sym, listen->rx, lm, lq, lp, ls, lt, ltag, ts);
+		}
 	}
-	return(0);
+	return(e);
 }
 
 int redraw_buffer(void)

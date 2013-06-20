@@ -36,6 +36,7 @@
 #include "config.h"
 #include "input.h"
 #include "version.h"
+#include "process.h"
 
 int main(int argc, char *argv[])
 {
@@ -200,6 +201,8 @@ int main(int argc, char *argv[])
 		termsgr0();
 		return(1);
 	}
+	
+	symbionts=NULL;
 	
 	push_ring(&s_buf, PRIO_QUIET);
 	

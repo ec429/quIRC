@@ -17,6 +17,7 @@
 bufspec parse_bufspec(const char *spec, bufspec home)
 {
 	bufspec rv;
+	rv.warned=false;
 	size_t l_first=strcspn(spec, " \t");
 	char *first=strndup(spec, l_first);
 	if(strcmp(first, "status")==0) // we assume the rest-of-line is fine; should perhaps check it?
@@ -104,9 +105,13 @@ char *print_bufspec(bufspec spec)
 		default:
 			free(msg);
 			// shouldn't get here!
-			char emsg[80];
-			snprintf(emsg, 80, "print_bufspec didn't recognise type %d", spec.type);
-			add_to_buffer(0, MT_ERR, PRIO_QUIET, 0, false, emsg, "Internal error: ");
+			if(!spec.warned)
+			{
+				char emsg[80];
+				snprintf(emsg, 80, "print_bufspec didn't recognise type %d", spec.type);
+				add_to_buffer(0, MT_ERR, PRIO_QUIET, 0, false, emsg, "Internal error: ");
+				spec.warned=true;
+			}
 			return(NULL);
 	}
 	return(msg);
@@ -147,10 +152,50 @@ int resolve_bufspec(bufspec spec)
 			return(-1); // not found
 	}
 	// shouldn't get here!
-	char msg[80];
-	snprintf(msg, 80, "resolve_bufspec didn't recognise type %d", spec.type);
-	add_to_buffer(0, MT_ERR, PRIO_QUIET, 0, false, msg, "Internal error: ");
+	if(!spec.warned)
+	{
+		char msg[80];
+		snprintf(msg, 80, "resolve_bufspec didn't recognise type %d", spec.type);
+		add_to_buffer(0, MT_ERR, PRIO_QUIET, 0, false, msg, "Internal error: ");
+		spec.warned=true;
+	}
 	return(-1);
+}
+
+bool match_bufspec(int buf, bufspec spec)
+{
+	switch(spec.type)
+	{
+		case BS_STATUS:
+			return(buf==0);
+		case BS_ANY:
+			return(true);
+		case BS_SERVER:
+			if(bufs[buf].type!=BT_SERVER) return(false);
+			if(!spec.server) return(true); // shouldn't happen
+			return(strcmp(bufs[buf].realsname, spec.server)==0);
+		case BS_CHANNEL:
+			if(bufs[buf].type!=BT_CHANNEL) return(false);
+			if(spec.server)
+				if(strcmp(SERVER(buf).realsname, spec.server)!=0) return(false);
+			if(!spec.channel) return(true);
+			return(strcmp(bufs[buf].bname, spec.channel)==0);
+		case BS_NICK:
+			if(bufs[buf].type!=BT_PRIVATE) return(false);
+			if(spec.server)
+				if(strcmp(SERVER(buf).realsname, spec.server)!=0) return(false);
+			if(!spec.channel) return(true);
+			return(strcmp(bufs[buf].bname, spec.channel)==0);
+	}
+	// shouldn't get here!
+	if(!spec.warned)
+	{
+		char msg[80];
+		snprintf(msg, 80, "match_bufspec didn't recognise type %d", spec.type);
+		add_to_buffer(0, MT_ERR, PRIO_QUIET, 0, false, msg, "Internal error: ");
+		spec.warned=true;
+	}
+	return(false);
 }
 
 void free_bufspec(bufspec spec)
@@ -221,7 +266,7 @@ int fork_symbiont(symbiont *buf, char *const *argvl)
 		buf->in=pipes[0][1]; // but we do write stdin
 		buf->out=pipes[1][0]; // read stdout
 		buf->err=pipes[2][0]; // and stderr
-		buf->rx=RXM_nil;
+		buf->listen=NULL;
 		buf->grab=NULL;
 		return(0);
 	}
