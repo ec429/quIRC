@@ -19,7 +19,7 @@ qsp: quIRC symbiont protocol
 <error>   ::= <args>
 <arg>     ::= [^:[:space:]][^[:space:]]*
 <argsp>   ::= [^\n]*
-<sp>      ::= [[:space:]]+
+<sp>      ::= [ \t]+
 1.1 Notes on the syntax
 An ':' which should begin an <arg> is encoded as "\072" to distinguish the resulting <arg> from an <argsp>.  In general \ooo octal escapes should be recognised in <arg> and <argsp> words.
 <server>, <channel> and <nick> are as defined in RFC1459.  However, clients should treat them as anything "matching [^[:space:]]+".

@@ -17,9 +17,11 @@ typedef struct
 }
 bufspec;
 
-bufspec parse_bufspec(const char *spec, bufspec home);
+bufspec parse_bufspec(const char *spec, bufspec home); // must free_
+bufspec clone_bufspec(bufspec spec); // must free_
 char *print_bufspec(bufspec spec);
 int resolve_bufspec(bufspec spec);
+void free_bufspec(bufspec spec);
 
 typedef struct grab_t
 {

@@ -9,8 +9,65 @@
 #include "process.h"
 #include <fcntl.h>
 #include <unistd.h>
+#include <string.h>
 #include "buffer.h"
 #include "strbuf.h"
+#include "bits.h"
+
+bufspec parse_bufspec(const char *spec, bufspec home)
+{
+	bufspec rv;
+	size_t l_first=strcspn(spec, " \t");
+	char *first=strndup(spec, l_first);
+	if(strcmp(first, "status")==0) // we assume the rest-of-line is fine; should perhaps check it?
+	{
+		free(first);
+		rv.type=BS_STATUS;
+		rv.server=NULL;
+		rv.channel=NULL;
+		return(rv);
+	}
+	if(strcmp(first, "any")==0) // similarly to above
+	{
+		free(first);
+		rv.type=BS_ANY;
+		rv.server=NULL;
+		rv.channel=NULL;
+		return(rv);
+	}
+	if(strcmp(first, "home")==0) // similarly to above
+	{
+		free(first);
+		return(clone_bufspec(home));
+	}
+	rv.server=first;
+	size_t o_next=l_first+strspn(spec+l_first, " \t");
+	if(spec[o_next]=='!')
+	{
+		rv.type=BS_NICK;
+		o_next++;
+	}
+	else
+		rv.type=BS_CHANNEL;
+	char *next=strdup(spec+o_next);
+	if(strcmp(next, "server")==0)
+	{
+		free(next);
+		rv.type=BS_SERVER;
+		rv.channel=NULL;
+		return(rv);
+	}
+	rv.channel=next;
+	return(rv);
+}
+
+bufspec clone_bufspec(bufspec spec)
+{
+	bufspec rv=spec;
+	if(rv.server) rv.server=strdup(rv.server);
+	if(rv.channel) rv.channel=strdup(rv.channel);
+	return(rv);
+}
 
 char *print_bufspec(bufspec spec)
 {
@@ -94,6 +151,12 @@ int resolve_bufspec(bufspec spec)
 	snprintf(msg, 80, "resolve_bufspec didn't recognise type %d", spec.type);
 	add_to_buffer(0, MT_ERR, PRIO_QUIET, 0, false, msg, "Internal error: ");
 	return(-1);
+}
+
+void free_bufspec(bufspec spec)
+{
+	free(spec.server);
+	free(spec.channel);
 }
 
 int fork_symbiont(symbiont *buf, char *const *argvl)
