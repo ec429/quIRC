@@ -24,6 +24,8 @@ dists: c_init.c config.c config.h version.h keymod.h keymap.c doc
 	-rm quirc_$(VERSION).src/*.tar.gz
 	rm quirc_$(VERSION).src/*.o
 	rm quirc_$(VERSION).src/quirc
+	rm quirc_$(VERSION).src/genconfig
+	rm quirc_$(VERSION).src/genkeymap
 	mv quirc_$(VERSION).src/distMakefile quirc_$(VERSION).src/Makefile
 	tar -czf quirc_$(VERSION).src.tar.gz quirc_$(VERSION).src/
 	rm -r quirc_$(VERSION).src
