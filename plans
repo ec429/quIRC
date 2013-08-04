@@ -14,8 +14,6 @@ Redesign irc_connect and friends.  At present, we have #ifdef ASYNCH_NL crossing
 
 Use unicode-charmap (somewhere in system i18n) to find out character widths, for wordline().
 
-Colour codes / mcc: ^O clears all formatting.  Maybe also ^Bold, ^Underline, ^Reverse, and parse ^Italics (don't know how to display it though, xterm doesn't do those.  Think it's in ANSI though).
-
 /connrest.  Force the conn_rest to be called (to deal with eg. worldofspectrum - see above).
 
 /dump command.  Pipes a screendump (or better still, unprocessed text) into program of choice.

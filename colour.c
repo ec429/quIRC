@@ -52,6 +52,11 @@ converted:
 	return(rv);
 }
 
+colour reverse_colours(colour c, bool reverse)
+{
+	return(reverse?(colour){c.back, c.fore, c.hi, c.ul}:c);
+}
+
 int c_init(void)
 {
 	#include "c_init.c"

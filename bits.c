@@ -21,6 +21,7 @@ int wordline(const char *msg, unsigned int x, char **out, size_t *l, size_t *i, 
 	char *word;
 	const char *ptr=msg;
 	colour cc=lc; // current colour
+	bool bold=false, underline=false, reverse=false; // format statuses (for when mcc==2)
 	s_setcolour(cc, out, l, i);
 	while(*ptr)
 	{
@@ -78,38 +79,99 @@ int wordline(const char *msg, unsigned int x, char **out, size_t *l, size_t *i, 
 				int wdlen=0;
 				while(!strchr(" \t\n", *ptr))
 				{
-					if((*ptr==3) && mirc_colour_compat)
+					unsigned int consumed=0;
+					if(mirc_colour_compat)
 					{
 						int fore=0, back=0;
 						ssize_t bytes=0;
-						if(sscanf(ptr, "\003%2d,%2d%zn", &fore, &back, &bytes)==2)
+						switch(*ptr)
 						{
-							ptr+=bytes;
-							if(mirc_colour_compat==2)
-							{
-								colour mcc=c_mirc(fore, back);
-								s_setcolour(cc=mcc, &word, &l2, &i2);
-							}
-						}
-						else if(sscanf(ptr, "\003%2d%zn", &fore, &bytes)==1)
-						{
-							ptr+=bytes;
-							if(mirc_colour_compat==2)
-							{
-								colour mcc=c_mirc(fore, 1);
-								s_setcolour(cc=mcc, &word, &l2, &i2);
-							}
-						}
-						else
-						{
-							ptr++;
-							if(mirc_colour_compat==2)
-							{
-								s_setcolour(cc=lc, &word, &l2, &i2);
-							}
+							case 2: // ^B -> bold
+								consumed=1;
+								if(mirc_colour_compat==2)
+								{
+									cc.hi=(bold=!bold)||lc.hi;
+									s_setcolour(cc, &word, &l2, &i2);
+								}
+							break;
+							case 3: // ^C -> text colour
+								if(sscanf(ptr, "\003%2d,%2d%zn", &fore, &back, &bytes)==2) // ^CNN,MM -> fore=N, back=M
+								{
+									consumed=bytes;
+									if(mirc_colour_compat==2)
+									{
+										cc=reverse_colours(c_mirc(fore, back), reverse);
+										cc.hi=bold||lc.hi;
+										cc.ul=underline||lc.ul;
+										s_setcolour(cc, &word, &l2, &i2);
+									}
+								}
+								else if(sscanf(ptr, "\003%2d%zn", &fore, &bytes)==1) // ^CNN -> fore=N, back=default
+								{
+									consumed=bytes;
+									if(mirc_colour_compat==2)
+									{
+										cc=c_mirc(fore, 1);
+										cc.back=lc.back;
+										cc=reverse_colours(cc, reverse);
+										cc.hi=bold||lc.hi;
+										cc.ul=underline||lc.ul;
+										s_setcolour(cc, &word, &l2, &i2);
+									}
+								}
+								else // ^C -> clear colours
+								{
+									consumed=1;
+									if(mirc_colour_compat==2)
+									{
+										cc=reverse_colours(lc, reverse);
+										cc.hi=bold||lc.hi;
+										cc.ul=underline||lc.ul;
+										s_setcolour(cc, &word, &l2, &i2);
+									}
+								}
+							break;
+							case 15: // ^O -> ordinary, clear all attributes
+								consumed=1;
+								if(mirc_colour_compat==2)
+								{
+									bold=underline=reverse=false;
+									s_setcolour(cc=lc, &word, &l2, &i2);
+								}
+							break;
+							case 18: // ^R -> reverse video
+								consumed=1;
+								if(mirc_colour_compat==2)
+								{
+									reverse=!reverse;
+									s_setcolour(cc=reverse_colours(cc, true), &word, &l2, &i2);
+								}
+							break;
+							case 21: // ^U -> underline
+								consumed=1;
+								if(mirc_colour_compat==2)
+								{
+									cc.ul=(underline=!underline)||lc.ul;
+									s_setcolour(cc, &word, &l2, &i2);
+								}
+							break;
+							default:
+							break;
 						}
 					}
-					else
+					if(!consumed)
+					{
+						if(*(unsigned char *)ptr<0x20) // TODO add UTF-8 decoding and replace this with isprint
+						{
+							consumed=1;
+							char buf[16];
+							snprintf(buf, 16, "\\%03o", *(unsigned char *)ptr);
+							append_str(&word, &l2, &i2, buf);
+							wdlen+=strlen(buf);
+						}
+					}
+					ptr+=consumed;
+					if(!consumed)
 					{
 						append_char(&word, &l2, &i2, *ptr++);
 						wdlen++;

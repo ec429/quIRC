@@ -23,6 +23,7 @@ bool eq_colour(colour, colour);
 int setcolour(colour); // wrapper for setcol
 int s_setcolour(colour, char **, size_t *, size_t *); // wrapper for s_setcol
 colour c_mirc(int, int);
+colour reverse_colours(colour, bool);
 int c_init(void);
 
 colour c_list[19];
