@@ -4,6 +4,8 @@ Scripting language.  Under development in branch 'script'.
 
 Need to fix the problem of the conn_rest not getting called for eg worldofspectrum (why is this happening?)
 
+Trap "/join 0" (see rfc2812, it's a kind of "/part *")
+
 Tab search: /tab blah<tab>.
 
 Const-correctness.  There are a lot of functions taking a char * that should take a const char *.
