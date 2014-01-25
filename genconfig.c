@@ -55,6 +55,8 @@ int main(int argc, char **argv)
 		otype=7;
 	else if(strcmp(argv[1], "config_ref.htm")==0)
 		otype=8;
+	else if(strcmp(argv[1], "config_h.d")==0)
+		return(0); // an empty file will do
 	else
 	{
 		fprintf(stderr, "genconfig: unrecognised outtype '%s'\n", argv[1]);
