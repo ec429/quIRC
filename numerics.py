@@ -28,8 +28,12 @@ class NumericReply(NumericMessage):
 		self.typ = 'RPL'
 
 nums={}
+
 def add(n):
+	if n.num in nums:
+		raise Exception('Number reused', nums[n.num], n)
 	nums[n.num] = n
+
 add(NumericError('NOSUCHNICK', 401, '"<nickname> :No such nick/channel"\tUsed to indicate the nickname parameter supplied to a command is currently unused.', 0))
 add(NumericError('NOSUCHSERVER', 402, '"<server name> :No such server"\tUsed to indicate the server name given currently doesn\'t exist.', 0))
 add(NumericError('NOSUCHCHANNEL', 403, '"<channel name> :No such channel"\tUsed to indicate the given channel name is invalid.', 0))
