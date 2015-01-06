@@ -1796,7 +1796,7 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		{
 			add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Must be run in the context of a server!", "/cmd: ");
 		}
-		else
+		else if(args)
 		{
 			bool force=false;
 			if(strncmp(args, "-f", 2)==0)
@@ -1814,6 +1814,8 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 			{
 				add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Tab not live, can't send", "/cmd: ");
 			}
+		}else{
+			add_to_buffer(cbuf,ERR,NORMAL, 0, false, "No command given!","/cmd: ");
 		}
 		return(0);
 	}
