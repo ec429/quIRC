@@ -1814,7 +1814,9 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 			{
 				add_to_buffer(cbuf, ERR, NORMAL, 0, false, "Tab not live, can't send", "/cmd: ");
 			}
-		}else{
+		}
+		else 
+		{
 			add_to_buffer(cbuf,ERR,NORMAL, 0, false, "No command given!","/cmd: ");
 		}
 		return(0);
