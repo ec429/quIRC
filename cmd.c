@@ -35,7 +35,7 @@ CMD_FUN (mode);
 CMD_FUN (cmd);
 
 //Number of Commands
-#define NCMDS 31
+#define NCMDS 32
 
 //cmd_funcs can't be malloc'd the regular way because of -Werror
 //malloc returns a void pointer and with -Werror you can't
@@ -79,6 +79,7 @@ int init_cmds ()
 	ADD_CMD ("leave", CMD_FNAME (part));
 
 	ADD_CMD ("unaway", CMD_FNAME (unaway));
+	ADD_CMD ("back", CMD_FNAME (unaway));
 
 	ADD_CMD ("away", CMD_FNAME (away));
 
