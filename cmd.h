@@ -1,6 +1,7 @@
 #pragma once
 
-extern int (*cmd_funcs[])(char *cmd, char *args, char **qmsg, fd_set *master, int *fdmax, int flag);
+extern int (*cmd_funcs[]) (char *cmd, char *args, char **qmsg,
+			   fd_set * master, int *fdmax, int flag);
 extern char *commands[];
 
 //Couldn't figure out how to get it into one macro.
@@ -27,9 +28,6 @@ extern char *commands[];
 	_handle_##NAME
 
 
-int init_cmds();
-int call_cmd(char *cmd, char *args, char **qmsg, fd_set *master, int *fdmax);
-
-
-
-
+int init_cmds ();
+int call_cmd (char *cmd, char *args, char **qmsg, fd_set * master,
+	      int *fdmax);
