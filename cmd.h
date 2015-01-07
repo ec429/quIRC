@@ -1,9 +1,6 @@
-#ifndef _CMD_H_
-#define _CMD_H_
+#pragma once
 
-
-
-extern int (*cmd_funcs[])(char *cmd, char *args);
+extern int (*cmd_funcs[])(char *cmd, char *args, char **qmsg, int *fdmax);
 extern char *commands[];
 
 //Couldn't figure out how to get it into one macro.
@@ -18,15 +15,18 @@ extern char *commands[];
 	commands[(__i)] = (NAME); \
 	__i++;	\
 
+//macro so that we can easily change function arguments
+//when we inevitably find out that we need more than we have.
+//also going to be using this form a lot. -Russell
+#define CMD_FUN(NAME)\
+	static int _handle_##NAME(char *cmd, char *args, char **qmsg, int *fdmax)
+#define CMD_FNAME(NAME)\
+	_handle_##NAME
+
 
 void init_cmds();
-int call_cmd(char *cmd, char *args);
-
-//Commands
-//Remember to increment NCMDS when adding commands. -Russell
-#define NCMDS 1
-void test(char *cmd, char *args);
+int call_cmd(char *cmd, char *args, char **qmsg, int *fdmax);
 
 
 
-#endif
+
