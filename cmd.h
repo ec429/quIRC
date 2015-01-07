@@ -1,6 +1,7 @@
 #pragma once
 
-extern int (*cmd_funcs[])(char *cmd, char *args, char **qmsg, fd_set *master, int *fdmax, int flag);
+extern int (*cmd_funcs[]) (char *cmd, char *args, char **qmsg, fd_set * master,
+			   int *fdmax, int flag);
 extern char *commands[];
 
 //Couldn't figure out how to get it into one macro.
@@ -8,7 +9,6 @@ extern char *commands[];
 //variable in init_cmds(); -Russell
 #define START_ADDING_CMDS() \
 	int __i=0;
-
 
 #define ADD_CMD(NAME,FUNCTION) \
 	cmd_funcs[(__i)] = (FUNCTION);\
@@ -26,10 +26,5 @@ extern char *commands[];
 #define CMD_FNAME(NAME)\
 	_handle_##NAME
 
-
 int init_cmds();
-int call_cmd(char *cmd, char *args, char **qmsg, fd_set *master, int *fdmax);
-
-
-
-
+int call_cmd(char *cmd, char *args, char **qmsg, fd_set * master, int *fdmax);
