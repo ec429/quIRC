@@ -3,7 +3,7 @@
 
 
 
-extern void (*cmd_funcs[])(char *cmd, char *args);
+extern int (*cmd_funcs[])(char *cmd, char *args);
 extern char *commands[];
 
 //Couldn't figure out how to get it into one macro.
@@ -20,6 +20,7 @@ extern char *commands[];
 
 
 void init_cmds();
+int call_cmd(char *cmd, char *args);
 
 //Commands
 //Remember to increment NCMDS when adding commands. -Russell

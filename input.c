@@ -562,42 +562,6 @@ int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=
 		return(talk(cmd));
 	char *args=strchr(cmd, ' ');
 	if(args) *args++=0;
-	if(strcmp(cmd, "close")==0)
-	{
-		switch(bufs[cbuf].type)
-		{
-			case STATUS:
-				cmd="quit";
-			break;
-			case SERVER:
-				if(bufs[cbuf].live)
-				{
-					cmd="disconnect";
-				}
-				else
-				{
-					free_buffer(cbuf);
-					return(0);
-				}
-			break;
-			case CHANNEL:
-				if(bufs[cbuf].live)
-				{
-					cmd="part";
-				}
-				else
-				{
-					free_buffer(cbuf);
-					return(0);
-				}
-			break;
-			default:
-				bufs[cbuf].live=false;
-				free_buffer(cbuf);
-				return(0);
-			break;
-		}
-	}
 	if((strcmp(cmd, "quit")==0)||(strcmp(cmd, "exit")==0))
 	{
 		if(args) {free(*qmsg); *qmsg=strdup(args);}
