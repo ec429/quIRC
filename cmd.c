@@ -2,32 +2,32 @@
 #include "buffer.h"
 #include "cmd.h"
 
-void (*cmd_funcs[])(char *cmd, char *args);
-const char *commands[];
+//cmd_funcs can't be malloc'd the regular way because of -Werror
+//malloc returns a void pointer and with -Werror you can't
+//cast from a regular pointer to a function pointer.
+void (*cmd_funcs[NCMDS]) (char *cmd, char *args);
+const char *commands[NCMDS];
 
 void init_cmds()
 {
-	int number_of_commands = 0;
-	int i=0;
 
-	((void *) cmd_funcs) =  malloc(number_of_commands * sizeof(void (*)(char *cmd, char *args)));
-	commands = (const char *) malloc(number_of_commands * sizeof( const char * ));
+	cmd_funcs[NCMDS - 1] = NULL;
+	commands[NCMDS - 1] = NULL;
 
-	if(!cmd_funcs || !commands)
-	{	
-		fprintf(stderr, "Out of memory!\n");
-		push_ring(&s_buf,QUIET);
-		termsgr0();
-		exit(1);
-	}
-
-	cmd_funcs[number_of_commands-1] = NULL;
-	commands[number_of_commands-1] = NULL;
-
-	ADD_CMD(i++,	"test",		test);
+	START_ADDING_CMDS();
+	ADD_CMD("test", test);
 
 }
+/*
+call_cmd(char *cmd, char *args)
+{
+	
+}
+*/
 
-void test(char *cmd, char *args){
-
+void test(char *cmd, char *args)
+{
+	cmd = NULL;
+	args = cmd;
+	cmd = args;
 }
