@@ -4,7 +4,7 @@
 
 
 extern void (*cmd_funcs[])(char *cmd, char *args);
-extern const char *commands[];
+extern char *commands[];
 
 //Couldn't figure out how to get it into one macro.
 //Figure this is better than having an apparently unused 
