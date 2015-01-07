@@ -19,717 +19,693 @@
 
 size_t i_firstlen(ichar src);
 size_t i_lastlen(ichar src);
-void i_move(iline * inp, ssize_t bytes);
+void i_move(iline *inp, ssize_t bytes);
 
-int inputchar(iline * inp, int *state)
+int inputchar(iline *inp, int *state)
 {
-	int c = getchar();
-	if ((c == 0) || (c == EOF))	// stdin is set to non-blocking, so this may happen
-		return (0);
-	char *seq;
-	size_t sl, si;
-	int mod = -1;
+	int c=getchar();
+	if((c==0)||(c==EOF)) // stdin is set to non-blocking, so this may happen
+		return(0);
+	char *seq;size_t sl,si;
+	int mod=-1;
 	init_char(&seq, &sl, &si);
-	bool match = true;
-	while (match && (mod < 0)) {
+	bool match=true;
+	while(match&&(mod<0))
+	{
 		append_char(&seq, &sl, &si, c);
-		match = false;
-		for (unsigned int i = 0; i < nkeys; i++) {
-			if (strncmp(seq, kmap[i].mod, si) == 0) {
-				if (kmap[i].mod[si] == 0) {
-					mod = i;
+		match=false;
+		for(unsigned int i=0;i<nkeys;i++)
+		{
+			if(strncmp(seq, kmap[i].mod, si)==0)
+			{	
+				if(kmap[i].mod[si]==0)
+				{
+					mod=i;
 					break;
-				} else {
-					match = true;
+				}
+				else
+				{
+					match=true;
 				}
 			}
 		}
-		if (match && (mod < 0)) {
-			c = getchar();
-			if ((c == 0) || (c == EOF)) {
-				match = false;
+		if(match&&(mod<0))
+		{
+			c=getchar();
+			if((c==0)||(c==EOF))
+			{
+				match=false;
 			}
 		}
 	}
-	if (mod < 0) {
-		while (si > 1)
-			ungetc(seq[--si], stdin);
-		append_char(&inp->left.data, &inp->left.l, &inp->left.i,
-			    seq[0]);
+	if(mod<0)
+	{
+		while(si>1) ungetc(seq[--si], stdin);
+		append_char(&inp->left.data, &inp->left.l, &inp->left.i, seq[0]);
 	}
 	free(seq);
-	if (c != '\t')
-		ttab = false;
-	if (mod == KEY_BS)	// backspace
+	if(c!='\t')
+		ttab=false;
+	if(mod==KEY_BS) // backspace
 	{
-		size_t ll = i_lastlen(inp->left);
-		for (size_t i = 0; i < ll; i++)
+		size_t ll=i_lastlen(inp->left);
+		for(size_t i=0;i<ll;i++)
 			back_ichar(&inp->left);
-		return (0);
+		return(0);
 	}
-	if ((mod < 0) && (c < 32))	// this also stomps on the newline
+	if((mod<0) && (c<32)) // this also stomps on the newline
 	{
 		back_ichar(&inp->left);
-		if (c == 8)	// C-h ~= backspace
+		if(c==8) // C-h ~= backspace
 		{
-			size_t ll = i_lastlen(inp->left);
-			for (size_t i = 0; i < ll; i++)
+			size_t ll=i_lastlen(inp->left);
+			for(size_t i=0;i<ll;i++)
 				back_ichar(&inp->left);
-			return (0);
+			return(0);
 		}
-		if (c == 1)	// C-a ~= home
+		if(c==1) // C-a ~= home
 		{
 			i_home(inp);
-			return (0);
+			return(0);
 		}
-		if (c == 5)	// C-e ~= end
+		if(c==5) // C-e ~= end
 		{
 			i_end(inp);
-			return (0);
+			return(0);
 		}
-		if (c == 3)	// C-c ~= clear
+		if(c==3) // C-c ~= clear
 		{
 			ifree(inp);
-			return (0);
+			return(0);
 		}
-		if (c == 24)	// C-x ~= clear to left
+		if(c==24) // C-x ~= clear to left
 		{
 			free(inp->left.data);
-			inp->left.data = NULL;
-			inp->left.i = inp->left.l = 0;
-			return (0);
+			inp->left.data=NULL;
+			inp->left.i=inp->left.l=0;
+			return(0);
 		}
-		if (c == 11)	// C-k ~= clear to right
+		if(c==11) // C-k ~= clear to right
 		{
 			free(inp->right.data);
-			inp->right.data = NULL;
-			inp->right.i = inp->right.l = 0;
-			return (0);
+			inp->right.data=NULL;
+			inp->right.i=inp->right.l=0;
+			return(0);
 		}
-		if (c == 23)	// C-w ~= backspace word
+		if(c==23) // C-w ~= backspace word
 		{
-			while (back_ichar(&inp->left) == ' ') ;
-			while (!strchr(" ", back_ichar(&inp->left))) ;
-			if (inp->left.i)
-				append_char(&inp->left.data, &inp->left.l,
-					    &inp->left.i, ' ');
-			return (0);
+			while(back_ichar(&inp->left)==' ');
+			while(!strchr(" ", back_ichar(&inp->left)));
+			if(inp->left.i)
+				append_char(&inp->left.data, &inp->left.l, &inp->left.i, ' ');
+			return(0);
 		}
-		if (c == '\t')	// tab completion of nicks
+		if(c=='\t') // tab completion of nicks
 		{
-			size_t sp = inp->left.i;
-			if (sp)
+			size_t sp=inp->left.i;
+			if(sp) sp--;
+			while(sp>0 && !strchr(" \t", inp->left.data[sp-1]))
 				sp--;
-			while (sp > 0 && !strchr(" \t", inp->left.data[sp - 1]))
-				sp--;
-			name *curr = bufs[cbuf].nlist;
-			name *found = NULL;
-			size_t count = 0, mlen = 0;
-			while (curr) {
-				if ((inp->left.i == sp)
-				    ||
-				    (irc_strncasecmp
-				     (inp->left.data + sp, curr->data,
-				      inp->left.i - sp,
-				      bufs[cbuf].casemapping) == 0)) {
-					name *old = found;
-					n_add(&found, curr->data,
-					      bufs[cbuf].casemapping);
-					if (old && (old->data)) {
+			name *curr=bufs[cbuf].nlist;
+			name *found=NULL;
+			size_t count=0, mlen=0;
+			while(curr)
+			{
+				if((inp->left.i==sp) || (irc_strncasecmp(inp->left.data+sp, curr->data, inp->left.i-sp, bufs[cbuf].casemapping)==0))
+				{
+					name *old=found;
+					n_add(&found, curr->data, bufs[cbuf].casemapping);
+					if(old&&(old->data))
+					{
 						size_t i;
-						for (i = 0; i < mlen; i++) {
-							if (irc_to_upper
-							    (curr->data[i],
-							     bufs[cbuf].
-							     casemapping) !=
-							    irc_to_upper(old->
-									 data
-									 [i],
-									 bufs
-									 [cbuf].
-									 casemapping))
+						for(i=0;i<mlen;i++)
+						{
+							if(irc_to_upper(curr->data[i], bufs[cbuf].casemapping)!=irc_to_upper(old->data[i], bufs[cbuf].casemapping))
 								break;
 						}
-						mlen = i;
-					} else {
-						mlen = strlen(curr->data);
+						mlen=i;
+					}
+					else
+					{
+						mlen=strlen(curr->data);
 					}
 					count++;
 				}
-				if (curr)
-					curr = curr->next;
+				if(curr)
+					curr=curr->next;
 			}
-			if (found) {
-				if ((mlen > inp->left.i - sp) && (count > 1)) {
-					while (sp < inp->left.i)
+			if(found)
+			{
+				if((mlen>inp->left.i-sp)&&(count>1))
+				{
+					while(sp<inp->left.i)
 						back_ichar(&inp->left);
-					const char *p = found->data;
-					for (size_t i = 0; i < mlen; i++) {
-						if (!p[i])
-							break;
-						if (p[i] == '\\')
-							append_char(&inp->left.
-								    data,
-								    &inp->left.
-								    l,
-								    &inp->left.
-								    i, p[i]);
-						append_char(&inp->left.data,
-							    &inp->left.l,
-							    &inp->left.i, p[i]);
+					const char *p=found->data;
+					for(size_t i=0;i<mlen;i++)
+					{
+						if(!p[i]) break;
+						if(p[i]=='\\')
+							append_char(&inp->left.data, &inp->left.l, &inp->left.i, p[i]);
+						append_char(&inp->left.data, &inp->left.l, &inp->left.i, p[i]);
 					}
-					ttab = false;
-				} else if ((count > 16) && !ttab) {
-					add_to_buffer(cbuf, STA, NORMAL, 0,
-						      false,
-						      "Multiple matches (over 16; tab again to list)",
-						      "[tab] ");
-					ttab = true;
-				} else if (found->next || (count > 1)) {
+					ttab=false;
+				}
+				else if((count>16)&&!ttab)
+				{
+					add_to_buffer(cbuf, STA, NORMAL, 0, false, "Multiple matches (over 16; tab again to list)", "[tab] ");
+					ttab=true;
+				}
+				else if(found->next||(count>1))
+				{
 					char *fmsg;
-					size_t l, i;
+					size_t l,i;
 					init_char(&fmsg, &l, &i);
-					while (found) {
-						append_str(&fmsg, &l, &i,
-							   found->data);
-						found = found->next;
+					while(found)
+					{
+						append_str(&fmsg, &l, &i, found->data);
+						found=found->next;
 						count--;
-						if (count) {
-							append_str(&fmsg, &l,
-								   &i, ", ");
+						if(count)
+						{
+							append_str(&fmsg, &l, &i, ", ");
 						}
 					}
-					if (!ttab)
-						add_to_buffer(cbuf, STA, NORMAL,
-							      0, false,
-							      "Multiple matches",
-							      "[tab] ");
-					add_to_buffer(cbuf, STA, NORMAL, 0,
-						      false, fmsg, "[tab] ");
+					if(!ttab)
+						add_to_buffer(cbuf, STA, NORMAL, 0, false, "Multiple matches", "[tab] ");
+					add_to_buffer(cbuf, STA, NORMAL, 0, false, fmsg, "[tab] ");
 					free(fmsg);
-					ttab = false;
-				} else {
-					while (sp < inp->left.i)
-						back_ichar(&inp->left);
-					const char *p = found->data;
-					while (*p) {
-						if (*p == '\\')
-							append_char(&inp->left.
-								    data,
-								    &inp->left.
-								    l,
-								    &inp->left.
-								    i, *p);
-						append_char(&inp->left.data,
-							    &inp->left.l,
-							    &inp->left.i, *p++);
-					}
-					if (!sp)
-						append_char(&inp->left.data,
-							    &inp->left.l,
-							    &inp->left.i, ':');
-					append_char(&inp->left.data,
-						    &inp->left.l, &inp->left.i,
-						    ' ');
-					ttab = false;
+					ttab=false;
 				}
-			} else {
-				add_to_buffer(cbuf, STA, NORMAL, 0, false,
-					      "No nicks match", "[tab] ");
+				else
+				{
+					while(sp<inp->left.i)
+						back_ichar(&inp->left);
+					const char *p=found->data;
+					while(*p)
+					{
+						if(*p=='\\')
+							append_char(&inp->left.data, &inp->left.l, &inp->left.i, *p);
+						append_char(&inp->left.data, &inp->left.l, &inp->left.i, *p++);
+					}
+					if(!sp)
+						append_char(&inp->left.data, &inp->left.l, &inp->left.i, ':');
+					append_char(&inp->left.data, &inp->left.l, &inp->left.i, ' ');
+					ttab=false;
+				}
+			}
+			else
+			{
+				add_to_buffer(cbuf, STA, NORMAL, 0, false, "No nicks match", "[tab] ");
 			}
 			n_free(found);
-			return (0);
+			return(0);
 		}
-	} else if (mod >= 0) {
-		bool gone = false;
-		for (int n = 1; n <= 12; n++) {
-			if (mod == KEY_F(n)) {
-				cbuf = min(n % 12, nbufs - 1);
+	}
+	else if(mod>=0)
+	{
+		bool gone=false;
+		for(int n=1;n<=12;n++)
+		{
+			if(mod==KEY_F(n))
+			{
+				cbuf=min(n%12, nbufs-1);
 				redraw_buffer();
-				return (0);
+				return(0);
 			}
 		}
-		if (mod == KEY_UP)	// Up
+		if(mod==KEY_UP) // Up
 		{
-			int old = bufs[cbuf].input.scroll;
-			bufs[cbuf].input.scroll =
-			    min(bufs[cbuf].input.scroll + 1,
-				bufs[cbuf].input.filled ? bufs[cbuf].input.
-				nlines - 1 : bufs[cbuf].input.ptr);
-			if (old != bufs[cbuf].input.scroll)
-				gone = true;
-			if (gone && !old) {
-				if (inp->left.i || inp->right.i) {
-					char out[inp->left.i + inp->right.i +
-						 1];
-					sprintf(out, "%s%s",
-						inp->left.data ? inp->left.
-						data : "",
-						inp->right.data ? inp->right.
-						data : "");
+			int old=bufs[cbuf].input.scroll;
+			bufs[cbuf].input.scroll=min(bufs[cbuf].input.scroll+1, bufs[cbuf].input.filled?bufs[cbuf].input.nlines-1:bufs[cbuf].input.ptr);
+			if(old!=bufs[cbuf].input.scroll) gone=true;
+			if(gone&&!old)
+			{
+				if(inp->left.i||inp->right.i)
+				{
+					char out[inp->left.i+inp->right.i+1];
+					sprintf(out, "%s%s", inp->left.data?inp->left.data:"", inp->right.data?inp->right.data:"");
 					addtoibuf(&bufs[cbuf].input, out);
-					bufs[cbuf].input.scroll = 2;
+					bufs[cbuf].input.scroll=2;
 				}
 			}
 		}
-		if (mod == KEY_DOWN)	// Down
+		if(mod==KEY_DOWN) // Down
 		{
-			gone = true;
-			if (!bufs[cbuf].input.scroll) {
-				if (inp->left.i || inp->right.i) {
-					char out[inp->left.i + inp->right.i +
-						 1];
-					sprintf(out, "%s%s",
-						inp->left.data ? inp->left.
-						data : "",
-						inp->right.data ? inp->right.
-						data : "");
+			gone=true;
+			if(!bufs[cbuf].input.scroll)
+			{
+				if(inp->left.i||inp->right.i)
+				{
+					char out[inp->left.i+inp->right.i+1];
+					sprintf(out, "%s%s", inp->left.data?inp->left.data:"", inp->right.data?inp->right.data:"");
 					addtoibuf(&bufs[cbuf].input, out);
-					bufs[cbuf].input.scroll = 0;
+					bufs[cbuf].input.scroll=0;
 				}
 			}
-			bufs[cbuf].input.scroll =
-			    max(bufs[cbuf].input.scroll - 1, 0);
+			bufs[cbuf].input.scroll=max(bufs[cbuf].input.scroll-1, 0);
 		}
-		if (gone && (bufs[cbuf].input.ptr || bufs[cbuf].input.filled)) {
-			if (bufs[cbuf].input.scroll) {
-				char *ln =
-				    bufs[cbuf].input.
-				    line[(bufs[cbuf].input.ptr +
-					  bufs[cbuf].input.nlines -
-					  bufs[cbuf].input.scroll) %
-					 bufs[cbuf].input.nlines];
-				if (ln) {
+		if(gone&&(bufs[cbuf].input.ptr||bufs[cbuf].input.filled))
+		{
+			if(bufs[cbuf].input.scroll)
+			{
+				char *ln=bufs[cbuf].input.line[(bufs[cbuf].input.ptr+bufs[cbuf].input.nlines-bufs[cbuf].input.scroll)%bufs[cbuf].input.nlines];
+				if(ln)
+				{
 					ifree(inp);
-					inp->left.data = strdup(ln);
-					inp->left.i = strlen(inp->left.data);
-					inp->left.l = 0;
+					inp->left.data=strdup(ln);inp->left.i=strlen(inp->left.data);inp->left.l=0;
 				}
-			} else {
+			}
+			else
+			{
 				ifree(inp);
 			}
-			return (0);
+			return(0);
 		}
-		if (mod == KEY_RIGHT) {
+		if(mod==KEY_RIGHT)
+		{
 			i_move(inp, i_firstlen(inp->right));
-			return (0);
+			return(0);
 		}
-		if (mod == KEY_LEFT) {
+		if(mod==KEY_LEFT)
+		{
 			i_move(inp, -i_lastlen(inp->left));
-			return (0);
+			return(0);
 		}
-		if (mod == KEY_HOME) {
+		if(mod==KEY_HOME)
+		{
 			i_home(inp);
-			return (0);
+			return(0);
 		}
-		if (mod == KEY_END) {
+		if(mod==KEY_END)
+		{
 			i_end(inp);
-			return (0);
+			return(0);
 		}
-		if (mod == KEY_DELETE) {
-			size_t fl = i_firstlen(inp->right);
-			if (inp->right.data && (inp->right.i > fl)) {
-				char *nr = strdup(inp->right.data + fl);
+		if(mod==KEY_DELETE)
+		{
+			size_t fl=i_firstlen(inp->right);
+			if(inp->right.data&&(inp->right.i>fl))
+			{
+				char *nr=strdup(inp->right.data+fl);
 				free(inp->right.data);
-				inp->right.data = nr;
-				inp->right.i -= fl;
-				inp->right.l = inp->right.i;
-			} else {
-				free(inp->right.data);
-				inp->right.data = NULL;
-				inp->right.l = inp->right.i = 0;
+				inp->right.data=nr;
+				inp->right.i-=fl;
+				inp->right.l=inp->right.i;
 			}
-			return (0);
+			else
+			{
+				free(inp->right.data);
+				inp->right.data=NULL;
+				inp->right.l=inp->right.i=0;
+			}
+			return(0);
 		}
-		if (mod == KEY_CPGUP) {
-			bufs[cbuf].ascroll -= height - (tsb ? 3 : 2);
+		if(mod==KEY_CPGUP)
+		{
+			bufs[cbuf].ascroll-=height-(tsb?3:2);
 			redraw_buffer();
-			return (0);
+			return(0);
 		}
-		if (mod == KEY_CPGDN) {
-			bufs[cbuf].ascroll += height - (tsb ? 3 : 2);
+		if(mod==KEY_CPGDN)
+		{
+			bufs[cbuf].ascroll+=height-(tsb?3:2);
 			redraw_buffer();
-			return (0);
+			return(0);
 		}
-		gone = false;
-		if (mod == KEY_PGUP) {
-			int old = bufs[cbuf].input.scroll;
-			bufs[cbuf].input.scroll =
-			    min(bufs[cbuf].input.scroll + 10,
-				bufs[cbuf].input.filled ? bufs[cbuf].input.
-				nlines - 1 : bufs[cbuf].input.ptr);
-			if (old != bufs[cbuf].input.scroll)
-				gone = true;
-			if (gone && !old) {
-				if (inp->left.i || inp->right.i) {
-					char out[inp->left.i + inp->right.i +
-						 1];
-					sprintf(out, "%s%s",
-						inp->left.data ? inp->left.
-						data : "",
-						inp->right.data ? inp->right.
-						data : "");
+		gone=false;
+		if(mod==KEY_PGUP)
+		{
+			int old=bufs[cbuf].input.scroll;
+			bufs[cbuf].input.scroll=min(bufs[cbuf].input.scroll+10, bufs[cbuf].input.filled?bufs[cbuf].input.nlines-1:bufs[cbuf].input.ptr);
+			if(old!=bufs[cbuf].input.scroll) gone=true;
+			if(gone&&!old)
+			{
+				if(inp->left.i||inp->right.i)
+				{
+					char out[inp->left.i+inp->right.i+1];
+					sprintf(out, "%s%s", inp->left.data?inp->left.data:"", inp->right.data?inp->right.data:"");
 					addtoibuf(&bufs[cbuf].input, out);
-					bufs[cbuf].input.scroll = 2;
+					bufs[cbuf].input.scroll=2;
 				}
 			}
-			return (0);
+			return(0);
 		}
-		if (mod == KEY_PGDN) {
-			gone = true;
-			if (!bufs[cbuf].input.scroll) {
-				if (inp->left.i || inp->right.i) {
-					char out[inp->left.i + inp->right.i +
-						 1];
-					sprintf(out, "%s%s",
-						inp->left.data ? inp->left.
-						data : "",
-						inp->right.data ? inp->right.
-						data : "");
+		if(mod==KEY_PGDN)
+		{
+			gone=true;
+			if(!bufs[cbuf].input.scroll)
+			{
+				if(inp->left.i||inp->right.i)
+				{
+					char out[inp->left.i+inp->right.i+1];
+					sprintf(out, "%s%s", inp->left.data?inp->left.data:"", inp->right.data?inp->right.data:"");
 					addtoibuf(&bufs[cbuf].input, out);
-					bufs[cbuf].input.scroll = 0;
+					bufs[cbuf].input.scroll=0;
 				}
 			}
-			bufs[cbuf].input.scroll =
-			    max(bufs[cbuf].input.scroll - 10, 0);
-			return (0);
+			bufs[cbuf].input.scroll=max(bufs[cbuf].input.scroll-10, 0);
+			return(0);
 		}
-		if (gone && (bufs[cbuf].input.ptr || bufs[cbuf].input.filled)) {
-			if (bufs[cbuf].input.scroll) {
-				char *ln =
-				    bufs[cbuf].input.
-				    line[(bufs[cbuf].input.ptr +
-					  bufs[cbuf].input.nlines -
-					  bufs[cbuf].input.scroll) %
-					 bufs[cbuf].input.nlines];
-				if (ln) {
+		if(gone&&(bufs[cbuf].input.ptr||bufs[cbuf].input.filled))
+		{
+			if(bufs[cbuf].input.scroll)
+			{
+				char *ln=bufs[cbuf].input.line[(bufs[cbuf].input.ptr+bufs[cbuf].input.nlines-bufs[cbuf].input.scroll)%bufs[cbuf].input.nlines];
+				if(ln)
+				{
 					ifree(inp);
-					inp->left.data = strdup(ln);
-					inp->left.i = strlen(inp->left.data);
-					inp->left.l = 0;
+					inp->left.data=strdup(ln);inp->left.i=strlen(inp->left.data);inp->left.l=0;
 				}
-			} else {
+			}
+			else
+			{
 				ifree(inp);
 			}
-			return (0);
+			return(0);
 		}
-		if ((mod == KEY_SLEFT) || (mod == KEY_CLEFT)
-		    || (mod == KEY_ALEFT)) {
-			cbuf = max(cbuf - 1, 0);
+		if((mod==KEY_SLEFT)||(mod==KEY_CLEFT)||(mod==KEY_ALEFT))
+		{
+			cbuf=max(cbuf-1, 0);
 			redraw_buffer();
-			return (0);
+			return(0);
 		}
-		if ((mod == KEY_SRIGHT) || (mod == KEY_CRIGHT)
-		    || (mod == KEY_ARIGHT)) {
-			cbuf = min(cbuf + 1, nbufs - 1);
+		if((mod==KEY_SRIGHT)||(mod==KEY_CRIGHT)||(mod==KEY_ARIGHT))
+		{
+			cbuf=min(cbuf+1, nbufs-1);
 			redraw_buffer();
-			return (0);
+			return(0);
 		}
-		if ((mod == KEY_CUP) || (mod == KEY_AUP)) {
+		if((mod==KEY_CUP)||(mod==KEY_AUP))
+		{
 			bufs[cbuf].ascroll--;
 			redraw_buffer();
-			return (0);
+			return(0);
 		}
-		if ((mod == KEY_CDOWN) || (mod == KEY_ADOWN)) {
+		if((mod==KEY_CDOWN)||(mod==KEY_ADOWN))
+		{
 			bufs[cbuf].ascroll++;
 			redraw_buffer();
-			return (0);
+			return(0);
 		}
-		if ((mod == KEY_SHOME) || (mod == KEY_CHOME)
-		    || (mod == KEY_AHOME)) {
-			bufs[cbuf].scroll =
-			    bufs[cbuf].filled ? (bufs[cbuf].ptr +
-						 1) % bufs[cbuf].nlines : 0;
-			bufs[cbuf].ascroll = 0;
+		if((mod==KEY_SHOME)||(mod==KEY_CHOME)||(mod==KEY_AHOME))
+		{
+			bufs[cbuf].scroll=bufs[cbuf].filled?(bufs[cbuf].ptr+1)%bufs[cbuf].nlines:0;
+			bufs[cbuf].ascroll=0;
 			redraw_buffer();
-			return (0);
+			return(0);
 		}
-		if ((mod == KEY_SEND) || (mod == KEY_CEND) || (mod == KEY_AEND)) {
-			bufs[cbuf].scroll = bufs[cbuf].ptr;
-			bufs[cbuf].ascroll = 0;
+		if((mod==KEY_SEND)||(mod==KEY_CEND)||(mod==KEY_AEND))
+		{
+			bufs[cbuf].scroll=bufs[cbuf].ptr;
+			bufs[cbuf].ascroll=0;
 			redraw_buffer();
-			return (0);
+			return(0);
 		}
 	}
-	if ((c & 0xe0) == 0xc0)	// 110xxxxx -> 2 bytes of UTF-8
+	if((c&0xe0)==0xc0) // 110xxxxx -> 2 bytes of UTF-8
 	{
-		int d = getchar();
-		if (d && (d != EOF) && ((d & 0xc0) == 0x80))	// 10xxxxxx - UTF middlebyte
-			append_char(&inp->left.data, &inp->left.l, &inp->left.i,
-				    d);
+		int d=getchar();
+		if(d&&(d!=EOF)&&((d&0xc0)==0x80)) // 10xxxxxx - UTF middlebyte
+			append_char(&inp->left.data, &inp->left.l, &inp->left.i, d);
 		else
 			ungetc(d, stdin);
-		return (0);
+		return(0);
 	}
-	if ((c & 0xf0) == 0xe0)	// 1110xxxx -> 3 bytes of UTF-8
+	if((c&0xf0)==0xe0) // 1110xxxx -> 3 bytes of UTF-8
 	{
-		int d = getchar();
-		if (d && (d != EOF) && ((d & 0xc0) == 0x80))	// 10xxxxxx - UTF middlebyte
+		int d=getchar();
+		if(d&&(d!=EOF)&&((d&0xc0)==0x80)) // 10xxxxxx - UTF middlebyte
 		{
-			int e = getchar();
-			if (e && (e != EOF) && ((e & 0xc0) == 0x80))	// 10xxxxxx - UTF middlebyte
+			int e=getchar();
+			if(e&&(e!=EOF)&&((e&0xc0)==0x80)) // 10xxxxxx - UTF middlebyte
 			{
-				append_char(&inp->left.data, &inp->left.l,
-					    &inp->left.i, d);
-				append_char(&inp->left.data, &inp->left.l,
-					    &inp->left.i, e);
-			} else {
+				append_char(&inp->left.data, &inp->left.l, &inp->left.i, d);
+				append_char(&inp->left.data, &inp->left.l, &inp->left.i, e);
+			}
+			else
+			{
 				ungetc(e, stdin);
 				ungetc(d, stdin);
 			}
-		} else
+		}
+		else
 			ungetc(d, stdin);
-		return (0);
+		return(0);
 	}
-	if ((c & 0xf8) == 0xf0)	// 11110xxx -> 4 bytes of UTF-8
+	if((c&0xf8)==0xf0) // 11110xxx -> 4 bytes of UTF-8
 	{
-		int d = getchar();
-		if (d && (d != EOF) && ((d & 0xc0) == 0x80))	// 10xxxxxx - UTF middlebyte
+		int d=getchar();
+		if(d&&(d!=EOF)&&((d&0xc0)==0x80)) // 10xxxxxx - UTF middlebyte
 		{
-			int e = getchar();
-			if (e && (e != EOF) && ((e & 0xc0) == 0x80))	// 10xxxxxx - UTF middlebyte
+			int e=getchar();
+			if(e&&(e!=EOF)&&((e&0xc0)==0x80)) // 10xxxxxx - UTF middlebyte
 			{
-				int f = getchar();
-				if (f && (f != EOF) && ((f & 0xc0) == 0x80))	// 10xxxxxx - UTF middlebyte
+				int f=getchar();
+				if(f&&(f!=EOF)&&((f&0xc0)==0x80)) // 10xxxxxx - UTF middlebyte
 				{
-					append_char(&inp->left.data,
-						    &inp->left.l, &inp->left.i,
-						    d);
-					append_char(&inp->left.data,
-						    &inp->left.l, &inp->left.i,
-						    e);
-					append_char(&inp->left.data,
-						    &inp->left.l, &inp->left.i,
-						    f);
-				} else {
+					append_char(&inp->left.data, &inp->left.l, &inp->left.i, d);
+					append_char(&inp->left.data, &inp->left.l, &inp->left.i, e);
+					append_char(&inp->left.data, &inp->left.l, &inp->left.i, f);
+				}
+				else
+				{
 					ungetc(f, stdin);
 					ungetc(e, stdin);
 					ungetc(d, stdin);
 				}
-			} else {
+			}
+			else
+			{
 				ungetc(e, stdin);
 				ungetc(d, stdin);
 			}
-		} else
+		}
+		else
 			ungetc(d, stdin);
-		return (0);
+		return(0);
 	}
-	if (c == '\n') {
-		*state = 3;
-		char out[inp->left.i + inp->right.i + 1];
-		sprintf(out, "%s%s", inp->left.data ? inp->left.data : "",
-			inp->right.data ? inp->right.data : "");
+	if(c=='\n')
+	{
+		*state=3;
+		char out[inp->left.i+inp->right.i+1];
+		sprintf(out, "%s%s", inp->left.data?inp->left.data:"", inp->right.data?inp->right.data:"");
 		addtoibuf(&bufs[cbuf].input, out);
 		ifree(inp);
-		return (0);
+		return(0);
 	}
-	return (0);
+	return(0);
 }
 
-char *slash_dequote(char *inp)
+char * slash_dequote(char *inp)
 {
-	size_t l = strlen(inp) + 1;
-	char *rv = (char *)malloc(l + 1);	// we only get shorter, so this will be enough
-	unsigned int o = 0;
-	while ((*inp) && (o < l))	// o>=l should never happen, but it's covered just in case
+	size_t l=strlen(inp)+1;
+	char *rv=(char *)malloc(l+1); // we only get shorter, so this will be enough
+	unsigned int o=0;
+	while((*inp) && (o<l)) // o>=l should never happen, but it's covered just in case
 	{
-		if (*inp == '\\')	// \n, \r, \\, \ooo (\0 remains escaped)
+		if(*inp=='\\') // \n, \r, \\, \ooo (\0 remains escaped)
 		{
-			char c = *++inp;
-			switch (c) {
-			case 'n':
-				rv[o++] = '\n';
-				inp++;
+			char c=*++inp;
+			switch(c)
+			{
+				case 'n':
+					rv[o++]='\n';inp++;
 				break;
-			case 'r':
-				rv[o++] = '\r';
-				inp++;
+				case 'r':
+					rv[o++]='\r';inp++;
 				break;
-			case '\\':
-				rv[o++] = '\\';
-				inp++;
+				case '\\':
+					rv[o++]='\\';inp++;
 				break;
-			case '0':	// \000 to \377 are octal escapes
-			case '1':
-			case '2':
-			case '3':
+				case '0': // \000 to \377 are octal escapes
+				case '1':
+				case '2':
+				case '3':
 				{
-					int digits = 0;
-					int oval = c - '0';	// Octal VALue
-					while (isdigit(inp[1]) && (inp[1] < '8')
-					       && (++digits < 3)) {
-						oval *= 8;
-						oval += (*++inp) - '0';
-					}
-					if (oval) {
-						rv[o++] = oval;
-					} else	// \0 is a special case (it remains escaped)
+					int digits=0;
+					int oval=c-'0'; // Octal VALue
+					while(isdigit(inp[1]) && (inp[1]<'8') && (++digits<3))
 					{
-						rv[o++] = '\\';
-						if (o < l)
-							rv[o++] = '0';
+						oval*=8;
+						oval+=(*++inp)-'0';
+					}
+					if(oval)
+					{
+						rv[o++]=oval;
+					}
+					else // \0 is a special case (it remains escaped)
+					{
+						rv[o++]='\\';
+						if(o<l)
+							rv[o++]='0';
 					}
 					inp++;
 				}
 				break;
-			default:
-				rv[o++] = '\\';
+				default:
+					rv[o++]='\\';
 				break;
 			}
-		} else {
-			rv[o++] = *inp++;
+		}
+		else
+		{
+			rv[o++]=*inp++;
 		}
 	}
-	rv[o] = 0;
-	return (rv);
+	rv[o]=0;
+	return(rv);
 }
 
-int cmd_handle(char *inp, char **qmsg, fd_set * master, int *fdmax)	// old state=3; return new state
+int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax) // old state=3; return new state
 {
-	char *cmd = inp + 1;
-	if (*cmd == '/')	//msg sends /msg
-		return (talk(cmd));
-	char *args = strchr(cmd, ' ');
-	if (args)
-		*args++ = 0;
-	return call_cmd(cmd, args, qmsg, master, fdmax);
+	char *cmd=inp+1;
+	if(*cmd=='/') //msg sends /msg
+		return(talk(cmd));
+	char *args=strchr(cmd, ' ');
+	if(args) *args++=0;
+	return call_cmd(cmd,args,qmsg,master, fdmax);
 }
 
-void initibuf(ibuffer * i)
+void initibuf(ibuffer *i)
 {
-	i->nlines = buflines;
-	i->ptr = 0;
-	i->scroll = 0;
-	i->filled = false;
-	i->line = (char **)malloc(i->nlines * sizeof(char *));
+	i->nlines=buflines;
+	i->ptr=0;
+	i->scroll=0;
+	i->filled=false;
+	i->line=(char **)malloc(i->nlines*sizeof(char *));
 }
 
-void addtoibuf(ibuffer * i, char *data)
+void addtoibuf(ibuffer *i, char *data)
 {
-	if (i) {
-		if (i->filled) {
-			if (i->line[i->ptr])
+	if(i)
+	{
+		if(i->filled)
+		{
+			if(i->line[i->ptr])
 				free(i->line[i->ptr]);
 		}
-		i->line[i->ptr++] = strdup(data ? data : "");
-		if (i->ptr >= i->nlines) {
-			i->ptr = 0;
-			i->filled = true;
+		i->line[i->ptr++]=strdup(data?data:"");
+		if(i->ptr>=i->nlines)
+		{
+			i->ptr=0;
+			i->filled=true;
 		}
-		i->scroll = 0;
+		i->scroll=0;
 	}
 }
 
-void freeibuf(ibuffer * i)
+void freeibuf(ibuffer *i)
 {
-	if (i->line) {
+	if(i->line)
+	{
 		int l;
-		for (l = 0; l < (i->filled ? i->nlines : i->ptr); l++) {
-			if (i->line[l])
+		for(l=0;l<(i->filled?i->nlines:i->ptr);l++)
+		{
+			if(i->line[l])
 				free(i->line[l]);
 		}
 		free(i->line);
 	}
 }
 
-char back_ichar(ichar * buf)
+char back_ichar(ichar *buf)
 {
-	char c = 0;
-	if (buf->i) {
-		c = buf->data[--(buf->i)];
-		buf->data[(buf->i)] = 0;
+	char c=0;
+	if(buf->i)
+	{
+		c=buf->data[--(buf->i)];
+		buf->data[(buf->i)]=0;
 	}
-	return (c);
+	return(c);
 }
 
-char front_ichar(ichar * buf)
+char front_ichar(ichar *buf)
 {
-	char c = 0;
-	if (buf->i) {
-		c = buf->data[0];
-		memmove(buf->data, buf->data + 1, buf->i--);
+	char c=0;
+	if(buf->i)
+	{
+		c=buf->data[0];
+		memmove(buf->data, buf->data+1, buf->i--);
 	}
-	return (c);
+	return(c);
 }
 
 size_t i_firstlen(ichar src)
 {
-	if (!src.i)
-		return (0);
+	if(!src.i) return(0);
 	size_t u;
-	if (isutf8(src.data, &u))
-		return (u);
-	return (1);
+	if(isutf8(src.data, &u)) return(u);
+	return(1);
 }
 
 size_t i_lastlen(ichar src)
 {
-	size_t start = max(src.i, 4) - 4, prev = start;
+	size_t start=max(src.i, 4)-4, prev=start;
 	size_t u;
-	while (start < src.i) {
-		prev = start;
-		if (isutf8(src.data + start, &u))
-			start += u;
-		else if (src.data[start] & 0x80)
+	while(start<src.i)
+	{
+		prev=start;
+		if(isutf8(src.data+start, &u)) start+=u;
+		else if(src.data[start]&0x80) start++;
+		else
+		{
 			start++;
-		else {
-			start++;
-			if (start + 1 >= src.i)
-				break;
+			if(start+1>=src.i) break;
 		}
 	}
-	return (start - prev);
+	return(start-prev);
 }
 
-void i_move(iline * inp, ssize_t bytes)
+void i_move(iline *inp, ssize_t bytes)
 {
-	bool fw = (bytes > 0);
-	size_t b = fw ? bytes : -bytes;	// can't use abs() because we don't know what length a size_t is (do we need labs()? llabs()?)
+	bool fw=(bytes>0);
+	size_t b=fw?bytes:-bytes; // can't use abs() because we don't know what length a size_t is (do we need labs()? llabs()?)
 	char c;
-	for (size_t i = 0; i < b; i++)
-		if (fw) {
-			if ((c = front_ichar(&inp->right)))
-				append_char(&inp->left.data, &inp->left.l,
-					    &inp->left.i, c);
-		} else if ((c = back_ichar(&inp->left)))
-			prepend_char(&inp->right.data, &inp->right.l,
-				     &inp->right.i, c);
+	for(size_t i=0;i<b;i++)
+		if(fw)
+		{
+			if((c=front_ichar(&inp->right)))
+			    append_char(&inp->left.data, &inp->left.l, &inp->left.i, c);
+	    }
+		else
+			if((c=back_ichar(&inp->left)))
+			    prepend_char(&inp->right.data, &inp->right.l, &inp->right.i, c);
 }
 
-void ifree(iline * buf)
+void ifree(iline *buf)
 {
 	free(buf->left.data);
 	free(buf->right.data);
-	buf->left.data = NULL;
-	buf->right.data = NULL;
-	buf->left.i = buf->left.l = 0;
-	buf->right.i = buf->right.l = 0;
+	buf->left.data=NULL;
+	buf->right.data=NULL;
+	buf->left.i=buf->left.l=0;
+	buf->right.i=buf->right.l=0;
 }
 
-void i_home(iline * inp)
+void i_home(iline *inp)
 {
-	if (inp->left.i) {
-		size_t b = inp->left.i + inp->right.i;
-		char *nr = (char *)malloc(b + 1);
-		sprintf(nr, "%s%s", inp->left.data ? inp->left.data : "",
-			inp->right.data ? inp->right.data : "");
+	if(inp->left.i)
+	{
+		size_t b=inp->left.i+inp->right.i;
+		char *nr=(char *)malloc(b+1);
+		sprintf(nr, "%s%s", inp->left.data?inp->left.data:"", inp->right.data?inp->right.data:"");
 		ifree(inp);
-		inp->right.data = nr;
-		inp->right.i = b;
-		inp->right.l = b + 1;
+		inp->right.data=nr;
+		inp->right.i=b;
+		inp->right.l=b+1;
 	}
 }
 
-void i_end(iline * inp)
+void i_end(iline *inp)
 {
-	if (inp->right.i) {
-		size_t b = inp->left.i + inp->right.i;
-		char *nl = (char *)malloc(b + 1);
-		sprintf(nl, "%s%s", inp->left.data ? inp->left.data : "",
-			inp->right.data ? inp->right.data : "");
+	if(inp->right.i)
+	{
+		size_t b=inp->left.i+inp->right.i;
+		char *nl=(char *)malloc(b+1);
+		sprintf(nl, "%s%s", inp->left.data?inp->left.data:"", inp->right.data?inp->right.data:"");
 		ifree(inp);
-		inp->left.data = nl;
-		inp->left.i = b;
-		inp->left.l = b + 1;
+		inp->left.data=nl;
+		inp->left.i=b;
+		inp->left.l=b+1;
 	}
 }
