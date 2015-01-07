@@ -2,6 +2,7 @@
 #include "buffer.h"
 #include "cmd.h"
 #include "logging.h"
+#include "types.h"
 #include <assert.h>
 
 //Function declarations
@@ -168,12 +169,13 @@ CMD_FUN (close)
 	switch (bufs[cbuf].type)
 	{
 	case STATUS:
-		cmd = "quit";
+		CMD_FNAME(quit)("quit",args,qmsg,master,fdmax,0);
 		break;
 	case SERVER:
 		if (bufs[cbuf].live)
 		{
-			cmd = "disconnect";
+			CMD_FNAME(disconnect)("disconnect",args,qmsg,master,fdmax,0);
+			return (0);
 		}
 		else
 		{
@@ -184,7 +186,8 @@ CMD_FUN (close)
 	case CHANNEL:
 		if (bufs[cbuf].live)
 		{
-			cmd = "part";
+			CMD_FNAME(part)("part",args,qmsg,master,fdmax,0);
+			return (0);
 		}
 		else
 		{
