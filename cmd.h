@@ -11,9 +11,10 @@ extern char *commands[];
 	int __i=0;
 
 
-#define ADD_CMD(NAME,FUNCTION) \
+#define ADD_CMD(NAME,FUNCTION,HELP) \
 	cmd_funcs[(__i)] = (FUNCTION);\
 	commands[(__i)] = (NAME); \
+	help[(__i)] = (HELP); \
 	__i++;	\
 
 
