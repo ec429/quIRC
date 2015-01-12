@@ -170,7 +170,6 @@ CMD_FUN (help)
 	if(args)
 	{
 		int i = get_cmd_index(args);
-		fprintf(stderr, "%d\n",i);
 		if(strcmp(commands[i].help,""))
 			add_to_buffer(cbuf,STA,NORMAL,0,false,commands[i].help,"Usage:\n");
 		else
