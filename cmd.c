@@ -38,20 +38,13 @@ CMD_FUN (help);
 //Number of Commands
 #define NCMDS 33
 
-//cmd_funcs can't be malloc'd the regular way because of -Werror
-//malloc returns a void pointer and with -Werror you can't
-//cast from a regular pointer to a function pointer. -Russell
-int (*cmd_funcs[NCMDS + 1]) (char *cmd, char *args, char **qmsg,
-			     fd_set * master, int *fdmax, int flag);
-char *commands[NCMDS + 1];
-char *help[NCMDS + 1];
-
+struct cmd_t *commands;
 
 int init_cmds ()
 {
+	commands = malloc((NCMDS+1)*sizeof( struct cmd_t));
+	commands[NCMDS - 1].name = NULL;
 
-	cmd_funcs[NCMDS - 1] = NULL;
-	commands[NCMDS - 1] = NULL;
 
 	START_ADDING_CMDS ();	//initializes the command counter
 
@@ -80,8 +73,7 @@ int init_cmds ()
 	ADD_CMD ("part", CMD_FNAME (part),"/part <channel>\nLeave a channel.");
 	ADD_CMD ("leave", CMD_FNAME (part),"/leave <channel>\nLeave a channel.");
 
-	ADD_CMD ("unaway", CMD_FNAME (unaway),"/unaway\nSet back.");
-	ADD_CMD ("back", CMD_FNAME (unaway),"/unaway\nSet back.");
+	ADD_CMD ("unaway", CMD_FNAME (unaway),"/unaway\nSet back."); ADD_CMD ("back", CMD_FNAME (unaway),"/unaway\nSet back.");
 
 	ADD_CMD ("away", CMD_FNAME (away),"/away [msg]\t:Set away message.\n/away -\t:Set back.");
 
@@ -129,11 +121,11 @@ int init_cmds ()
 int get_cmd_index (char *cmd)
 {
 	int i = 0;
-	char *ccmd = commands[0];
+	struct cmd_t ccmd = commands[0];
 
-	while(ccmd)
+	while(ccmd.name)
 	{
-		if (strcmp (ccmd, cmd) == 0)
+		if (strcmp (ccmd.name, cmd) == 0)
 		{
 			return i;
 		}
@@ -146,15 +138,13 @@ int get_cmd_index (char *cmd)
 int call_cmd (char *cmd, char *args, char **qmsg, fd_set * master, int *fdmax)
 {
 	int i = 0;
-	char *ccmd = commands[0];
+	struct cmd_t ccmd = commands[0];
 
-	while (ccmd)
+	while (ccmd.name)
 	{
-		if (strcmp (ccmd, cmd) == 0)
-		{
-			return cmd_funcs[i] (cmd, args, qmsg, master, fdmax,
+		if (strcmp (ccmd.name, cmd) == 0)
+			return commands[i].func(cmd, args, qmsg, master, fdmax,
 					     0);
-		}
 		i++;
 		ccmd = commands[i];
 	}
@@ -181,10 +171,10 @@ CMD_FUN (help)
 	{
 		int i = get_cmd_index(args);
 		fprintf(stderr, "%d\n",i);
-		if(strcmp(help[i],""))
-			add_to_buffer(cbuf,STA,NORMAL,0,false,help[i],"Usage:\n");
+		if(strcmp(commands[i].help,""))
+			add_to_buffer(cbuf,STA,NORMAL,0,false,commands[i].help,"Usage:\n");
 		else
-			add_to_buffer(cbuf,ERR,NORMAL,0,false,": No usage information.",commands[i]);
+			add_to_buffer(cbuf,ERR,NORMAL,0,false,": No usage information.",commands[i].name);
 	}
 	else
 	{
@@ -192,10 +182,10 @@ CMD_FUN (help)
 		int i;
 		for(i=0; i< NCMDS; i++)
 		{	
-			if(strcmp(help[i],""))
-				add_to_buffer(cbuf,STA,NORMAL,0,false,commands[i],"");
+			if(strcmp(commands[i].help,""))
+				add_to_buffer(cbuf,STA,NORMAL,0,false,commands[i].name,"");
 			else
-				add_to_buffer(cbuf,ERR,NORMAL,0,false,": No usage information.",commands[i]);
+				add_to_buffer(cbuf,ERR,NORMAL,0,false,": No usage information.",commands[i].name);
 		}	
 		
 	}

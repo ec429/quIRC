@@ -1,8 +1,12 @@
 #pragma once
 
-extern int (*cmd_funcs[]) (char *cmd, char *args, char **qmsg,
-			   fd_set * master, int *fdmax, int flag);
-extern char *commands[];
+struct cmd_t{
+	int (*func) (char *cmd, char *args, char **qmsg, fd_set *master, int *fdmax, int flag);
+	char *name;
+	char *help;	
+};
+
+extern struct cmd_t *commands;
 
 //Couldn't figure out how to get it into one macro.
 //Figure this is better than having an apparently unused 
@@ -12,9 +16,9 @@ extern char *commands[];
 
 
 #define ADD_CMD(NAME,FUNCTION,HELP) \
-	cmd_funcs[(__i)] = (FUNCTION);\
-	commands[(__i)] = (NAME); \
-	help[(__i)] = (HELP); \
+	commands[(__i)].func = (FUNCTION);\
+	commands[(__i)].name = (NAME); \
+	commands[(__i)].help = (HELP); \
 	__i++;	\
 
 
