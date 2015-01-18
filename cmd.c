@@ -1,4 +1,3 @@
-
 #include "buffer.h"
 #include "cmd.h"
 #include "logging.h"
@@ -35,127 +34,118 @@ CMD_FUN (mode);
 CMD_FUN (cmd);
 CMD_FUN (help);
 
-//Number of Commands
-#define NCMDS 33
-
+unsigned int ncmds;
 struct cmd_t *commands;
 
-int init_cmds ()
+int add_cmd(char *name, cmd_func func, char *help)
 {
-	commands = malloc((NCMDS+1)*sizeof( struct cmd_t));
-	commands[NCMDS - 1].name = NULL;
+	unsigned int n = ncmds++;
+	struct cmd_t *nc = realloc(commands, ncmds * sizeof(struct cmd_t));
+	if (nc == NULL) {
+		fprintf(stderr, "Failed to initialise commands: %s\n", strerror(errno));
+		return -1;
+	}
+	(commands = nc)[n] = (struct cmd_t){.name=name, .func=func, .help=help};
+	return 0;
+}
 
+#define ADD_CMD(_name, _fname, _help) do {if (add_cmd(_name, CMD_FNAME(_fname), _help)) return -1;} while(0);
 
-	START_ADDING_CMDS ();	//initializes the command counter
+int init_cmds()
+{
+	ncmds = 0;
+	commands = NULL;
 
-	ADD_CMD ("quit", CMD_FNAME (quit),"/quit\nQuit quIRC");
-	ADD_CMD ("exit", CMD_FNAME (quit),"/exit\nQuit quIRC");
+	ADD_CMD ("quit", quit, "/quit\nQuit quIRC");
+	ADD_CMD ("exit", quit, "/exit\nQuit quIRC");
 
-	ADD_CMD ("close", CMD_FNAME (close),"/close\nClose the current tab.");
+	ADD_CMD ("close", close, "/close\nClose the current tab.");
 
-	ADD_CMD ("log", CMD_FNAME (log),"/log <logtype> <file>\t:Start logging the current buffer.\n/log - \t:Disable logging for the current buffer.");
+	ADD_CMD ("log", log, "/log <logtype> <file>\t:Start logging the current buffer.\n/log - \t:Disable logging for the current buffer.");
 
-	ADD_CMD ("set", CMD_FNAME (set),"/set <option> [value]\nSet configuration values.");
+	ADD_CMD ("set", set, "/set <option> [value]\nSet configuration values.");
 
-	ADD_CMD ("server", CMD_FNAME (server),"/server <url>\nConnect to the given server.");
-	ADD_CMD ("connect", CMD_FNAME (server),"/connect <url>\nConnect to the given server.");
+	ADD_CMD ("server", server, "/server <url>\nConnect to the given server.");
+	ADD_CMD ("connect", server, "/connect <url>\nConnect to the given server.");
 
-	ADD_CMD ("reconnect", CMD_FNAME (reconnect),"/reconnect\nReconnects to a server which has become disconnected.");
+	ADD_CMD ("reconnect", reconnect, "/reconnect\nReconnects to a server which has become disconnected.");
 
-	ADD_CMD ("disconnect", CMD_FNAME (disconnect),"/disconnect [msg]\nDisconnect from the current server and leave a message.");
+	ADD_CMD ("disconnect", disconnect, "/disconnect [msg]\nDisconnect from the current server and leave a message.");
 
-	ADD_CMD ("realsname", CMD_FNAME (realsname),"/realsname\nDisplays hostname of the current server.");
+	ADD_CMD ("realsname", realsname, "/realsname\nDisplays hostname of the current server.");
 
-	ADD_CMD ("join", CMD_FNAME (join),"/join <channel> [key]\nJoin a channel.");
+	ADD_CMD ("join", join, "/join <channel> [key]\nJoin a channel.");
 
-	ADD_CMD ("rejoin", CMD_FNAME (rejoin),"/rejoin [key]\nRejoins a dead channel tab.");
+	ADD_CMD ("rejoin", rejoin, "/rejoin [key]\nRejoins a dead channel tab.");
 
-	ADD_CMD ("part", CMD_FNAME (part),"/part <channel>\nLeave a channel.");
-	ADD_CMD ("leave", CMD_FNAME (part),"/leave <channel>\nLeave a channel.");
+	ADD_CMD ("part", part, "/part <channel>\nLeave a channel.");
+	ADD_CMD ("leave", part, "/leave <channel>\nLeave a channel.");
 
-	ADD_CMD ("unaway", CMD_FNAME (unaway),"/unaway\nSet back."); ADD_CMD ("back", CMD_FNAME (unaway),"/unaway\nSet back.");
+	ADD_CMD ("unaway", unaway, "/unaway\nSet back."); ADD_CMD ("back", unaway, "/unaway\nSet back.");
 
-	ADD_CMD ("away", CMD_FNAME (away),"/away [msg]\t:Set away message.\n/away -\t:Set back.");
+	ADD_CMD ("away", away, "/away [msg]\t:Set away message.\n/away -\t:Set back.");
 
-	ADD_CMD ("afk", CMD_FNAME (afk),"/afk [msg]\t:Set afk message.\n/afk -\t:Set back.");
+	ADD_CMD ("afk", afk, "/afk [msg]\t:Set afk message.\n/afk -\t:Set back.");
 
-	ADD_CMD ("nick", CMD_FNAME (nick),"/nick <nickname>\nSet your nickname.");
+	ADD_CMD ("nick", nick, "/nick <nickname>\nSet your nickname.");
 
-	ADD_CMD ("topic", CMD_FNAME (topic),"/topic [message]\nSets or get's the channel topic.");
+	ADD_CMD ("topic", topic, "/topic [message]\nSets or get's the channel topic.");
 
-	ADD_CMD ("msg", CMD_FNAME (msg),"/msg [-n] <recipient> [message]\nSend a message to another user. '-n' suppresses new tab.");
+	ADD_CMD ("msg", msg, "/msg [-n] <recipient> [message]\nSend a message to another user. '-n' suppresses new tab.");
 
-	ADD_CMD ("ping", CMD_FNAME (ping),"/ping [recipient]\nSend a CCTP ping to recipient. If in a private channel recipient can be omitted.");
+	ADD_CMD ("ping", ping, "/ping [recipient]\nSend a CCTP ping to recipient. If in a private channel recipient can be omitted.");
 
-	ADD_CMD ("amsg", CMD_FNAME (amsg),"/amsg [message]\nSend a message to all users in channel.");
+	ADD_CMD ("amsg", amsg, "/amsg [message]\nSend a message to all users in channel.");
 
-	ADD_CMD ("me", CMD_FNAME (me),"/me <action>\nSend an 'Action' to the channel.");
+	ADD_CMD ("me", me, "/me <action>\nSend an 'Action' to the channel.");
 
-	ADD_CMD ("tab", CMD_FNAME (tab),"/tab <n>\nSwitch to the n'th tab.");
+	ADD_CMD ("tab", tab, "/tab <n>\nSwitch to the n'th tab.");
 
-	ADD_CMD ("sort", CMD_FNAME (sort),"/sort\nSort tab list into an intuitive order.");
+	ADD_CMD ("sort", sort, "/sort\nSort tab list into an intuitive order.");
 
-	ADD_CMD ("left", CMD_FNAME (left),"/left\nSwap current tab to the left.");
+	ADD_CMD ("left", left, "/left\nSwap current tab to the left.");
 
-	ADD_CMD ("right", CMD_FNAME (right),"/right\nSwap current tab to the right.");
+	ADD_CMD ("right", right, "/right\nSwap current tab to the right.");
 
-	ADD_CMD ("ignore", CMD_FNAME (ignore),"/ignore [-ipd] nick[!user[@host]]\n/ignore [-ipd] -r regex\n"
+	ADD_CMD ("ignore", ignore, "/ignore [-ipd] nick[!user[@host]]\n/ignore [-ipd] -r regex\n"
 						"/ignore -l\n -i\t:case insensitive\n-p\t:ignore private messages\n"
 						"-d\t:remove rule\n-r\t:supply regex\n-l\t:list rules that apply");
 
-	ADD_CMD ("mode", CMD_FNAME (mode),"/mode [nick [{+|-}mode]]\nSet, unset, or query mode flags.");
+	ADD_CMD ("mode", mode, "/mode [nick [{+|-}mode]]\nSet, unset, or query mode flags.");
 
-	ADD_CMD ("cmd", CMD_FNAME (cmd),"/cmd <command>\nSend raw command to the server.");
-	ADD_CMD ("quote", CMD_FNAME (cmd),"/quote <command>\nSend raw command to the server.");
-	
-	ADD_CMD ("help", CMD_FNAME (help),"/help [command]\nGet usage information for a command or list information for all commands.");
+	ADD_CMD ("cmd", cmd, "/cmd <command>\nSend raw command to the server.");
+	ADD_CMD ("quote", cmd, "/quote <command>\nSend raw command to the server.");
 
-	//Verify that the number of commands added
-	//is the number expected.
-	assert (__i == NCMDS);
+	ADD_CMD ("help", help, "/help [command]\nGet usage information for a command or list information for all commands.");
 
 	return (0);
 
 }
 
+#undef ADD_CMD
+
 int get_cmd_index (char *cmd)
 {
-	int i = 0;
-	struct cmd_t ccmd = commands[0];
-
-	while(ccmd.name)
+	for(unsigned int i = 0; i < ncmds; i++)
 	{
-		if (strcmp (ccmd.name, cmd) == 0)
-		{
+		if (commands[i].name && strcmp(commands[i].name, cmd) == 0)
 			return i;
-		}
-		i++;
-		ccmd = commands[i];
 	}
 	return -1;
 }
 
-int call_cmd (char *cmd, char *args, char **qmsg, fd_set * master, int *fdmax)
+int call_cmd(char *cmd, char *args, char **qmsg, fd_set * master, int *fdmax)
 {
-	int i = 0;
-	struct cmd_t ccmd = commands[0];
-
-	while (ccmd.name)
-	{
-		if (strcmp (ccmd.name, cmd) == 0)
-			return commands[i].func(cmd, args, qmsg, master, fdmax,
-					     0);
-		i++;
-		ccmd = commands[i];
+	int i = get_cmd_index(cmd);
+	if (i < 0) {
+		if (!cmd)
+			cmd = "";
+		char dstr[8 + strlen(cmd)];
+		sprintf(dstr, "/%s: ", cmd);
+		add_to_buffer (cbuf, ERR, NORMAL, 0, false, "Unrecognised command!", dstr);
+		return 0;
 	}
-
-	if (!cmd)
-		cmd = "";
-	char dstr[8 + strlen (cmd)];
-	sprintf (dstr, "/%s: ", cmd);
-	add_to_buffer (cbuf, ERR, NORMAL, 0, false, "Unrecognised command!",
-		       dstr);
-	return 0;
+	return commands[i].func(cmd, args, qmsg, master, fdmax, 0);
 }
 
 //commands may not have args or use the original cmd 
@@ -180,9 +170,8 @@ CMD_FUN (help)
 	else
 	{
 		add_to_buffer(cbuf,STA,NORMAL,0,false,"\nHELP\n"," ");
-		int i;
-		for(i=0; i< NCMDS; i++)
-		{	
+		for(unsigned int i = 0; i < ncmds; i++)
+		{
 			if(strcmp(commands[i].help,""))
 				add_to_buffer(cbuf,STA,NORMAL,0,false,commands[i].name,"");
 			else
