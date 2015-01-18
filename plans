@@ -24,8 +24,6 @@ Use unicode-charmap (somewhere in system i18n) to find out character widths, for
 
 Some kind of option to suppress repeated away messages.  They're numeric 301.
 
-Command tab-completion: /blah<tab>.  Also, command matching and handling should really be refactored; input.c is far too big!
-
 #inclusion and Makefile audit.  Lots of stuff is #included from .h files when it should only be #included from the .c files, some #inclusions may not be reflected in the Makefile, and type definition #include loops should be resolved with types.h instead of relying on placing #includes after typedefs.  Some progress has now been made on this, but more types need to go in types.h, and the Makefile's dependencies need updating (perhaps generating with makedepend?)
 
 Persistent backscroll.

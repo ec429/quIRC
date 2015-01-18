@@ -5,6 +5,7 @@
 #include "types.h"
 
 //Function declarations
+CMD_FUN (ambig); // ambiguous command handler
 CMD_FUN (quit);
 CMD_FUN (close);
 CMD_FUN (log);
@@ -124,14 +125,26 @@ int init_cmds()
 
 #undef ADD_CMD
 
+struct cmd_t cmd_ambig = {.name = NULL, .help = "Handler for ambiguous commands.  Not callable directly.", .func=_handle_ambig};
+
 struct cmd_t *get_cmd(char *cmd)
 {
+	size_t len = strlen(cmd);
+	int found = -1;
 	for(unsigned int i = 0; i < ncmds; i++)
 	{
-		if (commands[i].name && strcmp(commands[i].name, cmd) == 0)
-			return &commands[i];
+		if (commands[i].name && strncmp(commands[i].name, cmd, len) == 0) {
+			if (found < 0) {
+				found = i;
+			} else {
+				add_to_buffer(cbuf, STA, NORMAL, 0, false, ": ambiguous command", cmd);
+				return &cmd_ambig;
+			}
+		}
 	}
-	return NULL;
+	if (found < 0)
+		return NULL;
+	return &commands[found];
 }
 
 int call_cmd(char *cmd, char *args, char **qmsg, fd_set * master, int *fdmax)
@@ -154,6 +167,36 @@ int call_cmd(char *cmd, char *args, char **qmsg, fd_set * master, int *fdmax)
 #pragma GCC diagnostic ignored "-Wunused-but-set-parameter"
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
+
+CMD_FUN(ambig)
+{
+	char *cmds;
+	size_t cl, ci, len = strlen(cmd);
+	init_char(&cmds, &cl, &ci);
+	for(unsigned int i = 0; i < ncmds; i++)
+	{
+		if (!commands[i].name)
+			continue;
+		if (strncmp(commands[i].name, cmd, len))
+			continue;
+		if (ci)
+			append_str(&cmds, &cl, &ci, ", ");
+		if (commands[i].help && *commands[i].help)
+		{
+			append_str(&cmds, &cl, &ci, commands[i].name);
+		}
+		else
+		{
+			append_char(&cmds, &cl, &ci, '{');
+			append_str(&cmds, &cl, &ci, commands[i].name);
+			append_char(&cmds, &cl, &ci, '}');
+		}
+	}
+	add_to_buffer(cbuf,STA,NORMAL,0,false,cmds,"[matches] ");
+	free(cmds);
+	return 0;
+}
+
 CMD_FUN (help)
 {
 	if(args)
@@ -161,7 +204,9 @@ CMD_FUN (help)
 		struct cmd_t *c = get_cmd(args);
 		if (c == NULL)
 			add_to_buffer(cbuf,ERR,NORMAL,0,false,args,"/help: unrecognised command: ");
-		else if(c->help && *c->help)
+		else if (c == &cmd_ambig)
+			return CMD_FNAME(ambig)(args, args, qmsg, master, fdmax, flag);
+		else if (c->help && *c->help)
 			add_to_buffer(cbuf,STA,NORMAL,0,false,c->help,"Usage: ");
 		else
 			add_to_buffer(cbuf,ERR,NORMAL,0,false,": No usage information.",c->name);
