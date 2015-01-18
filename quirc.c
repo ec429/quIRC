@@ -36,6 +36,7 @@
 #include "config.h"
 #include "input.h"
 #include "version.h"
+#include "cmd.h"
 
 int main(int argc, char *argv[])
 {
@@ -103,6 +104,13 @@ int main(int argc, char *argv[])
 	if(c_init()) // should be impossible
 	{
 		fprintf(stderr, "Failed to initialise colours\n");
+		push_ring(&s_buf, QUIET);
+		termsgr0();
+		return(1);
+	}
+	if(init_cmds())
+	{
+		fprintf(stderr, "Failed to initialise commands\n");
 		push_ring(&s_buf, QUIET);
 		termsgr0();
 		return(1);
