@@ -170,8 +170,10 @@ CMD_FUN (help)
 	if(args)
 	{
 		int i = get_cmd_index(args);
-		if(strcmp(commands[i].help,""))
-			add_to_buffer(cbuf,STA,NORMAL,0,false,commands[i].help,"Usage:\n");
+		if (i < 0)
+			add_to_buffer(cbuf,ERR,NORMAL,0,false,args,"/help: unrecognised command: ");
+		else if(commands[i].help && *commands[i].help)
+			add_to_buffer(cbuf,STA,NORMAL,0,false,commands[i].help,"Usage: ");
 		else
 			add_to_buffer(cbuf,ERR,NORMAL,0,false,": No usage information.",commands[i].name);
 	}
