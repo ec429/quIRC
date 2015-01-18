@@ -124,28 +124,27 @@ int init_cmds()
 
 #undef ADD_CMD
 
-int get_cmd_index (char *cmd)
+struct cmd_t *get_cmd(char *cmd)
 {
 	for(unsigned int i = 0; i < ncmds; i++)
 	{
 		if (commands[i].name && strcmp(commands[i].name, cmd) == 0)
-			return i;
+			return &commands[i];
 	}
-	return -1;
+	return NULL;
 }
 
 int call_cmd(char *cmd, char *args, char **qmsg, fd_set * master, int *fdmax)
 {
-	int i = get_cmd_index(cmd);
-	if (i < 0) {
-		if (!cmd)
-			cmd = "";
-		char dstr[8 + strlen(cmd)];
-		sprintf(dstr, "/%s: ", cmd);
-		add_to_buffer (cbuf, ERR, NORMAL, 0, false, "Unrecognised command!", dstr);
-		return 0;
-	}
-	return commands[i].func(cmd, args, qmsg, master, fdmax, 0);
+	struct cmd_t *c = get_cmd(cmd);
+	if (c)
+		return c->func(cmd, args, qmsg, master, fdmax, 0);
+	if (!cmd)
+		cmd = "";
+	char dstr[8 + strlen(cmd)];
+	sprintf(dstr, "/%s: ", cmd);
+	add_to_buffer (cbuf, ERR, NORMAL, 0, false, "Unrecognised command!", dstr);
+	return 0;
 }
 
 //commands may not have args or use the original cmd 
@@ -159,13 +158,13 @@ CMD_FUN (help)
 {
 	if(args)
 	{
-		int i = get_cmd_index(args);
-		if (i < 0)
+		struct cmd_t *c = get_cmd(args);
+		if (c == NULL)
 			add_to_buffer(cbuf,ERR,NORMAL,0,false,args,"/help: unrecognised command: ");
-		else if(commands[i].help && *commands[i].help)
-			add_to_buffer(cbuf,STA,NORMAL,0,false,commands[i].help,"Usage: ");
+		else if(c->help && *c->help)
+			add_to_buffer(cbuf,STA,NORMAL,0,false,c->help,"Usage: ");
 		else
-			add_to_buffer(cbuf,ERR,NORMAL,0,false,": No usage information.",commands[i].name);
+			add_to_buffer(cbuf,ERR,NORMAL,0,false,": No usage information.",c->name);
 	}
 	else
 	{
