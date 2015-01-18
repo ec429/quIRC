@@ -57,7 +57,8 @@ quirc.1: man.in
 # dependency files have no work to do
 %.d:
 	touch $@
-cmd.o: cmd.h cmd.c
+
+cmd.o: cmd.c cmd.h buffer_h.d logging.h strbuf.h types.h
 
 ttyesc.o: ttyesc.c ttyesc.h bits.h config_h.d
 
