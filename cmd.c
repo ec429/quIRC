@@ -1,8 +1,8 @@
-#include "buffer.h"
 #include "cmd.h"
-#include "logging.h"
-#include "types.h"
 #include <assert.h>
+#include "logging.h"
+#include "strbuf.h"
+#include "types.h"
 
 //Function declarations
 CMD_FUN (quit);
@@ -168,15 +168,27 @@ CMD_FUN (help)
 	}
 	else
 	{
-		add_to_buffer(cbuf,STA,NORMAL,0,false,"\nHELP\n"," ");
+		char *cmds;
+		size_t cl, ci;
+		init_char(&cmds, &cl, &ci);
+		append_char(&cmds, &cl, &ci, '\n');
 		for(unsigned int i = 0; i < ncmds; i++)
 		{
-			if(strcmp(commands[i].help,""))
-				add_to_buffer(cbuf,STA,NORMAL,0,false,commands[i].name,"");
+			if (i)
+				append_str(&cmds, &cl, &ci, ", ");
+			if (commands[i].help && *commands[i].help)
+			{
+				append_str(&cmds, &cl, &ci, commands[i].name);
+			}
 			else
-				add_to_buffer(cbuf,ERR,NORMAL,0,false,": No usage information.",commands[i].name);
+			{
+				append_char(&cmds, &cl, &ci, '{');
+				append_str(&cmds, &cl, &ci, commands[i].name);
+				append_char(&cmds, &cl, &ci, '}');
+			}
 		}	
-		
+		add_to_buffer(cbuf,STA,NORMAL,0,false,cmds,"HELP: Commands");
+		free(cmds);
 	}
 	return 0;
 }

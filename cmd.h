@@ -1,4 +1,5 @@
 #pragma once
+#include "buffer.h"
 
 typedef int (*cmd_func)(char *cmd, char *args, char **qmsg, fd_set *master, int *fdmax, int flag);
 
