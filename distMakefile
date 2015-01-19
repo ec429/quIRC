@@ -8,7 +8,7 @@ PREFIX := /usr/local
 LIBS_ASYNCH_NL := -lanl
 OPTLIBS = $(LIBS_ASYNCH_NL)
 LIBS = -lm -lncurses $(OBJS) $(OPTLIBS)
-OBJS := ttyraw.o ttyesc.o irc.o ctcp.o bits.o strbuf.o ctbuf.o colour.o buffer.o names.o numeric_text.o config.o input.o logging.o types.o
+OBJS := ttyraw.o ttyesc.o irc.o ctcp.o bits.o strbuf.o ctbuf.o colour.o buffer.o names.o numeric_text.o config.o input.o logging.o types.o cmd.o
 INCLUDE := $(OBJS:.o=.h) version.h osconf.h ctbuf_h.d buffer_h.d config_c.d config_h.d input_h.d
 
 -include config.mak
@@ -57,6 +57,8 @@ quirc.1: man.in
 # dependency files have no work to do
 %.d:
 	touch $@
+
+cmd.o: cmd.c cmd.h buffer_h.d logging.h strbuf.h types.h
 
 ttyesc.o: ttyesc.c ttyesc.h bits.h config_h.d
 
