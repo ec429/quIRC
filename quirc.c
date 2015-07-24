@@ -504,7 +504,7 @@ int main(int argc, char *argv[])
 								}
 								else if(bufs[b].conninpr)
 								{
-									irc_conn_rest(b, bufs[0].nick, username, pass, fname);
+									irc_conn_rest(b, bufs[b].nick?bufs[b].nick:bufs[0].nick, username, pass, fname);
 								}
 								else
 								{
