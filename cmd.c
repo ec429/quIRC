@@ -62,7 +62,7 @@ int init_cmds()
 
 	ADD_CMD ("close", close, "/close\nClose the current tab.");
 
-	ADD_CMD ("log", log, "/log <logtype> <file>\t:Start logging the current buffer.\n/log - \t:Disable logging for the current buffer.");
+	ADD_CMD ("log", log, "/log <logtype> <file>\tStart logging the current buffer.\n/log - \tDisable logging for the current buffer.");
 
 	ADD_CMD ("set", set, "/set <option> [value]\nSet configuration values.");
 
@@ -82,11 +82,11 @@ int init_cmds()
 	ADD_CMD ("part", part, "/part <channel>\nLeave a channel.");
 	ADD_CMD ("leave", part, "/leave <channel>\nLeave a channel.");
 
-	ADD_CMD ("unaway", unaway, "/unaway\nSet back."); ADD_CMD ("back", unaway, "/unaway\nSet back.");
+	ADD_CMD ("unaway", unaway, "/unaway\nUnset away message."); ADD_CMD ("back", unaway, "/back\nUnset away message.");
 
-	ADD_CMD ("away", away, "/away [msg]\t:Set away message.\n/away -\t:Set back.");
+	ADD_CMD ("away", away, "/away [msg]\tSet away message.\n/away -\tUnset.");
 
-	ADD_CMD ("afk", afk, "/afk [msg]\t:Set afk message.\n/afk -\t:Set back.");
+	ADD_CMD ("afk", afk, "/afk [msg]\tAdd afk message (default 'afk') to nick.\n/afk -\tUnset.");
 
 	ADD_CMD ("nick", nick, "/nick <nickname>\nSet your nickname.");
 
@@ -94,7 +94,7 @@ int init_cmds()
 
 	ADD_CMD ("msg", msg, "/msg [-n] <recipient> [message]\nSend a message to another user. '-n' suppresses new tab.");
 
-	ADD_CMD ("ping", ping, "/ping [recipient]\nSend a CCTP ping to recipient. If in a private channel recipient can be omitted.");
+	ADD_CMD ("ping", ping, "/ping [recipient]\nSend a CTCP ping to recipient. If in a private channel recipient can be omitted.");
 
 	ADD_CMD ("amsg", amsg, "/amsg [message]\nSend a message to all users in channel.");
 
@@ -109,8 +109,8 @@ int init_cmds()
 	ADD_CMD ("right", right, "/right\nSwap current tab to the right.");
 
 	ADD_CMD ("ignore", ignore, "/ignore [-ipd] nick[!user[@host]]\n/ignore [-ipd] -r regex\n"
-						"/ignore -l\n -i\t:case insensitive\n-p\t:ignore private messages\n"
-						"-d\t:remove rule\n-r\t:supply regex\n-l\t:list rules that apply");
+						"/ignore -l\n\t-i case insensitive\n\t-p ignore private messages\n"
+						"\t-d remove rule\n\t-r match on regex\n\t-l list active rules");
 
 	ADD_CMD ("mode", mode, "/mode [nick [{+|-}mode]]\nSet, unset, or query mode flags.");
 
