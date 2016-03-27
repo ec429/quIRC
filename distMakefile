@@ -8,7 +8,7 @@ PREFIX := /usr/local
 LIBS_ASYNCH_NL := -lanl
 OPTLIBS = $(LIBS_ASYNCH_NL)
 LIBS = -lm -lncurses $(OBJS) $(OPTLIBS)
-OBJS := ttyraw.o ttyesc.o irc.o ctcp.o bits.o strbuf.o ctbuf.o colour.o buffer.o names.o numeric_text.o config.o input.o logging.o types.o cmd.o
+OBJS := ttyraw.o ttyesc.o irc.o ctcp.o bits.o strbuf.o ctbuf.o colour.o buffer.o names.o numeric_text.o config.o input.o logging.o types.o cmd.o complete.o
 INCLUDE := $(OBJS:.o=.h) version.h osconf.h ctbuf_h.d buffer_h.d config_c.d config_h.d input_h.d
 
 -include config.mak
@@ -90,11 +90,13 @@ genconfig: genconfig.c strbuf.h strbuf.o
 
 input_h.d: input.h keymod.h
 
-input.o: input.c input_h.d ttyesc.h names.h buffer_h.d irc.h bits.h config_h.d logging.h config_set.c
+input.o: input.c input_h.d ttyesc.h names.h buffer_h.d irc.h bits.h config_h.d logging.h complete.h config_set.c
 
 logging.o: types.h bits.h
 
 names.o: names.c names.h buffer_h.d irc.h
+
+complete.o: input_h.d names.h buffer_h.d irc.h strbuf.h
 
 numeric.h: gen_numerics.py numerics.py
 	./$< > $@
