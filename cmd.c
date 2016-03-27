@@ -270,6 +270,16 @@ CMD_FUN (close)
 		}
 		else
 		{
+			int b2;
+			for (b2 = 1; b2 < nbufs; b2++)
+			{
+				while ((b2 < nbufs) && (bufs[b2].type != SERVER)
+				       && (bufs[b2].server == cbuf))
+				{
+					bufs[b2].live = false;
+					free_buffer (b2);
+				}
+			}
 			free_buffer (cbuf);
 			return (0);
 		}
