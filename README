@@ -261,7 +261,7 @@ These are based, broadly, on bash's controls.
       Clear everything to the right of the cursor.
   Tab
   Ctrl-I
-      Autocomplete the nickname to the left of the cursor.
+      Autocomplete the nickname or command to the left of the cursor.
   Ctrl-H
   Backspace
       Delete the character to the left of the cursor.

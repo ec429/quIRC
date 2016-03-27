@@ -8,6 +8,7 @@
 
 #include "complete.h"
 #include "strbuf.h"
+#include "cmd.h"
 
 size_t find_word(const iline *inp, size_t right)
 {
@@ -70,10 +71,22 @@ void i_add(iline *inp, size_t n, const char *data)
 void tab_complete(iline *inp)
 {
 	size_t right = inp->left.i, left = find_word(inp, right);
-	size_t len = right - left, mlen;
-	const char *word = inp->left.data + left;
-	name *found = find_names(word, len, bufs[cbuf].nlist, &mlen);
-	
+	size_t len, mlen;
+	const char *word;
+	bool is_cmd = (!left) && right && (*inp->left.data == '/');
+	name *found, *list=bufs[cbuf].nlist;
+
+	if (is_cmd)
+	{
+		left++;
+		list = cmds_as_nlist;
+	}
+
+	len = right - left;
+	word = inp->left.data + left;
+
+	found = find_names(word, len, list, &mlen);
+
 	if (found)
 	{
 		size_t count = 0;
@@ -131,7 +144,8 @@ void tab_complete(iline *inp)
 	else
 	{
 		add_to_buffer(cbuf, STA, NORMAL, 0, false,
-			      "No nicks match", "[tab] ");
+			      is_cmd ? "No commands match" : "No nicks match",
+			      "[tab] ");
 	}
 	n_free(found);
 }

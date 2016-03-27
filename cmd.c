@@ -41,7 +41,9 @@ CMD_FUN (help);
 unsigned int ncmds;
 struct cmd_t *commands;
 
-int add_cmd(char *name, cmd_func func, char *help)
+name *cmds_as_nlist = NULL;
+
+int add_cmd(char *cmd_name, cmd_func func, char *help)
 {
 	unsigned int n = ncmds++;
 	struct cmd_t *nc = realloc(commands, ncmds * sizeof(struct cmd_t));
@@ -49,7 +51,18 @@ int add_cmd(char *name, cmd_func func, char *help)
 		fprintf(stderr, "Failed to initialise commands: %s\n", strerror(errno));
 		return -1;
 	}
-	(commands = nc)[n] = (struct cmd_t){.name=name, .func=func, .help=help};
+	(commands = nc)[n] = (struct cmd_t){.name=cmd_name, .func=func, .help=help};
+	name *as_name = malloc(sizeof(name));
+	if (as_name == NULL) {
+		perror("malloc");
+		return -1;
+	}
+	as_name->next = cmds_as_nlist;
+	as_name->prev = NULL;
+	as_name->data = strdup(cmd_name);
+	as_name->npfx = 0;
+	as_name->prefixes = NULL;
+	cmds_as_nlist = as_name;
 	return 0;
 }
 

@@ -58,7 +58,7 @@ quirc.1: man.in
 %.d:
 	touch $@
 
-cmd.o: cmd.c cmd.h buffer_h.d logging.h strbuf.h types.h
+cmd.o: buffer_h.d names.h irc.h logging.h strbuf.h types.h
 
 ttyesc.o: ttyesc.c ttyesc.h bits.h config_h.d
 
@@ -96,7 +96,7 @@ logging.o: types.h bits.h
 
 names.o: names.c names.h buffer_h.d irc.h
 
-complete.o: input_h.d names.h buffer_h.d irc.h strbuf.h
+complete.o: input_h.d names.h buffer_h.d irc.h strbuf.h cmd.h
 
 numeric.h: gen_numerics.py numerics.py
 	./$< > $@

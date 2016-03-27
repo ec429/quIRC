@@ -1,5 +1,6 @@
 #pragma once
 #include "buffer.h"
+#include "names.h"
 
 typedef int (*cmd_func)(char *cmd, char *args, char **qmsg, fd_set *master, int *fdmax, int flag);
 
@@ -21,3 +22,7 @@ struct cmd_t {
 
 int init_cmds();
 int call_cmd(char *cmd, char *args, char **qmsg, fd_set * master, int *fdmax);
+
+// Only singly-linked, lacks full information.
+// Valid fields are ->data, ->next
+extern name *cmds_as_nlist;

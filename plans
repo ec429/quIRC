@@ -37,5 +37,3 @@ quoting/escaping tables.  Instead of duplicative hard-baked logic, we should hav
 http links.  Command /http <n>, opens the nth previous link in web browser.  Links considered to be any word starting "http://"; words are delimited by whitespace.  The actual command run is set with $BROWSER,--browser=,/set browser; %s is replaced with the URL.  If no browser is registered, return an error.  The count <n> is local to each buffer; the most recent link is number 0.  If <n> not specified, defaults to 0.  Also /http <url> opens <url> in web browser, and /http <n><TAB> replaces <n> with the corresponding <url> (so you can check it's the right link, and ^C it if not).  May be unnecessary since you can use /dump command instead
 
 Pidfiles and attaching.  When you run quirc, if there is an existing quirc process running, your new instance should simply signal that process to open the requested server/channel in a new tab, and the new instance should then close (after emitting a suitable diagnostic).
-
-Refactor the tab-completion code, and make it search commands (rather than nicks) if word starts with / and is beginning of line.
