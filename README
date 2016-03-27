@@ -108,6 +108,12 @@ the channel (or nick if current tab is a private messaging tab).
       Reconnects to a server from which you have become disconnected.
   /realsname
       Displays the hostname of the server you are connected to.
+  /grep [pattern]
+      Searches backwards through the current tab's backscroll for the regular
+      expression pattern, and scrolls to a match if found. If pattern is
+      omitted, uses your nick (note that this may behave oddly if your nick
+      contains regex metacharacters). Uses POSIX Extended Regular Expression
+      syntax.
   /part channel
   /leave channel
       Leaves (departs) the given channel.

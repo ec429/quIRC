@@ -104,6 +104,8 @@ Then there&apos;s the github page, <a href="http://github.com/ec429/quIRC">http:
 	<dd>Reconnects to a server from which you have become disconnected.</dd>
 <dt>/realsname</dt>
 	<dd>Displays the hostname of the server you are connected to.</dd>
+<dt>/grep [<em>pattern</em>]</dt>
+	<dd>Searches backwards through the current tab's backscroll for the regular expression <em>pattern</em>, and scrolls to a match if found.  If <em>pattern</em> is omitted, uses your nick (note that this may behave oddly if your nick contains regex metacharacters).  Uses POSIX Extended Regular Expression syntax.</dd>
 <dt>/part <em>channel</em></dt>
 <dt>/leave <em>channel</em></dt>
 	<dd>Leaves (departs) the given channel.</dd>

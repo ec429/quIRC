@@ -1,4 +1,6 @@
 #include "cmd.h"
+#include <sys/types.h>
+#include <regex.h>
 #include <assert.h>
 #include "logging.h"
 #include "strbuf.h"
@@ -32,6 +34,7 @@ CMD_FUN (left);
 CMD_FUN (right);
 CMD_FUN (ignore);
 CMD_FUN (mode);
+CMD_FUN (grep);
 CMD_FUN (cmd);
 CMD_FUN (help);
 
@@ -113,6 +116,8 @@ int init_cmds()
 						"\t-d remove rule\n\t-r match on regex\n\t-l list active rules");
 
 	ADD_CMD ("mode", mode, "/mode [nick [{+|-}mode]]\nSet, unset, or query mode flags.");
+
+	ADD_CMD ("grep", grep, "/grep [pattern]\nSearch scrollback for a pattern.");
 
 	ADD_CMD ("cmd", cmd, "/cmd <command>\nSend raw command to the server.");
 	ADD_CMD ("quote", cmd, "/quote <command>\nSend raw command to the server.");
@@ -1828,6 +1833,47 @@ CMD_FUN (mode)
 					       "/mode: ");
 		}
 	}
+	return (0);
+}
+
+CMD_FUN (grep)
+{
+	if (!args)
+		args = SERVER(cbuf).nick;
+	char errbuf[80];
+	regex_t preg;
+	int rc;
+
+	rc = regcomp(&preg, args, REG_NOSUB | REG_EXTENDED);
+	if (rc)
+	{
+		regerror(rc, &preg, errbuf, 80);
+		add_to_buffer (cbuf, ERR, NORMAL, 0, false, errbuf,
+			       "/grep: error: ");
+	}
+	else
+	{
+		int uline=bufs[cbuf].scroll-1;
+		while(true)
+		{
+			if(--uline<0)
+				uline+=bufs[cbuf].nlines;
+			if ((uline==bufs[cbuf].ptr) || (!bufs[cbuf].filled && uline>bufs[cbuf].ptr))
+			{
+				add_to_buffer (cbuf, STA, NORMAL, 0, false, "No match",
+					       "/grep: ");
+				break;
+			}
+			if (regexec(&preg, bufs[cbuf].lt[uline], 0, NULL, 0)==0)
+			{
+				bufs[cbuf].scroll=(uline+1)%bufs[cbuf].nlines;
+				bufs[cbuf].ascroll=0;
+				redraw_buffer();
+				break;
+			}
+		}
+	}
+	regfree(&preg);
 	return (0);
 }
 
