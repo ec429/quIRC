@@ -26,6 +26,8 @@ prevent you from joining us there!)
 ***** Commands *****
 All commands are prefixed with a '/'. Anything else is a message to be sent to
 the channel (or nick if current tab is a private messaging tab).
+  /help [cmd]
+      Show on-line help for command /cmd. If cmd is omitted, list all commands.
   /server url
       Connects to the given server (will open in a new tab).
   /nick nickname
