@@ -21,11 +21,11 @@ size_t i_firstlen (ichar src);
 size_t i_lastlen (ichar src);
 void i_move (iline * inp, ssize_t bytes);
 
-int inputchar (iline * inp, int *state)
+void inputchar (iline * inp, int *state)
 {
 	int c = getchar ();
 	if ((c == 0) || (c == EOF))	// stdin is set to non-blocking, so this may happen
-		return (0);
+		return;
 	char *seq;
 	size_t sl, si;
 	int mod = -1;
@@ -74,7 +74,7 @@ int inputchar (iline * inp, int *state)
 		size_t ll = i_lastlen (inp->left);
 		for (size_t i = 0; i < ll; i++)
 			back_ichar (&inp->left);
-		return (0);
+		return;
 	}
 	if ((mod < 0) && (c < 32))	// this also stomps on the newline
 	{
@@ -84,36 +84,36 @@ int inputchar (iline * inp, int *state)
 			size_t ll = i_lastlen (inp->left);
 			for (size_t i = 0; i < ll; i++)
 				back_ichar (&inp->left);
-			return (0);
+			return;
 		}
 		if (c == 1)	// C-a ~= home
 		{
 			i_home (inp);
-			return (0);
+			return;
 		}
 		if (c == 5)	// C-e ~= end
 		{
 			i_end (inp);
-			return (0);
+			return;
 		}
 		if (c == 3)	// C-c ~= clear
 		{
 			ifree (inp);
-			return (0);
+			return;
 		}
 		if (c == 24)	// C-x ~= clear to left
 		{
 			free (inp->left.data);
 			inp->left.data = NULL;
 			inp->left.i = inp->left.l = 0;
-			return (0);
+			return;
 		}
 		if (c == 11)	// C-k ~= clear to right
 		{
 			free (inp->right.data);
 			inp->right.data = NULL;
 			inp->right.i = inp->right.l = 0;
-			return (0);
+			return;
 		}
 		if (c == 23)	// C-w ~= backspace word
 		{
@@ -122,7 +122,7 @@ int inputchar (iline * inp, int *state)
 			if (inp->left.i)
 				append_char (&inp->left.data, &inp->left.l,
 					     &inp->left.i, ' ');
-			return (0);
+			return;
 		}
 		if (c == '\t')	// tab completion of nicks
 		{
@@ -274,7 +274,7 @@ int inputchar (iline * inp, int *state)
 					       "No nicks match", "[tab] ");
 			}
 			n_free (found);
-			return (0);
+			return;
 		}
 	}
 	else if (mod >= 0)
@@ -286,7 +286,7 @@ int inputchar (iline * inp, int *state)
 			{
 				cbuf = min (n % 12, nbufs - 1);
 				redraw_buffer ();
-				return (0);
+				return;
 			}
 		}
 		if (mod == KEY_UP)	// Up
@@ -357,27 +357,27 @@ int inputchar (iline * inp, int *state)
 			{
 				ifree (inp);
 			}
-			return (0);
+			return;
 		}
 		if (mod == KEY_RIGHT)
 		{
 			i_move (inp, i_firstlen (inp->right));
-			return (0);
+			return;
 		}
 		if (mod == KEY_LEFT)
 		{
 			i_move (inp, -i_lastlen (inp->left));
-			return (0);
+			return;
 		}
 		if (mod == KEY_HOME)
 		{
 			i_home (inp);
-			return (0);
+			return;
 		}
 		if (mod == KEY_END)
 		{
 			i_end (inp);
-			return (0);
+			return;
 		}
 		if (mod == KEY_DELETE)
 		{
@@ -396,19 +396,19 @@ int inputchar (iline * inp, int *state)
 				inp->right.data = NULL;
 				inp->right.l = inp->right.i = 0;
 			}
-			return (0);
+			return;
 		}
 		if (mod == KEY_CPGUP)
 		{
 			bufs[cbuf].ascroll -= height - (tsb ? 3 : 2);
 			redraw_buffer ();
-			return (0);
+			return;
 		}
 		if (mod == KEY_CPGDN)
 		{
 			bufs[cbuf].ascroll += height - (tsb ? 3 : 2);
 			redraw_buffer ();
-			return (0);
+			return;
 		}
 		gone = false;
 		if (mod == KEY_PGUP)
@@ -435,7 +435,7 @@ int inputchar (iline * inp, int *state)
 					bufs[cbuf].input.scroll = 2;
 				}
 			}
-			return (0);
+			return;
 		}
 		if (mod == KEY_PGDN)
 		{
@@ -457,7 +457,7 @@ int inputchar (iline * inp, int *state)
 			}
 			bufs[cbuf].input.scroll =
 				max (bufs[cbuf].input.scroll - 10, 0);
-			return (0);
+			return;
 		}
 		if (gone && (bufs[cbuf].input.ptr || bufs[cbuf].input.filled))
 		{
@@ -481,33 +481,33 @@ int inputchar (iline * inp, int *state)
 			{
 				ifree (inp);
 			}
-			return (0);
+			return;
 		}
 		if ((mod == KEY_SLEFT) || (mod == KEY_CLEFT)
 		    || (mod == KEY_ALEFT))
 		{
 			cbuf = max (cbuf - 1, 0);
 			redraw_buffer ();
-			return (0);
+			return;
 		}
 		if ((mod == KEY_SRIGHT) || (mod == KEY_CRIGHT)
 		    || (mod == KEY_ARIGHT))
 		{
 			cbuf = min (cbuf + 1, nbufs - 1);
 			redraw_buffer ();
-			return (0);
+			return;
 		}
 		if ((mod == KEY_CUP) || (mod == KEY_AUP))
 		{
 			bufs[cbuf].ascroll--;
 			redraw_buffer ();
-			return (0);
+			return;
 		}
 		if ((mod == KEY_CDOWN) || (mod == KEY_ADOWN))
 		{
 			bufs[cbuf].ascroll++;
 			redraw_buffer ();
-			return (0);
+			return;
 		}
 		if ((mod == KEY_SHOME) || (mod == KEY_CHOME)
 		    || (mod == KEY_AHOME))
@@ -518,7 +518,7 @@ int inputchar (iline * inp, int *state)
 				bufs[cbuf].nlines : 0;
 			bufs[cbuf].ascroll = 0;
 			redraw_buffer ();
-			return (0);
+			return;
 		}
 		if ((mod == KEY_SEND) || (mod == KEY_CEND)
 		    || (mod == KEY_AEND))
@@ -526,7 +526,7 @@ int inputchar (iline * inp, int *state)
 			bufs[cbuf].scroll = bufs[cbuf].ptr;
 			bufs[cbuf].ascroll = 0;
 			redraw_buffer ();
-			return (0);
+			return;
 		}
 	}
 	if ((c & 0xe0) == 0xc0)	// 110xxxxx -> 2 bytes of UTF-8
@@ -537,7 +537,7 @@ int inputchar (iline * inp, int *state)
 				     &inp->left.i, d);
 		else
 			ungetc (d, stdin);
-		return (0);
+		return;
 	}
 	if ((c & 0xf0) == 0xe0)	// 1110xxxx -> 3 bytes of UTF-8
 	{
@@ -560,7 +560,7 @@ int inputchar (iline * inp, int *state)
 		}
 		else
 			ungetc (d, stdin);
-		return (0);
+		return;
 	}
 	if ((c & 0xf8) == 0xf0)	// 11110xxx -> 4 bytes of UTF-8
 	{
@@ -598,7 +598,7 @@ int inputchar (iline * inp, int *state)
 		}
 		else
 			ungetc (d, stdin);
-		return (0);
+		return;
 	}
 	if (c == '\n')
 	{
@@ -608,9 +608,9 @@ int inputchar (iline * inp, int *state)
 			 inp->right.data ? inp->right.data : "");
 		addtoibuf (&bufs[cbuf].input, out);
 		ifree (inp);
-		return (0);
+		return;
 	}
-	return (0);
+	return;
 }
 
 char *slash_dequote (char *inp)

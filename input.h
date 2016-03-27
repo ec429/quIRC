@@ -44,7 +44,7 @@ ibuffer;
 
 bool ttab;
 
-int inputchar(iline *inp, int *state);
+void inputchar(iline *inp, int *state);
 char * slash_dequote(char *inp);
 int cmd_handle(char *inp, char **qmsg, fd_set *master, int *fdmax);
 void initibuf(ibuffer *i);
