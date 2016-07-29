@@ -13,6 +13,7 @@ CMD_FUN (close);
 CMD_FUN (log);
 CMD_FUN (set);
 CMD_FUN (server);
+CMD_FUN (finishconn);
 CMD_FUN (reconnect);
 CMD_FUN (disconnect);
 CMD_FUN (realsname);
@@ -84,6 +85,8 @@ int init_cmds()
 
 	ADD_CMD ("server", server, "/server <url> [<pass>]\nConnect to the given server.");
 	ADD_CMD ("connect", server, "/connect <url> [<pass>]\nConnect to the given server.");
+
+	ADD_CMD ("finishconn", finishconn, "/finishconn\nForce connection to completion; use if server is being silent.");
 
 	ADD_CMD ("reconnect", reconnect, "/reconnect\nReconnects to a server which has become disconnected.");
 
@@ -635,6 +638,12 @@ CMD_FUN (server)
 			       "Must specify a server!", "/server: ");
 	}
 	return (0);
+}
+
+CMD_FUN (finishconn)
+{
+	irc_conn_rest(cbuf, bufs[cbuf].nick?bufs[cbuf].nick:bufs[0].nick, username, pass, fname);
+	return(0);
 }
 
 CMD_FUN (reconnect)
