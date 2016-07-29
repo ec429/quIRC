@@ -57,6 +57,7 @@ typedef struct _nl_list
 	struct gaicb *nl_details;
 	int reconn_b;
 	servlist *autoent; // filled out by autoconnect
+	char *pass;
 	struct _nl_list *prev, *next;
 }
 nl_list;

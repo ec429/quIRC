@@ -50,7 +50,7 @@ nl_list *irc_connect(char *server, const char *portno)
 		free(nl_details);
 		return(NULL);
 	}
-	*nl=(nl_list){.nl_details=nl_details, .autoent=NULL, .reconn_b=0, .next=nl_active, .prev=NULL};
+	*nl=(nl_list){.nl_details=nl_details, .autoent=NULL, .reconn_b=0, .pass=NULL, .next=nl_active, .prev=NULL};
 	*nl_details=(struct gaicb){.ar_name=strdup(server), .ar_service=strdup(portno), .ar_request=hints};
 	if(nl_active) nl_active->prev=nl;
 	nl_active=nl;

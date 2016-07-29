@@ -82,8 +82,8 @@ int init_cmds()
 
 	ADD_CMD ("set", set, "/set <option> [value]\nSet configuration values.");
 
-	ADD_CMD ("server", server, "/server <url>\nConnect to the given server.");
-	ADD_CMD ("connect", server, "/connect <url>\nConnect to the given server.");
+	ADD_CMD ("server", server, "/server <url> [<pass>]\nConnect to the given server.");
+	ADD_CMD ("connect", server, "/connect <url> [<pass>]\nConnect to the given server.");
 
 	ADD_CMD ("reconnect", reconnect, "/reconnect\nReconnects to a server which has become disconnected.");
 
@@ -544,16 +544,16 @@ CMD_FUN (server)
 	if (args)
 	{
 		char *server = args;
+		char *newpass = strchr(server, ' ');
+		if (newpass)
+			*newpass++ = 0;
+		else
+			newpass = pass;
 		char *newport = strchr (server, ':');
 		if (newport)
-		{
-			*newport = 0;
-			newport++;
-		}
+			*newport++ = 0;
 		else
-		{
 			newport = portno;
-		}
 		int b;
 		for (b = 1; b < nbufs; b++)
 		{
@@ -588,6 +588,17 @@ CMD_FUN (server)
 			nl_list *nl = irc_connect (server, newport);
 			if (nl)
 			{
+				if (newpass)
+				{
+					nl->autoent=malloc(sizeof(servlist));
+					nl->autoent->name=NULL;
+					nl->autoent->portno=NULL;
+					nl->autoent->nick=NULL;
+					nl->autoent->pass=strdup(newpass);
+					nl->autoent->chans=NULL;
+					nl->autoent->next=NULL;
+					nl->autoent->igns=NULL;
+				}
 				nl->reconn_b = 0;
 				add_to_buffer (0, STA, QUIET, 0, false, dstr,
 					       "/server: ");
@@ -608,6 +619,7 @@ CMD_FUN (server)
 				bufs[cbuf].nick =
 					bufs[0].nick ? strdup (bufs[0].
 							       nick) : NULL;
+				bufs[cbuf].key = strdup(newpass);
 				bufs[cbuf].server = cbuf;
 				bufs[cbuf].conninpr = true;
 				add_to_buffer (cbuf, STA, QUIET, 0, false,
