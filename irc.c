@@ -1229,6 +1229,7 @@ int rx_kill(message pkt, int b, fd_set *master)
 	{
 		close(fd);
 		FD_CLR(fd, master);
+		bufs[b].handle=0; // de-bind fd
 		int b2;
 		for(b2=1;b2<nbufs;b2++)
 		{
@@ -1236,8 +1237,6 @@ int rx_kill(message pkt, int b, fd_set *master)
 			{
 				add_to_buffer(b2, QUIT_PREFORMAT, NORMAL, 0, false, pkt.nargs<2?"":pkt.args[1], "KILLed: ");
 				bufs[b2].live=false;
-				close(bufs[b2].handle);
-				bufs[b2].handle=0; // de-bind fd
 				bufs[b2].hi_alert=5;
 			}
 		}
@@ -1326,6 +1325,7 @@ int rx_error(message pkt, int b, fd_set *master)
 	// assume it's fatal
 	int fd=bufs[b].handle;
 	close(fd);
+	bufs[b].handle=0; // de-bind fd
 	FD_CLR(fd, master);
 	int b2;
 	for(b2=1;b2<nbufs;b2++)
@@ -1337,8 +1337,6 @@ int rx_error(message pkt, int b, fd_set *master)
 			else
 				add_to_buffer(b2, QUIT_PREFORMAT, NORMAL, 0, false, pkt.args[0], "Disconnected: ");
 			bufs[b2].live=false;
-			close(bufs[b2].handle);
-			bufs[b2].handle=0; // de-bind fd
 			bufs[b2].hi_alert=5;
 		}
 	}
