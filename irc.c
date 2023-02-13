@@ -6,6 +6,7 @@
 	irc: networking functions
 */
 
+#include <stdint.h>
 #include "irc.h"
 #include "bits.h"
 #include "buffer.h"
@@ -945,7 +946,8 @@ int rx_mode(message pkt, int b)
 			{
 				case '+':
 					plus=true;
-				case '-':; /* fallthrough */
+					/* fallthrough */
+				case '-':;
 					unsigned int i;
 					for(i=0;i<bufs[b].npfx;i++)
 					{

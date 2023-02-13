@@ -6,6 +6,7 @@
 	buffer: multiple-buffer control & buffer rendering
 */
 
+#include <stdint.h>
 #include "buffer.h"
 #include "logging.h"
 #include "osconf.h"
