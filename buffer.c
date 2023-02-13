@@ -18,6 +18,12 @@
 #include "text.h"
 #include "version.h"
 
+int nbufs;
+int cbuf;
+buffer *bufs;
+
+ring s_buf, d_buf;
+
 ctchar *highlight(const char *src, size_t *len); // use colours to highlight \escapes.  Returns a malloc-like pointer
 
 int init_ring(ring *r)

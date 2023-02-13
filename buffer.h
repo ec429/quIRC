@@ -76,9 +76,9 @@ typedef struct _buf
 }
 buffer;
 
-int nbufs;
-int cbuf;
-buffer *bufs;
+extern int nbufs;
+extern int cbuf;
+extern buffer *bufs;
 
 typedef struct
 {
@@ -94,7 +94,7 @@ typedef struct
 }
 ring;
 
-ring s_buf, d_buf;
+extern ring s_buf, d_buf;
 
 int init_ring(ring *r);
 int add_to_ring(ring *r, mtype lm, const char *lt, const char *ltag);

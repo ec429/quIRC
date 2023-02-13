@@ -17,6 +17,16 @@
 
 #include "keymap.c"
 
+#include "config_globals.c"
+bool autojoin;
+char *username, *fname, *nick, *pass, *portno;
+bool defnick;
+servlist *servs;
+name *igns;
+char *version;
+unsigned int nkeys;
+keymod *kmap;
+
 void loadkeys(FILE *fp)
 {
 	if(!fp) return;

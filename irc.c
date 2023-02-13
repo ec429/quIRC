@@ -15,6 +15,8 @@
 #include "numeric.h"
 #include "numeric_text.h"
 
+volatile sig_atomic_t sigpipe, sigwinch, sigusr1;
+
 void handle_signals(int sig)
 {
 	if(sig==SIGPIPE)
@@ -26,6 +28,8 @@ void handle_signals(int sig)
 }
 
 #if ASYNCH_NL
+nl_list *nl_active;
+
 nl_list *irc_connect(char *server, const char *portno)
 {
 	// Look up server

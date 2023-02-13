@@ -7,7 +7,7 @@ AWK := gawk
 PREFIX := /usr/local
 LIBS_ASYNCH_NL := -lanl
 OPTLIBS = $(LIBS_ASYNCH_NL)
-LIBS = -lm -lncurses $(OBJS) $(OPTLIBS)
+LIBS = $(OBJS) -lm -lncurses $(OPTLIBS)
 OBJS := ttyraw.o ttyesc.o irc.o ctcp.o bits.o strbuf.o ctbuf.o colour.o buffer.o names.o numeric_text.o config.o input.o logging.o types.o cmd.o complete.o
 INCLUDE := $(OBJS:.o=.h) version.h osconf.h ctbuf_h.d buffer_h.d config_c.d config_h.d input_h.d
 
@@ -78,7 +78,7 @@ buffer_h.d: buffer.h colour.h config_h.d input_h.d irc.h types.h
 
 config.o: config_c.d config_h.d names.h bits.h colour.h text.h ttyesc.h version.h
 
-config_c.d: config.c config_check.c config_def.c config_need.c config_rcread.c config_pargs.c config_help.c keymap.c
+config_c.d: config.c config_globals.c config_check.c config_def.c config_need.c config_rcread.c config_pargs.c config_help.c keymap.c
 
 config_h.d: config.h config_globals.h version.h keymod.h
 

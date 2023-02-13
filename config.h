@@ -45,14 +45,14 @@ servlist;
 
 // global settings & state
 #include "config_globals.h"
-bool autojoin;
-char *username, *fname, *nick, *pass, *portno;
-bool defnick;
-servlist *servs;
-name *igns;
-char *version;
-unsigned int nkeys;
-keymod *kmap;
+extern bool autojoin;
+extern char *username, *fname, *nick, *pass, *portno;
+extern bool defnick;
+extern servlist *servs;
+extern name *igns;
+extern char *version;
+extern unsigned int nkeys;
+extern keymod *kmap;
 
 int initkeys(void);
 void loadkeys(FILE *);

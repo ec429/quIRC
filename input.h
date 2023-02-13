@@ -42,7 +42,7 @@ ibuffer;
 
 #include "names.h"
 
-bool ttab;
+extern bool ttab;
 
 void inputchar(iline *inp, int *state);
 char * slash_dequote(char *inp);

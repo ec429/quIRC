@@ -18,6 +18,8 @@
 #include "cmd.h"
 #include "complete.h"
 
+bool ttab;
+
 size_t i_firstlen (ichar src);
 size_t i_lastlen (ichar src);
 void i_move (iline * inp, ssize_t bytes);

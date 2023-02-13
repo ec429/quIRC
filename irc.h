@@ -47,7 +47,7 @@ message;
 
 #define MQUOTE	'\020'
 
-volatile sig_atomic_t sigpipe, sigwinch, sigusr1;
+extern volatile sig_atomic_t sigpipe, sigwinch, sigusr1;
 
 void handle_signals(int); // handles sigpipe, sigwinch and sigusr1
 
@@ -61,7 +61,7 @@ typedef struct _nl_list
 	struct _nl_list *prev, *next;
 }
 nl_list;
-nl_list *nl_active;
+extern nl_list *nl_active;
 nl_list *irc_connect(char *server, const char *portno); // non-blocking NL
 int irc_conn_found(nl_list **list, fd_set *master, int *fdmax); // non-blocking; call this when the getaddrinfo_a() has finished
 #else
