@@ -26,7 +26,7 @@ colour c_mirc(int, int);
 colour reverse_colours(colour, bool);
 int c_init(void);
 
-colour c_list[19];
+extern colour c_list[19];
 
 // These should really be generated procedurally
 #define c_msg		c_list

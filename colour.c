@@ -9,6 +9,8 @@
 #include "colour.h"
 #include "ttyesc.h"
 
+colour c_list[19];
+
 inline bool eq_colour(colour a, colour b)
 {
 	if(a.fore!=b.fore) return(false);
