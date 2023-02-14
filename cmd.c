@@ -622,7 +622,7 @@ CMD_FUN (server)
 				bufs[cbuf].nick =
 					bufs[0].nick ? strdup (bufs[0].
 							       nick) : NULL;
-				bufs[cbuf].key = strdup(newpass);
+				bufs[cbuf].key = newpass ? strdup(newpass) : NULL;
 				bufs[cbuf].server = cbuf;
 				bufs[cbuf].conninpr = true;
 				add_to_buffer (cbuf, STA, QUIET, 0, false,
