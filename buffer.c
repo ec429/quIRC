@@ -1070,7 +1070,7 @@ void titlebar(void)
 	char version[32];
 	sprintf(version, "%hhu.%hhu.%hhu", VERSION_MAJ, VERSION_MIN, VERSION_REV);
 	char vgits[8];
-	sprintf(vgits, "%hhu", gits);
+	sprintf(vgits, "%u", gits);
 	memset(use, 0, sizeof(bool[8]));
 	if(*cchan && (wleft>=chanlen))
 	{

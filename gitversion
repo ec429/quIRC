@@ -15,9 +15,9 @@ echo "/*
 	version.h: contains version number (generated from git describe)
 */
 #pragma once
-#define VERSION_MAJ $MAJOR // Major version
-#define VERSION_MIN $MINOR // Minor version
-#define VERSION_REV $REV // Revision number
+#define VERSION_MAJ (unsigned char)${MAJOR}U // Major version
+#define VERSION_MIN (unsigned char)${MINOR}U // Minor version
+#define VERSION_REV (unsigned char)${REV}U // Revision number
 #define VERSION_TXT \"$GIT\" // Rest of git describe
 #define CC_VERSION	\"$CCVER\" // last line of cc -v" > version.h2
 

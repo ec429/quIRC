@@ -421,7 +421,7 @@ int main(int argc, char *argv[])
 									if((e=irc_rx(fd, &packet, &master))!=0)
 									{
 										char emsg[64];
-										sprintf(emsg, "irc_rx(%d, &%p): %d", fd, packet, e);
+										sprintf(emsg, "irc_rx(%d, &%p): %d", fd, (void *)packet, e);
 										close(fd);
 										bufs[b].handle=0; // de-bind fd
 										FD_CLR(fd, &master);
